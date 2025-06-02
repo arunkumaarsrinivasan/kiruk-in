@@ -11,7 +11,6 @@ function ScribbleLine({ points, color = '#374151', lineWidth = 2 }: {
   color?: string;
   lineWidth?: number;
 }) {
-  const lineRef = useRef<THREE.Line>(null);
   const materialRef = useRef<THREE.LineBasicMaterial>(null);
 
   useFrame((state) => {
@@ -23,7 +22,6 @@ function ScribbleLine({ points, color = '#374151', lineWidth = 2 }: {
 
   return (
     <Line
-      ref={lineRef}
       points={points}
       color={color}
       lineWidth={lineWidth}
