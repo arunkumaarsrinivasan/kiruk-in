@@ -41,10 +41,10 @@ export default function ScribbleAnimation({
   className = "" 
 }: { 
   readonly className?: string;
-}) {
-  const [scribbleTrails, setScribbleTrails] = useState<Array<{ id: string; points: THREE.Vector3[] }>>([]);
+}) {  const [scribbleTrails, setScribbleTrails] = useState<Array<{ id: string; points: THREE.Vector3[] }>>([]);
   const [currentTrail, setCurrentTrail] = useState<THREE.Vector3[]>([]);
   const [isMouseInside, setIsMouseInside] = useState(false);
+  const [isTouching, setIsTouching] = useState(false);
   const lastPositionRef = useRef<THREE.Vector3 | null>(null);
   const trailIdRef = useRef<string>(`trail-${Date.now()}`);
   const smoothingFactorRef = useRef(0.25); // For smooth interpolation
@@ -69,11 +69,11 @@ export default function ScribbleAnimation({
       (y * height) / 2,
       0
     );
-  }, []);const handleMouseMove = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+  }, []);  const handleMouseMove = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     const worldPos = screenToWorld(event.clientX, event.clientY, rect);
 
-    if (isMouseInside) {
+    if (isMouseInside || isTouching) {
       // Smooth interpolation between points for fluid scribbling
       if (lastPositionRef.current) {
         // Calculate distance for adaptive smoothing
@@ -101,7 +101,7 @@ export default function ScribbleAnimation({
       
       lastPositionRef.current = worldPos;
     }
-  }, [isMouseInside, screenToWorld]);
+  }, [isMouseInside, isTouching, screenToWorld]);
   const handleMouseEnter = useCallback(() => {
     setIsMouseInside(true);
     // Start a new trail
@@ -109,9 +109,72 @@ export default function ScribbleAnimation({
     setCurrentTrail([]);
     lastPositionRef.current = null;
   }, []);
-
   const handleMouseLeave = useCallback(() => {
     setIsMouseInside(false);
+    
+    // Save the current trail if it has enough points
+    if (currentTrail.length > 5) {
+      const newTrail = {
+        id: trailIdRef.current,
+        points: currentTrail
+      };
+      setScribbleTrails(prev => [...prev, newTrail].slice(-8)); // Keep last 8 trails
+    }
+    
+    setCurrentTrail([]);
+    lastPositionRef.current = null;
+  }, [currentTrail]);
+
+  // Touch event handlers for mobile support
+  const handleTouchStart = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
+    event.preventDefault(); // Prevent scrolling
+    setIsTouching(true);
+    // Start a new trail
+    trailIdRef.current = `trail-${Date.now()}-${Math.random()}`;
+    setCurrentTrail([]);
+    lastPositionRef.current = null;
+  }, []);
+
+  const handleTouchMove = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
+    event.preventDefault(); // Prevent scrolling
+    
+    if (isTouching && event.touches.length > 0) {
+      const touch = event.touches[0];
+      const rect = event.currentTarget.getBoundingClientRect();
+      const worldPos = screenToWorld(touch.clientX, touch.clientY, rect);
+
+      // Smooth interpolation between points for fluid scribbling
+      if (lastPositionRef.current) {
+        // Calculate distance for adaptive smoothing
+        const distance = lastPositionRef.current.distanceTo(worldPos);
+        const adaptiveSmoothness = Math.min(0.4, Math.max(0.1, distance * 0.5));
+        
+        const smoothedPos = new THREE.Vector3().lerpVectors(
+          lastPositionRef.current,
+          worldPos,
+          adaptiveSmoothness
+        );
+        
+        // Only add point if there's enough movement to avoid clustering
+        if (distance > 0.02) {
+          setCurrentTrail(prev => {
+            const newTrail = [...prev, smoothedPos];
+            // Limit trail length for performance and visual appeal
+            return newTrail.length > 80 ? newTrail.slice(-80) : newTrail;
+          });
+        }
+      } else {
+        // First point in the trail
+        setCurrentTrail([worldPos]);
+      }
+      
+      lastPositionRef.current = worldPos;
+    }
+  }, [isTouching, screenToWorld]);
+
+  const handleTouchEnd = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsTouching(false);
     
     // Save the current trail if it has enough points
     if (currentTrail.length > 5) {
@@ -138,13 +201,16 @@ export default function ScribbleAnimation({
     }, 2000);
     
     return () => clearInterval(interval);
-  }, [currentTrail.length]);
-  return (
+  }, [currentTrail.length]);  return (
     <div 
-      className={`w-full h-full ${className} cursor-crosshair`}
+      className={`w-full h-full ${className} cursor-crosshair touch-none scribble-area`}
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
     ><Canvas
         camera={{ position: [0, 0, 5], fov: 50 }}
         style={{ background: 'transparent' }}

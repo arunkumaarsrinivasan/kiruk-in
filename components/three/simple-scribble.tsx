@@ -42,10 +42,11 @@ export default function ScribbleAnimation({
 }: Readonly<{ 
   className?: string;
 }>) {
-  const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null);
-  const [scribbleTrails, setScribbleTrails] = useState<THREE.Vector3[][]>([]);
+  const [scribbleTrails, setScribbleTrails] = useState<Array<{ id: string; points: THREE.Vector3[] }>>([]);
   const [currentTrail, setCurrentTrail] = useState<THREE.Vector3[]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [isTouching, setIsTouching] = useState(false);
+  const trailIdRef = useRef<string>(`trail-${Date.now()}`);
   
   // Convert screen coordinates to 3D world coordinates
   const screenToWorld = useCallback((screenX: number, screenY: number, containerRect: DOMRect) => {
@@ -57,20 +58,15 @@ export default function ScribbleAnimation({
   const handleMouseMove = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     const worldPos = screenToWorld(event.clientX, event.clientY, rect);
-    
-    setMousePosition({
-      x: (event.clientX - rect.left) / rect.width,
-      y: (event.clientY - rect.top) / rect.height,
-    });
 
-    if (isDrawing) {
+    if (isDrawing || isTouching) {
       setCurrentTrail(prev => {
         const newTrail = [...prev, worldPos];
         // Limit trail length to prevent performance issues
         return newTrail.length > 50 ? newTrail.slice(-50) : newTrail;
       });
     }
-  }, [isDrawing, screenToWorld]);
+  }, [isDrawing, isTouching, screenToWorld]);
 
   const handleMouseDown = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -78,24 +74,77 @@ export default function ScribbleAnimation({
     
     setIsDrawing(true);
     setCurrentTrail([worldPos]);
+    trailIdRef.current = `trail-${Date.now()}-${Math.random()}`;
   }, [screenToWorld]);
 
   const handleMouseUp = useCallback(() => {
-    if (isDrawing && currentTrail.length > 1) {
-      setScribbleTrails(prev => [...prev, currentTrail].slice(-5)); // Keep only last 5 trails
+    if ((isDrawing || isTouching) && currentTrail.length > 1) {
+      const newTrail = {
+        id: trailIdRef.current,
+        points: currentTrail
+      };
+      setScribbleTrails(prev => [...prev, newTrail].slice(-5)); // Keep only last 5 trails
     }
     setIsDrawing(false);
     setCurrentTrail([]);
-  }, [isDrawing, currentTrail]);
+  }, [isDrawing, isTouching, currentTrail]);
 
   const handleMouseLeave = useCallback(() => {
-    if (isDrawing && currentTrail.length > 1) {
-      setScribbleTrails(prev => [...prev, currentTrail].slice(-5));
+    if ((isDrawing || isTouching) && currentTrail.length > 1) {
+      const newTrail = {
+        id: trailIdRef.current,
+        points: currentTrail
+      };
+      setScribbleTrails(prev => [...prev, newTrail].slice(-5));
     }
     setIsDrawing(false);
     setCurrentTrail([]);
-    setMousePosition(null);
-  }, [isDrawing, currentTrail]);
+  }, [isDrawing, isTouching, currentTrail]);
+
+  // Touch event handlers for mobile support
+  const handleTouchStart = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
+    event.preventDefault(); // Prevent scrolling
+    
+    if (event.touches.length > 0) {
+      const touch = event.touches[0];
+      const rect = event.currentTarget.getBoundingClientRect();
+      const worldPos = screenToWorld(touch.clientX, touch.clientY, rect);
+      
+      setIsTouching(true);
+      setCurrentTrail([worldPos]);
+      trailIdRef.current = `trail-${Date.now()}-${Math.random()}`;
+    }
+  }, [screenToWorld]);
+
+  const handleTouchMove = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
+    event.preventDefault(); // Prevent scrolling
+    
+    if (isTouching && event.touches.length > 0) {
+      const touch = event.touches[0];
+      const rect = event.currentTarget.getBoundingClientRect();
+      const worldPos = screenToWorld(touch.clientX, touch.clientY, rect);
+
+      setCurrentTrail(prev => {
+        const newTrail = [...prev, worldPos];
+        // Limit trail length to prevent performance issues
+        return newTrail.length > 50 ? newTrail.slice(-50) : newTrail;
+      });
+    }
+  }, [isTouching, screenToWorld]);
+
+  const handleTouchEnd = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    
+    if (isTouching && currentTrail.length > 1) {
+      const newTrail = {
+        id: trailIdRef.current,
+        points: currentTrail
+      };
+      setScribbleTrails(prev => [...prev, newTrail].slice(-5)); // Keep only last 5 trails
+    }
+    setIsTouching(false);
+    setCurrentTrail([]);
+  }, [isTouching, currentTrail]);
 
   // Clean up old trails periodically
   useEffect(() => {
@@ -105,27 +154,28 @@ export default function ScribbleAnimation({
     
     return () => clearInterval(interval);
   }, []);
-
   return (
     <div 
-      className={`w-full h-full ${className} cursor-crosshair`}
+      className={`w-full h-full ${className} cursor-crosshair touch-none scribble-area`}
       onMouseMove={handleMouseMove}
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseLeave}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
     >
       <Canvas
         camera={{ position: [0, 0, 5], fov: 50 }}
         style={{ background: 'transparent' }}
       >
-        <ambientLight intensity={0.5} />
-        
         {/* Render existing scribble trails */}
-        {scribbleTrails.map((trail, index) => (
+        {scribbleTrails.map((trail) => (
           <MouseScribbleTrail 
-            key={`trail-${index}`} 
-            trail={trail} 
-            opacity={0.4 - (index * 0.1)} 
+            key={trail.id} 
+            trail={trail.points} 
+            opacity={0.4} 
           />
         ))}
         
