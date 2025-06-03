@@ -2,90 +2,130 @@
 
 import { motion } from 'framer-motion';
 import ScribbleAnimation from '../three/scribble-animation';
-import Button from '../ui/button';
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-gray-50 to-white">
-      {/* Three.js Background Animation */}
-      <div className="absolute inset-0 opacity-30">
-        <ScribbleAnimation />
+    <section className="relative min-h-screen overflow-hidden bg-white">
+      {/* Full Canvas Scribble Playground */}
+      <div className="absolute inset-0">
+        <ScribbleAnimation className="w-full h-full" />
       </div>
       
-      {/* Content */}
-      <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-8 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-        >
-          {/* Main heading */}
-          <motion.h1 
-            className="text-5xl sm:text-7xl lg:text-8xl font-bold text-gray-900 mb-6"
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-          >
-            <span className="block font-mono tracking-tight">kiruk</span>
-          </motion.h1>
-          
-          {/* Subtitle */}
-          <motion.p 
-            className="text-xl sm:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-          >
-            Where <span className="font-semibold text-gray-900">AI meets UX</span> 
-            {" "}through the art of scribbling
-          </motion.p>
-          
-          {/* Description */}
-          <motion.p 
-            className="text-lg text-gray-500 mb-12 max-w-2xl mx-auto leading-relaxed"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-          >
-            I believe every great digital experience starts with a simple scribble. 
-            As an AI-driven UX designer, I blend cutting-edge technology with 
-            old-school pen-and-paper creativity to craft meaningful user experiences.
-          </motion.p>
-            {/* CTA Buttons */}
-          <motion.div 
-            className="flex flex-col sm:flex-row gap-4 justify-center items-center"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.8 }}
-          >
-            <Button href="/work" size="lg">
-              View My Work
-            </Button>
-            <Button href="/about" variant="outline" size="lg">
-              About Me
-            </Button>
-          </motion.div>
-        </motion.div>
-      </div>
-      
-      {/* Scroll indicator */}
-      <motion.div 
-        className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
+      {/* Minimal Identity Overlay */}
+      <motion.div
+        className="absolute top-8 left-8 z-20"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.5 }}
+      >
+        <div className="handwritten text-lg text-gray-700">
+          <div className="text-3xl mb-2 font-bold">✏️ Kiruk</div>
+          <div className="text-sm opacity-80">Mad Scribbler from Tamil Nadu</div>
+          <div className="text-xs opacity-60 mt-1">கிறுக் - One who thinks differently</div>
+        </div>
+      </motion.div>
+
+      {/* Floating Tamil Inspiration Words */}
+      <motion.div
+        className="absolute top-20 right-20 hidden lg:block"
+        animate={{ 
+          rotate: [0, 2, -2, 0],
+          y: [0, -5, 5, 0] 
+        }}
+        transition={{ 
+          duration: 6, 
+          repeat: Infinity, 
+          ease: "easeInOut" 
+        }}
+      >
+        <div className="handwritten text-xl text-sketch-orange transform rotate-12">
+          வடிவமைப்பு 🎨
+        </div>
+      </motion.div>
+
+      <motion.div
+        className="absolute bottom-20 left-20 hidden lg:block"
+        animate={{ 
+          rotate: [0, -3, 3, 0],
+          x: [0, 3, -3, 0] 
+        }}
+        transition={{ 
+          duration: 8, 
+          repeat: Infinity, 
+          ease: "easeInOut",
+          delay: 2 
+        }}
+      >
+        <div className="handwritten text-lg text-sketch-blue transform -rotate-6">
+          கற்பனை ✨
+        </div>
+      </motion.div>
+
+      <motion.div
+        className="absolute top-1/2 right-10 hidden lg:block"
+        animate={{ 
+          scale: [1, 1.1, 1],
+          rotate: [0, 5, -5, 0] 
+        }}
+        transition={{ 
+          duration: 4, 
+          repeat: Infinity, 
+          ease: "easeInOut",
+          delay: 1 
+        }}
+      >
+        <div className="handwritten text-base text-sketch-green transform rotate-90">
+          Code + Design 💻
+        </div>
+      </motion.div>
+
+      {/* Subtle center hint */}
+      <motion.div
+        className="absolute bottom-8 right-8 z-20"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.8, delay: 1.2 }}
+        transition={{ duration: 1, delay: 2 }}
       >
-        <motion.div
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-          className="w-6 h-10 border-2 border-gray-300 rounded-full flex justify-center"
-        >
-          <motion.div
-            animate={{ y: [0, 12, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            className="w-1 h-3 bg-gray-400 rounded-full mt-2"
-          />
-        </motion.div>
+        <div className="handwritten text-xs text-gray-400">
+          Move your mouse to scribble ✏️
+        </div>
+      </motion.div>
+      
+      {/* Adventure spirit indicators */}
+      <motion.div
+        className="absolute top-1/3 left-10 hidden lg:block"
+        animate={{ 
+          y: [0, -10, 10, 0],
+          rotate: [0, 3, -3, 0] 
+        }}
+        transition={{ 
+          duration: 7, 
+          repeat: Infinity, 
+          ease: "easeInOut",
+          delay: 0.5 
+        }}
+      >
+        <div className="handwritten text-sm text-sketch-purple transform -rotate-12">
+          🏔️ Trekker
+        </div>
+      </motion.div>
+
+      <motion.div
+        className="absolute bottom-1/3 right-1/3 hidden lg:block"
+        animate={{ 
+          rotate: [0, -4, 4, 0],
+          scale: [1, 1.05, 1] 
+        }}
+        transition={{ 
+          duration: 5, 
+          repeat: Infinity, 
+          ease: "easeInOut",
+          delay: 3 
+        }}
+      >
+        <div className="handwritten text-sm text-sketch-orange transform rotate-6">
+          📸 Life Documenter
+        </div>
       </motion.div>
     </section>
   );

@@ -1,26 +1,441 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fefcf7;
+  --foreground: #2d3748;
+  --notebook-blue: #4299e1;
+  --sketch-red: #e53e3e;
+  --pencil-gray: #718096;
+  --paper-cream: #fffaf0;
+  --ink-blue: #2b6cb0;
+  --margin-red: #e53e3e;
+  --sketch-yellow: #ecc94b;
+  --sketch-orange: #f6ad55;
+  --sketch-green: #48bb78;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Sketch-style animations */
+@keyframes draw {
+  0% {
+    stroke-dasharray: 0 1000;
+  }
+  100% {
+    stroke-dasharray: 1000 0;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(0.5deg); }
+  75% { transform: rotate(-0.5deg); }
+}
+
+/* Paper texture overlay */
+.paper-texture::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 20% 50%, rgba(120, 120, 120, 0.05) 1px, transparent 1px),
+    radial-gradient(circle at 40% 20%, rgba(120, 120, 120, 0.05) 1px, transparent 1px),
+    radial-gradient(circle at 70% 80%, rgba(120, 120, 120, 0.05) 1px, transparent 1px);
+  background-size: 50px 50px, 30px 30px, 40px 40px;
+  pointer-events: none;
+}
+
+/* Handwritten text styles */
+.handwritten {
+  font-family: var(--font-caveat), cursive;
+  font-weight: 500;
+}
+
+.sketch-font {
+  font-family: var(--font-kalam), cursive;
+}
+
+.architect-font {
+  font-family: var(--font-architects-daughter), cursive;
+}
+
+/* Notebook hole punches */
+.notebook-holes::before {
+  content: '';
+  position: absolute;
+  left: 20px;
+  top: 0;
+  bottom: 0;
+  width: 20px;
+  background-image: repeating-linear-gradient(
+    transparent,
+    transparent 10px,
+    rgba(229, 62, 62, 0.2) 15px,
+    rgba(229, 62, 62, 0.2) 20px
+  );
+  background-size: 20px 30px;
+}
+
+/* Sketch-style borders and elements */
+.sketch-border {
+  position: relative;
+  border: 2px solid var(--pencil-gray);
+  border-radius: 8px;
+}
+
+.sketch-border::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border: 2px solid var(--pencil-gray);
+  border-radius: 8px;
+  transform: rotate(0.5deg);
+  z-index: -1;
+}
+
+/* Enhanced sketch borders with more variation */
+.sketch-border-thick {
+  border: 3px solid #374151;
+  border-radius: 8px;
+  position: relative;
+}
+
+.sketch-border-thick::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border: 2px dashed var(--sketch-blue);
+  border-radius: 10px;
+  opacity: 0.4;
+  transform: rotate(-0.5deg);
+}
+
+/* Notebook spiral binding effect */
+.notebook-spiral {
+  position: relative;
+}
+
+.notebook-spiral::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 30px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    transparent 45%, 
+    #dc2626 45%, 
+    #dc2626 55%, 
+    transparent 55%, 
+    transparent 100%
+  );
+  background-size: 6px 20px;
+}
+
+/* Creative shadow effects */
+.sketch-shadow {
+  box-shadow: 
+    3px 3px 0px var(--sketch-blue),
+    6px 6px 0px var(--sketch-yellow),
+    9px 9px 0px var(--sketch-orange);
+  transform: rotate(-1deg);
+  transition: all 0.3s ease;
+}
+
+.sketch-shadow:hover {
+  transform: rotate(0deg) scale(1.02);
+  box-shadow: 
+    2px 2px 0px var(--sketch-blue),
+    4px 4px 0px var(--sketch-yellow),
+    6px 6px 0px var(--sketch-orange);
+}
+
+/* Hand-drawn button styles */
+.sketch-button {
+  position: relative;
+  background: var(--paper-cream);
+  border: 2px solid var(--ink-blue);
+  border-radius: 15px;
+  transform: rotate(-0.5deg);
+  transition: all 0.3s ease;
+}
+
+.sketch-button:hover {
+  transform: rotate(0.5deg) scale(1.05);
+  box-shadow: 3px 3px 0 var(--ink-blue);
+}
+
+.sketch-button::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border: 1px dashed var(--ink-blue);
+  border-radius: 12px;
+  opacity: 0.5;
+}
+
+/* Torn paper effect */
+.torn-paper {
+  position: relative;
+  background: white;
+}
+
+.torn-paper::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 0;
+  right: 0;
+  height: 10px;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 2px,
+    white 2px,
+    white 4px
+  );
+}
+
+/* Scribbled text effect */
+.scribbled-text {
+  position: relative;
+  display: inline-block;
+}
+
+.scribbled-text::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--sketch-red);
+  transform: rotate(-1deg) scaleX(1.1);
+  opacity: 0.6;
+}
+
+/* Coffee stain effect */
+.coffee-stain {
+  position: relative;
+}
+
+.coffee-stain::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  width: 30px;
+  height: 30px;
+  background: radial-gradient(circle, 
+    rgba(139, 69, 19, 0.1) 0%, 
+    rgba(139, 69, 19, 0.05) 50%, 
+    transparent 70%
+  );
+  border-radius: 50%;
+  transform: rotate(45deg);
+}
+
+/* Doodle margins */
+.doodle-margin {
+  border-left: 3px solid var(--sketch-red);
+  margin-left: 40px;
+  padding-left: 20px;
+  position: relative;
+}
+
+.doodle-margin::before {
+  content: '📝';
+  position: absolute;
+  left: -35px;
+  top: 50%;
+  transform: translateY(-50%) rotate(-15deg);
+  font-size: 1.2rem;
+  opacity: 0.7;
+}
+
+/* Sticky note tape effect */
+.sticky-tape {
+  position: relative;
+}
+
+.sticky-tape::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 20%;
+  width: 60%;
+  height: 16px;
+  background: linear-gradient(45deg, 
+    transparent 25%, 
+    rgba(255, 255, 255, 0.8) 25%, 
+    rgba(255, 255, 255, 0.8) 75%, 
+    transparent 75%
+  );
+  background-size: 8px 8px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  transform: rotate(-2deg);
+}
+
+/* Paper clip effect */
+.paper-clip {
+  position: relative;
+}
+
+.paper-clip::after {
+  content: '📎';
+  position: absolute;
+  top: -10px;
+  right: 10px;
+  font-size: 1.5rem;
+  transform: rotate(15deg);
+  opacity: 0.7;
+}
+
+/* Handwritten checkbox */
+.handwritten-checkbox {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--sketch-blue);
+  border-radius: 3px;
+  transform: rotate(-2deg);
+  position: relative;
+  cursor: pointer;
+}
+
+.handwritten-checkbox:checked::before {
+  content: '✓';
+  position: absolute;
+  top: -2px;
+  left: 2px;
+  color: var(--sketch-green);
+  font-weight: bold;
+  transform: rotate(10deg);
+}
+
+/* Sketch button enhancements */
+.sketch-btn-3d {
+  position: relative;
+  transform: translateZ(0);
+  transition: all 0.3s ease;
+}
+
+.sketch-btn-3d::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: inherit;
+  transform: translateX(3px) translateY(3px);
+  z-index: -1;
+  opacity: 0.5;
+  border-radius: inherit;
+}
+
+.sketch-btn-3d:hover {
+  transform: translateX(1px) translateY(1px);
+}
+
+.sketch-btn-3d:hover::before {
+  transform: translateX(2px) translateY(2px);
+}
+
+/* Notebook page curl effect */
+.page-curl {
+  position: relative;
+  background: white;
+}
+
+.page-curl::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(-45deg, 
+    transparent 45%, 
+    rgba(0, 0, 0, 0.1) 50%, 
+    rgba(0, 0, 0, 0.05) 55%, 
+    transparent 60%
+  );
+  transform: rotate(45deg);
+}
+
+/* Creative bullet points */
+.creative-bullets li {
+  list-style: none;
+  position: relative;
+  padding-left: 30px;
+  margin: 10px 0;
+}
+
+.creative-bullets li::before {
+  content: attr(data-bullet);
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-size: 1.2rem;
+  transform: rotate(-15deg);
+  opacity: 0.8;
+}
+
+/* Default bullets if no data-bullet */
+.creative-bullets li:nth-child(odd)::before {
+  content: '✏️';
+}
+
+.creative-bullets li:nth-child(even)::before {
+  content: '🎨';
+}
+
+/* Sketch progress bar */
+.sketch-progress {
+  width: 100%;
+  height: 8px;
+  background: var(--paper-white);
+  border: 2px solid var(--sketch-blue);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  transform: rotate(-0.5deg);
+}
+
+.sketch-progress::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    var(--sketch-green) 0%, 
+    var(--sketch-yellow) 50%, 
+    var(--sketch-orange) 100%
+  );
+  width: var(--progress, 0%);
+  transition: width 0.3s ease;
+  border-radius: 6px;
+}
+
+/* Responsive notebook adjustments */
+@media (max-width: 768px) {
+  .notebook-bg {
+    background-size: 25px 25px;
+  }
+  
+  .notebook-holes::before {
+    left: 8px;
+    background-size: 4px 15px;
+  }
+  
+  .handwritten {
+    font-size: 0.9rem;
+  }
 }

@@ -1,8 +1,15 @@
+import ScribbleAnimation from '@/components/three/simple-scribble';
+
 export default function CaseStudies() {
   return (
     <main className="pt-16">
-      <section className="py-20 bg-gradient-to-br from-gray-50 to-white">
-        <div className="max-w-6xl mx-auto px-6 sm:px-8">
+      {/* Hero Section with Project Showcase */}
+      <section className="relative py-20 bg-gradient-to-br from-gray-50 to-white overflow-hidden">        {/* Three.js Project Visualization Background */}
+        <div className="absolute inset-0 opacity-20">
+          <ScribbleAnimation className="w-full h-full" />
+        </div>
+        
+        <div className="relative max-w-6xl mx-auto px-6 sm:px-8 z-10">
           <div className="text-center mb-16">
             <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
               Case Studies
@@ -10,6 +17,22 @@ export default function CaseStudies() {
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Deep dives into my design process, from initial sketches to final implementations.
             </p>
+          </div>
+            {/* Interactive Project Showcase */}
+          <div className="relative h-96 mb-20 rounded-xl overflow-hidden bg-gradient-to-br from-purple-50 via-blue-50 to-green-50">
+            <ScribbleAnimation className="w-full h-full opacity-70" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center bg-white/90 backdrop-blur-sm p-8 rounded-lg shadow-lg max-w-lg">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Creative Scribbling Space</h2>
+                <p className="text-gray-600 mb-4">
+                  This interactive canvas represents my design process. Click and drag to create scribbles
+                  that mirror how each project begins - with simple sketches and creative exploration.
+                </p>
+                <p className="text-sm text-gray-500">
+                  Click and drag above to create your own design scribbles
+                </p>
+              </div>
+            </div>
           </div>
           
           {/* Coming Soon */}
