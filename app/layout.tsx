@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Kalam, Caveat, Architects_Daughter } from "next/font/google";
 import "./globals.css";
-import Navigation from "../components/layout/navigation";
+import LayoutClientShell from "../components/layout/LayoutClientShell";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -47,13 +47,15 @@ export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
-}>) {  return (
+}>) {
+  return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${kalam.variable} ${caveat.variable} ${architectsDaughter.variable} antialiased`}
       >
-        <Navigation />
-        {children}
+        <LayoutClientShell>
+          {children}
+        </LayoutClientShell>
       </body>
     </html>
   );

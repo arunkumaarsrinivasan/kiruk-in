@@ -77,16 +77,15 @@ function ProjectCube({
           metalness={0.7}
         />
       </Box>
-      
-      {/* Small indicator spheres for different aspects of the project */}
+        {/* Small indicator spheres for different aspects of the project */}
       <Sphere position={[0.2, 0.2, 0.2]} args={[0.03, 8, 8]}>
-        <meshStandardMaterial color="#fbbf24" emissive="#fbbf24" emissiveIntensity={0.3} />
+        <meshStandardMaterial color="#888888" emissive="#888888" emissiveIntensity={0.3} />
       </Sphere>
       <Sphere position={[-0.2, 0.2, 0.2]} args={[0.03, 8, 8]}>
-        <meshStandardMaterial color="#06b6d4" emissive="#06b6d4" emissiveIntensity={0.3} />
+        <meshStandardMaterial color="#555555" emissive="#555555" emissiveIntensity={0.3} />
       </Sphere>
       <Sphere position={[0.2, -0.2, 0.2]} args={[0.03, 8, 8]}>
-        <meshStandardMaterial color="#8b5cf6" emissive="#8b5cf6" emissiveIntensity={0.3} />
+        <meshStandardMaterial color="#333333" emissive="#333333" emissiveIntensity={0.3} />
       </Sphere>
     </group>
   );
@@ -220,15 +219,14 @@ function StudyParticles({ mousePosition }: { mousePosition?: { x: number; y: num
       positions[i * 3] = (Math.random() - 0.5) * 12;
       positions[i * 3 + 1] = (Math.random() - 0.5) * 8;
       positions[i * 3 + 2] = (Math.random() - 0.5) * 6;
-      
-      // Multi-colored particles
+        // Multi-colored particles
       const colorIndex = Math.floor(Math.random() * 3);
       if (colorIndex === 0) {
-        colors[i * 3] = 0.6; colors[i * 3 + 1] = 0.4; colors[i * 3 + 2] = 0.9; // Purple
+        colors[i * 3] = 0.2; colors[i * 3 + 1] = 0.2; colors[i * 3 + 2] = 0.2; // Dark gray
       } else if (colorIndex === 1) {
-        colors[i * 3] = 0.2; colors[i * 3 + 1] = 0.7; colors[i * 3 + 2] = 0.8; // Cyan
+        colors[i * 3] = 0.5; colors[i * 3 + 1] = 0.5; colors[i * 3 + 2] = 0.5; // Medium gray
       } else {
-        colors[i * 3] = 0.9; colors[i * 3 + 1] = 0.7; colors[i * 3 + 2] = 0.2; // Yellow
+        colors[i * 3] = 0.8; colors[i * 3 + 1] = 0.8; colors[i * 3 + 2] = 0.8; // Light gray
       }
     }
     
@@ -313,22 +311,20 @@ export default function CaseStudySceneAnimation({
 }) {
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | undefined>();
   const [activeProject, setActiveProject] = useState<number>(0);
-  
-  // Sample case study projects
+    // Sample case study projects
   const projects = useMemo(() => [
-    { position: [0, 0, 0] as [number, number, number], title: 'AI Design Tool', color: '#8b5cf6', category: 'AI/UX' },
-    { position: [2, 1, -1] as [number, number, number], title: 'Healthcare App', color: '#06b6d4', category: 'Mobile' },
-    { position: [-2, 1, 1] as [number, number, number], title: 'Data Viz Dashboard', color: '#10b981', category: 'Web' },
-    { position: [1, -1.5, 0] as [number, number, number], title: 'AR Experience', color: '#f59e0b', category: 'AR/VR' },
-    { position: [-1.5, -1, -1] as [number, number, number], title: 'Design System', color: '#ef4444', category: 'System' },
-    { position: [0, 2, 1] as [number, number, number], title: 'ML Platform', color: '#8b5cf6', category: 'AI/UX' },
+    { position: [0, 0, 0] as [number, number, number], title: 'AI Design Tool', color: '#333333', category: 'AI/UX' },
+    { position: [2, 1, -1] as [number, number, number], title: 'Healthcare App', color: '#666666', category: 'Mobile' },
+    { position: [-2, 1, 1] as [number, number, number], title: 'Data Viz Dashboard', color: '#000000', category: 'Web' },
+    { position: [1, -1.5, 0] as [number, number, number], title: 'AR Experience', color: '#999999', category: 'AR/VR' },
+    { position: [-1.5, -1, -1] as [number, number, number], title: 'Design System', color: '#222222', category: 'System' },
+    { position: [0, 2, 1] as [number, number, number], title: 'ML Platform', color: '#333333', category: 'AI/UX' },
   ], []);
-
   const categories = useMemo(() => [
-    { name: 'AI/UX', position: [3, 2, 0] as [number, number, number], color: '#8b5cf6' },
-    { name: 'Mobile', position: [3, 0, 0] as [number, number, number], color: '#06b6d4' },
-    { name: 'Web', position: [-3, 2, 0] as [number, number, number], color: '#10b981' },
-    { name: 'AR/VR', position: [0, -3, 0] as [number, number, number], color: '#f59e0b' },
+    { name: 'AI/UX', position: [3, 2, 0] as [number, number, number], color: '#333333' },
+    { name: 'Mobile', position: [3, 0, 0] as [number, number, number], color: '#666666' },
+    { name: 'Web', position: [-3, 2, 0] as [number, number, number], color: '#000000' },
+    { name: 'AR/VR', position: [0, -3, 0] as [number, number, number], color: '#999999' },
   ], []);
 
   const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -355,12 +351,11 @@ export default function CaseStudySceneAnimation({
     >
       <Canvas
         camera={{ position: [0, 0, 6], fov: 55 }}
-        style={{ background: 'transparent' }}
-      >
+        style={{ background: 'transparent' }}      >
         <ambientLight intensity={0.3} />
-        <pointLight position={[5, 5, 5]} intensity={0.6} color="#8b5cf6" />
-        <pointLight position={[-5, -5, 3]} intensity={0.4} color="#06b6d4" />
-        <spotLight position={[0, 8, 0]} intensity={0.3} color="#10b981" />
+        <pointLight position={[5, 5, 5]} intensity={0.6} color="#ffffff" />
+        <pointLight position={[-5, -5, 3]} intensity={0.4} color="#cccccc" />
+        <spotLight position={[0, 8, 0]} intensity={0.3} color="#888888" />
         
         {/* Project Cubes */}
         {projects.map((project, index) => (

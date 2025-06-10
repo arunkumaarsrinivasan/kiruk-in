@@ -16,41 +16,18 @@ export const SketchHeading = ({
   level?: 1 | 2 | 3 | 4 | 5 | 6;
   underline?: boolean;
 }) => {
-  const Tag = `h${level}` as keyof JSX.IntrinsicElements;
+  const headingElements = {
+    1: 'h1',
+    2: 'h2',
+    3: 'h3',
+    4: 'h4',
+    5: 'h5',
+    6: 'h6'
+  } as const;
   
+  const Tag = headingElements[level] as any;
   return (
-    <div className={`relative ${className}`}>
-      {React.createElement(
-        Tag,
-        { className: "handwritten text-gray-800 relative z-10" },
-        children
-      )}
-      {underline && (
-        <motion.div
-          className="absolute bottom-0 left-0 h-0.5 bg-blue-400 opacity-70"
-          initial={{ width: 0 }}
-          animate={{ width: '100%' }}
-          transition={{ duration: 1.5, delay: 0.5 }}
-          style={{
-            transform: 'rotate(-0.5deg)',
-            transformOrigin: 'left center',
-          }}
-        />
-      )}
-      {/* Secondary underline for hand-drawn effect */}
-      {underline && (
-        <motion.div
-          className="absolute bottom-1 left-1 h-0.5 bg-blue-300 opacity-40"
-          initial={{ width: 0 }}
-          animate={{ width: '95%' }}
-          transition={{ duration: 1.2, delay: 0.8 }}
-          style={{
-            transform: 'rotate(0.3deg)',
-            transformOrigin: 'left center',
-          }}
-        />
-      )}
-    </div>
+    <Tag className={`sketch-font ${underline ? 'sketch-underline' : ''} ${className}`}>{children}</Tag>
   );
 };
 
@@ -70,14 +47,13 @@ export const SketchCard = ({
     none: 'rotate-0'
   };
 
-  return (
-    <motion.div
+  return (    <motion.div
       className={`
-        relative p-6 bg-white shadow-lg paper-texture
+        relative p-6 bg-white paper-texture
         border-2 border-gray-300 rounded-lg
         ${tiltClass[tilt]}
         transition-all duration-300 ease-out
-        hover:shadow-xl hover:scale-105
+        hover:scale-105
         ${className}
       `}
       whileHover={{
@@ -134,12 +110,10 @@ export const SketchButton = ({
     focus:outline-none focus:ring-2 focus:ring-offset-2
     disabled:opacity-50 disabled:cursor-not-allowed
     inline-block text-center no-underline
-  `;
-
-  const variants = {
-    primary: 'bg-blue-100 border-blue-600 text-blue-800 hover:bg-blue-200 focus:ring-blue-500',
-    secondary: 'bg-green-100 border-green-600 text-green-800 hover:bg-green-200 focus:ring-green-500',
-    outline: 'bg-white border-gray-600 text-gray-800 hover:bg-gray-50 focus:ring-gray-500'
+  `;  const variants = {
+    primary: 'bg-white border-black text-black hover:bg-gray-100 focus:ring-black btn-primary-text',
+    secondary: 'bg-gray-100 border-gray-600 text-black hover:bg-gray-200 focus:ring-gray-500 btn-secondary-text',
+    outline: 'bg-white border-gray-600 text-gray-800 hover:bg-gray-50 focus:ring-gray-500 btn-secondary-text'
   };
 
   const sizes = {
@@ -149,14 +123,10 @@ export const SketchButton = ({
   };
 
   const content = (
-    <>
-      {/* Hand-drawn inner border */}
+    <>      {/* Hand-drawn inner border */}
       <div className="absolute inset-2 border border-dashed border-current opacity-30 rounded-lg" />
       
       <span className="relative z-10">{children}</span>
-      
-      {/* Shadow effect */}
-      <div className="absolute inset-0 bg-current opacity-10 rounded-xl transform translate-x-1 translate-y-1 -z-10" />
     </>
   );
 
@@ -210,18 +180,18 @@ export const SketchDivider = ({ className = '' }: { className?: string }) => {
 // Sketch-style highlight box
 export const SketchHighlight = ({ 
   children, 
-  color = 'yellow',
+  color = 'gray',
   className = '' 
 }: {
   children: React.ReactNode;
-  color?: 'yellow' | 'blue' | 'green' | 'pink';
+  color?: 'gray' | 'light' | 'dark' | 'muted';
   className?: string;
 }) => {
   const colors = {
-    yellow: 'bg-yellow-200 border-yellow-400',
-    blue: 'bg-blue-200 border-blue-400',
-    green: 'bg-green-200 border-green-400',
-    pink: 'bg-pink-200 border-pink-400'
+    gray: 'bg-gray-200 border-gray-400',
+    light: 'bg-gray-100 border-gray-300',
+    dark: 'bg-gray-300 border-gray-500',
+    muted: 'bg-gray-50 border-gray-200'
   };
   return (
     <motion.span
@@ -244,20 +214,20 @@ export const SketchHighlight = ({
 // Sticky note component
 export const StickyNote = ({ 
   children, 
-  color = 'yellow',
+  color = 'light',
   size = 'md',
   className = '' 
 }: {
   children: React.ReactNode;
-  color?: 'yellow' | 'blue' | 'green' | 'pink';
+  color?: 'light' | 'medium' | 'dark' | 'white';
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }) => {
   const colors = {
-    yellow: 'bg-yellow-200 border-yellow-300',
-    blue: 'bg-blue-200 border-blue-300',
-    green: 'bg-green-200 border-green-300',
-    pink: 'bg-pink-200 border-pink-300'
+    light: 'bg-gray-50 border-gray-200',
+    medium: 'bg-gray-100 border-gray-300',
+    dark: 'bg-gray-200 border-gray-400',
+    white: 'bg-white border-gray-300'
   };
 
   const sizes = {
@@ -266,10 +236,9 @@ export const StickyNote = ({
     lg: 'w-48 h-48 text-base'
   };
 
-  return (
-    <motion.div
+  return (    <motion.div
       className={`
-        relative p-4 border rounded-lg shadow-md
+        relative p-4 border rounded-lg
         ${colors[color]} ${sizes[size]}
         transform rotate-2
         ${className}
@@ -277,8 +246,7 @@ export const StickyNote = ({
       whileHover={{ 
         rotate: -1, 
         scale: 1.05,
-        y: -5,
-        boxShadow: '0 10px 25px rgba(0,0,0,0.15)'
+        y: -5
       }}
       drag
       dragConstraints={{ left: -50, right: 50, top: -50, bottom: 50 }}

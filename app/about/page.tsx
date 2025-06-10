@@ -1,14 +1,14 @@
 'use client';
 
 import ScribbleAnimation from '@/components/three/scribble-animation';
-import { SketchHeading, SketchCard, SketchButton, SketchHighlight, StickyNote, SketchDivider } from '@/components/ui/sketch-elements';
+import { SketchHeading, SketchCard, SketchButton, SketchHighlight, StickyNote } from '@/components/ui/sketch-elements';
 import { motion } from 'framer-motion';
 
 export default function About() {
   return (
-    <main className="pt-16 notebook-bg">
+    <main className="min-h-screen scrollable-content pt-16 notebook-bg">
       {/* Hero Section with Scribble Background */}
-      <section className="relative py-20 overflow-hidden">
+      <section className="relative min-h-screen flex flex-col">
         {/* Scribble Background */}
         <div className="absolute inset-0 opacity-20">
           <ScribbleAnimation className="w-full h-full" />
@@ -21,10 +21,20 @@ export default function About() {
           transition={{ duration: 4, repeat: Infinity }}
         >
           <StickyNote className="w-40 h-32">
-            <div className="handwritten text-xs">
+            <div className="handwritten text-xs flex items-center gap-2">
+              {/* Hand-drawn Home icon */}
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ filter: 'url(#roughen)' }}>
+                <defs>
+                  <filter id="roughen">
+                    <feTurbulence baseFrequency="0.04" numOctaves="3" result="noise" seed="1" />
+                    <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.8" />
+                  </filter>
+                </defs>
+                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z M9 22V12h6v10" />
+              </svg>
               "கற்பனை + Code = Magic"
               <br />
-              <span className="text-sketch-blue">- Kiruk</span>
+              <span className="text-gray-700">- Kiruk</span>
             </div>
           </StickyNote>
         </motion.div>
@@ -34,212 +44,171 @@ export default function About() {
           animate={{ rotate: [-1, 1, -1] }}
           transition={{ duration: 5, repeat: Infinity, delay: 1 }}
         >
-          <StickyNote color="blue" className="w-36 h-28">
-            <div className="handwritten text-xs">
+          <StickyNote color="light" className="w-36 h-28">
+            <div className="handwritten text-xs flex items-center gap-2">
+              {/* Hand-drawn About icon */}
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ filter: 'url(#roughen)' }}>
+                <defs>
+                  <filter id="roughen">
+                    <feTurbulence baseFrequency="0.04" numOctaves="3" result="noise" seed="1" />
+                    <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.8" />
+                  </filter>
+                </defs>
+                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2 M12 3a4 4 0 100 8 4 4 0 000-8z" />
+              </svg>
               📝 Adventures:
-              <br />• Trek mountains 🏔️
-              <br />• Document life 📸
-              <br />• Code solutions 💻
+              <br />• Trek mountains
+              <br />• Document life
+              <br />• Code solutions
             </div>
           </StickyNote>
-        </motion.div>
-        
-        <div className="relative max-w-4xl mx-auto px-6 sm:px-8 z-10">
+        </motion.div>        
+        <div className="relative h-full flex flex-col justify-center max-w-6xl mx-auto px-6 sm:px-8 z-10">
+          {/* Header */}
           <motion.div 
-            className="text-center mb-16"
+            className="text-center mb-8"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-          >
-            <SketchHeading level={1} className="text-4xl sm:text-5xl mb-6">
+          >            <SketchHeading level={1} className="heading-primary-enhanced text-3xl sm:text-4xl mb-4">
               About{" "}
-              <SketchHighlight color="yellow">Kiruk</SketchHighlight>
-            </SketchHeading>
-            
-            <motion.div
+              <SketchHighlight color="dark">Kiruk</SketchHighlight>
+            </SketchHeading>            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.3 }}
-              className="notebook-paper p-6 mx-auto max-w-2xl rounded-lg"
+              className="notebook-paper p-4 mx-auto max-w-2xl rounded-lg"
             >
-              <p className="handwritten text-lg text-gray-600">
-                கிறுக் - A mad scribbler from Tamil Nadu who thinks differently about design and code.
+              <p className="body-text-primary">
+                A UX designer from Tamil Nadu who thinks differently about design and code.
                 <br />
                 Generalist by heart, specialist when needed. 🎨💻
               </p>
             </motion.div>
           </motion.div>
-        </div>
-      </section>
 
-      {/* Main Content */}
-      <section className="py-20">
-        <div className="max-w-4xl mx-auto px-6 sm:px-8">
+          {/* Main Content Grid */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}
+            className="grid lg:grid-cols-3 gap-6 mb-8"
           >
-            <div className="grid md:grid-cols-2 gap-8 items-start mb-16">
-              <SketchCard tilt="left" className="h-full">
-                <SketchHeading level={2} className="text-2xl mb-4">
-                  The Philosophy
-                </SketchHeading>
-                <div className="handwritten space-y-4 text-gray-600">
-                  <p>
-                    From the hills of Tamil Nadu, I bring a unique perspective to design and development. 
-                    <SketchHighlight color="pink">"Kiruk"</SketchHighlight> isn't just my name - it's my approach.
+            {/* Philosophy */}
+            <SketchCard tilt="left" className="h-full">              <SketchHeading level={2} className="heading-secondary-enhanced text-xl mb-3">
+                The Philosophy
+              </SketchHeading>
+              <div className="body-text-secondary text-sm space-y-2">
+                <p>
+                  From Tamil Nadu hills, I bring unique perspective to design & dev. 
+                  <SketchHighlight color="muted">"Kiruk"</SketchHighlight> is my approach.
+                </p>
+                <p>
+                  <SketchHighlight color="gray">Generalist with big picture vision</SketchHighlight>, specialist when needed.
+                </p>
+              </div>
+            </SketchCard>
+            
+            {/* What I Do */}
+            <SketchCard tilt="right" className="h-full">              <SketchHeading level={3} className="heading-tertiary-enhanced text-lg mb-3" underline={false}>
+                What I Love 💫
+              </SketchHeading>
+              <div className="space-y-2">
+                {[
+                  { icon: "🎨", text: "UX Design", color: "text-gray-800" },
+                  { icon: "💻", text: "Frontend Dev", color: "text-gray-700" },
+                  { icon: "🏔️", text: "Trekking", color: "text-gray-600" },
+                  { icon: "📸", text: "Photography", color: "text-black" }
+                ].map((skill, index) => (
+                  <motion.div
+                    key={skill.text}
+                    className="flex items-center space-x-2"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5, delay: 0.5 + index * 0.1 }}
+                  >
+                    <span className="text-lg">{skill.icon}</span>
+                    <span className={`body-text-secondary text-sm ${skill.color}`}>{skill.text}</span>
+                  </motion.div>
+                ))}
+              </div>
+            </SketchCard>
+
+            {/* Approach */}
+            <SketchCard className="h-full">              <SketchHeading level={2} className="heading-secondary-enhanced text-xl mb-3">
+                My Approach
+              </SketchHeading>
+              <div className="space-y-3">
+                <motion.div
+                  className="text-center"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 1 }}
+                >
+                  <div className="handwritten text-2xl text-black mb-1">🧠</div>
+                  <h4 className="handwritten text-sm font-bold text-gray-800 mb-1">Think Different</h4>
+                  <p className="handwritten text-xs text-gray-600">
+                    கிறுக் means thinking outside boundaries
                   </p>
-                  <p>
-                    I believe great digital experiences come from understanding both the art of design and the craft of code. 
-                    I'm a <SketchHighlight color="blue">generalist who can see the big picture</SketchHighlight>, yet dive deep as a specialist when needed.
+                </motion.div>
+                
+                <motion.div
+                  className="text-center"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 1.2 }}
+                >
+                  <div className="handwritten text-2xl text-gray-700 mb-1">⚡</div>
+                  <h4 className="handwritten text-sm font-bold text-gray-800 mb-1">Build Fast</h4>
+                  <p className="handwritten text-xs text-gray-600">
+                    Prototype quickly, iterate constantly
                   </p>
-                  <p>
-                    When I'm not designing or coding, you'll find me trekking mountains 🏔️, documenting life through my lens 📸, or planning my next adventure.
-                  </p>
+                </motion.div>
+              </div>
+            </SketchCard>
+          </motion.div>
+
+          {/* Skills Row */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 1.0 }}
+            className="mb-6"
+          >
+            <SketchCard>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="handwritten text-base font-bold text-gray-800 mb-2">🎨 Design Skills</h3>
+                  <ul className="handwritten text-sm text-gray-600 space-y-1">
+                    <li>• UX/UI Design • Design Systems • Prototyping</li>
+                  </ul>
                 </div>
-              </SketchCard>
-              
-              <SketchCard tilt="right" className="h-full">
-                <SketchHeading level={3} className="text-lg mb-4" underline={false}>
-                  What I Love Doing 💫
-                </SketchHeading>                <div className="space-y-4">
-                  {[
-                    { icon: "🎨", text: "Designing User Experiences", color: "text-sketch-purple" },
-                    { icon: "💻", text: "Coding Solutions", color: "text-sketch-blue" },
-                    { icon: "🏔️", text: "Trekking Adventures", color: "text-sketch-green" },
-                    { icon: "📸", text: "Life Documentation", color: "text-sketch-orange" },
-                    { icon: "🚀", text: "Creative Problem Solving", color: "text-sketch-red" }
-                  ].map((skill, index) => (
-                    <motion.div
-                      key={skill.text}
-                      className="flex items-center space-x-3"
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.5, delay: 0.5 + index * 0.1 }}
-                    >
-                      <span className="text-2xl">{skill.icon}</span>
-                      <span className={`handwritten ${skill.color}`}>{skill.text}</span>
-                    </motion.div>
-                  ))}
+                
+                <div>
+                  <h3 className="handwritten text-base font-bold text-gray-700 mb-2">💻 Coding Skills</h3>
+                  <ul className="handwritten text-sm text-gray-600 space-y-1">
+                    <li>• React/Next.js • TypeScript • UI Animation</li>
+                  </ul>
                 </div>
-              </SketchCard>
+              </div>
+            </SketchCard>
+          </motion.div>
+
+          {/* CTA */}
+          <motion.div
+            className="text-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 1.6 }}
+          >
+            <div className="flex gap-4 justify-center">
+              <SketchButton href="/work" variant="primary">
+                See My Work
+              </SketchButton>
+              <SketchButton href="/contact" variant="outline">
+                Let's Connect
+              </SketchButton>
             </div>
-
-            <SketchDivider />
-
-            {/* My Approach */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.8 }}
-              className="mt-16"
-            >
-              <SketchCard className="text-center">
-                <SketchHeading level={2} className="text-3xl mb-6">
-                  My Approach
-                </SketchHeading>
-                
-                <div className="grid md:grid-cols-3 gap-8 mt-8">
-                  <motion.div
-                    className="text-center"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 1 }}
-                  >
-                    <div className="handwritten text-4xl text-sketch-orange mb-3">🧠</div>
-                    <h4 className="handwritten text-lg font-bold text-gray-800 mb-2">Think Different</h4>
-                    <p className="handwritten text-sm text-gray-600">
-                      கிறுக் means thinking outside conventional boundaries
-                    </p>
-                  </motion.div>
-                  
-                  <motion.div
-                    className="text-center"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 1.2 }}
-                  >
-                    <div className="handwritten text-4xl text-sketch-blue mb-3">⚡</div>
-                    <h4 className="handwritten text-lg font-bold text-gray-800 mb-2">Build Fast</h4>
-                    <p className="handwritten text-sm text-gray-600">
-                      Prototype quickly, iterate constantly, learn continuously
-                    </p>
-                  </motion.div>
-                  
-                  <motion.div
-                    className="text-center"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 1.4 }}
-                  >
-                    <div className="handwritten text-4xl text-sketch-green mb-3">🌟</div>
-                    <h4 className="handwritten text-lg font-bold text-gray-800 mb-2">Stay Curious</h4>
-                    <p className="handwritten text-sm text-gray-600">
-                      Always exploring, whether it's code, design, or mountain trails
-                    </p>
-                  </motion.div>
-                </div>
-              </SketchCard>
-            </motion.div>
-
-            {/* Skills Grid */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 1.0 }}
-              className="mt-16"
-            >
-              <SketchCard>
-                <SketchHeading level={2} className="text-2xl mb-8 text-center">
-                  Generalist + Specialist
-                </SketchHeading>
-                
-                <div className="grid md:grid-cols-2 gap-8">
-                  <div>
-                    <h3 className="handwritten text-lg font-bold text-sketch-purple mb-4">🎨 Design Skills</h3>
-                    <ul className="handwritten text-gray-600 space-y-2">
-                      <li>• UX/UI Design</li>
-                      <li>• Design Systems</li>
-                      <li>• User Research</li>
-                      <li>• Prototyping</li>
-                      <li>• Visual Design</li>
-                    </ul>
-                  </div>
-                  
-                  <div>
-                    <h3 className="handwritten text-lg font-bold text-sketch-blue mb-4">💻 Coding Skills</h3>
-                    <ul className="handwritten text-gray-600 space-y-2">
-                      <li>• Frontend Development</li>
-                      <li>• React/Next.js</li>
-                      <li>• TypeScript/JavaScript</li>
-                      <li>• UI Animation</li>
-                      <li>• API Integration</li>
-                    </ul>
-                  </div>
-                </div>
-              </SketchCard>
-            </motion.div>
-
-            {/* CTA Section */}
-            <motion.div
-              className="text-center mt-16"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.8, delay: 1.6 }}
-            >
-              <div className="handwritten text-lg text-gray-600 mb-6">
-                Want to collaborate on something amazing?
-              </div>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <SketchButton href="/work" variant="primary">
-                  See My Work
-                </SketchButton>
-                <SketchButton href="/contact" variant="outline">
-                  Let's Connect
-                </SketchButton>
-              </div>
-            </motion.div>
           </motion.div>
         </div>
       </section>

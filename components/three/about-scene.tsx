@@ -9,8 +9,8 @@ import * as THREE from 'three';
 function CreativityOrb({ 
   position, 
   mousePosition,
-  color = '#06b6d4'
-}: { 
+  color = '#333333'
+}: {
   position: [number, number, number];
   mousePosition?: { x: number; y: number };
   color?: string;
@@ -114,10 +114,9 @@ function CreativityFlow({
   return (
     <>
       {connections.map((connection, index) => (
-        <group key={index} ref={el => lineRefs.current[index] = el}>
-          <Line
+        <group key={index} ref={el => lineRefs.current[index] = el}>          <Line
             points={connection.points}
-            color="#06b6d4"
+            color="#333333"
             lineWidth={2}
             transparent
             opacity={connection.opacity}
@@ -174,10 +173,9 @@ function CreativityParticles({ mousePosition }: { mousePosition?: { x: number; y
           itemSize={3}
           args={[particles, 3]}
         />
-      </bufferGeometry>
-      <pointsMaterial
+      </bufferGeometry>      <pointsMaterial
         size={0.02}
-        color="#06b6d4"
+        color="#333333"
         transparent
         opacity={0.6}
         sizeAttenuation
@@ -258,19 +256,17 @@ export default function AboutSceneAnimation({
       <Canvas
         camera={{ position: [0, 0, 5], fov: 60 }}
         style={{ background: 'transparent' }}
-      >
-        <ambientLight intensity={0.3} />
-        <pointLight position={[5, 5, 5]} intensity={0.4} color="#06b6d4" />
-        <pointLight position={[-5, -5, 3]} intensity={0.3} color="#8b5cf6" />
-        <spotLight position={[0, 10, 0]} intensity={0.2} color="#06b6d4" />
+      >        <ambientLight intensity={0.3} />
+        <pointLight position={[5, 5, 5]} intensity={0.4} color="#ffffff" />
+        <pointLight position={[-5, -5, 3]} intensity={0.3} color="#cccccc" />
+        <spotLight position={[0, 10, 0]} intensity={0.2} color="#888888" />
         
         {/* Creativity Orbs */}
         {creativityOrbs.map((position, index) => (
           <CreativityOrb
             key={index}
-            position={position}
-            mousePosition={mousePosition}
-            color={index % 2 === 0 ? '#06b6d4' : '#8b5cf6'}
+            position={position}            mousePosition={mousePosition}
+            color={index % 2 === 0 ? '#333333' : '#666666'}
           />
         ))}
         

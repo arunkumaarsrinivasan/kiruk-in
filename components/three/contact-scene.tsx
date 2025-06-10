@@ -10,8 +10,8 @@ function CommNode({
   position, 
   mousePosition,
   label,
-  color = '#10b981'
-}: { 
+  color = '#333333'
+}: {
   position: [number, number, number];
   mousePosition?: { x: number; y: number };
   label: string;
@@ -151,11 +151,10 @@ function DataFlow({
 
   return (
     <>
-      {connections.map((connection, index) => (
-        <group key={index} ref={el => flowRefs.current[index] = el}>
+      {connections.map((connection, index) => (        <group key={index} ref={el => flowRefs.current[index] = el}>
           <Line
             points={connection.points}
-            color="#10b981"
+            color="#333333"
             lineWidth={1.5}
             transparent
             opacity={connection.opacity}
@@ -275,14 +274,13 @@ export default function ContactSceneAnimation({
   interactive?: boolean;
 }) {
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | undefined>();
-  
-  // Communication nodes representing different contact methods
+    // Communication nodes representing different contact methods
   const commNodes = useMemo(() => [
-    { position: [2, 1, 0] as [number, number, number], label: 'Email', color: '#10b981' },
-    { position: [-2, 1, 0] as [number, number, number], label: 'LinkedIn', color: '#3b82f6' },
-    { position: [0, -1.5, 1] as [number, number, number], label: 'Twitter', color: '#06b6d4' },
-    { position: [1.5, -0.5, -1] as [number, number, number], label: 'GitHub', color: '#8b5cf6' },
-    { position: [-1.5, -0.5, -1] as [number, number, number], label: 'Portfolio', color: '#f59e0b' },
+    { position: [2, 1, 0] as [number, number, number], label: 'Email', color: '#333333' },
+    { position: [-2, 1, 0] as [number, number, number], label: 'LinkedIn', color: '#666666' },
+    { position: [0, -1.5, 1] as [number, number, number], label: 'Twitter', color: '#999999' },
+    { position: [1.5, -0.5, -1] as [number, number, number], label: 'GitHub', color: '#222222' },
+    { position: [-1.5, -0.5, -1] as [number, number, number], label: 'Portfolio', color: '#555555' },
   ], []);
 
   const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -303,11 +301,10 @@ export default function ContactSceneAnimation({
     >
       <Canvas
         camera={{ position: [0, 0, 5], fov: 50 }}
-        style={{ background: 'transparent' }}
-      >
+        style={{ background: 'transparent' }}      >
         <ambientLight intensity={0.4} />
-        <pointLight position={[5, 5, 5]} intensity={0.5} color="#10b981" />
-        <pointLight position={[-5, -5, 3]} intensity={0.3} color="#3b82f6" />
+        <pointLight position={[5, 5, 5]} intensity={0.5} color="#ffffff" />
+        <pointLight position={[-5, -5, 3]} intensity={0.3} color="#cccccc" />
         
         {/* Communication Nodes */}
         {commNodes.map((node, index) => (

@@ -42,14 +42,13 @@ function AINode({ position, mousePosition }: {
     meshRef.current.rotation.x += 0.01;
     meshRef.current.rotation.y += 0.01;
   });
-
   return (
     <Sphere ref={meshRef} position={position} args={[0.05, 8, 8]}>
       <meshStandardMaterial 
-        color="#6366f1" 
+        color="#333333" 
         transparent 
         opacity={0.7}
-        emissive="#6366f1"
+        emissive="#333333"
         emissiveIntensity={0.2}
       />
     </Sphere>
@@ -79,15 +78,14 @@ function NetworkConnections({ nodes, mousePosition }: {
   }, [nodes]);
 
   return (
-    <>
-      {connections.map((connection, index) => (
+    <>      {connections.map((connection, index) => (
         <Line
           key={index}
           points={[
             new THREE.Vector3(...connection.start),
             new THREE.Vector3(...connection.end)
           ]}
-          color="#6366f1"
+          color="#333333"
           lineWidth={1}
           transparent
           opacity={connection.opacity * 0.3}
@@ -138,11 +136,10 @@ export default function WorkSceneAnimation({
     >
       <Canvas
         camera={{ position: [0, 0, 6], fov: 50 }}
-        style={{ background: 'transparent' }}
-      >
+        style={{ background: 'transparent' }}      >
         <ambientLight intensity={0.4} />
         <pointLight position={[10, 10, 10]} intensity={0.5} />
-        <pointLight position={[-10, -10, 5]} intensity={0.3} color="#6366f1" />
+        <pointLight position={[-10, -10, 5]} intensity={0.3} color="#cccccc" />
         
         {/* AI Nodes */}
         {aiNodes.map((position, index) => (

@@ -1,17 +1,96 @@
 @import "tailwindcss";
+@import "../styles/typography-enhancements.css";
+
+/* Custom font declarations */
+@font-face {
+  font-family: 'Bridges Not Walls';
+  src: url('../assets/fonts/Bridges not walls.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Left Hand';
+  src: url('../assets/fonts/Left Hand.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Magnetic Drawing';
+  src: url('../assets/fonts/MagneticDrawing.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Enable vertical scrolling with hidden scrollbars */
+html, body {
+  width: 100%;
+  height: auto;
+  overflow-x: hidden; /* Prevent horizontal scroll */
+  overflow-y: auto; /* Allow vertical scroll */
+  background: #ffffff;
+  color: #000000;
+}
+
+#__next {
+  width: 100%;
+  overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
+/* Hide scrollbars but allow scrolling */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+*::-webkit-scrollbar {
+  display: none; /* WebKit browsers */
+}
+
+/* Ensure smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollable container class */
+.scrollable-content {
+  width: 100%;
+  height: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollable-content::-webkit-scrollbar {
+  display: none;
+}
 
 :root {
-  --background: #fefcf7;
-  --foreground: #2d3748;
-  --notebook-blue: #4299e1;
-  --sketch-red: #e53e3e;
-  --pencil-gray: #718096;
-  --paper-cream: #fffaf0;
-  --ink-blue: #2b6cb0;
-  --margin-red: #e53e3e;
-  --sketch-yellow: #ecc94b;
-  --sketch-orange: #f6ad55;
-  --sketch-green: #48bb78;
+  --background: #ffffff;
+  --foreground: #000000;
+  --muted: #f5f5f5;
+  --muted-foreground: #666666;
+  --border: #e5e5e5;
+  --accent: #f9f9f9;
+  --accent-foreground: #000000;
+  --secondary: #f5f5f5;
+  --secondary-foreground: #000000;
+  
+  /* Legacy variables for compatibility - all in black/white/gray */
+  --notebook-blue: #e5e5e5;
+  --sketch-red: #000000;
+  --pencil-gray: #666666;
+  --paper-cream: #ffffff;
+  --ink-blue: #000000;
+  --margin-red: #000000;
+  --sketch-yellow: #f5f5f5;
+  --sketch-orange: #e5e5e5;
+  --sketch-green: #999999;
 }
 
 /* Sketch-style animations */
@@ -39,25 +118,25 @@
   right: 0;
   bottom: 0;
   background-image: 
-    radial-gradient(circle at 20% 50%, rgba(120, 120, 120, 0.05) 1px, transparent 1px),
-    radial-gradient(circle at 40% 20%, rgba(120, 120, 120, 0.05) 1px, transparent 1px),
-    radial-gradient(circle at 70% 80%, rgba(120, 120, 120, 0.05) 1px, transparent 1px);
+    radial-gradient(circle at 20% 50%, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+    radial-gradient(circle at 40% 20%, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+    radial-gradient(circle at 70% 80%, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
   background-size: 50px 50px, 30px 30px, 40px 40px;
   pointer-events: none;
 }
 
 /* Handwritten text styles */
 .handwritten {
-  font-family: var(--font-caveat), cursive;
-  font-weight: 500;
+  font-family: 'Left Hand', var(--font-caveat), cursive;
+  font-weight: normal;
 }
 
 .sketch-font {
-  font-family: var(--font-kalam), cursive;
+  font-family: 'Magnetic Drawing', var(--font-kalam), cursive;
 }
 
 .architect-font {
-  font-family: var(--font-architects-daughter), cursive;
+  font-family: 'Bridges Not Walls', var(--font-architects-daughter), cursive;
 }
 
 /* Notebook hole punches */
@@ -71,8 +150,8 @@
   background-image: repeating-linear-gradient(
     transparent,
     transparent 10px,
-    rgba(229, 62, 62, 0.2) 15px,
-    rgba(229, 62, 62, 0.2) 20px
+    #e5e5e5 15px,
+    #e5e5e5 20px
   );
   background-size: 20px 30px;
 }
@@ -80,15 +159,16 @@
 /* Sketch-style borders and elements */
 .sketch-border {
   position: relative;
-  border: 2px solid var(--pencil-gray);
+  border: 2px solid #000000;
   border-radius: 8px;
+  background: #ffffff;
 }
 
 .sketch-border::before {
   content: '';
   position: absolute;
   inset: -2px;
-  border: 2px solid var(--pencil-gray);
+  border: 2px solid #e5e5e5;
   border-radius: 8px;
   transform: rotate(0.5deg);
   z-index: -1;
@@ -96,7 +176,7 @@
 
 /* Enhanced sketch borders with more variation */
 .sketch-border-thick {
-  border: 3px solid #374151;
+  border: 3px solid #000000;
   border-radius: 8px;
   position: relative;
 }
@@ -108,10 +188,67 @@
   left: -2px;
   right: -2px;
   bottom: -2px;
-  border: 2px dashed var(--sketch-blue);
+  border: 2px dashed #e5e5e5;
   border-radius: 10px;
   opacity: 0.4;
   transform: rotate(-0.5deg);
+}
+
+/* Notebook background - black and white theme */
+.notebook-bg {
+  background-color: #ffffff;
+  background-image: 
+    /* Horizontal lines */
+    linear-gradient(transparent 24px, #f5f5f5 25px, #f5f5f5 26px, transparent 27px),
+    /* Left margin line */
+    linear-gradient(90deg, transparent 79px, #e5e5e5 80px, #e5e5e5 81px, transparent 82px),
+    /* Hole punches */
+    radial-gradient(circle at 40px 50px, #e5e5e5 2px, transparent 3px);
+  background-size: 100% 30px, 100% 30px, 80px 30px;
+  background-position: 0 0, 0 0, 0 0;
+  background-repeat: repeat;
+  background-attachment: scroll;
+}
+
+/* Black and white theme utilities */
+.bg-primary {
+  background-color: #ffffff;
+}
+
+.bg-secondary {
+  background-color: #f5f5f5;
+}
+
+.bg-accent {
+  background-color: #000000;
+}
+
+.text-primary {
+  color: #000000;
+}
+
+.text-secondary {
+  color: #666666;
+}
+
+.text-muted {
+  color: #999999;
+}
+
+.text-inverse {
+  color: #ffffff;
+}
+
+.border-primary {
+  border-color: #000000;
+}
+
+.border-secondary {
+  border-color: #e5e5e5;
+}
+
+.border-muted {
+  border-color: #f5f5f5;
 }
 
 /* Notebook spiral binding effect */
@@ -129,52 +266,44 @@
   background: linear-gradient(90deg, 
     transparent 0%, 
     transparent 45%, 
-    #dc2626 45%, 
-    #dc2626 55%, 
+    #e5e5e5 45%, 
+    #e5e5e5 55%, 
     transparent 55%, 
     transparent 100%
   );
   background-size: 6px 20px;
 }
 
-/* Creative shadow effects */
+/* Creative effects without shadows */
 .sketch-shadow {
-  box-shadow: 
-    3px 3px 0px var(--sketch-blue),
-    6px 6px 0px var(--sketch-yellow),
-    9px 9px 0px var(--sketch-orange);
   transform: rotate(-1deg);
   transition: all 0.3s ease;
 }
 
 .sketch-shadow:hover {
   transform: rotate(0deg) scale(1.02);
-  box-shadow: 
-    2px 2px 0px var(--sketch-blue),
-    4px 4px 0px var(--sketch-yellow),
-    6px 6px 0px var(--sketch-orange);
 }
 
 /* Hand-drawn button styles */
 .sketch-button {
   position: relative;
-  background: var(--paper-cream);
-  border: 2px solid var(--ink-blue);
+  background: #ffffff;
+  border: 2px solid #000000;
+  color: #000000;
   border-radius: 15px;
   transform: rotate(-0.5deg);
   transition: all 0.3s ease;
 }
 
 .sketch-button:hover {
-  transform: rotate(0.5deg) scale(1.05);
-  box-shadow: 3px 3px 0 var(--ink-blue);
+  background: #f5f5f5;
 }
 
 .sketch-button::before {
   content: '';
   position: absolute;
   inset: 2px;
-  border: 1px dashed var(--ink-blue);
+  border: 1px dashed #e5e5e5;
   border-radius: 12px;
   opacity: 0.5;
 }
@@ -182,7 +311,7 @@
 /* Torn paper effect */
 .torn-paper {
   position: relative;
-  background: white;
+  background: #ffffff;
 }
 
 .torn-paper::before {
@@ -196,8 +325,8 @@
     45deg,
     transparent,
     transparent 2px,
-    white 2px,
-    white 4px
+    #ffffff 2px,
+    #ffffff 4px
   );
 }
 
@@ -214,9 +343,110 @@
   bottom: 0;
   width: 100%;
   height: 2px;
-  background: var(--sketch-red);
+  background: #000000;
   transform: rotate(-1deg) scaleX(1.1);
   opacity: 0.6;
+}
+
+/* KIRUK Title with custom font */
+.kiruk-title {
+  font-family: 'Bridges Not Walls', cursive, sans-serif;
+  text-transform: uppercase;
+  font-weight: normal;
+  letter-spacing: 0.1em;
+  animation: kirukGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes kirukGlow {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.8;
+  }
+}
+
+/* Enhanced scribbled font classes */
+@keyframes jitter {
+  0% { transform: translate(0px, 0px) rotate(0deg); }
+  10% { transform: translate(-1px, -1px) rotate(-0.5deg); }
+  20% { transform: translate(-2px, 0px) rotate(0.5deg); }
+  30% { transform: translate(2px, 1px) rotate(0deg); }
+  40% { transform: translate(1px, -1px) rotate(0.5deg); }
+  50% { transform: translate(-1px, 1px) rotate(-0.5deg); }
+  60% { transform: translate(-2px, 0px) rotate(0deg); }
+  70% { transform: translate(2px, 0px) rotate(-0.5deg); }
+  80% { transform: translate(-1px, -1px) rotate(0.5deg); }
+  90% { transform: translate(1px, 1px) rotate(0deg); }
+  100% { transform: translate(0px, 0px) rotate(0deg); }
+}
+
+@keyframes textWobble {
+  0%, 100% { transform: translateY(0px); }
+  25% { transform: translateY(-1px); }
+  50% { transform: translateY(1px); }
+  75% { transform: translateY(-0.5px); }
+}
+
+.scribbled-title {
+  font-family: 'Kalam', 'Caveat', cursive;
+  font-weight: 700;
+  transform: rotate(-0.5deg);
+  animation: jitter 4s ease-in-out infinite;
+}
+
+.scribbled-code {
+  font-family: 'Architects Daughter', 'Kalam', monospace;
+  font-weight: 400;
+  animation: textWobble 3s ease-in-out infinite;
+}
+
+.scribbled-note {
+  font-family: 'Caveat', 'Kalam', cursive;
+  font-weight: 600;
+  transform: rotate(0.5deg);
+}
+
+.scribbled-comment {
+  font-family: 'Kalam', cursive;
+  font-weight: 300;
+  font-style: italic;
+  opacity: 0.8;
+  transform: rotate(-0.3deg);
+}
+
+.super-scribbled {
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  animation: jitter 2s ease-in-out infinite;
+  transform: rotate(-1deg);
+}
+
+.jittery-text {
+  animation: jitter 3s ease-in-out infinite;
+  display: inline-block;
+}
+
+.wobbly-text {
+  animation: textWobble 2s ease-in-out infinite;
+  display: inline-block;
+}
+
+.messy-handwriting {
+  font-family: 'Architects Daughter', cursive;
+  font-weight: 400;
+  transform: rotate(0.3deg);
+  position: relative;
+}
+
+.messy-handwriting::before {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: rgba(0, 0, 0, 0.1);
+  transform: translate(1px, 1px) rotate(-0.2deg);
+  z-index: -1;
 }
 
 /* Coffee stain effect */
@@ -232,8 +462,8 @@
   width: 30px;
   height: 30px;
   background: radial-gradient(circle, 
-    rgba(139, 69, 19, 0.1) 0%, 
-    rgba(139, 69, 19, 0.05) 50%, 
+    rgba(0, 0, 0, 0.1) 0%, 
+    rgba(0, 0, 0, 0.05) 50%, 
     transparent 70%
   );
   border-radius: 50%;
@@ -242,7 +472,7 @@
 
 /* Doodle margins */
 .doodle-margin {
-  border-left: 3px solid var(--sketch-red);
+  border-left: 3px solid #000000;
   margin-left: 40px;
   padding-left: 20px;
   position: relative;
@@ -272,12 +502,12 @@
   height: 16px;
   background: linear-gradient(45deg, 
     transparent 25%, 
-    rgba(255, 255, 255, 0.8) 25%, 
-    rgba(255, 255, 255, 0.8) 75%, 
+    #ffffff 25%, 
+    #ffffff 75%, 
     transparent 75%
   );
   background-size: 8px 8px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e5e5;
   transform: rotate(-2deg);
 }
 
@@ -301,7 +531,7 @@
   appearance: none;
   width: 20px;
   height: 20px;
-  border: 2px solid var(--sketch-blue);
+  border: 2px solid #e5e5e5;
   border-radius: 3px;
   transform: rotate(-2deg);
   position: relative;
@@ -313,7 +543,7 @@
   position: absolute;
   top: -2px;
   left: 2px;
-  color: var(--sketch-green);
+  color: #000000;
   font-weight: bold;
   transform: rotate(10deg);
 }
@@ -350,7 +580,7 @@
 /* Notebook page curl effect */
 .page-curl {
   position: relative;
-  background: white;
+  background: #ffffff;
 }
 
 .page-curl::after {
@@ -362,8 +592,8 @@
   height: 20px;
   background: linear-gradient(-45deg, 
     transparent 45%, 
-    rgba(0, 0, 0, 0.1) 50%, 
-    rgba(0, 0, 0, 0.05) 55%, 
+    #f5f5f5 50%, 
+    #f5f5f5 55%, 
     transparent 60%
   );
   transform: rotate(45deg);
@@ -400,8 +630,8 @@
 .sketch-progress {
   width: 100%;
   height: 8px;
-  background: var(--paper-white);
-  border: 2px solid var(--sketch-blue);
+  background: #ffffff;
+  border: 2px solid #e5e5e5;
   border-radius: 10px;
   overflow: hidden;
   position: relative;
@@ -415,9 +645,9 @@
   left: 0;
   height: 100%;
   background: linear-gradient(90deg, 
-    var(--sketch-green) 0%, 
-    var(--sketch-yellow) 50%, 
-    var(--sketch-orange) 100%
+    #e5e5e5 0%, 
+    #f5f5f5 50%, 
+    #e5e5e5 100%
   );
   width: var(--progress, 0%);
   transition: width 0.3s ease;
@@ -427,7 +657,7 @@
 /* Responsive notebook adjustments */
 @media (max-width: 768px) {
   .notebook-bg {
-    background-size: 25px 25px;
+    background-size: 100% 25px, 100% 25px, 60px 25px;
   }
   
   .notebook-holes::before {

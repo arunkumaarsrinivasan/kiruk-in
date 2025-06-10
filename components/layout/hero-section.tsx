@@ -5,7 +5,7 @@ import ScribbleAnimation from '../three/scribble-animation';
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-screen overflow-hidden bg-white">
+    <section className="relative h-full w-full bg-white overflow-hidden">
       {/* Full Canvas Scribble Playground */}
       <div className="absolute inset-0">
         <ScribbleAnimation className="w-full h-full" />
@@ -17,15 +17,12 @@ const HeroSection = () => {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.5 }}
-      >
-        <div className="handwritten text-lg text-gray-700">
-          <div className="text-3xl mb-2 font-bold">✏️ Kiruk</div>
-          <div className="text-sm opacity-80">Mad Scribbler from Tamil Nadu</div>
-          <div className="text-xs opacity-60 mt-1">கிறுக் - One who thinks differently</div>
+      >        <div className="text-lg text-gray-700">
+          <div className="architect-font text-3xl mb-2 font-bold kiruk-title">KIRUK</div>
+          <div className="handwritten text-sm opacity-80">Designing better realities. AX is my playground.</div>
         </div>
       </motion.div>
 
-      {/* Floating Tamil Inspiration Words */}
       <motion.div
         className="absolute top-20 right-20 hidden lg:block"
         animate={{ 
@@ -37,9 +34,8 @@ const HeroSection = () => {
           repeat: Infinity, 
           ease: "easeInOut" 
         }}
-      >
-        <div className="handwritten text-xl text-sketch-orange transform rotate-12">
-          வடிவமைப்பு 🎨
+      >        <div className="sketch-font text-xl text-sketch-orange transform rotate-12">
+          AX designer
         </div>
       </motion.div>
 
@@ -57,7 +53,7 @@ const HeroSection = () => {
         }}
       >
         <div className="handwritten text-lg text-sketch-blue transform -rotate-6">
-          கற்பனை ✨
+          Full stack developer
         </div>
       </motion.div>
 
@@ -77,9 +73,7 @@ const HeroSection = () => {
         <div className="handwritten text-base text-sketch-green transform rotate-90">
           Code + Design 💻
         </div>
-      </motion.div>
-
-      {/* Subtle center hint */}
+      </motion.div>      {/* Subtle center hint */}
       <motion.div
         className="absolute bottom-8 right-8 z-20"
         initial={{ opacity: 0 }}

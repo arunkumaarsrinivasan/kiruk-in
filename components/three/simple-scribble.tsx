@@ -24,10 +24,9 @@ function MouseScribbleTrail({
 
   if (trail.length < 2) return null;
 
-  return (
-    <Line
+  return (    <Line
       points={trail}
-      color="#374151"
+      color="#000000"
       lineWidth={3}
       transparent
     >

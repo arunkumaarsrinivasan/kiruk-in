@@ -8,10 +8,14 @@ import * as THREE from 'three';
 // Simple scribble trail that follows mouse movement
 function MouseScribbleTrail({ 
   trail,
-  opacity = 0.7
+  opacity = 0.7,
+  color = "#374151",
+  lineWidth = 3
 }: {
   readonly trail: THREE.Vector3[];
   readonly opacity?: number;
+  readonly color?: string;
+  readonly lineWidth?: number;
 }) {
   const materialRef = useRef<THREE.LineBasicMaterial>(null);
 
@@ -27,8 +31,8 @@ function MouseScribbleTrail({
   return (
     <Line
       points={trail}
-      color="#374151"
-      lineWidth={3}
+      color={color}
+      lineWidth={lineWidth}
       transparent
     >
       <lineBasicMaterial ref={materialRef} opacity={opacity} />
@@ -38,17 +42,25 @@ function MouseScribbleTrail({
 
 // Main scribble animation component
 export default function ScribbleAnimation({ 
-  className = "" 
+  className = "",
+  color = "#000000",
+  lineWidth = 3,
+  chalkEffect = false
 }: { 
   readonly className?: string;
-}) {  const [scribbleTrails, setScribbleTrails] = useState<Array<{ id: string; points: THREE.Vector3[] }>>([]);
+  readonly color?: string;
+  readonly lineWidth?: number;
+  readonly chalkEffect?: boolean;
+}) {
+  const [scribbleTrails, setScribbleTrails] = useState<Array<{ id: string; points: THREE.Vector3[] }>>([]);
   const [currentTrail, setCurrentTrail] = useState<THREE.Vector3[]>([]);
   const [isMouseInside, setIsMouseInside] = useState(false);
   const [isTouching, setIsTouching] = useState(false);
   const lastPositionRef = useRef<THREE.Vector3 | null>(null);
   const trailIdRef = useRef<string>(`trail-${Date.now()}`);
   const smoothingFactorRef = useRef(0.25); // For smooth interpolation
-    // Convert screen coordinates to 3D world coordinates
+  
+  // Convert screen coordinates to 3D world coordinates
   const screenToWorld = useCallback((screenX: number, screenY: number, containerRect: DOMRect) => {
     // Normalize to -1 to 1 range
     const x = ((screenX - containerRect.left) / containerRect.width) * 2 - 1;
@@ -63,13 +75,14 @@ export default function ScribbleAnimation({
     const vFOV = (fov * Math.PI) / 180;
     const height = 2 * Math.tan(vFOV / 2) * distance;
     const width = height * aspect;
-    
-    return new THREE.Vector3(
+      return new THREE.Vector3(
       (x * width) / 2,
       (y * height) / 2,
       0
     );
-  }, []);  const handleMouseMove = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+  }, []);
+  
+  const handleMouseMove = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     const worldPos = screenToWorld(event.clientX, event.clientY, rect);
 
@@ -184,10 +197,10 @@ export default function ScribbleAnimation({
       };
       setScribbleTrails(prev => [...prev, newTrail].slice(-8)); // Keep last 8 trails
     }
-    
-    setCurrentTrail([]);
+      setCurrentTrail([]);
     lastPositionRef.current = null;
   }, [currentTrail]);
+  
   // Clean up old trails periodically and update smoothing
   useEffect(() => {
     const interval = setInterval(() => {
@@ -199,28 +212,30 @@ export default function ScribbleAnimation({
         smoothingFactorRef.current = 0.15; // More responsive for short trails
       }
     }, 2000);
-    
-    return () => clearInterval(interval);
-  }, [currentTrail.length]);  return (
+      return () => clearInterval(interval);
+  }, [currentTrail.length]);
+  
+  return (
     <div 
       className={`w-full h-full ${className} cursor-crosshair touch-none scribble-area`}
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
+      onTouchStart={handleTouchStart}      onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchEnd}
-    ><Canvas
+    >
+      <Canvas
         camera={{ position: [0, 0, 5], fov: 50 }}
-        style={{ background: 'transparent' }}
-      >
-          {/* Render existing scribble trails */}
+        style={{ background: 'transparent' }}      >
+        {/* Render existing scribble trails */}
         {scribbleTrails.map((trail) => (
           <MouseScribbleTrail 
             key={trail.id} 
             trail={trail.points} 
-            opacity={0.4} 
+            opacity={chalkEffect ? 0.6 : 0.4}
+            color={color}
+            lineWidth={lineWidth}
           />
         ))}
         
@@ -228,7 +243,9 @@ export default function ScribbleAnimation({
         {currentTrail.length > 1 && (
           <MouseScribbleTrail 
             trail={currentTrail} 
-            opacity={0.8} 
+            opacity={chalkEffect ? 0.9 : 0.8}
+            color={color}
+            lineWidth={lineWidth}
           />
         )}
       </Canvas>
