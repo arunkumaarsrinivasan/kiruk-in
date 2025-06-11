@@ -1,0 +1,15 @@
+<!-- Simple SVG placeholder for portfolio final design -->
+<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="300" fill="#ffffff" stroke="#dee2e6" stroke-width="2"/>
+  <rect x="0" y="0" width="400" height="60" fill="#FFD466"/>
+  <text x="200" y="35" text-anchor="middle" font-family="Arial" font-size="16" fill="#292F36">
+    Portfolio Website
+  </text>
+  <rect x="50" y="100" width="300" height="150" fill="#4ECDC4" rx="8"/>
+  <text x="200" y="180" text-anchor="middle" font-family="Arial" font-size="14" fill="white">
+    Interactive Portfolio
+  </text>
+  <circle cx="80" cy="280" r="8" fill="#FF6B6B"/>
+  <circle cx="120" cy="280" r="8" fill="#FFD466"/>
+  <circle cx="160" cy="280" r="8" fill="#4ECDC4"/>
+</svg>

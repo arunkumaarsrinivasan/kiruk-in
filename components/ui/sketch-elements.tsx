@@ -47,7 +47,8 @@ export const SketchCard = ({
     none: 'rotate-0'
   };
 
-  return (    <motion.div
+  return (
+    <motion.div
       className={`
         relative p-6 bg-white paper-texture
         border-2 border-gray-300 rounded-lg
@@ -60,25 +61,9 @@ export const SketchCard = ({
         rotate: tilt === 'left' ? -0.5 : tilt === 'right' ? 0.5 : 0,
         y: -5
       }}
+      tabIndex={0}
     >
-      {/* Notebook holes */}
-      <div className="absolute left-4 top-0 bottom-0 w-1 opacity-30">
-        {[...Array(8)].map((_, i) => (
-          <div
-            key={i}
-            className="w-3 h-3 bg-red-400 rounded-full absolute"
-            style={{ top: `${(i + 1) * 12}%` }}
-          />
-        ))}
-      </div>
-      
-      {/* Content */}
-      <div className="ml-8">
-        {children}
-      </div>
-      
-      {/* Hand-drawn border effect */}
-      <div className="absolute inset-0 border-2 border-gray-400 rounded-lg opacity-20 transform rotate-0.5" />
+      {children}
     </motion.div>
   );
 };

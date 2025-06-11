@@ -282,7 +282,7 @@ const Navigation = () => {
         </div>        {/* AI Search Bar */}
         <div className="relative ml-4">
           <form
-            className={`flex items-center bg-white border-2 border-black rounded-full px-3 py-2 sketch-border transition-all duration-200 ${
+            className={`flex items-center bg-black border-2 border-yellow-300 rounded-full px-3 py-2 sketch-border transition-all duration-200 ${
               isInputFocused ? 'sketch-border-thick shadow-md' : ''
             } ${isTyping ? 'border-blue-500' : ''}`}
             style={{ minWidth: 180, maxWidth: 260 }}
@@ -290,8 +290,8 @@ const Navigation = () => {
             role="search"
           >            <button
               type="submit"
-              className="mr-2 p-1 transition-all duration-200 flex items-center justify-center relative rounded-full hover:bg-gray-100"
-              aria-label="Ask AI"
+              className="mr-2 p-1 transition-all duration-200 flex items-center justify-center relative rounded-full bg-yellow-400 text-black font-bold border-2 border-yellow-600 hover:bg-yellow-300 focus:ring-2 focus:ring-yellow-400"
+              aria-label="Ask about me"
               tabIndex={0}onClick={(e) => {
                 // Always open chat when clicking the icon
                 setChatOpen(!chatOpen);
@@ -303,7 +303,7 @@ const Navigation = () => {
             >
               <ChatIcon className={`w-5 h-5 transition-colors ${
                 aiThinking ? 'animate-pulse text-blue-500' : 
-                isTyping ? 'text-blue-600' : 'text-gray-700'
+                isTyping ? 'text-blue-600' : 'text-black'
               }`} />
               {/* Message count indicator */}
               {chatMessages.length > 0 && (                <div className="absolute -top-1 -right-1 bg-black text-white text-xs rounded-full w-4 h-4 flex items-center justify-center handwritten animate-bounce-once">
@@ -317,8 +317,8 @@ const Navigation = () => {
             </button>            <input
               ref={inputRef}
               type="text"
-              className="bg-transparent outline-none border-none search-input-enhanced text-sm w-full transition-all duration-200"
-              placeholder={isInputFocused ? "Type your question..." : "Ask me anything..."}
+              className="bg-black text-white outline-none border-none search-input-enhanced text-sm w-full transition-all duration-200 font-bold px-3 py-2 rounded-full"
+              placeholder={isInputFocused ? "Type your question..." : "Ask about me..."}
               value={search}
               onChange={handleInputChange}
               onFocus={handleInputFocus}
@@ -331,7 +331,7 @@ const Navigation = () => {
                   handleKeyDown(e);
                 }
               }}
-              aria-label="Ask me anything about Arun Kumar"
+              aria-label="Ask about Arun Kumar"
               aria-expanded={showQuickActions}
               aria-describedby="search-suggestions"
               disabled={aiThinking}

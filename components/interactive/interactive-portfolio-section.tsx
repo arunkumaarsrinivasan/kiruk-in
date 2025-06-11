@@ -3,8 +3,11 @@
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DraggableItem } from './draggable-notebook';
-import ScribbleWorkspace, { ScribbleDragItem } from './scribble-workspace';
+import ScribbleWorkspace, { EnhancedScribbleDragItem } from './scribble-workspace';
 import { SketchHeading } from '../ui/sketch-elements';
+
+// Type alias for compatibility
+type ScribbleDragItem = EnhancedScribbleDragItem;
 
 // Type definitions (keeping them simple for the backup)
 type InteractiveMode = 'notebook' | 'scribble' | 'mixed' | 'presentation' | 'collaboration';
@@ -145,19 +148,44 @@ export const InteractivePortfolioSection: React.FC<{
         title: 'Scribble-to-Wireframe Tool',
         description: 'Converting hand-drawn sketches to digital wireframes using AI',
         tags: ['Computer Vision', 'UX Tools', 'Prototyping']
-      },
-      {
+      },      {
         id: 'empathy-analytics',
         title: 'Empathy-Driven Analytics',
         description: 'User analytics that prioritize human emotion and context',
         tags: ['Analytics', 'Emotion AI', 'Ethics']
+      },
+      {
+        id: 'voice-ui-dashboard',
+        title: 'Voice UI Dashboard',
+        description: 'Designing conversational interfaces for smart home control',
+        tags: ['Voice UI', 'Smart Home', 'Accessibility']
+      },
+      {
+        id: 'ar-portfolio-3d',
+        title: 'AR Portfolio Showcase',
+        description: 'Interactive 3D portfolio experience in augmented reality',
+        tags: ['AR', 'WebXR', '3D Design']
+      },
+      {
+        id: 'sustainable-ux',
+        title: 'Sustainable UX Framework',
+        description: 'Creating environmentally conscious design principles',
+        tags: ['Sustainability', 'Green UX', 'Climate']
+      },
+      {
+        id: 'micro-interactions',
+        title: 'Micro-interaction Library',
+        description: 'Delightful animations that enhance user experience',
+        tags: ['Animation', 'Framer Motion', 'UX']
       }
     ];
 
+    // Generate fresh randomness on each click
     const randomProject = projects[Math.floor(Math.random() * projects.length)];
-    
-    const newItem: DraggableItem = {
-      id: `project-${Date.now()}`,
+    const randomColors = ['bg-blue-100 text-blue-800', 'bg-green-100 text-green-800', 'bg-purple-100 text-purple-800', 'bg-pink-100 text-pink-800', 'bg-yellow-100 text-yellow-800'];
+    const randomColorClass = randomColors[Math.floor(Math.random() * randomColors.length)];
+      const newItem: DraggableItem = {
+      id: `project-${Date.now()}-${Math.random().toString(36).substring(2)}`,
       type: 'sketch-card',
       content: (
         <div className="max-w-sm">
@@ -167,7 +195,7 @@ export const InteractivePortfolioSection: React.FC<{
           </div>
           <div className="flex flex-wrap gap-1 mb-2">
             {randomProject.tags.slice(0, 3).map(tag => (
-              <span key={tag} className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+              <span key={tag} className={`px-2 py-1 rounded-full text-xs ${randomColorClass}`}>
                 {tag}
               </span>
             ))}
@@ -203,7 +231,6 @@ export const InteractivePortfolioSection: React.FC<{
       interactionsCount: prev.interactionsCount + 1
     }));
   }, []);
-
   const addPersonalNote = useCallback(() => {
     const notes = [
       '💡 "Design is not just what it looks like - design is how it works" - Steve Jobs',
@@ -215,13 +242,23 @@ export const InteractivePortfolioSection: React.FC<{
       '🎯 2024 Goal: Master AI-powered design workflows',
       '🌟 Favorite design tool: Still prefer pen and paper for ideation',
       '🚀 Dream project: Design interface for space exploration',
-      '📱 Current obsession: Micro-interactions and delightful UX'
+      '📱 Current obsession: Micro-interactions and delightful UX',
+      '🎵 Design inspiration: Listening to Lo-fi while coding',
+      '🌱 Growing: My own herb garden for fresh creativity',
+      '🎮 Side project: Designing UI for indie game developers',
+      '🔍 Research focus: User behavior in AR environments',
+      '🎭 Weekend hobby: Sketching character designs',
+      '🌈 Color theory: Exploring emotional impact of gradients',
+      '📚 Next read: "Atomic Design" by Brad Frost',
+      '🧠 Mental model: Design systems as living organisms'
     ];
 
+    // Generate fresh randomness on each click
     const randomNote = notes[Math.floor(Math.random() * notes.length)];
-    
-    const newItem: DraggableItem = {
-      id: `note-${Date.now()}`,
+    const stickyColors = ['light', 'medium', 'white', 'pink', 'blue', 'green'];
+    const randomColor = stickyColors[Math.floor(Math.random() * stickyColors.length)];
+      const newItem: DraggableItem = {
+      id: `note-${Date.now()}-${Math.random().toString(36).substring(2)}`,
       type: 'sticky-note',
       content: (
         <div className="handwritten text-sm">
@@ -233,7 +270,7 @@ export const InteractivePortfolioSection: React.FC<{
         y: Math.random() * 250 + 50 
       },
       rotation: (Math.random() - 0.5) * 15,
-      color: ['light', 'medium', 'white'][Math.floor(Math.random() * 3)] as any,
+      color: randomColor as any,
       size: 'md'
     };
 
@@ -244,7 +281,6 @@ export const InteractivePortfolioSection: React.FC<{
       interactionsCount: prev.interactionsCount + 1
     }));
   }, []);
-
   const addSkillBubble = useCallback(() => {
     const skills = [
       { name: 'User Research', color: 'bg-pink-100 text-pink-800', icon: '🔍' },
@@ -252,13 +288,19 @@ export const InteractivePortfolioSection: React.FC<{
       { name: 'AI Integration', color: 'bg-purple-100 text-purple-800', icon: '🤖' },
       { name: 'Data Visualization', color: 'bg-green-100 text-green-800', icon: '📊' },
       { name: 'Design Systems', color: 'bg-yellow-100 text-yellow-800', icon: '🎯' },
-      { name: 'Front-end Dev', color: 'bg-indigo-100 text-indigo-800', icon: '💻' }
+      { name: 'Front-end Dev', color: 'bg-indigo-100 text-indigo-800', icon: '💻' },
+      { name: 'Accessibility', color: 'bg-red-100 text-red-800', icon: '♿' },
+      { name: 'Motion Design', color: 'bg-orange-100 text-orange-800', icon: '🎬' },
+      { name: 'Typography', color: 'bg-gray-100 text-gray-800', icon: '✍️' },
+      { name: 'Color Theory', color: 'bg-rose-100 text-rose-800', icon: '🌈' },
+      { name: 'Voice UI Design', color: 'bg-cyan-100 text-cyan-800', icon: '🎤' },
+      { name: 'AR/VR Design', color: 'bg-violet-100 text-violet-800', icon: '🥽' }
     ];
 
+    // Generate fresh randomness on each click
     const randomSkill = skills[Math.floor(Math.random() * skills.length)];
-    
-    const newItem: DraggableItem = {
-      id: `skill-${Date.now()}`,
+      const newItem: DraggableItem = {
+      id: `skill-${Date.now()}-${Math.random().toString(36).substring(2)}`,
       type: 'sticky-note',
       content: (
         <motion.div 

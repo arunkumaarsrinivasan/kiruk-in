@@ -1,0 +1,11 @@
+<!-- Simple SVG placeholder for portfolio sketch -->
+<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="300" fill="#f8f9fa" stroke="#dee2e6" stroke-width="2"/>
+  <text x="200" y="150" text-anchor="middle" font-family="Arial" font-size="18" fill="#6c757d">
+    Portfolio Sketch
+  </text>
+  <rect x="50" y="80" width="300" height="20" fill="#e9ecef" rx="2"/>
+  <rect x="50" y="120" width="250" height="20" fill="#e9ecef" rx="2"/>
+  <rect x="50" y="160" width="200" height="20" fill="#e9ecef" rx="2"/>
+  <rect x="50" y="200" width="150" height="60" fill="#FFD466" rx="4"/>
+</svg>

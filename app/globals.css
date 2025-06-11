@@ -654,6 +654,62 @@ html {
   border-radius: 6px;
 }
 
+/* Horizontal scrolling timeline styles for about page */
+.horizontal-timeline {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db #f3f4f6;
+}
+
+.horizontal-timeline::-webkit-scrollbar {
+  height: 8px;
+}
+
+.horizontal-timeline::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 4px;
+}
+
+.horizontal-timeline::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+.horizontal-timeline::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Smooth scribble line animation */
+.scribble-path {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  will-change: stroke-dashoffset;
+}
+
+/* Timeline card hover effects */
+.timeline-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.timeline-card:hover {
+  transform: translateY(-8px) rotate(0deg) !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Mobile responsive adjustments for timeline */
+@media (max-width: 768px) {
+  .horizontal-timeline {
+    padding-top: 6rem;
+  }
+  
+  .timeline-event {
+    width: 280px !important;
+    margin-left: 30px !important;
+  }
+  
+  .timeline-card {
+    height: 320px !important;
+  }
+}
+
 /* Responsive notebook adjustments */
 @media (max-width: 768px) {
   .notebook-bg {
@@ -720,5 +776,41 @@ html {
   /* Smooth animations for mobile menu */
   .mobile-menu {
     -webkit-overflow-scrolling: touch;
+  }
+}
+
+.sticky-note {
+  background: #fefcbf;
+  border: 2px solid #fde68a;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.12), 0 1.5px 0 #fcd34d inset;
+  padding: 0.5rem 0.5rem 1.2rem 0.5rem;
+  transition: box-shadow 0.2s, transform 0.2s;
+  z-index: 30;
+  filter: drop-shadow(0 2px 8px #fcd34d66);
+}
+.sticky-note:hover {
+  box-shadow: 0 12px 40px 0 rgba(0,0,0,0.18), 0 2px 0 #fcd34d inset;
+  transform: rotate(0.5deg) scale(1.03);
+}
+.sticky-tape {
+  display: block;
+  margin: 0 auto;
+  background: repeating-linear-gradient(135deg, #fde68a 0 6px, #fcd34d 6px 12px);
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 2px 8px 0 #fcd34d44;
+  opacity: 0.85;
+  position: relative;
+  top: 0;
+}
+@media (max-width: 700px) {
+  .sticky-note {
+    right: 0.5rem !important;
+    left: auto !important;
+    top: 70px !important;
+    width: 90vw !important;
+    min-width: 0 !important;
+    max-width: 98vw !important;
+    padding: 0.5rem 0.5rem 1.2rem 0.5rem;
   }
 }

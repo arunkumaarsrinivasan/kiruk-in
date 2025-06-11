@@ -1,0 +1,26 @@
+<!-- Ideation mindmap placeholder -->
+<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="300" fill="#fff" stroke="#ddd" stroke-width="1"/>
+  <text x="200" y="20" text-anchor="middle" font-family="Arial" font-size="14" fill="#333">Ideation: Mind Map</text>
+  
+  <!-- Central idea -->
+  <circle cx="200" cy="150" r="30" fill="#FFD466" stroke="#333" stroke-width="2"/>
+  <text x="200" y="155" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">Portfolio</text>
+  
+  <!-- Connected ideas -->
+  <circle cx="120" cy="100" r="20" fill="#FF6B6B" stroke="#333" stroke-width="1"/>
+  <text x="120" y="105" text-anchor="middle" font-family="Arial" font-size="8" fill="white">Interactive</text>
+  <line x1="170" y1="130" x2="140" y2="115" stroke="#333" stroke-width="1"/>
+  
+  <circle cx="280" cy="100" r="20" fill="#4ECDC4" stroke="#333" stroke-width="1"/>
+  <text x="280" y="105" text-anchor="middle" font-family="Arial" font-size="8" fill="white">Creative</text>
+  <line x1="230" y1="130" x2="260" y2="115" stroke="#333" stroke-width="1"/>
+  
+  <circle cx="120" cy="200" r="20" fill="#8BC34A" stroke="#333" stroke-width="1"/>
+  <text x="120" y="205" text-anchor="middle" font-family="Arial" font-size="8" fill="white">Responsive</text>
+  <line x1="170" y1="170" x2="140" y2="185" stroke="#333" stroke-width="1"/>
+  
+  <circle cx="280" cy="200" r="20" fill="#FF9800" stroke="#333" stroke-width="1"/>
+  <text x="280" y="205" text-anchor="middle" font-family="Arial" font-size="8" fill="white">Modern</text>
+  <line x1="230" y1="170" x2="260" y2="185" stroke="#333" stroke-width="1"/>
+</svg>

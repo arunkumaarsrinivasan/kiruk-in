@@ -1,0 +1,23 @@
+<!-- Wireframe desktop placeholder -->
+<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="300" fill="#f8f9fa" stroke="#dee2e6" stroke-width="2"/>
+  <text x="200" y="20" text-anchor="middle" font-family="Arial" font-size="14" fill="#333">Desktop Wireframe</text>
+  
+  <!-- Header -->
+  <rect x="20" y="40" width="360" height="40" fill="none" stroke="#999" stroke-width="1"/>
+  <text x="40" y="65" font-family="Arial" font-size="12" fill="#666">Navigation</text>
+  
+  <!-- Hero section -->
+  <rect x="20" y="100" width="360" height="80" fill="none" stroke="#999" stroke-width="1"/>
+  <text x="200" y="145" text-anchor="middle" font-family="Arial" font-size="12" fill="#666">Hero Section</text>
+  
+  <!-- Content grid -->
+  <rect x="20" y="200" width="110" height="60" fill="none" stroke="#999" stroke-width="1"/>
+  <text x="75" y="235" text-anchor="middle" font-family="Arial" font-size="10" fill="#666">Card 1</text>
+  
+  <rect x="145" y="200" width="110" height="60" fill="none" stroke="#999" stroke-width="1"/>
+  <text x="200" y="235" text-anchor="middle" font-family="Arial" font-size="10" fill="#666">Card 2</text>
+  
+  <rect x="270" y="200" width="110" height="60" fill="none" stroke="#999" stroke-width="1"/>
+  <text x="325" y="235" text-anchor="middle" font-family="Arial" font-size="10" fill="#666">Card 3</text>
+</svg>
