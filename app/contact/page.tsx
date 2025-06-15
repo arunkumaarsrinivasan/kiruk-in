@@ -139,13 +139,12 @@ export default function Contact() {
   };
 
   const handleCopyEmail = () => {
-    navigator.clipboard.writeText('hello@kiruk.com');
+    navigator.clipboard.writeText('arunkumaar.srinivasan@gmail.com');
     setCopied(true);
     setTimeout(() => setCopied(false), 1200);
   };
-
   const handleLinkedIn = () => {
-    window.open('https://linkedin.com/in/kiruk', '_blank');
+    window.open('https://linkedin.com/in/arunkumaarsreenivasan/', '_blank');
   };
 
   // Sparkle effect for eraser
@@ -442,7 +441,7 @@ export default function Contact() {
                     <div>
                       <div className="body-text-primary text-xs font-bold">Email</div>
                       <div className="body-text-secondary text-xs flex items-center gap-2">
-                        hello@kiruk.com{" "}
+                        arunkumaar.srinivasan@gmail.com
                         <button
                           type="button"
                           className="ml-1 px-2 py-0.5 rounded bg-gray-100 border text-xs handwritten hover:bg-yellow-100 transition"
@@ -476,7 +475,7 @@ export default function Contact() {
                     <div>
                       <div className="body-text-primary text-xs font-bold">LinkedIn</div>
                       <div className="body-text-secondary text-xs flex items-center gap-2">
-                        /in/kiruk
+                        /in/arunkumaarsreenivasan/
                         <button
                           type="button"
                           className="ml-1 px-2 py-0.5 rounded bg-blue-100 border text-xs handwritten hover:bg-blue-200 transition"

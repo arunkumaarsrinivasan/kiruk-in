@@ -129,6 +129,8 @@ html {
 .handwritten {
   font-family: 'Left Hand', var(--font-caveat), cursive;
   font-weight: normal;
+  font-size: 1.125em; /* 18px if base is 16px - makes it 12.5% larger */
+  line-height: 1.4; /* Better line spacing for readability */
 }
 
 .sketch-font {
@@ -720,9 +722,8 @@ html {
     left: 8px;
     background-size: 4px 15px;
   }
-  
-  .handwritten {
-    font-size: 0.9rem;
+    .handwritten {
+    font-size: 1rem; /* Slightly larger on mobile too - was 0.9rem */
   }
 }
 

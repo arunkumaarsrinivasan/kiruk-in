@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DraggableItem } from './draggable-notebook';
 import ScribbleWorkspace, { EnhancedScribbleDragItem } from './scribble-workspace';
@@ -9,7 +9,7 @@ import { SketchHeading } from '../ui/sketch-elements';
 // Type alias for compatibility
 type ScribbleDragItem = EnhancedScribbleDragItem;
 
-// Type definitions (keeping them simple for the backup)
+// Type definitions
 type InteractiveMode = 'notebook' | 'scribble' | 'mixed' | 'presentation' | 'collaboration';
 
 interface InteractiveStats {
@@ -60,9 +60,7 @@ export const InteractivePortfolioSection: React.FC<{
     achievementsUnlocked: [],
     skillsExplored: [],
     projectsViewed: []
-  });
-
-  const [achievements] = useState<Achievement[]>([
+  });  const [achievements, setAchievements] = useState<Achievement[]>([
     {
       id: 'first-interaction',
       title: 'Getting Started',
@@ -86,9 +84,87 @@ export const InteractivePortfolioSection: React.FC<{
       icon: '⭐',
       unlocked: false,
       condition: (stats) => stats.skillsExplored.length >= 5
-    }
-  ]);
+    },
+    {
+      id: 'time-explorer',
+      title: 'Time Explorer',
+      description: 'Spent 2 minutes exploring the portfolio',
+      icon: '⏰',
+      unlocked: false,
+      condition: (stats) => stats.timeSpent >= 120
+    },
+    {
+      id: 'super-active',
+      title: 'Super Active',
+      description: 'Made 10 interactions',
+      icon: '🚀',
+      unlocked: false,
+      condition: (stats) => stats.interactionsCount >= 10
+    },
+    {
+      id: 'creator',
+      title: 'Creator',
+      description: 'Created 5 items',
+      icon: '🎨',
+      unlocked: false,
+      condition: (stats) => stats.itemsCreated >= 5
+    }  ]);
+
   const [showAchievements, setShowAchievements] = useState(false);
+  const [newlyUnlockedAchievements, setNewlyUnlockedAchievements] = useState<string[]>([]);
+
+  // Time tracking effect
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setInteractiveStats(prev => ({
+        ...prev,
+        timeSpent: prev.timeSpent + 1
+      }));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);  // Achievement checking effect
+  useEffect(() => {
+    setAchievements(prevAchievements => {
+      let newlyUnlocked: string[] = [];
+      
+      const updatedAchievements = prevAchievements.map(achievement => {
+        const shouldBeUnlocked = achievement.condition(interactiveStats);
+        
+        // Only add to newly unlocked if it wasn't unlocked before but should be now
+        if (shouldBeUnlocked && !achievement.unlocked) {
+          newlyUnlocked.push(achievement.id);
+        }
+        
+        return {
+          ...achievement,
+          unlocked: shouldBeUnlocked
+        };
+      });
+      
+      // Update newly unlocked achievements only if there are new ones
+      if (newlyUnlocked.length > 0) {
+        setNewlyUnlockedAchievements(prev => {
+          // Filter out any that are already in the notification list
+          const uniqueNew = newlyUnlocked.filter(id => !prev.includes(id));
+          return [...prev, ...uniqueNew];
+        });
+      }
+      
+      return updatedAchievements;
+    });
+  }, [interactiveStats]);
+
+  // Remove achievement notifications after 3 seconds
+  useEffect(() => {
+    if (newlyUnlockedAchievements.length > 0) {
+      const timer = setTimeout(() => {
+        setNewlyUnlockedAchievements([]);
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    }  }, [newlyUnlockedAchievements]);
+
   const [notebookItems, setNotebookItems] = useState<DraggableItem[]>([
     {
       id: 'welcome-note',
@@ -111,7 +187,9 @@ export const InteractivePortfolioSection: React.FC<{
         <div>
           <SketchHeading level={3} className="text-lg mb-2">About Me</SketchHeading>
           <div className="handwritten text-sm text-gray-700">
-            UX Designer from Tamil Nadu who thinks differently about design and code
+            Perfectionist and versatile generalist excelling in end-to-end development and design, dedicated to crafting exceptional user experiences and visually striking designs. 
+            <br /><br />
+            📍 Bangalore | 📧 arunkumaar.srinivasan@gmail.com 
           </div>
         </div>
       ),
@@ -120,6 +198,7 @@ export const InteractivePortfolioSection: React.FC<{
       scale: 1
     }
   ]);
+
   const [scribbleItems, setScribbleItems] = useState<ScribbleDragItem[]>([
     {
       id: 'coffee-1',
@@ -134,57 +213,59 @@ export const InteractivePortfolioSection: React.FC<{
       rotation: 25
     }
   ]);
-  // Action functions with full implementations
+
+  // Action functions
   const addProjectCard = useCallback(() => {
     const projects = [
       {
-        id: 'ai-design-system',
-        title: 'AI-Powered Design System',
-        description: 'A design system that adapts and evolves using machine learning',
-        tags: ['AI', 'Design Systems', 'Automation']
+        id: 'cloud-microservices',
+        title: 'Cloud Microservices Engineering',
+        description: 'Specialized in microservice reliability using Splunk, Spring Boot, AWS SQS, SNS, DynamoDB, and Prometheus',
+        tags: ['AWS', 'Spring Boot', 'Microservices'],
+        company: 'HP Inc'
       },
       {
-        id: 'scribble-wireframe',
-        title: 'Scribble-to-Wireframe Tool',
-        description: 'Converting hand-drawn sketches to digital wireframes using AI',
-        tags: ['Computer Vision', 'UX Tools', 'Prototyping']
-      },      {
-        id: 'empathy-analytics',
-        title: 'Empathy-Driven Analytics',
-        description: 'User analytics that prioritize human emotion and context',
-        tags: ['Analytics', 'Emotion AI', 'Ethics']
+        id: 'end-to-end-design',
+        title: 'End-to-End Design Leadership',
+        description: 'Led comprehensive design initiatives encompassing branding, UX research, and UI design across various platforms',
+        tags: ['UX Research', 'Branding', 'UI Design'],
+        company: 'SNS Square'
       },
       {
-        id: 'voice-ui-dashboard',
-        title: 'Voice UI Dashboard',
-        description: 'Designing conversational interfaces for smart home control',
-        tags: ['Voice UI', 'Smart Home', 'Accessibility']
+        id: 'crypto-dashboard',
+        title: 'Cryptocurrency Bot Dashboard',
+        description: 'Managed complete branding and website design with user-friendly dashboard for streamlined user management',
+        tags: ['Branding', 'Dashboard', 'Analytics'],
+        company: 'Spera'
       },
       {
-        id: 'ar-portfolio-3d',
-        title: 'AR Portfolio Showcase',
-        description: 'Interactive 3D portfolio experience in augmented reality',
-        tags: ['AR', 'WebXR', '3D Design']
+        id: 'hr-game-design',
+        title: 'HR Engagement Game Design',
+        description: 'Crafted engaging game experiences for HR stakeholders with user flows and interaction designs',
+        tags: ['Game Design', 'User Flows', 'HR Tech'],
+        company: 'PeopleGamez.com'
       },
       {
-        id: 'sustainable-ux',
-        title: 'Sustainable UX Framework',
-        description: 'Creating environmentally conscious design principles',
-        tags: ['Sustainability', 'Green UX', 'Climate']
+        id: 'ngo-cms-platform',
+        title: 'NGO Website & CMS Platform',
+        description: 'Developed website with integrated payment functionality and content management system for streamlined donations',
+        tags: ['CMS', 'Payment Integration', 'NGO'],
+        company: 'Life Savers NGO'
       },
       {
-        id: 'micro-interactions',
-        title: 'Micro-interaction Library',
-        description: 'Delightful animations that enhance user experience',
-        tags: ['Animation', 'Framer Motion', 'UX']
+        id: 'ui-ux-workshops',
+        title: 'UI/UX Design Workshops',
+        description: 'Delivered guest lectures and conducted workshops for 60+ students, sharing practical design knowledge',
+        tags: ['Education', 'Workshops', 'UI/UX'],
+        company: 'Academia'
       }
     ];
 
-    // Generate fresh randomness on each click
     const randomProject = projects[Math.floor(Math.random() * projects.length)];
-    const randomColors = ['bg-blue-100 text-blue-800', 'bg-green-100 text-green-800', 'bg-purple-100 text-purple-800', 'bg-pink-100 text-pink-800', 'bg-yellow-100 text-yellow-800'];
+    const randomColors = ['bg-blue-100 text-blue-800', 'bg-green-100 text-green-800', 'bg-purple-100 text-purple-800'];
     const randomColorClass = randomColors[Math.floor(Math.random() * randomColors.length)];
-      const newItem: DraggableItem = {
+
+    const newItem: DraggableItem = {
       id: `project-${Date.now()}-${Math.random().toString(36).substring(2)}`,
       type: 'sketch-card',
       content: (
@@ -199,6 +280,9 @@ export const InteractivePortfolioSection: React.FC<{
                 {tag}
               </span>
             ))}
+          </div>
+          <div className="text-xs text-gray-600 mb-2 handwritten">
+            @ {randomProject.company}
           </div>
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -231,33 +315,34 @@ export const InteractivePortfolioSection: React.FC<{
       interactionsCount: prev.interactionsCount + 1
     }));
   }, []);
+
   const addPersonalNote = useCallback(() => {
     const notes = [
-      '💡 "Design is not just what it looks like - design is how it works" - Steve Jobs',
-      '🎨 Currently learning: Advanced Framer Motion animations',
-      '☕ Fun fact: I do my best thinking with a cup of Tamil chai',
-      '🏔️ Recent adventure: Trekking in the Western Ghats',
-      '🤖 Experimenting with: AI-generated design patterns',
-      '📝 Reading: "The Design of Everyday Things" (again!)',
-      '🎯 2024 Goal: Master AI-powered design workflows',
-      '🌟 Favorite design tool: Still prefer pen and paper for ideation',
-      '🚀 Dream project: Design interface for space exploration',
-      '📱 Current obsession: Micro-interactions and delightful UX',
-      '🎵 Design inspiration: Listening to Lo-fi while coding',
-      '🌱 Growing: My own herb garden for fresh creativity',
-      '🎮 Side project: Designing UI for indie game developers',
-      '🔍 Research focus: User behavior in AR environments',
-      '🎭 Weekend hobby: Sketching character designs',
-      '🌈 Color theory: Exploring emotional impact of gradients',
-      '📚 Next read: "Atomic Design" by Brad Frost',
-      '🧠 Mental model: Design systems as living organisms'
+      '☁️ SDE 1 @ HP Inc - Working with AWS, Spring Boot & Microservices',
+      '🎨 Freelance Design Lead @ SNS Square - End-to-end design initiatives',
+      '🚀 Passionate about AWS Cloud Services & DevOps',
+      '🎯 Spring Boot MicroServices specialist',
+      '🎨 UX/UI Design & Branding expert',
+      '🛠️ Prototyping & Dev handoff pro',
+      '📱 Web & Mobile Development enthusiast',
+      '🔍 Design Strategy & UX Research focused',
+      '🎮 Game Design hobbyist',
+      '🎵 Ask me about my music playlist!',
+      '🤝 Why I love Collaboration',
+      '🏔️ Trekking >>>>> Party (always!)',
+      '🏓 Table Tennis enthusiast',
+      '😊 Always Happy to Connect!',
+      '🎓 B.E Computer Science & Engineering (8.9 CGPA)',
+      '📍 Bangalore (Hybrid) based',
+      '💡 Delivered UI/UX workshops for 60+ students',
+      '🌟 Perfectionist and versatile generalist'
     ];
 
-    // Generate fresh randomness on each click
     const randomNote = notes[Math.floor(Math.random() * notes.length)];
     const stickyColors = ['light', 'medium', 'white', 'pink', 'blue', 'green'];
     const randomColor = stickyColors[Math.floor(Math.random() * stickyColors.length)];
-      const newItem: DraggableItem = {
+
+    const newItem: DraggableItem = {
       id: `note-${Date.now()}-${Math.random().toString(36).substring(2)}`,
       type: 'sticky-note',
       content: (
@@ -281,25 +366,28 @@ export const InteractivePortfolioSection: React.FC<{
       interactionsCount: prev.interactionsCount + 1
     }));
   }, []);
+
   const addSkillBubble = useCallback(() => {
     const skills = [
-      { name: 'User Research', color: 'bg-pink-100 text-pink-800', icon: '🔍' },
-      { name: 'Prototyping', color: 'bg-blue-100 text-blue-800', icon: '⚡' },
-      { name: 'AI Integration', color: 'bg-purple-100 text-purple-800', icon: '🤖' },
-      { name: 'Data Visualization', color: 'bg-green-100 text-green-800', icon: '📊' },
-      { name: 'Design Systems', color: 'bg-yellow-100 text-yellow-800', icon: '🎯' },
-      { name: 'Front-end Dev', color: 'bg-indigo-100 text-indigo-800', icon: '💻' },
-      { name: 'Accessibility', color: 'bg-red-100 text-red-800', icon: '♿' },
-      { name: 'Motion Design', color: 'bg-orange-100 text-orange-800', icon: '🎬' },
-      { name: 'Typography', color: 'bg-gray-100 text-gray-800', icon: '✍️' },
-      { name: 'Color Theory', color: 'bg-rose-100 text-rose-800', icon: '🌈' },
-      { name: 'Voice UI Design', color: 'bg-cyan-100 text-cyan-800', icon: '🎤' },
-      { name: 'AR/VR Design', color: 'bg-violet-100 text-violet-800', icon: '🥽' }
+      { name: 'AWS Cloud Services', color: 'bg-orange-100 text-orange-800', icon: '☁️' },
+      { name: 'Spring Boot', color: 'bg-green-100 text-green-800', icon: '🍃' },
+      { name: 'Microservices', color: 'bg-blue-100 text-blue-800', icon: '🔧' },
+      { name: 'UX/UI Design', color: 'bg-purple-100 text-purple-800', icon: '🎨' },
+      { name: 'Branding & Visual Design', color: 'bg-pink-100 text-pink-800', icon: '🎯' },
+      { name: 'Prototyping', color: 'bg-indigo-100 text-indigo-800', icon: '⚡' },
+      { name: 'Web Development', color: 'bg-cyan-100 text-cyan-800', icon: '💻' },
+      { name: 'Mobile Development', color: 'bg-teal-100 text-teal-800', icon: '📱' },
+      { name: 'Design Strategy', color: 'bg-yellow-100 text-yellow-800', icon: '🎯' },
+      { name: 'UX Research', color: 'bg-red-100 text-red-800', icon: '🔍' },
+      { name: 'Game Design', color: 'bg-violet-100 text-violet-800', icon: '🎮' },
+      { name: 'DynamoDB', color: 'bg-gray-100 text-gray-800', icon: '🗄️' },
+      { name: 'Prometheus', color: 'bg-rose-100 text-rose-800', icon: '📊' },
+      { name: 'Splunk', color: 'bg-emerald-100 text-emerald-800', icon: '📈' }
     ];
 
-    // Generate fresh randomness on each click
     const randomSkill = skills[Math.floor(Math.random() * skills.length)];
-      const newItem: DraggableItem = {
+
+    const newItem: DraggableItem = {
       id: `skill-${Date.now()}-${Math.random().toString(36).substring(2)}`,
       type: 'sticky-note',
       content: (
@@ -338,28 +426,35 @@ export const InteractivePortfolioSection: React.FC<{
       type: 'sketch-card',
       content: (
         <div>
-          <SketchHeading level={3} className="text-lg mb-3">🎓 Interactive Resume</SketchHeading>
+          <SketchHeading level={3} className="text-lg mb-3">🎓 Professional Summary</SketchHeading>
           <div className="space-y-3">
             <motion.div 
               className="bg-blue-50 p-2 rounded handwritten text-sm"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <strong>Education:</strong> B.Tech Computer Science
+              <strong>Current:</strong> SDE 1 @ HP Inc (Feb 2023 - Present)
             </motion.div>
             <motion.div 
               className="bg-green-50 p-2 rounded handwritten text-sm"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <strong>Experience:</strong> 3+ years in UX Design
+              <strong>Education:</strong> B.E Computer Science & Engineering (8.9 CGPA)
             </motion.div>
             <motion.div 
               className="bg-purple-50 p-2 rounded handwritten text-sm"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <strong>Specialization:</strong> AI-powered design workflows
+              <strong>Specialization:</strong> AWS Cloud Services & Microservices
+            </motion.div>
+            <motion.div 
+              className="bg-pink-50 p-2 rounded handwritten text-sm"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <strong>Design Focus:</strong> End-to-end UX/UI & Branding
             </motion.div>
           </div>
         </div>
@@ -383,18 +478,23 @@ export const InteractivePortfolioSection: React.FC<{
   const addTestimonial = useCallback(() => {
     const testimonials = [
       {
-        text: "Arun's AI-integrated designs revolutionized our user experience!",
-        author: "Sarah Chen, Product Manager at TechCorp",
+        text: "Arun's cloud engineering expertise has significantly improved our microservice reliability!",
+        author: "Team Lead, HP Inc WPP Connectivity",
         rating: "⭐⭐⭐⭐⭐"
       },
       {
-        text: "His unique approach to combining traditional design with AI is remarkable.",
-        author: "Mike Rodriguez, CEO at DesignFlow",
+        text: "His end-to-end design approach and developer handoff process is exceptional.",
+        author: "Project Manager, SNS Square",
         rating: "⭐⭐⭐⭐⭐"
       },
       {
-        text: "The portfolio interaction itself shows his innovative thinking.",
-        author: "Dr. Priya Sharma, UX Research Lead",
+        text: "Students loved his UI/UX workshops - practical knowledge with real-world insights!",
+        author: "Academic Coordinator, Design Workshop",
+        rating: "⭐⭐⭐⭐⭐"
+      },
+      {
+        text: "Perfect blend of technical expertise and design thinking. Rare combination!",
+        author: "CTO, Tech Startup",
         rating: "⭐⭐⭐⭐⭐"
       }
     ];
@@ -450,27 +550,139 @@ export const InteractivePortfolioSection: React.FC<{
       interactionsCount: prev.interactionsCount + 1
     }));
   }, []);
-
   const clearWorkspace = () => {
     setNotebookItems([]);
     setScribbleItems([]);
     setInteractiveStats(prev => ({
       ...prev,
       itemsCreated: 0,
+      timeSpent: 0,
+      skillsExplored: [],
+      projectsViewed: [],
       interactionsCount: prev.interactionsCount + 1
     }));
+  };  const [showIntro, setShowIntro] = useState(true);
+  const [introPosition, setIntroPosition] = useState({ x: 50, y: 50 });
+  const [isDraggingIntro, setIsDraggingIntro] = useState(false);
+
+  // Handle intro dragging
+  const handleIntroMouseDown = (e: React.MouseEvent) => {
+    setIsDraggingIntro(true);
+    const rect = e.currentTarget.getBoundingClientRect();
+    const offsetX = e.clientX - rect.left;
+    const offsetY = e.clientY - rect.top;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      setIntroPosition({
+        x: e.clientX - offsetX,
+        y: e.clientY - offsetY
+      });
+    };
+
+    const handleMouseUp = () => {
+      setIsDraggingIntro(false);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
   };
 
   return (
     <section className={`fixed inset-0 w-full h-full overflow-hidden bg-white notebook-bg ${className}`} style={{ zIndex: 1 }}>
-      {/* ScribeCanvas overlay for freehand drawing (background) */}
-      <ScribeCanvas />      {/* Tools and Analytics - Positioned Top Right to align with KIRUK logo */}
+      <ScribeCanvas />
+      
+      {/* Movable Personal Intro */}
+      {showIntro && (
+        <motion.div
+          className="absolute z-30 cursor-move"
+          style={{
+            left: introPosition.x,
+            top: introPosition.y,
+            zIndex: isDraggingIntro ? 1000 : 30
+          }}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          transition={{ duration: 0.8, delay: 0.5 }}
+          onMouseDown={handleIntroMouseDown}
+          whileHover={{ scale: 1.02 }}
+        >
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-100 border-4 border-dashed border-blue-300 rounded-2xl p-4 shadow-xl relative max-w-md select-none">
+            {/* Drag handle */}
+            <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-8 h-4 bg-blue-300 rounded-b-lg flex items-center justify-center cursor-grab active:cursor-grabbing">
+              <div className="w-4 h-1 bg-blue-500 rounded-full"></div>
+            </div>
+            
+            {/* Close button */}
+            <button
+              onClick={() => setShowIntro(false)}
+              className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-sm font-bold transition-colors duration-200 shadow-lg"
+              title="Close intro"
+            >
+              ×
+            </button>
+
+            <div className="flex items-center gap-3 mb-3">
+              <motion.div
+                animate={{ rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                className="text-3xl"
+              >
+                👋
+              </motion.div>              <div>                <h2 className="text-xl font-bold text-gray-800" style={{ fontFamily: 'Left Hand, cursive' }}>
+                  Hey! I'm Arun
+                </h2>
+                <div className="handwritten text-sm text-blue-600">
+                  SDE 1 @ HP Inc | Designer & Developer
+                </div>
+              </div>
+            </div>
+
+            <div className="handwritten text-gray-700 text-sm mb-3">
+              <p>
+                🚀 Full-stack developer who loves crafting delightful experiences. 
+                When not coding, you'll find me trekking 🥾 or playing ping pong 🏓
+              </p>
+            </div>
+
+            <div className="grid grid-cols-4 gap-2 mb-3">
+              <div className="bg-white/80 rounded-lg p-2 text-center text-xs">
+                <div className="text-lg">⚡</div>
+                <div>Dev</div>
+              </div>
+              <div className="bg-white/80 rounded-lg p-2 text-center text-xs">
+                <div className="text-lg">🎨</div>
+                <div>Design</div>
+              </div>
+              <div className="bg-white/80 rounded-lg p-2 text-center text-xs">
+                <div className="text-lg">☁️</div>
+                <div>AWS</div>
+              </div>
+              <div className="bg-white/80 rounded-lg p-2 text-center text-xs">
+                <div className="text-lg">🏔️</div>
+                <div>Trek</div>
+              </div>
+            </div>
+
+            <motion.div
+              className="text-center"
+              whileHover={{ scale: 1.05 }}
+            >
+              <div className="handwritten text-xs text-gray-600 bg-white/90 px-3 py-2 rounded-full border border-dashed border-gray-300">
+                ✨ Interactive portfolio ahead! ✨
+              </div>
+            </motion.div>
+          </div>
+        </motion.div>
+      )}
+      
+      {/* Tools and Analytics */}
       <div className="absolute top-8 right-8 z-20">
-        {/* Combined Tools and Analytics */}
         <div className="flex flex-col gap-3">
-          {/* Interactive Portfolio Tools */}
-          <div className="bg-white/95 backdrop-blur-sm border-2 border-black rounded-lg p-3 sketch-border shadow-lg">            <div className="flex items-center justify-center gap-2">
-              {/* Project Card Button */}
+          <div className="bg-white/95 backdrop-blur-sm border-2 border-black rounded-lg p-3 sketch-border shadow-lg">
+            <div className="flex items-center justify-center gap-2">
               <motion.button
                 onClick={addProjectCard}
                 whileHover={{ scale: 1.1, y: -2 }}
@@ -480,8 +692,6 @@ export const InteractivePortfolioSection: React.FC<{
               >
                 💼
               </motion.button>
-
-              {/* Personal Note Button */}
               <motion.button
                 onClick={addPersonalNote}
                 whileHover={{ scale: 1.1, y: -2 }}
@@ -491,8 +701,6 @@ export const InteractivePortfolioSection: React.FC<{
               >
                 📝
               </motion.button>
-
-              {/* Skill Bubble Button */}
               <motion.button
                 onClick={addSkillBubble}
                 whileHover={{ scale: 1.1, y: -2 }}
@@ -502,11 +710,7 @@ export const InteractivePortfolioSection: React.FC<{
               >
                 🎯
               </motion.button>
-
-              {/* Vertical Separator */}
               <div className="w-px h-6 bg-gray-300 mx-1"></div>
-
-              {/* Resume Button */}
               <motion.button
                 onClick={addInteractiveResume}
                 whileHover={{ scale: 1.1, y: -2 }}
@@ -516,8 +720,6 @@ export const InteractivePortfolioSection: React.FC<{
               >
                 🎓
               </motion.button>
-
-              {/* Testimonial Button */}
               <motion.button
                 onClick={addTestimonial}
                 whileHover={{ scale: 1.1, y: -2 }}
@@ -527,11 +729,7 @@ export const InteractivePortfolioSection: React.FC<{
               >
                 💬
               </motion.button>
-
-              {/* Vertical Separator */}
               <div className="w-px h-6 bg-gray-300 mx-1"></div>
-
-              {/* Scribble Element Button */}
               <motion.button
                 onClick={addScribbleElement}
                 whileHover={{ scale: 1.1, y: -2 }}
@@ -541,11 +739,7 @@ export const InteractivePortfolioSection: React.FC<{
               >
                 ✏️
               </motion.button>
-
-              {/* Vertical Separator */}
               <div className="w-px h-6 bg-gray-300 mx-1"></div>
-
-              {/* Achievements Button */}
               <motion.button
                 onClick={() => setShowAchievements(!showAchievements)}
                 whileHover={{ scale: 1.1, y: -2 }}
@@ -560,8 +754,6 @@ export const InteractivePortfolioSection: React.FC<{
                   </span>
                 )}
               </motion.button>
-
-              {/* Reset Button */}
               <motion.button
                 onClick={clearWorkspace}
                 whileHover={{ scale: 1.1, y: -2 }}
@@ -574,7 +766,6 @@ export const InteractivePortfolioSection: React.FC<{
             </div>
           </div>
 
-          {/* Simple Live Analytics */}
           <div className="bg-white/95 backdrop-blur-sm border-2 border-black rounded-lg p-3 sketch-border shadow-lg">
             <div className="text-center mb-1">
               <h3 className="text-xs font-semibold text-gray-700 handwritten">📈 Live Analytics</h3>
@@ -603,10 +794,11 @@ export const InteractivePortfolioSection: React.FC<{
             </div>
           </div>
         </div>
-      </div>      {/* Full-screen Interactive workspace */}
+      </div>
+
+      {/* Interactive workspace */}
       <div className="absolute inset-0 top-0" style={{ zIndex: 0 }}>
         <div className="absolute inset-0">
-          {/* Scribble layer (background) */}
           <div className="absolute inset-0" style={{ zIndex: 1 }}>
             <ScribbleWorkspace
               initialItems={scribbleItems}
@@ -614,12 +806,14 @@ export const InteractivePortfolioSection: React.FC<{
               showAddButton={false}
               className="w-full h-full"
             />
-          </div>          {/* Notebook layer (foreground) - Simple direct rendering */}
+          </div>
+          
           <div className="absolute inset-0" style={{ zIndex: 2 }}>
             {notebookItems.map((item) => (
               <motion.div
                 key={item.id}
-                className="absolute cursor-move"                style={{
+                className="absolute cursor-move"
+                style={{
                   left: item.position.x,
                   top: item.position.y,
                   transform: `rotate(${item.rotation ?? 0}deg) scale(${item.scale ?? 1})`,
@@ -637,7 +831,8 @@ export const InteractivePortfolioSection: React.FC<{
                 }}
                 whileHover={{ scale: (item.scale ?? 1) * 1.02 }}
                 whileDrag={{ scale: (item.scale ?? 1) * 1.05, zIndex: 1000 }}
-              >                {item.type === 'sticky-note' ? (
+              >
+                {item.type === 'sticky-note' ? (
                   <div className={`p-3 rounded-lg shadow-lg border-2 border-gray-300 min-w-[150px] min-h-[100px] ${
                     getStickyNoteColorClass(item.color)
                   }`}>
@@ -652,14 +847,38 @@ export const InteractivePortfolioSection: React.FC<{
             ))}
           </div>
         </div>
-      </div>
-
-      {/* Instructions footer */}
+      </div>      {/* Instructions footer */}
       <div className="fixed bottom-16 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-sm border border-gray-300 rounded-lg px-4 py-2 z-30">
         <div className="text-center text-sm text-gray-700 handwritten">
           💡 <strong>Pro tip:</strong> Drag elements around and use the tools above to create your interactive portfolio!
         </div>
-      </div>
+      </div>      {/* Achievement Notifications */}
+      <AnimatePresence>
+        {newlyUnlockedAchievements.map((achievementId, index) => {
+          const achievement = achievements.find(a => a.id === achievementId);
+          if (!achievement) return null;
+          
+          return (
+            <motion.div
+              key={`${achievementId}-${index}`}
+              initial={{ opacity: 0, y: 50, scale: 0.8 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -50, scale: 0.8 }}
+              className="fixed bottom-32 right-8 bg-green-500 text-white rounded-lg p-4 shadow-lg z-40"
+              style={{ marginBottom: `${index * 80}px` }}
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{achievement.icon}</span>
+                <div>
+                  <div className="font-bold">Achievement Unlocked!</div>
+                  <div className="text-sm">{achievement.title}</div>
+                  <div className="text-xs opacity-90">{achievement.description}</div>
+                </div>
+              </div>
+            </motion.div>
+          );
+        })}
+      </AnimatePresence>
 
       {/* Achievements Panel */}
       <AnimatePresence>
