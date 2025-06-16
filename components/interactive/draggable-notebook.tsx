@@ -58,9 +58,9 @@ const DraggableNotebookItem: React.FC<{
     onSelect?.(item.id);
   };
 
-  const handleDragEnd = (event: any, info: any) => {
-    setIsDragging(false);
-    
+  // New drag handler for real-time updates
+  const handleDrag = (event: any, info: any) => {
+    // Real-time position updates during drag for smoother experience
     let newX = item.position.x + info.offset.x;
     let newY = item.position.y + info.offset.y;
 
@@ -71,14 +71,29 @@ const DraggableNotebookItem: React.FC<{
       newY = Math.max(bounds.top, Math.min(bounds.bottom - rect.height, newY));
     }
 
-    // Apply grid snap if enabled
+    // Update position in real-time for smooth dragging
+    onUpdate(item.id, { 
+      position: { x: newX, y: newY }
+    });
+  };
+
+  const handleDragEnd = (event: any, info: any) => {
+    setIsDragging(false);
+    
+    // Apply grid snap if enabled (only at the end)
     if (gridSnap) {
       const gridSize = 20;
-      newX = Math.round(newX / gridSize) * gridSize;
-      newY = Math.round(newY / gridSize) * gridSize;
-    }    onUpdate(item.id, { 
-      position: { x: newX, y: newY },
-      zIndex: (item.zIndex ?? 0) + 1 // Bring to front when moved
+      const snappedX = Math.round(item.position.x / gridSize) * gridSize;
+      const snappedY = Math.round(item.position.y / gridSize) * gridSize;
+      
+      onUpdate(item.id, { 
+        position: { x: snappedX, y: snappedY }
+      });
+    }
+    
+    // Bring to front when moved
+    onUpdate(item.id, { 
+      zIndex: (item.zIndex ?? 0) + 1
     });
   };
   const handleRotate = () => {
@@ -176,6 +191,7 @@ const DraggableNotebookItem: React.FC<{
       dragElastic={0.1}
       dragMomentum={false}
       onDragStart={handleDragStart}
+      onDrag={handleDrag}
       onDragEnd={handleDragEnd}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { CaseStudy } from '../../types';
+import { CaseStudy } from '../types';
 import { SketchHeading } from '@/components/ui/sketch-elements';
 
 interface OverviewPageProps {

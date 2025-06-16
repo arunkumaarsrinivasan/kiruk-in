@@ -2,8 +2,12 @@
 
 import { motion } from 'framer-motion';
 import ScribbleAnimation from '../three/scribble-animation';
+import { useState } from 'react';
 
 const HeroSection = () => {
+  const [showWelcome, setShowWelcome] = useState(true);
+  const [showProTip, setShowProTip] = useState(true);
+
   return (
     <section className="relative h-full w-full bg-white overflow-hidden">
       {/* Full Canvas Scribble Playground */}
@@ -169,41 +173,61 @@ const HeroSection = () => {
       >        <div className="handwritten text-xs text-sketch-purple transform rotate-12">
           🤝 Collaboration
         </div>
-      </motion.div>
-
-      {/* Interactive Guide Instructions */}
-      <motion.div
-        className="absolute top-4 left-1/2 transform -translate-x-1/2 z-30"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 1.5 }}
-      >
-        <div className="bg-yellow-100/90 border-2 border-dashed border-yellow-400 rounded-lg p-4 max-w-md backdrop-blur-sm">
-          <div className="handwritten text-center">
-            <h3 className="text-lg font-bold text-gray-800 mb-2">Welcome to KIRUK's Interactive Portfolio! 🎨</h3>
-            <div className="text-sm text-gray-700 space-y-1">
-              <p>👆 <strong>Top Right:</strong> Interactive toolbar & live analytics</p>
-              <p>📱 <strong>Navigation:</strong> Menu bar below for easy browsing</p>
-              <p>🎯 <strong>Explore:</strong> Click around to discover interactive elements</p>
+      </motion.div>      {/* Interactive Guide Instructions */}
+      {showWelcome && (
+        <motion.div
+          className="absolute top-4 left-1/2 transform -translate-x-1/2 z-30"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.8, delay: 1.5 }}
+        >
+          <div className="bg-yellow-100/90 border-2 border-dashed border-yellow-400 rounded-lg p-4 max-w-md backdrop-blur-sm relative">
+            {/* Close button */}
+            <button
+              onClick={() => setShowWelcome(false)}
+              className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-sm font-bold transition-colors duration-200 shadow-lg"
+              title="Close welcome message"
+            >
+              ×
+            </button>
+            
+            <div className="handwritten text-center">
+              <h3 className="text-lg font-bold text-gray-800 mb-2">Welcome to KIRUK's Interactive Portfolio! 🎨</h3>
+              <div className="text-sm text-gray-700 space-y-1">
+                <p>👆 <strong>Top Right:</strong> Interactive toolbar & live analytics</p>
+                <p>📱 <strong>Navigation:</strong> Menu bar below for easy browsing</p>
+                <p>🎯 <strong>Explore:</strong> Click around to discover interactive elements</p>
+              </div>
             </div>
           </div>
-        </div>
-      </motion.div>
-
-      {/* Dismissible hint */}
-      <motion.div
-        className="absolute top-1/2 left-4 z-20 hidden lg:block"
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 0.6, x: 0 }}
-        transition={{ duration: 0.5, delay: 3 }}
-      >
-        <div className="bg-blue-50/90 border-2 border-dashed border-blue-300 rounded-lg p-3 max-w-xs">
-          <div className="handwritten text-xs text-blue-800">
-            <p className="font-bold mb-1">💡 Pro Tip:</p>
-            <p>This portfolio is fully interactive! Try hovering over elements and clicking to explore my work.</p>
+        </motion.div>
+      )}      {/* Dismissible hint */}
+      {showProTip && (
+        <motion.div
+          className="absolute top-1/2 left-4 z-20 hidden lg:block"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 0.6, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ duration: 0.5, delay: 3 }}
+        >
+          <div className="bg-blue-50/90 border-2 border-dashed border-blue-300 rounded-lg p-3 max-w-xs relative">
+            {/* Close button */}
+            <button
+              onClick={() => setShowProTip(false)}
+              className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold transition-colors duration-200 shadow-lg"
+              title="Close pro tip"
+            >
+              ×
+            </button>
+            
+            <div className="handwritten text-xs text-blue-800">
+              <p className="font-bold mb-1">💡 Pro Tip:</p>
+              <p>This portfolio is fully interactive! Try hovering over elements and clicking to explore my work.</p>
+            </div>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      )}
     </section>
   );
 };

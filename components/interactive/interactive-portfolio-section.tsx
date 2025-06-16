@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { DraggableItem } from './draggable-notebook';
 import ScribbleWorkspace, { EnhancedScribbleDragItem } from './scribble-workspace';
 import { SketchHeading } from '../ui/sketch-elements';
+import ScribblePad from './scribble-pad';
 
 // Type alias for compatibility
 type ScribbleDragItem = EnhancedScribbleDragItem;
@@ -527,23 +528,33 @@ export const InteractivePortfolioSection: React.FC<{
       interactionsCount: prev.interactionsCount + 1
     }));
   }, []);
-
   const addScribbleElement = useCallback(() => {
-    const scribbleTypes = ['coffee-stain', 'tape-piece', 'pencil-mark'];
-    const randomType = scribbleTypes[Math.floor(Math.random() * scribbleTypes.length)];
-    
-    const newScribbleItem: ScribbleDragItem = {
-      id: `scribble-${Date.now()}`,
-      type: randomType as any,
+    setShowScribblePad(true);
+  }, []);
+  const handleScribbleInsert = useCallback((scribbleData: string) => {
+    const newNote: DraggableItem = {
+      id: `scribble-note-${Date.now()}`,
+      type: 'sketch-element',
+      content: (
+        <div className="w-full h-full flex items-center justify-center p-2">
+          <img 
+            src={scribbleData} 
+            alt="Hand-drawn scribble" 
+            className="max-w-full max-h-full object-contain"
+          />
+        </div>
+      ),
       position: { 
-        x: Math.random() * (window.innerWidth - 100) + 50, 
+        x: Math.random() * (window.innerWidth - 250) + 50, 
         y: Math.random() * (window.innerHeight - 200) + 100 
       },
-      ...(randomType === 'coffee-stain' && { size: Math.random() * 30 + 20 }),
-      ...(randomType === 'tape-piece' && { rotation: Math.random() * 60 - 30 })
+      rotation: Math.random() * 10 - 5,
+      scale: 1,
+      color: 'white',
+      size: 'lg'
     };
 
-    setScribbleItems(prev => [...prev, newScribbleItem]);
+    setNotebookItems(prev => [...prev, newNote]);
     setInteractiveStats(prev => ({
       ...prev,
       itemsCreated: prev.itemsCreated + 1,
@@ -562,20 +573,36 @@ export const InteractivePortfolioSection: React.FC<{
       interactionsCount: prev.interactionsCount + 1
     }));
   };  const [showIntro, setShowIntro] = useState(true);
-  const [introPosition, setIntroPosition] = useState({ x: 50, y: 50 });
+  const [introPosition, setIntroPosition] = useState({ x: 300, y: 200 });
   const [isDraggingIntro, setIsDraggingIntro] = useState(false);
-
+  const [showScribblePad, setShowScribblePad] = useState(false);
   // Handle intro dragging
   const handleIntroMouseDown = (e: React.MouseEvent) => {
     setIsDraggingIntro(true);
+    
+    // Get the current element bounds
     const rect = e.currentTarget.getBoundingClientRect();
     const offsetX = e.clientX - rect.left;
     const offsetY = e.clientY - rect.top;
 
     const handleMouseMove = (e: MouseEvent) => {
+      // Calculate new position based on mouse position minus the initial offset
+      let newX = e.clientX - offsetX;
+      let newY = e.clientY - offsetY;
+
+      // Get viewport dimensions and element dimensions
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const elementWidth = rect.width;
+      const elementHeight = rect.height;
+
+      // Apply boundaries to keep element within viewport
+      newX = Math.max(0, Math.min(viewportWidth - elementWidth, newX));
+      newY = Math.max(0, Math.min(viewportHeight - elementHeight, newY));
+
       setIntroPosition({
-        x: e.clientX - offsetX,
-        y: e.clientY - offsetY
+        x: newX,
+        y: newY
       });
     };
 
@@ -587,6 +614,9 @@ export const InteractivePortfolioSection: React.FC<{
 
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
+    
+    // Prevent default to avoid text selection
+    e.preventDefault();
   };
 
   return (
@@ -807,8 +837,7 @@ export const InteractivePortfolioSection: React.FC<{
               className="w-full h-full"
             />
           </div>
-          
-          <div className="absolute inset-0" style={{ zIndex: 2 }}>
+            <div className="absolute inset-0" style={{ zIndex: 2 }}>
             {notebookItems.map((item) => (
               <motion.div
                 key={item.id}
@@ -821,16 +850,41 @@ export const InteractivePortfolioSection: React.FC<{
                 }}
                 drag
                 dragMomentum={false}
+                dragElastic={0.1}
+                dragConstraints={{
+                  left: 0,
+                  right: typeof window !== 'undefined' ? window.innerWidth - 200 : 800,
+                  top: 0,
+                  bottom: typeof window !== 'undefined' ? window.innerHeight - 150 : 600
+                }}
                 onDragEnd={(event, info) => {
+                  // Calculate new position with bounds checking
+                  let newX = item.position.x + info.offset.x;
+                  let newY = item.position.y + info.offset.y;
+                  
+                  // Ensure the item stays within viewport bounds
+                  const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 800;
+                  const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 600;
+                  const elementWidth = 200; // Approximate element width
+                  const elementHeight = 150; // Approximate element height
+                  
+                  newX = Math.max(0, Math.min(viewportWidth - elementWidth, newX));
+                  newY = Math.max(0, Math.min(viewportHeight - elementHeight, newY));
+                  
                   const newItems = notebookItems.map(i => 
                     i.id === item.id 
-                      ? { ...i, position: { x: item.position.x + info.offset.x, y: item.position.y + info.offset.y } }
+                      ? { ...i, position: { x: newX, y: newY } }
                       : i
                   );
                   setNotebookItems(newItems);
                 }}
                 whileHover={{ scale: (item.scale ?? 1) * 1.02 }}
-                whileDrag={{ scale: (item.scale ?? 1) * 1.05, zIndex: 1000 }}
+                whileDrag={{ 
+                  scale: (item.scale ?? 1) * 1.05, 
+                  zIndex: 1000,
+                  rotate: (item.rotation ?? 0) + (Math.random() - 0.5) * 2,
+                  boxShadow: '0 8px 25px rgba(0,0,0,0.15)'
+                }}
               >
                 {item.type === 'sticky-note' ? (
                   <div className={`p-3 rounded-lg shadow-lg border-2 border-gray-300 min-w-[150px] min-h-[100px] ${
@@ -846,13 +900,7 @@ export const InteractivePortfolioSection: React.FC<{
               </motion.div>
             ))}
           </div>
-        </div>
-      </div>      {/* Instructions footer */}
-      <div className="fixed bottom-16 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-sm border border-gray-300 rounded-lg px-4 py-2 z-30">
-        <div className="text-center text-sm text-gray-700 handwritten">
-          💡 <strong>Pro tip:</strong> Drag elements around and use the tools above to create your interactive portfolio!
-        </div>
-      </div>      {/* Achievement Notifications */}
+        </div>      </div>      {/* Achievement Notifications */}
       <AnimatePresence>
         {newlyUnlockedAchievements.map((achievementId, index) => {
           const achievement = achievements.find(a => a.id === achievementId);
@@ -861,20 +909,37 @@ export const InteractivePortfolioSection: React.FC<{
           return (
             <motion.div
               key={`${achievementId}-${index}`}
-              initial={{ opacity: 0, y: 50, scale: 0.8 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -50, scale: 0.8 }}
-              className="fixed bottom-32 right-8 bg-green-500 text-white rounded-lg p-4 shadow-lg z-40"
-              style={{ marginBottom: `${index * 80}px` }}
+              initial={{ opacity: 0, y: 50, scale: 0.8, rotate: -5 }}
+              animate={{ opacity: 1, y: 0, scale: 1, rotate: 0 }}
+              exit={{ opacity: 0, y: -50, scale: 0.8, rotate: 5 }}
+              className="fixed bottom-32 right-8 bg-gradient-to-br from-yellow-100 to-yellow-200 border-4 border-dashed border-yellow-400 rounded-2xl p-4 shadow-xl z-40 transform rotate-1 hover:rotate-0 transition-transform duration-300"
+              style={{ marginBottom: `${index * 90}px` }}
+              whileHover={{ scale: 1.05 }}
             >
               <div className="flex items-center gap-3">
-                <span className="text-2xl">{achievement.icon}</span>
-                <div>
-                  <div className="font-bold">Achievement Unlocked!</div>
-                  <div className="text-sm">{achievement.title}</div>
-                  <div className="text-xs opacity-90">{achievement.description}</div>
+                <motion.span 
+                  className="text-3xl"
+                  animate={{ 
+                    rotate: [0, 10, -10, 0],
+                    scale: [1, 1.2, 1]
+                  }}
+                  transition={{ 
+                    duration: 2, 
+                    repeat: Infinity, 
+                    ease: "easeInOut" 
+                  }}
+                >
+                  {achievement.icon}
+                </motion.span>                <div>
+                  <div className="font-bold text-gray-800 text-lg" style={{ fontFamily: 'Left Hand, cursive' }}>Achievement Unlocked! 🎉</div>
+                  <div className="text-base text-gray-700 font-semibold" style={{ fontFamily: 'Left Hand, cursive' }}>{achievement.title}</div>
+                  <div className="text-sm text-gray-600 opacity-90" style={{ fontFamily: 'Left Hand, cursive' }}>{achievement.description}</div>
                 </div>
               </div>
+              
+              {/* Decorative elements */}
+              <div className="absolute -top-2 -right-2 w-4 h-4 bg-yellow-400 rounded-full animate-pulse"></div>
+              <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-yellow-300 rounded-full"></div>
             </motion.div>
           );
         })}
@@ -941,9 +1006,15 @@ export const InteractivePortfolioSection: React.FC<{
                 Close
               </button>
             </motion.div>
-          </motion.div>
-        )}
+          </motion.div>        )}
       </AnimatePresence>
+
+      {/* Scribble Pad Modal */}
+      <ScribblePad
+        isOpen={showScribblePad}
+        onClose={() => setShowScribblePad(false)}
+        onInsert={handleScribbleInsert}
+      />
     </section>
   );
 };
