@@ -56,9 +56,16 @@ export default function ScribbleAnimation({
   const [currentTrail, setCurrentTrail] = useState<THREE.Vector3[]>([]);
   const [isMouseInside, setIsMouseInside] = useState(false);
   const [isTouching, setIsTouching] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   const lastPositionRef = useRef<THREE.Vector3 | null>(null);
-  const trailIdRef = useRef<string>(`trail-${Date.now()}`);
+  const trailIdRef = useRef<string>('trail-initial');
   const smoothingFactorRef = useRef(0.25); // For smooth interpolation
+
+  // Ensure consistent rendering between server and client
+  useEffect(() => {
+    setIsClient(true);
+    trailIdRef.current = `trail-${Date.now()}`;
+  }, []);
   
   // Convert screen coordinates to 3D world coordinates
   const screenToWorld = useCallback((screenX: number, screenY: number, containerRect: DOMRect) => {
@@ -82,7 +89,7 @@ export default function ScribbleAnimation({
     );
   }, []);
   
-  const handleMouseMove = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+  const handleMouseMove = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     const worldPos = screenToWorld(event.clientX, event.clientY, rect);
 
@@ -117,11 +124,13 @@ export default function ScribbleAnimation({
   }, [isMouseInside, isTouching, screenToWorld]);
   const handleMouseEnter = useCallback(() => {
     setIsMouseInside(true);
-    // Start a new trail
-    trailIdRef.current = `trail-${Date.now()}-${Math.random()}`;
+    // Start a new trail - only generate random IDs on client side
+    if (isClient) {
+      trailIdRef.current = `trail-${Date.now()}-${Math.random()}`;
+    }
     setCurrentTrail([]);
     lastPositionRef.current = null;
-  }, []);
+  }, [isClient]);
   const handleMouseLeave = useCallback(() => {
     setIsMouseInside(false);
     
@@ -139,16 +148,18 @@ export default function ScribbleAnimation({
   }, [currentTrail]);
 
   // Touch event handlers for mobile support
-  const handleTouchStart = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
+  const handleTouchStart = useCallback((event: React.TouchEvent<HTMLButtonElement>) => {
     event.preventDefault(); // Prevent scrolling
     setIsTouching(true);
-    // Start a new trail
-    trailIdRef.current = `trail-${Date.now()}-${Math.random()}`;
+    // Start a new trail - only generate random IDs on client side
+    if (isClient) {
+      trailIdRef.current = `trail-${Date.now()}-${Math.random()}`;
+    }
     setCurrentTrail([]);
     lastPositionRef.current = null;
-  }, []);
+  }, [isClient]);
 
-  const handleTouchMove = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
+  const handleTouchMove = useCallback((event: React.TouchEvent<HTMLButtonElement>) => {
     event.preventDefault(); // Prevent scrolling
     
     if (isTouching && event.touches.length > 0) {
@@ -185,7 +196,7 @@ export default function ScribbleAnimation({
     }
   }, [isTouching, screenToWorld]);
 
-  const handleTouchEnd = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
+  const handleTouchEnd = useCallback((event: React.TouchEvent<HTMLButtonElement>) => {
     event.preventDefault();
     setIsTouching(false);
     
@@ -200,6 +211,35 @@ export default function ScribbleAnimation({
       setCurrentTrail([]);
     lastPositionRef.current = null;
   }, [currentTrail]);
+
+  // Keyboard event handler for accessibility
+  const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      // Clear all trails on Enter/Space
+      setScribbleTrails([]);
+      setCurrentTrail([]);
+      lastPositionRef.current = null;
+    }
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      // Stop current drawing on Escape
+      setIsMouseInside(false);
+      setIsTouching(false);
+      setCurrentTrail([]);
+      lastPositionRef.current = null;
+    }
+  }, []);
+
+  // Focus handler for keyboard accessibility
+  const handleFocus = useCallback(() => {
+    setIsMouseInside(true);
+  }, []);
+
+  const handleBlur = useCallback(() => {
+    setIsMouseInside(false);
+    setIsTouching(false);
+  }, []);
   
   // Clean up old trails periodically and update smoothing
   useEffect(() => {
@@ -215,15 +255,35 @@ export default function ScribbleAnimation({
       return () => clearInterval(interval);
   }, [currentTrail.length]);
   
+  // Prevent hydration mismatch by only rendering interactive content on client
+  if (!isClient) {
+    return (
+      <div 
+        className={`w-full h-full ${className} cursor-crosshair touch-none scribble-area`}
+      >
+        <Canvas
+          camera={{ position: [0, 0, 5], fov: 50 }}
+          style={{ background: 'transparent' }}
+        />
+      </div>
+    );
+  }
+  
   return (
-    <div 
-      className={`w-full h-full ${className} cursor-crosshair touch-none scribble-area`}
+    <button 
+      type="button"
+      className={`w-full h-full ${className} cursor-crosshair touch-none scribble-area border-0 p-0 bg-transparent outline-none focus:outline-2 focus:outline-blue-500`}
+      aria-label="Interactive scribble drawing area. Use mouse or touch to draw. Press Enter or Space to clear all drawings, Escape to stop current drawing."
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      onTouchStart={handleTouchStart}      onTouchMove={handleTouchMove}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchEnd}
+      onKeyDown={handleKeyDown}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
     >
       <Canvas
         camera={{ position: [0, 0, 5], fov: 50 }}
@@ -249,6 +309,6 @@ export default function ScribbleAnimation({
           />
         )}
       </Canvas>
-    </div>
+    </button>
   );
 }

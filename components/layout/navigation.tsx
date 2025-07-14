@@ -29,9 +29,9 @@ const Navigation = () => {
   const [currentAiResponse, setCurrentAiResponse] = useState<string>('');
   const [aiThinking, setAiThinking] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);  const [isTyping, setIsTyping] = useState(false);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [isTyping, setIsTyping] = useState(false);
   const [showQuickActions, setShowQuickActions] = useState(false);
-  const [bouncingIndex, setBouncingIndex] = useState<number | null>(null);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [contextualSuggestions, setContextualSuggestions] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -151,15 +151,6 @@ const Navigation = () => {
     
     return suggestions.slice(0, 3); // Limit to 3 suggestions
   };
-  // Handle escape key to clear/close chat
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape' && chatOpen) {
-      setChatOpen(false);
-      setCurrentAiResponse('');
-      setAiThinking(false);
-      setIsInputFocused(false);
-    }
-  };
   // Enhanced input focus handling
   const handleInputFocus = () => {
     setIsInputFocused(true);
@@ -200,39 +191,83 @@ const Navigation = () => {
     { href: '/work', label: 'Work', IconComponent: WorkIcon, hasInteractive: true },
     { href: '/case-studies', label: 'Studies', IconComponent: StudiesIcon, hasInteractive: true },
     { href: '/contact', label: 'Contact', IconComponent: ContactIcon, hasInteractive: true },
-  ];// Navigation item styling with strikethrough/bold logic
+  ];  // Base classes for navigation items
+  const baseNavItemClass = 'flex flex-col items-center justify-center px-3 py-2 cursor-pointer transition-all duration-200 outline-none min-h-[60px]';
+  
+  // Navigation item styling with strikethrough/bold logic
   const getNavItemClass = (idx: number) => {
     const isActive = mounted && pathname === navItems[idx].href;
-    const isHovered = activeIndex === idx;
     
-    let cls = 'flex flex-col items-center justify-center px-3 py-2 cursor-pointer transition-all duration-200 outline-none min-h-[60px]';
-    
-    // Remove spring animations, keep only subtle transitions
-    if (isActive) {
-      cls += ' font-bold';
-    }
-    
-    return cls;
+    return isActive ? `${baseNavItemClass} font-bold` : baseNavItemClass;
   };
 
+  // Base classes for text styling
+  const baseTextClass = 'text-xs mt-1 nav-menu-item select-none transition-all duration-200';
+  
   // Get text styling for nav labels
   const getTextClass = (idx: number) => {
     const isActive = mounted && pathname === navItems[idx].href;
     const isHovered = activeIndex === idx;
     
-    let cls = 'text-xs mt-1 nav-menu-item select-none transition-all duration-200';
-    
     if (isActive) {
-      cls += ' font-bold text-black';
-    } else if (isHovered) {
-      cls += ' text-black'; // Remove strikethrough on hover
-    } else {
-      cls += ' line-through text-gray-500'; // Strikethrough for non-active items
+      return `${baseTextClass} font-bold text-black`;
     }
     
-    return cls;
+    if (isHovered) {
+      return `${baseTextClass} text-black`; // Remove strikethrough on hover
+    }
+    
+    return `${baseTextClass} line-through text-gray-500`; // Strikethrough for non-active items
   };
-  // Handle hover/focus/blur for nav items
+  // Helper function for chat icon styling
+  const getChatIconClass = () => {
+    if (aiThinking) return 'animate-pulse text-blue-500';
+    if (isTyping) return 'text-blue-600';
+    return 'text-black';
+  };
+
+  // Helper function for assistant status text
+  const getAssistantStatusText = () => {
+    if (aiThinking) return '● Thinking...';
+    if (chatMessages.length > 0) return '● Ready to help';
+    return '● Online';
+  };
+
+  // Helper function for assistant status color
+  const getAssistantStatusColor = () => {
+    if (aiThinking) return 'text-blue-500';
+    if (chatMessages.length > 0) return 'text-green-500';
+    return 'text-gray-400';
+  };
+
+  // Helper function for message count display
+  const getMessageCountText = () => {
+    const count = chatMessages.length;
+    return `${count} msg${count !== 1 ? 's' : ''}`;
+  };
+
+  // Helper function for footer message count
+  const getFooterMessageText = () => {
+    const count = chatMessages.length;
+    return `${count} message${count !== 1 ? 's' : ''}`;
+  };
+
+  // Helper function for status indicator color
+  const getStatusIndicatorClass = () => {
+    if (aiThinking) return 'bg-blue-500 animate-pulse';
+    if (chatMessages.length > 0) return 'bg-green-500';
+    return 'bg-gray-400';
+  };
+
+  // Simplified chat button click handler  
+  const handleChatButtonClick = (e: React.MouseEvent) => {
+    setChatOpen(!chatOpen);
+    // If there are no messages, prevent default to show welcome screen
+    if (chatMessages.length === 0 && !aiThinking) {
+      e.preventDefault();
+    }
+  };
+
   const handleNavMouseEnter = (idx: number) => setActiveIndex(idx);
   const handleNavMouseLeave = () => setActiveIndex(null);
   const handleNavClick = (idx: number) => {
@@ -248,10 +283,11 @@ const Navigation = () => {
     }
   };
 
-  return (    <nav
+  return (
+    <nav
       className="fixed bottom-0 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-2xl px-4 pb-4"
       aria-label="Main navigation"
-      onKeyDown={handleKeyDown}
+      role="navigation"
     >      <div
         className="relative flex items-center justify-between bg-white/90 border border-black rounded-2xl shadow-none py-3 px-4 backdrop-blur-md sketch-border transition-all duration-200 hover:shadow-lg hover:sketch-border-thick"
         style={{ boxShadow: 'none', borderColor: '#000', borderWidth: 2 }}
@@ -292,19 +328,9 @@ const Navigation = () => {
               type="submit"
               className="mr-2 p-1 transition-all duration-200 flex items-center justify-center relative rounded-full bg-yellow-400 text-black font-bold border-2 border-yellow-600 hover:bg-yellow-300 focus:ring-2 focus:ring-yellow-400"
               aria-label="Ask about me"
-              tabIndex={0}onClick={(e) => {
-                // Always open chat when clicking the icon
-                setChatOpen(!chatOpen);
-                // If there are no messages, show welcome screen with suggestions
-                if (chatMessages.length === 0 && !aiThinking && e.type === 'click') {
-                  e.preventDefault();
-                }
-              }}
+              tabIndex={0}              onClick={handleChatButtonClick}
             >
-              <ChatIcon className={`w-5 h-5 transition-colors ${
-                aiThinking ? 'animate-pulse text-blue-500' : 
-                isTyping ? 'text-blue-600' : 'text-black'
-              }`} />
+              <ChatIcon className={`w-5 h-5 transition-colors ${getChatIconClass()}`} />
               {/* Message count indicator */}
               {chatMessages.length > 0 && (                <div className="absolute -top-1 -right-1 bg-black text-white text-xs rounded-full w-4 h-4 flex items-center justify-center handwritten animate-bounce-once">
                   {chatMessages.length}
@@ -317,7 +343,7 @@ const Navigation = () => {
             </button>            <input
               ref={inputRef}
               type="text"
-              className="bg-black text-white outline-none border-none search-input-enhanced text-sm w-full transition-all duration-200 font-bold px-3 py-2 rounded-full"
+              className="bg-black text-white outline-none border-none handwritten text-sm w-full transition-all duration-200 font-bold px-3 py-2 rounded-full"
               placeholder={isInputFocused ? "Type your question..." : "Ask about me..."}
               value={search}
               onChange={handleInputChange}
@@ -328,12 +354,20 @@ const Navigation = () => {
                   e.preventDefault();
                   handleSearch(e as any);
                 } else if (e.key === 'Escape') {
-                  handleKeyDown(e);
+                  if (chatOpen) {
+                    setChatOpen(false);
+                    setCurrentAiResponse('');
+                    setAiThinking(false);
+                    setIsInputFocused(false);
+                  }
                 }
               }}
               aria-label="Ask about Arun Kumar"
-              aria-expanded={showQuickActions}
               aria-describedby="search-suggestions"
+              role="combobox"
+              aria-autocomplete="list"
+              aria-controls="search-suggestions"
+              aria-expanded={showQuickActions}
               disabled={aiThinking}
             />
             {/* Loading indicator inside input */}
@@ -346,60 +380,49 @@ const Navigation = () => {
             )}
           </form>          {/* Contextual Quick Suggestions - Only show when typing */}
           {showQuickActions && search.length > 0 && contextualSuggestions.length > 0 && (
-            <div 
+            <section 
               id="search-suggestions"
               className="absolute bottom-full left-0 right-0 mb-2 bg-white border-2 border-gray-200 rounded-xl shadow-lg z-10 overflow-hidden animate-fade-in"
-              role="listbox"
               aria-label="Quick suggestions"
             >
               <div className="p-2">
-                <div className="text-xs text-gray-500 font-mono mb-2 px-2">💡 Suggestions based on your input:</div>
+                <div className="text-xs text-gray-500 handwritten-small mb-2 px-2">💡 Suggestions based on your input:</div>
                 {contextualSuggestions.map((suggestion, index) => (
                   <button
                     key={suggestion}
                     onClick={() => handleSuggestionClick(suggestion)}
-                    className="w-full text-left px-3 py-2 text-sm font-mono hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-200 focus:border-blue-400 focus:outline-none"
-                    role="option"
-                    aria-selected="false"
+                    className="w-full text-left px-3 py-2 text-sm handwritten-small hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-200 focus:border-blue-400 focus:outline-none"
                     tabIndex={0}
                   >
                     <span className="text-blue-600">→</span> {suggestion}
                   </button>
                 ))}
               </div>
-            </div>
+            </section>
           )}
         </div>
       </div>      {/* Chat Interface */}
       {chatOpen && (
-        <div className="absolute left-1/2 bottom-36 transform -translate-x-1/2 z-50 w-full max-w-lg flex justify-center pointer-events-none">
+        <div className="absolute left-1/2 bottom-36 transform -translate-x-1/2 z-50 w-full max-w-2xl flex justify-center pointer-events-none">
           <div className="bg-white border-2 border-black rounded-xl shadow-2xl pointer-events-auto mx-4 w-full max-h-96 overflow-hidden animate-chat-enter backdrop-blur-sm">
             {/* Chat Header */}
             <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-gradient-to-r from-white to-gray-50">
               <div className="flex items-center space-x-2">
                 <div className="relative">
-                  <ChatIcon className={`w-4 h-4 transition-all duration-300 ${
-                    aiThinking ? 'animate-pulse text-blue-500' : 'text-gray-700'
-                  }`} />
+                  <ChatIcon className={`w-4 h-4 transition-all duration-300 ${getChatIconClass()}`} />
                   {/* Status indicator */}
-                  <div className={`absolute -bottom-1 -right-1 w-2 h-2 rounded-full ${
-                    aiThinking ? 'bg-blue-500 animate-pulse' : 
-                    chatMessages.length > 0 ? 'bg-green-500' : 'bg-gray-400'
-                  }`}></div>
+                  <div className={`absolute -bottom-1 -right-1 w-2 h-2 rounded-full ${getStatusIndicatorClass()}`}></div>
                 </div>                <div className="flex flex-col">                  <span className="heading-tertiary-enhanced text-xs font-bold text-gray-800">Arun's AI Assistant</span>
-                  <span className={`text-xs chat-typing-indicator transition-colors ${
-                    aiThinking ? 'text-blue-500' : 
-                    chatMessages.length > 0 ? 'text-green-500' : 'text-gray-400'
-                  }`}>
-                    {aiThinking ? '● Thinking...' : 
-                     chatMessages.length > 0 ? '● Ready to help' : '● Online'}
+                  <span className={`text-xs chat-typing-indicator transition-colors ${getAssistantStatusColor()}`}>
+                    {getAssistantStatusText()}
                   </span>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
                 {/* Chat stats */}
-                {chatMessages.length > 0 && (                  <span className="text-xs text-gray-500 handwritten px-2 py-1 bg-gray-100 rounded-full">
-                    {chatMessages.length} msg{chatMessages.length !== 1 ? 's' : ''}
+                {chatMessages.length > 0 && (
+                  <span className="text-xs text-gray-500 handwritten-small px-2 py-1 bg-gray-100 rounded-full">
+                    {getMessageCountText()}
                   </span>
                 )}
                 <button
@@ -423,17 +446,17 @@ const Navigation = () => {
             {/* Chat Messages */}
             <div 
               ref={chatMessagesRef}
-              className="p-4 space-y-4 max-h-72 overflow-y-auto font-mono text-sm scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
+              className="p-4 space-y-4 max-h-72 overflow-y-auto chat-handwritten scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
               style={{ scrollBehavior: 'smooth' }}
             >
               {/* Welcome message when chat is empty */}
               {chatMessages.length === 0 && !currentAiResponse && !aiThinking && (
                 <div className="text-center text-gray-500 py-6 animate-fade-in">
-                  <div className="mb-4 text-2xl">👋</div>
-                  <div className="mb-3 font-semibold">Hi! I'm Arun's AI assistant</div>
-                  <div className="text-xs mb-4 text-gray-400">Ask me anything about his skills, projects, or experience</div>
+                  <div className="mb-3 text-sm">👋</div>
+                  <div className="mb-2 font-semibold text-sm chat-handwritten">Hi! I'm Arun's AI assistant</div>
+                  <div className="text-sm mb-4 text-gray-400 chat-handwritten">Ask me anything about his skills, projects, or experience</div>
                   
-                  <div className="flex flex-wrap gap-2 justify-center">
+                  <div className="flex flex-wrap gap-1 justify-center">
                     {[
                       { text: 'What are your skills?', icon: '🛠️', color: 'bg-blue-50 hover:bg-blue-100 border-blue-200' },
                       { text: 'Tell me about your projects', icon: '💼', color: 'bg-green-50 hover:bg-green-100 border-green-200' },
@@ -444,12 +467,12 @@ const Navigation = () => {
                       <button
                         key={suggestion.text}
                         onClick={() => handleSuggestionClick(suggestion.text)}
-                        className={`px-3 py-2 text-xs ${suggestion.color} rounded-lg border transition-all duration-200 flex items-center gap-2 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 animate-fade-in`}
+                        className={`px-2 py-1 text-sm ${suggestion.color} rounded-lg border transition-all duration-200 flex items-center gap-1 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 animate-fade-in chat-handwritten`}
                         style={{ animationDelay: `${index * 100}ms` }}
                         tabIndex={0}
                       >
-                        <span>{suggestion.icon}</span>
-                        <span>{suggestion.text}</span>
+                        <span className="text-sm">{suggestion.icon}</span>
+                        <span className="chat-handwritten">{suggestion.text}</span>
                       </button>
                     ))}
                   </div>
@@ -474,7 +497,7 @@ const Navigation = () => {
                     </div>
                     
                     {/* Timestamp */}
-                    <div className={`text-xs text-gray-400 mt-1 ${
+                    <div className={`text-xs text-gray-400 mt-1 handwritten-small ${
                       message.type === 'user' ? 'text-right' : 'text-left'
                     }`}>
                       {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -513,26 +536,28 @@ const Navigation = () => {
                           <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
                           <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                         </div>
-                        <span className="text-sm">Thinking...</span>
+                        <span className="text-sm handwritten-small">Thinking...</span>
                       </div>
                     </div>
                   </div>
                 </div>
               )}
-            </div>            {/* Chat Footer */}
+            </div>
+
+            {/* Chat Footer */}
             <div className="px-4 py-3 border-t border-gray-200 bg-gradient-to-r from-gray-50 to-white">
-              <div className="flex justify-between items-center text-xs text-gray-500 font-mono">
+              <div className="flex justify-between items-center text-xs text-gray-500 handwritten-small">
                 <div className="flex items-center gap-2">
                   <span className="flex items-center gap-1">
                     {chatMessages.length > 0 ? (
                       <>
                         <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                        {chatMessages.length} message{chatMessages.length !== 1 ? 's' : ''}
+                        {getFooterMessageText()}
                       </>
                     ) : (
                       <>
                         <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                        New conversation
+                        <span>New conversation</span>
                       </>
                     )}
                   </span>

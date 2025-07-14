@@ -31,6 +31,13 @@ export const SketchHeading = ({
   );
 };
 
+// Sketch-style border component
+export const SketchBorder = ({ className = '' }: { className?: string }) => {
+  return (
+    <div className={`absolute inset-0 w-full h-full border-2 border-dashed border-black rounded-2xl ${className}`} />
+  );
+};
+
 // Sketch-style card component
 export const SketchCard = ({ 
   children, 

@@ -1,5 +1,5 @@
 import HeroSection from '../components/layout/hero-section';
-import InteractivePortfolioSection from '../components/interactive/interactive-portfolio-section';
+import InteractivePortfolioSection from '../components/interactive/portfolio/interactive-portfolio-section';
 
 export default function Home() {
   return (

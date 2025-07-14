@@ -3,6 +3,7 @@
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { useRef, useEffect, useState, useMemo } from "react";
 import { SketchHeading, SketchCard } from "@/components/ui/sketch-elements";
+import { VlogGallery } from "@/components/interactive/vlogs/VlogGallery";
 
 // Life events data with timeline
 type TimelineEvent = {
@@ -165,6 +166,7 @@ const generateScribblePath = () => {
 export default function About() {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const pathRef = useRef<SVGPathElement>(null);
+	const dialogRef = useRef<HTMLDialogElement>(null);
 	const [pathLength, setPathLength] = useState(0);
 	const { scrollXProgress } = useScroll({ container: containerRef, axis: "x" });
 	const pathDraw = useTransform(scrollXProgress, [0, 1], [0, pathLength]);
@@ -183,9 +185,17 @@ export default function About() {
 	const openModal = (event: TimelineEvent) => {
 		setSelectedEvent(event);
 		setModalOpen(true);
+		// Use proper dialog.showModal() for better accessibility
+		if (dialogRef.current) {
+			dialogRef.current.showModal();
+		}
 	};
 	const closeModal = () => {
 		setModalOpen(false);
+		// Use proper dialog.close() method
+		if (dialogRef.current) {
+			dialogRef.current.close();
+		}
 		setTimeout(() => setSelectedEvent(null), 300);
 	};
 
@@ -222,11 +232,11 @@ export default function About() {
 	}, [pathLength, scrollXProgress]);
 
 	return (
-		<main className="min-h-screen bg-gradient-to-br from-yellow-50 via-white to-blue-50">
+		<main className="min-h-screen notebook-bg">
 			{/* Header */}
-			<div className="fixed top-0 left-0 right-0 z-10 bg-white/80 backdrop-blur-sm border-b border-gray-200 p-4">
+			<div className="fixed top-0 left-0 right-0 z-10 bg-white/90 backdrop-blur-sm border-b-2 border-dashed border-black p-4">
 				<div className="max-w-7xl mx-auto">
-					<SketchHeading level={1} className="text-2xl text-center">
+					<SketchHeading level={1} className="text-2xl text-center sketch-font">
 						The Journey of Kiruk 🛤️
 					</SketchHeading>
 					<p className="text-center text-sm text-gray-600 handwritten mt-2">
@@ -555,14 +565,20 @@ export default function About() {
 			{/* Modal for Event Details */}
 			<AnimatePresence>
 				{modalOpen && selectedEvent && (
-					<motion.div
-						className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+					<motion.dialog
+						ref={dialogRef}
+						className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm border-none p-0 m-0 max-w-none max-h-none w-full h-full"
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
 						transition={{ duration: 0.2 }}
-						role="dialog"
-						aria-modal="true"
+						onClose={closeModal}
+						onClick={(e) => {
+							// Close modal if clicking on backdrop
+							if (e.target === e.currentTarget) {
+								closeModal();
+							}
+						}}
 					>
 						<motion.div
 							className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 relative border-4 border-indigo-200"
@@ -606,9 +622,22 @@ export default function About() {
 								</span>
 							</div>
 						</motion.div>
-					</motion.div>
+					</motion.dialog>
 				)}
 			</AnimatePresence>
+
+			{/* Vlog Gallery Section */}
+			<div className="max-w-7xl mx-auto px-4 py-16 mt-20 relative">
+				{/* Sketchy section divider */}
+				<div className="text-center mb-8">
+					<div className="inline-block border-2 border-dashed border-black rounded-2xl px-8 py-4 bg-white shadow-lg transform -rotate-1">
+						<h2 className="sketch-font text-xl text-black mb-2">📱 Stories & Adventures</h2>
+						<p className="handwritten text-sm text-gray-600">Swipe through my digital diary</p>
+					</div>
+				</div>
+				<VlogGallery />
+			</div>
+
 			{/* Scroll Indicator */}
 			<div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 border border-gray-200 shadow-lg">
 				<div className="flex items-center gap-2">

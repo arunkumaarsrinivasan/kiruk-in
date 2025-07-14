@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
-import { StickyNote, SketchCard, SketchHeading } from '../ui/sketch-elements';
+import { StickyNote, SketchCard, SketchHeading } from '../../ui/sketch-elements';
 
 // Types for draggable items
 export interface DraggableItem {
@@ -100,6 +100,17 @@ const DraggableNotebookItem: React.FC<{
     const newRotation = ((item.rotation ?? 0) + 15) % 360;
     onUpdate(item.id, { rotation: newRotation });
   };
+  const handleSelect = () => {
+    onSelect?.(item.id);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onSelect?.(item.id);
+    }
+  };
+
   const handleResize = (direction: 'up' | 'down') => {
     const currentScale = item.scale ?? 1;
     const newScale = direction === 'up' 
@@ -179,7 +190,8 @@ const DraggableNotebookItem: React.FC<{
   return (
     <motion.div
       ref={itemRef}
-      className={`absolute select-none ${item.locked ? 'cursor-not-allowed' : ''}`}      style={{
+      className={`absolute select-none ${item.locked ? 'cursor-not-allowed' : ''}`}
+      style={{
         x: item.position.x,
         y: item.position.y,
         rotate: item.rotation ?? 0,
@@ -195,11 +207,16 @@ const DraggableNotebookItem: React.FC<{
       onDragEnd={handleDragEnd}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
-      onClick={() => onSelect?.(item.id)}      whileHover={{ scale: (item.scale ?? 1) * 1.02 }}
+      onClick={handleSelect}
+      onKeyDown={handleKeyDown}
+      tabIndex={allowEditing && !item.locked ? 0 : -1}
+      aria-label={`Draggable ${item.type} - ${typeof item.content === 'string' ? item.content : item.type + ' item'}`}
+      whileHover={{ scale: (item.scale ?? 1) * 1.02 }}
       whileDrag={{ 
         scale: (item.scale ?? 1) * 1.05,
         rotate: (item.rotation ?? 0) + (Math.random() - 0.5) * 4,
-        zIndex: 1000      }}
+        zIndex: 1000
+      }}
       animate={{
         boxShadow: (() => {
           if (isDragging) return '0 8px 25px rgba(0,0,0,0.15)';
@@ -297,7 +314,7 @@ export const DraggableNotebook: React.FC<DraggableNotebookProps> = ({
   const [items, setItems] = useState<DraggableItem[]>(initialItems);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [showAddMenu, setShowAddMenu] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLElement>(null);
 
   // Update items when props change
   useEffect(() => {
@@ -348,6 +365,12 @@ export const DraggableNotebook: React.FC<DraggableNotebookProps> = ({
     }
   };
 
+  const handleContainerKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      setSelectedItemId(null);
+    }
+  };
+
   const clearAll = () => {
     setItems([]);
     setSelectedItemId(null);
@@ -356,10 +379,10 @@ export const DraggableNotebook: React.FC<DraggableNotebookProps> = ({
   return (
     <div className={`relative w-full h-full overflow-hidden ${className}`}>
       {/* Notebook background with subtle grid */}
-      <div 
+      <section 
         ref={containerRef}
         className="w-full h-full bg-white notebook-bg relative"
-        onClick={handleContainerClick}
+        aria-label="Interactive notebook workspace"
         style={{
           backgroundImage: gridSnap 
             ? 'radial-gradient(circle, #ddd 1px, transparent 1px)' 
@@ -369,6 +392,15 @@ export const DraggableNotebook: React.FC<DraggableNotebookProps> = ({
       >
         {/* Notebook holes */}
         <div className="absolute left-8 top-0 bottom-0 w-px bg-red-300 opacity-30" />
+        
+        {/* Invisible click handler for deselection */}
+        <button
+          className="absolute inset-0 w-full h-full bg-transparent border-0 cursor-default"
+          onClick={handleContainerClick}
+          onKeyDown={handleContainerKeyDown}
+          aria-label="Click to deselect items or press Escape"
+          style={{ zIndex: -1 }}
+        />
         
         {/* Render all draggable items */}
         {items.map((item) => (
@@ -384,7 +416,7 @@ export const DraggableNotebook: React.FC<DraggableNotebookProps> = ({
             onSelect={setSelectedItemId}
           />
         ))}
-      </div>
+      </section>
 
       {/* Control panel */}
       {showControls && allowEditing && (

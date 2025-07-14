@@ -4,7 +4,8 @@ import ScribbleAnimation from '@/components/three/scribble-animation';
 import { SketchHeading, SketchCard } from '@/components/ui/sketch-elements';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
-import { ConstellationSkills } from "@/components/interactive/ConstellationSkills";
+import { ConstellationSkills } from "@/components/interactive/work/ConstellationSkills";
+import { InvolvementSection } from '@/components/interactive/work/InvolvementSection';
 
 // Font utility classes
 const magneticFont = 'font-[MagneticDrawing,MagneticDrawingFallback,sans-serif]';
@@ -184,7 +185,197 @@ const workExperience = [
   }
 ];
 
-// Professional Skills Radar Chart Component
+// Collapsible Skill Card Component - No cropping, clear metrics
+const CollapsibleSkillCard = ({ skillGroup, index }: { skillGroup: any, index: number }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  
+  const averageProficiency = Math.round(
+    skillGroup.items.reduce((acc: number, skill: any) => acc + skill.proficiency, 0) / skillGroup.items.length
+  );
+  
+  const getExperienceLevel = (proficiency: number) => {
+    if (proficiency >= 85) return 'Senior';
+    if (proficiency >= 70) return 'Mid-Level';
+    return 'Junior';
+  };
+  
+  const getDescription = (category: string) => {
+    switch (category) {
+      case 'Cloud & Backend':
+        return 'Enterprise-grade infrastructure & APIs';
+      case 'Design & UX':
+        return 'User-centered design & brand identity';
+      case 'Development':
+        return 'Full-stack development & architecture';
+      default:
+        return 'Creative problem solving & innovation';
+    }
+  };
+  
+  const experienceLevel = getExperienceLevel(averageProficiency);
+  
+  const handleToggle = () => setIsExpanded(!isExpanded);
+  
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      handleToggle();
+    }
+  };
+  
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: index * 0.1 }}
+      className="group"
+    >
+      <div 
+        className={`bg-white/95 border-3 border-dashed hover:shadow-xl transform transition-all duration-300 rounded-2xl relative overflow-hidden backdrop-blur-sm ${isExpanded ? 'rotate-1' : ''}`}
+        style={{borderColor: skillGroup.color}}
+      >
+        {/* Header - Always visible */}
+        <button 
+          className="w-full p-6 text-left focus:outline-none focus:ring-2 focus:ring-opacity-50"
+          style={{ '--tw-ring-color': skillGroup.color } as React.CSSProperties}
+          onClick={handleToggle}
+          onKeyDown={handleKeyDown}
+          aria-expanded={isExpanded}
+          aria-controls={`skill-details-${skillGroup.category.replace(/\s+/g, '-').toLowerCase()}`}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <motion.div 
+                className="w-16 h-16 rounded-full flex items-center justify-center relative transform"
+                style={{ backgroundColor: `${skillGroup.color}15` }}
+                whileHover={{ rotate: 360, scale: 1.1 }}
+                transition={{ duration: 0.6 }}
+              >
+                <span className="text-2xl">{skillGroup.icon}</span>
+              </motion.div>
+              
+              <div>
+                <h3 className={`text-xl font-bold ${handwrittenFont} mb-1`} style={{ color: skillGroup.color }}>
+                  {skillGroup.category}
+                </h3>
+                <p className={`text-sm text-gray-600 ${handwrittenFont}`}>
+                  {getDescription(skillGroup.category)}
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              {/* Quick metrics */}
+              <div className="text-right hidden sm:block">
+                <div className={`text-2xl font-bold ${handwrittenFont}`} style={{ color: skillGroup.color }}>
+                  {averageProficiency}%
+                </div>
+                <div className={`text-xs text-gray-500 ${handwrittenFont}`}>
+                  {experienceLevel}
+                </div>
+              </div>
+              
+              {/* Expand/Collapse indicator */}
+              <motion.div
+                animate={{ rotate: isExpanded ? 180 : 0 }}
+                transition={{ duration: 0.3 }}
+                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center"
+              >
+                <span className="text-gray-600">↓</span>
+              </motion.div>
+            </div>
+          </div>
+        </button>
+        
+        {/* Expandable Content */}
+        <motion.div
+          id={`skill-details-${skillGroup.category.replace(/\s+/g, '-').toLowerCase()}`}
+          initial={false}
+          animate={{ 
+            height: isExpanded ? 'auto' : 0,
+            opacity: isExpanded ? 1 : 0 
+          }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+          className="overflow-hidden"
+        >
+          <div className="px-6 pb-6">
+            {/* Skills List with Progress Bars - No text cropping */}
+            <div className="space-y-4 mb-6">
+              <h4 className={`text-lg font-bold text-gray-800 ${handwrittenFont} mb-3`}>
+                Skills Breakdown
+              </h4>
+              {skillGroup.items.map((skill: any, skillIndex: number) => (
+                <motion.div
+                  key={skill.name}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: skillIndex * 0.1 }}
+                  className="space-y-2"
+                >
+                  <div className="flex justify-between items-center">
+                    <span className={`text-sm font-medium text-gray-700 ${handwrittenFont}`}>
+                      {skill.name}
+                    </span>
+                    <span className={`text-sm font-bold ${handwrittenFont}`} style={{ color: skillGroup.color }}>
+                      {skill.proficiency}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                    <motion.div
+                      className="h-2 rounded-full"
+                      style={{ backgroundColor: skillGroup.color }}
+                      initial={{ width: 0 }}
+                      animate={{ width: `${skill.proficiency}%` }}
+                      transition={{ duration: 1, delay: skillIndex * 0.2 }}
+                    />
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+            
+            {/* Detailed Metrics - Clear and readable */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="text-center p-4 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+                <div className={`text-2xl font-bold ${handwrittenFont}`} style={{ color: skillGroup.color }}>
+                  {averageProficiency}%
+                </div>
+                <div className={`text-xs text-gray-600 ${handwrittenFont}`}>
+                  Skill Mastery
+                </div>
+              </div>
+              
+              <div className="text-center p-4 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+                <div className={`text-2xl font-bold ${handwrittenFont}`} style={{ color: skillGroup.color }}>
+                  {skillGroup.items.length}
+                </div>
+                <div className={`text-xs text-gray-600 ${handwrittenFont}`}>
+                  Technologies
+                </div>
+              </div>
+              
+              <div className="text-center p-4 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+                <div className={`text-sm font-bold ${handwrittenFont}`} style={{ color: skillGroup.color }}>
+                  {experienceLevel}
+                </div>
+                <div className={`text-xs text-gray-600 ${handwrittenFont}`}>
+                  Experience Level
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+        
+        {/* Sketch decorations */}
+        <div className="absolute -top-2 -right-2 text-lg opacity-30 group-hover:opacity-100 transition-opacity transform rotate-12">
+          ⭐
+        </div>
+        <div className="absolute -bottom-1 -left-1 text-sm opacity-20 group-hover:opacity-60 transition-opacity transform -rotate-12">
+          ✎
+        </div>
+      </div>
+    </motion.div>
+  );
+};
 const SkillsRadarChart = ({ skills, color }: { skills: any[], color: string }) => {
   const maxValue = 100;
   const centerX = 120;
@@ -199,8 +390,8 @@ const SkillsRadarChart = ({ skills, color }: { skills: any[], color: string }) =
     return {
       x: centerX + Math.cos(angle) * skillRadius,
       y: centerY + Math.sin(angle) * skillRadius,
-      labelX: centerX + Math.cos(angle) * (radius + 25),
-      labelY: centerY + Math.sin(angle) * (radius + 25),
+      labelX: centerX + Math.cos(angle) * (radius + 35),
+      labelY: centerY + Math.sin(angle) * (radius + 35),
       angle,
       skill
     };
@@ -211,160 +402,197 @@ const SkillsRadarChart = ({ skills, color }: { skills: any[], color: string }) =
     `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`
   ).join(' ') + ' Z';
   
-  // Create concentric circles for reference
-  const circles = [20, 40, 60, 80].map(r => (
-    <circle
-      key={r}
-      cx={centerX}
-      cy={centerY}
-      r={r}
-      fill="none"
-      stroke="#e5e7eb"
-      strokeWidth="1"
-      opacity="0.3"
-    />
-  ));
+  // Create concentric circles with percentage labels
+  const circles = [20, 40, 60, 80].map((r, index) => {
+    const percentage = ((index + 1) * 25);
+    return (
+      <g key={r}>
+        <circle
+          cx={centerX}
+          cy={centerY}
+          r={r}
+          fill="none"
+          stroke="#e5e7eb"
+          strokeWidth="1.5"
+          opacity="0.6"
+          strokeDasharray={index === 3 ? "none" : "3,3"}
+        />
+        {/* Percentage labels */}
+        <text
+          x={centerX + r + 5}
+          y={centerY - 3}
+          className="text-xs font-medium"
+          fill="#6b7280"
+        >
+          {percentage}%
+        </text>
+      </g>
+    );
+  });
   
-  // Create axis lines
+  // Create axis lines with enhanced visibility
   const axisLines = skillPoints.map((point, index) => (
     <line
-      key={index}
+      key={`axis-${point.skill.name}`}
       x1={centerX}
       y1={centerY}
       x2={centerX + Math.cos(point.angle) * radius}
       y2={centerY + Math.sin(point.angle) * radius}
-      stroke="#e5e7eb"
-      strokeWidth="1"
-      opacity="0.3"
+      stroke="#d1d5db"
+      strokeWidth="1.5"
+      opacity="0.5"
     />
   ));
   
   return (
     <div className="relative">
-      <svg width="240" height="240" className="mx-auto">
-        {/* Background circles */}
+      <svg width="280" height="280" className="mx-auto">
+        {/* Background circles with percentage indicators */}
         {circles}
         {/* Axis lines */}
         {axisLines}
         
-        {/* Skill area */}
+        {/* Skill area with enhanced visibility */}
         <motion.path
           d={pathData}
-          fill={`${color}20`}
+          fill={`${color}30`}
           stroke={color}
-          strokeWidth="2"
+          strokeWidth="3"
           initial={{ pathLength: 0, opacity: 0 }}
           animate={{ pathLength: 1, opacity: 1 }}
           transition={{ duration: 2, ease: "easeInOut" }}
         />
         
-        {/* Skill points */}
+        {/* Skill points with enhanced indicators */}
         {skillPoints.map((point, index) => (
-          <motion.g key={index}>
+          <motion.g key={`skill-point-${point.skill.name}`}>
+            {/* Larger, more visible skill points */}
             <motion.circle
               cx={point.x}
               cy={point.y}
-              r="4"
-              fill={color}
+              r="6"
+              fill="white"
+              stroke={color}
+              strokeWidth="3"
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: index * 0.1 + 0.5, duration: 0.3 }}
-              whileHover={{ scale: 1.5 }}
+              whileHover={{ scale: 1.3 }}
             />
-            {/* Skill labels */}
-            <motion.text
-              x={point.labelX}
-              y={point.labelY}
-              textAnchor="middle"
-              dominantBaseline="middle"
-              className={`text-xs ${handwrittenFont} font-medium`}
-              fill="#374151"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+            
+            {/* Inner dot for better visibility */}
+            <motion.circle
+              cx={point.x}
+              cy={point.y}
+              r="2"
+              fill={color}
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: index * 0.1 + 0.7, duration: 0.3 }}
+            />
+            
+            {/* Enhanced skill labels with background */}
+            <motion.g
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 + 1 }}
             >
-              {point.skill.name}
-            </motion.text>
+              {/* Text background for better readability */}
+              <rect
+                x={point.labelX - 30}
+                y={point.labelY - 12}
+                width="60"
+                height="20"
+                rx="10"
+                fill="white"
+                stroke="#e5e7eb"
+                strokeWidth="1"
+                opacity="0.9"
+              />
+              <text
+                x={point.labelX}
+                y={point.labelY - 3}
+                textAnchor="middle"
+                className={`text-xs ${handwrittenFont} font-bold`}
+                fill="#374151"
+              >
+                {point.skill.name}
+              </text>
+              {/* Proficiency percentage */}
+              <text
+                x={point.labelX}
+                y={point.labelY + 8}
+                textAnchor="middle"
+                className="text-xs font-bold"
+                fill={color}
+              >
+                {point.skill.proficiency}%
+              </text>
+            </motion.g>
           </motion.g>
         ))}
         
-        {/* Center point */}
+        {/* Enhanced center point */}
         <circle
           cx={centerX}
           cy={centerY}
-          r="3"
+          r="4"
           fill={color}
+          stroke="white"
+          strokeWidth="2"
         />
+        
+        {/* Center label */}
+        <text
+          x={centerX}
+          y={centerY - 15}
+          textAnchor="middle"
+          className="text-xs font-bold"
+          fill={color}
+        >
+          Skills
+        </text>
       </svg>
       
-      {/* Proficiency levels legend */}
-      <div className="mt-4 flex justify-center">
-        <div className="flex items-center gap-4 text-xs text-gray-500">
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full bg-gray-200"></div>
-            <span>Beginner</span>
+      {/* Enhanced proficiency levels legend with clear metrics */}
+      <div className="mt-6 bg-gray-50/80 rounded-lg p-4">
+        <h4 className={`text-sm font-bold text-gray-700 mb-3 ${handwrittenFont}`}>
+          Proficiency Scale
+        </h4>
+        <div className="grid grid-cols-2 gap-3 text-xs">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-red-400"></div>
+            <span className="text-gray-600">0-25%: Learning</span>
           </div>
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full bg-gray-400"></div>
-            <span>Intermediate</span>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+            <span className="text-gray-600">26-50%: Developing</span>
           </div>
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full" style={{backgroundColor: color}}></div>
-            <span>Expert</span>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-blue-400"></div>
+            <span className="text-gray-600">51-75%: Proficient</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full" style={{backgroundColor: color}}></div>
+            <span className="text-gray-600">76-100%: Expert</span>
+          </div>
+        </div>
+        
+        {/* Average proficiency indicator */}
+        <div className="mt-3 pt-3 border-t border-gray-200">
+          <div className="flex justify-between items-center">
+            <span className={`text-sm font-bold text-gray-700 ${handwrittenFont}`}>
+              Average Proficiency:
+            </span>
+            <span className="text-lg font-bold" style={{color}}>
+              {Math.round(skills.reduce((acc, skill) => acc + skill.proficiency, 0) / skills.length)}%
+            </span>
           </div>
         </div>
       </div>
     </div>
   );
 };
-
-// Enhanced skills data with proficiency levels
-const skillsEnhanced = [
-  { 
-    category: "Cloud & Backend", 
-    items: [
-      { name: "AWS Cloud Services", proficiency: 85 },
-      { name: "Spring Boot MicroServices", proficiency: 90 },
-      { name: "Docker & Kubernetes", proficiency: 75 },
-      { name: "MongoDB & PostgreSQL", proficiency: 80 }
-    ], 
-    color: "#3b82f6",
-    icon: "☁️"
-  },
-  { 
-    category: "Design & UX", 
-    items: [
-      { name: "UI/UX Design", proficiency: 95 },
-      { name: "Branding + Visual Design", proficiency: 90 },
-      { name: "Prototyping + Dev handoff", proficiency: 85 },
-      { name: "Design Systems", proficiency: 80 }
-    ], 
-    color: "#8b5cf6",
-    icon: "🎨"
-  },
-  { 
-    category: "Development", 
-    items: [
-      { name: "React & Next.js", proficiency: 90 },
-      { name: "TypeScript", proficiency: 85 },
-      { name: "Mobile Development", proficiency: 75 },
-      { name: "Design Strategy & UX Research", proficiency: 80 }
-    ], 
-    color: "#10b981",
-    icon: "💻"
-  },
-  { 
-    category: "Specialized", 
-    items: [
-      { name: "Game Design", proficiency: 70 },
-      { name: "3D Modeling", proficiency: 65 },
-      { name: "Animation", proficiency: 60 },
-      { name: "Creative Direction", proficiency: 75 }
-    ], 
-    color: "#f59e0b",
-    icon: "🎮"
-  }
-];
 
 // Enhanced involvement data with categories and colors
 const involvementEnhanced = [
@@ -520,20 +748,7 @@ export default function Work() {
         </div>
       </motion.div>
 
-      {/* Constellation Skills - Always visible */}
-      <section className="relative z-10 max-w-6xl mx-auto px-4 mb-12">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-8"
-        >
-          <SketchHeading level={2} className={`text-2xl md:text-3xl mb-4 ${handwrittenFont}`}>
-            My Skill Constellation
-          </SketchHeading>
-          <ConstellationSkills />
-        </motion.div>
-      </section>      {/* Work Experience Section */}
+      {/* Work Experience Section */}
       {activeTab === 'experience' && (
         <section className="relative z-10 max-w-6xl mx-auto px-4 mb-12">
           <motion.div
@@ -551,7 +766,8 @@ export default function Work() {
                 initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
-              >                <SketchCard className="p-6 bg-white/90 border-2 border-dashed border-gray-300 hover:border-indigo-400 hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300">
+              >
+                <SketchCard className="p-6 bg-white/90 border-2 border-dashed border-gray-300 hover:border-indigo-400 hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300">
                   <div className="grid md:grid-cols-3 gap-6">
                     {/* Job Info */}
                     <div className="md:col-span-2">
@@ -638,13 +854,35 @@ export default function Work() {
             ))}
           </div>
         </motion.div>
-      </section>
 
+        {/* Constellation Skills - Only visible in Work Experience tab */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12 overflow-visible mt-16"
+        >
+          <SketchHeading level={2} className={`text-2xl md:text-3xl mb-6 ${handwrittenFont}`}>
+            🌌 Stargazing Through My Expertise
+          </SketchHeading>
+          <motion.p 
+            className={`text-lg text-gray-700 mb-8 ${handwrittenFont}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+          >
+            Explore the celestial map of my skills, where each constellation tells a story of expertise and growth
+          </motion.p>
+          <div className="overflow-visible">
+            <ConstellationSkills />
+          </div>
+        </motion.div>
+      </section>
       )}
 
       {/* Creative Projects Section */}
       {activeTab === 'projects' && (
-        <section className="relative z-10 max-w-6xl mx-auto px-4 mb-12">
+        <section className="relative z-10 max-w-6xl mx-auto px-4 mb-12 mt-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -741,264 +979,8 @@ export default function Work() {
         </section>
       )}
 
-      {/* Skills Section */}
-      <section className="relative z-10 max-w-6xl mx-auto px-4 mb-12">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          <div className="relative">
-            <SketchHeading level={2} className={`text-2xl md:text-3xl mb-8 text-center ${handwrittenFont}`}>
-              🚀 Skills & Expertise
-            </SketchHeading>
-            
-            {/* Floating interactive decorations */}
-            <motion.div 
-              className="absolute -top-4 left-1/2 transform -translate-x-1/2"
-              animate={{ 
-                y: [0, -10, 0],
-                rotate: [0, 5, -5, 0]
-              }}
-              transition={{ 
-                duration: 4, 
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-            >
-              <span className="text-2xl">✨</span>
-            </motion.div>
-          </div>          <div className="grid md:grid-cols-2 gap-8">
-            {skillsEnhanced.map((skillGroup, index) => (
-              <motion.div
-                key={skillGroup.category}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: index * 0.2 }}
-                whileHover={{ y: -8 }}
-                className="group"
-              >
-                <div 
-                  className={`p-8 bg-white/95 border-2 border-dashed hover:shadow-2xl transform transition-all duration-500 rounded-xl relative overflow-hidden backdrop-blur-sm`}
-                  style={{borderColor: skillGroup.color}}
-                >
-                  {/* Professional header */}
-                  <div className="text-center mb-6">
-                    <motion.div 
-                      className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center relative"
-                      style={{ backgroundColor: `${skillGroup.color}15` }}
-                      whileHover={{ rotate: 360, scale: 1.1 }}
-                      transition={{ duration: 0.8 }}
-                    >
-                      <span className="text-3xl">{skillGroup.icon}</span>
-                      {/* Professional glow effect */}
-                      <motion.div 
-                        className="absolute inset-0 rounded-full"
-                        style={{ backgroundColor: `${skillGroup.color}20` }}
-                        animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0, 0.3] }}
-                        transition={{ duration: 2.5, repeat: Infinity }}
-                      />
-                    </motion.div>
-                    <h3 className={`text-xl font-bold ${handwrittenFont} mb-2`} style={{ color: skillGroup.color }}>
-                      {skillGroup.category}
-                    </h3>
-                    <p className={`text-sm text-gray-600 ${handwrittenFont}`}>
-                      {skillGroup.category === 'Cloud & Backend' ? 'Enterprise-grade infrastructure & APIs' :
-                       skillGroup.category === 'Design & UX' ? 'User-centered design & brand identity' :
-                       skillGroup.category === 'Development' ? 'Full-stack development & architecture' :
-                       'Creative problem solving & innovation'}
-                    </p>
-                  </div>
-
-                  {/* Radar Chart */}
-                  <SkillsRadarChart skills={skillGroup.items} color={skillGroup.color} />
-                  
-                  {/* Professional metrics */}
-                  <div className="mt-6 space-y-3">
-                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <span className={`text-sm font-medium text-gray-700 ${handwrittenFont}`}>
-                        Skill Mastery
-                      </span>
-                      <motion.span 
-                        className={`text-lg font-bold ${handwrittenFont}`}
-                        style={{ color: skillGroup.color }}
-                        whileHover={{ scale: 1.1 }}
-                      >
-                        {Math.round(skillGroup.items.reduce((acc, skill) => acc + skill.proficiency, 0) / skillGroup.items.length)}%
-                      </motion.span>
-                    </div>
-                    
-                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <span className={`text-sm font-medium text-gray-700 ${handwrittenFont}`}>
-                        Technologies
-                      </span>
-                      <motion.span 
-                        className={`text-lg font-bold ${handwrittenFont}`}
-                        style={{ color: skillGroup.color }}
-                        whileHover={{ scale: 1.1 }}
-                      >
-                        {skillGroup.items.length}
-                      </motion.span>
-                    </div>
-                    
-                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <span className={`text-sm font-medium text-gray-700 ${handwrittenFont}`}>
-                        Experience Level
-                      </span>
-                      <motion.span 
-                        className={`text-sm font-bold ${handwrittenFont}`}
-                        style={{ color: skillGroup.color }}
-                        whileHover={{ scale: 1.1 }}
-                      >
-                        {Math.round(skillGroup.items.reduce((acc, skill) => acc + skill.proficiency, 0) / skillGroup.items.length) >= 85 ? 'Senior' :
-                         Math.round(skillGroup.items.reduce((acc, skill) => acc + skill.proficiency, 0) / skillGroup.items.length) >= 70 ? 'Mid-Level' : 'Junior'}
-                      </motion.span>
-                    </div>
-                  </div>
-                  
-                  {/* Professional decoration */}
-                  <motion.div 
-                    className="absolute top-4 right-4 opacity-20 group-hover:opacity-100 transition-opacity duration-300"
-                    whileHover={{ rotate: 180, scale: 1.2 }}
-                  >
-                    <span className="text-2xl">⚡</span>
-                  </motion.div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-      </section>
-
       {/* Involvement Section */}
-      <section className="relative z-10 max-w-6xl mx-auto px-4 mb-12">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-        >
-          <div className="relative">
-            <SketchHeading level={2} className={`text-2xl md:text-3xl mb-8 text-center ${handwrittenFont}`}>
-              🤝 Involvement
-            </SketchHeading>
-            
-            {/* Community engagement floating elements */}
-            <motion.div 
-              className="absolute -top-3 left-1/4"
-              animate={{ 
-                x: [0, 10, -10, 0],
-                y: [0, -5, 0]
-              }}
-              transition={{ 
-                duration: 5, 
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-            >
-              <span className="text-xl">🌟</span>
-            </motion.div>
-            
-            <motion.div 
-              className="absolute -top-1 right-1/3"
-              animate={{ 
-                rotate: [0, 360],
-                scale: [1, 1.1, 1]
-              }}
-              transition={{ 
-                duration: 8, 
-                repeat: Infinity,
-                ease: "linear"
-              }}
-            >
-              <span className="text-lg">💫</span>
-            </motion.div>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            {involvementEnhanced.map((item, index) => (
-              <motion.div
-                key={item.title}
-                initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                whileHover={{ scale: 1.02 }}
-              >
-                <div 
-                  className="p-6 bg-white/90 border-2 border-dashed rounded-lg hover:shadow-xl transform transition-all duration-300 group cursor-pointer relative overflow-hidden h-full"
-                  style={{borderColor: item.color}}
-                >
-                  {/* Background pattern */}
-                  <motion.div 
-                    className="absolute -top-4 -right-4 w-16 h-16 rounded-full opacity-10"
-                    style={{backgroundColor: item.color}}
-                    whileHover={{ scale: 1.5, rotate: 90 }}
-                    transition={{ duration: 0.4 }}
-                  />
-                  
-                  {/* Header */}
-                  <div className="flex items-start gap-4 mb-4">
-                    <motion.div 
-                      className="text-3xl flex-shrink-0"
-                      whileHover={{ scale: 1.2, rotate: 15 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      {item.icon}
-                    </motion.div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h4 className={`text-lg font-bold text-gray-800 ${handwrittenFont}`}>
-                          {item.title}
-                        </h4>
-                      </div>
-                      <motion.div 
-                        className={`inline-block px-2 py-1 text-xs rounded-full font-bold ${handwrittenFont}`}
-                        style={{ 
-                          backgroundColor: `${item.color}15`,
-                          color: item.color
-                        }}
-                        whileHover={{ scale: 1.05 }}
-                      >
-                        {item.category}
-                      </motion.div>
-                    </div>
-                  </div>
-                  
-                  {/* Description */}
-                  <p className={`text-gray-700 text-sm leading-relaxed mb-4 ${handwrittenFont}`}>
-                    {item.description}
-                  </p>
-                  
-                  {/* Impact badge */}
-                  <div className="flex items-center justify-between">
-                    <motion.div 
-                      className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-bold ${handwrittenFont}`}
-                      style={{ 
-                        backgroundColor: `${item.color}10`,
-                        color: item.color
-                      }}
-                      whileHover={{ scale: 1.1 }}
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ delay: 0.3 + index * 0.1 }}
-                    >
-                      <span>🎯</span>
-                      {item.impact}
-                    </motion.div>
-                    
-                    {/* Hover indicator */}
-                    <motion.div 
-                      className="opacity-0 group-hover:opacity-100 transition-opacity text-lg"
-                      whileHover={{ rotate: 360 }}
-                      transition={{ duration: 0.5 }}
-                    >
-                      ⚡
-                    </motion.div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>        </motion.div>
-      </section>
+      <InvolvementSection involvementData={involvementEnhanced} />
     </main>
   );
 }

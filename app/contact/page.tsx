@@ -54,7 +54,6 @@ export default function Contact() {
       { id: 'note-2', tip: STICKY_TIPS[1], color: 'medium', x: 200, y: 220 }, // Use safe default for SSR
     ]
   );
-  const [confettiBurst, setConfettiBurst] = useState(false);
   const confettiRef = useRef<HTMLDivElement>(null);
 
   // On mount, update the second note's x position if window is available
@@ -95,8 +94,8 @@ export default function Contact() {
   };
 
   // Enhanced confetti burst
+  // Enhanced confetti burst
   const triggerConfetti = () => {
-    setConfettiBurst(true);
     if (confettiRef.current) {
       confettiRef.current.innerHTML = '🎉';
       confettiRef.current.style.opacity = '1';
@@ -109,11 +108,9 @@ export default function Contact() {
       }, 100);
       setTimeout(() => {
         if (confettiRef.current) confettiRef.current.innerHTML = '';
-        setConfettiBurst(false);
       }, 1200);
     }
   };
-
   // Shake animation on invalid submit
   const [shakeForm, setShakeForm] = useState(false);
   const handleSubmit = async (e: React.FormEvent) => {
@@ -138,10 +135,25 @@ export default function Contact() {
     setError(null);
   };
 
-  const handleCopyEmail = () => {
-    navigator.clipboard.writeText('arunkumaar.srinivasan@gmail.com');
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1200);
+  const handleCopyEmail = async () => {
+    const email = 'arunkumaar.srinivasan@gmail.com';
+    
+    try {
+      // Try modern clipboard API first
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(email);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1200);
+      } else {
+        // Fallback for older browsers or non-secure contexts
+        console.warn('Clipboard API not available, showing email for manual copy');
+        alert(`Please copy this email manually: ${email}`);
+      }
+    } catch (err) {
+      console.warn('Clipboard access failed:', err);
+      // Show the email in an alert as fallback
+      alert(`Please copy this email manually: ${email}`);
+    }
   };
   const handleLinkedIn = () => {
     window.open('https://linkedin.com/in/arunkumaarsreenivasan/', '_blank');
@@ -441,15 +453,17 @@ export default function Contact() {
                     <div>
                       <div className="body-text-primary text-xs font-bold">Email</div>
                       <div className="body-text-secondary text-xs flex items-center gap-2">
-                        arunkumaar.srinivasan@gmail.com
-                        <button
-                          type="button"
-                          className="ml-1 px-2 py-0.5 rounded bg-gray-100 border text-xs handwritten hover:bg-yellow-100 transition"
-                          onClick={handleCopyEmail}
-                          aria-label="Copy email"
-                        >
-                          {copied ? 'Copied!' : 'Copy'}
-                        </button>
+                        <span className="mr-2">arunkumaar.srinivasan@gmail.com</span>
+                        <span>
+                          <button
+                            type="button"
+                            className="px-2 py-0.5 rounded bg-gray-100 border text-xs handwritten hover:bg-yellow-100 transition"
+                            onClick={handleCopyEmail}
+                            aria-label="Copy email"
+                          >
+                            {copied ? 'Copied!' : 'Copy'}
+                          </button>
+                        </span>
                       </div>
                     </div>
                     <AnimatePresence>
@@ -475,7 +489,7 @@ export default function Contact() {
                     <div>
                       <div className="body-text-primary text-xs font-bold">LinkedIn</div>
                       <div className="body-text-secondary text-xs flex items-center gap-2">
-                        /in/arunkumaarsreenivasan/
+                        <span>/in/arunkumaarsreenivasan/</span>
                         <button
                           type="button"
                           className="ml-1 px-2 py-0.5 rounded bg-blue-100 border text-xs handwritten hover:bg-blue-200 transition"
