@@ -5,6 +5,7 @@ import "./globals.css";
 import LayoutClientShell from "../components/layout/LayoutClientShell";
 import CustomCursor from "../components/ui/CustomCursor";
 import { CursorProvider } from "../components/ui/CursorContext";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -62,6 +63,7 @@ export default function RootLayout({
             {children}
           </LayoutClientShell>
         </CursorProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
