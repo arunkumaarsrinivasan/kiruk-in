@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import type { JSX } from 'react';
 import { motion } from 'framer-motion';
 
 // Sketch-style heading component

@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Kalam, Caveat, Architects_Daughter } from "next/font/google";
 import "./globals.css";
+
 import LayoutClientShell from "../components/layout/LayoutClientShell";
+import CustomCursor from "../components/ui/CustomCursor";
+import { CursorProvider } from "../components/ui/CursorContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -53,9 +56,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${kalam.variable} ${caveat.variable} ${architectsDaughter.variable} antialiased`}
       >
-        <LayoutClientShell>
-          {children}
-        </LayoutClientShell>
+        <CursorProvider>
+          <CustomCursor />
+          <LayoutClientShell>
+            {children}
+          </LayoutClientShell>
+        </CursorProvider>
       </body>
     </html>
   );

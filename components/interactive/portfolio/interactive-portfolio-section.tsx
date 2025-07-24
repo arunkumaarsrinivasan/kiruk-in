@@ -6,6 +6,7 @@ import { DraggableItem } from './draggable-notebook';
 import ScribbleWorkspace, { EnhancedScribbleDragItem } from './scribble-workspace';
 import { SketchHeading } from '../../ui/sketch-elements';
 import ScribblePad from './scribble-pad';
+import { useCursor } from '../../ui/CursorContext';
 
 // Type alias for compatibility
 type ScribbleDragItem = EnhancedScribbleDragItem;
@@ -36,6 +37,87 @@ const ScribeCanvas: React.FC<{ className?: string }> = ({ className = '' }) => {
   return <canvas className={`absolute inset-0 pointer-events-none ${className}`} />;
 };
 
+// Scribbled Drag Icon Component
+const ScribbledDragIcon: React.FC<{ className?: string; size?: number }> = ({ 
+  className = '', 
+  size = 20 
+}) => {
+  return (
+    <svg 
+      width={size} 
+      height={size} 
+      viewBox="0 0 24 24" 
+      className={className}
+      style={{ filter: 'drop-shadow(1px 1px 1px rgba(0,0,0,0.1))' }}
+    >
+      {/* Hand-drawn style drag dots */}
+      <g fill="currentColor" opacity="0.8">
+        {/* Top row dots - slightly wobbly */}
+        <circle cx="6.2" cy="6.1" r="1.8" />
+        <circle cx="11.9" cy="5.8" r="1.7" />
+        <circle cx="17.8" cy="6.3" r="1.9" />
+        
+        {/* Middle row dots */}
+        <circle cx="6.1" cy="11.8" r="1.9" />
+        <circle cx="12.2" cy="12.1" r="1.8" />
+        <circle cx="17.7" cy="11.7" r="1.8" />
+        
+        {/* Bottom row dots */}
+        <circle cx="5.9" cy="17.9" r="1.7" />
+        <circle cx="11.8" cy="18.2" r="1.9" />
+        <circle cx="18.1" cy="17.8" r="1.8" />
+      </g>
+      
+      {/* Scribbled outline effect */}
+      <g fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.3">
+        <path d="M4,4 Q6,3 8,4 Q10,5 8,6 Q6,7 4,6 Q2,5 4,4" />
+        <path d="M16,4 Q18,3 20,4 Q22,5 20,6 Q18,7 16,6 Q14,5 16,4" />
+        <path d="M4,16 Q6,15 8,16 Q10,17 8,18 Q6,19 4,18 Q2,17 4,16" />
+        <path d="M16,16 Q18,15 20,16 Q22,17 20,18 Q18,19 16,18 Q14,17 16,16" />
+      </g>
+    </svg>
+  );
+};
+
+// Enhanced Scribbled Move Icon for active dragging
+const ScribbledMoveIcon: React.FC<{ className?: string; size?: number }> = ({ 
+  className = '', 
+  size = 24 
+}) => {
+  return (
+    <svg 
+      width={size} 
+      height={size} 
+      viewBox="0 0 24 24" 
+      className={className}
+      style={{ filter: 'drop-shadow(2px 2px 2px rgba(0,0,0,0.2))' }}
+    >
+      {/* Hand-drawn move arrows */}
+      <g fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+        {/* Up arrow */}
+        <path d="M12,3 L12,8 M9,5 Q11,3 12,3 Q13,3 15,5" opacity="0.9" />
+        {/* Down arrow */}
+        <path d="M12,21 L12,16 M9,19 Q11,21 12,21 Q13,21 15,19" opacity="0.9" />
+        {/* Left arrow */}
+        <path d="M3,12 L8,12 M5,9 Q3,11 3,12 Q3,13 5,15" opacity="0.9" />
+        {/* Right arrow */}
+        <path d="M21,12 L16,12 M19,9 Q21,11 21,12 Q21,13 19,15" opacity="0.9" />
+      </g>
+      
+      {/* Central scribbled circle */}
+      <g fill="currentColor" opacity="0.6">
+        <circle cx="12.1" cy="11.9" r="2.2" />
+      </g>
+      
+      {/* Wobbly decorative lines */}
+      <g fill="none" stroke="currentColor" strokeWidth="1" opacity="0.4">
+        <path d="M8,8 Q10,6 12,8 Q14,10 16,8" />
+        <path d="M8,16 Q10,18 12,16 Q14,14 16,16" />
+      </g>
+    </svg>
+  );
+};
+
 export const InteractivePortfolioSection: React.FC<{
   className?: string;
   sectionTitle?: string;
@@ -43,6 +125,8 @@ export const InteractivePortfolioSection: React.FC<{
   className = '', 
   sectionTitle = 'Advanced Interactive Portfolio'
 }) => {
+  const { setGrabbingCursor, setDroppingCursor, setEyeCursor } = useCursor();
+  
   // Helper function for sticky note color
   const getStickyNoteColorClass = (color?: string) => {
     switch (color) {
@@ -177,11 +261,11 @@ export const InteractivePortfolioSection: React.FC<{
       type: 'sticky-note',
       content: (
         <div className="handwritten text-sm">
-          <div className="font-bold mb-1">👋 Welcome!</div>
-          <div>Drag me around to explore this interactive portfolio section</div>
+          <div className="font-bold mb-1">👋 Welcome to my Portfolio!</div>
+          <div>Interact with elements to discover my journey as an AX Designer, developer, and creative problem-solver</div>
         </div>
       ),
-      position: { x: 100, y: 150 },
+      position: { x: 300, y: 100 },
       rotation: -3,
       color: 'medium',
       size: 'md'
@@ -193,32 +277,19 @@ export const InteractivePortfolioSection: React.FC<{
         <div>
           <SketchHeading level={3} className="text-lg mb-2">About Me</SketchHeading>
           <div className="handwritten text-sm text-gray-700">
-            Perfectionist and versatile generalist excelling in end-to-end development and design, dedicated to crafting exceptional user experiences and visually striking designs. 
+            AX Designer with expertise in AI/ML, UX design, and full-stack development. I create seamless experiences that bridge artificial intelligence with human-centered design principles. 
             <br /><br />
             📍 Bangalore | 📧 arunkumaar.srinivasan@gmail.com 
           </div>
         </div>
       ),
-      position: { x: 350, y: 100 },
+      position: { x: 150, y: 450 },
       rotation: 2,
       scale: 1
     }
   ]);
 
-  const [scribbleItems, setScribbleItems] = useState<ScribbleDragItem[]>([
-    {
-      id: 'coffee-1',
-      type: 'coffee-stain',
-      position: { x: 150, y: 200 },
-      size: 45
-    },
-    {
-      id: 'tape-1',
-      type: 'tape-piece',
-      position: { x: 300, y: 50 },
-      rotation: 25
-    }
-  ]);
+  const [scribbleItems, setScribbleItems] = useState<ScribbleDragItem[]>([]);
 
   // Action functions
   const addProjectCard = useCallback(() => {
@@ -307,7 +378,7 @@ export const InteractivePortfolioSection: React.FC<{
         </div>
       ),
       position: { 
-        x: Math.random() * 400 + 50, 
+        x: Math.random() * 400 + 350, 
         y: Math.random() * 200 + 100 
       },
       rotation: (Math.random() - 0.5) * 8,
@@ -357,7 +428,7 @@ export const InteractivePortfolioSection: React.FC<{
         </div>
       ),
       position: { 
-        x: Math.random() * 350 + 50, 
+        x: Math.random() * 350 + 400, 
         y: Math.random() * 250 + 50 
       },
       rotation: (Math.random() - 0.5) * 15,
@@ -409,7 +480,7 @@ export const InteractivePortfolioSection: React.FC<{
         </motion.div>
       ),
       position: { 
-        x: Math.random() * 400 + 100, 
+        x: Math.random() * 400 + 350, 
         y: Math.random() * 300 + 150 
       },
       rotation: (Math.random() - 0.5) * 10,
@@ -466,7 +537,7 @@ export const InteractivePortfolioSection: React.FC<{
         </div>
       ),
       position: { 
-        x: Math.random() * 350 + 50, 
+        x: Math.random() * 350 + 400, 
         y: Math.random() * 200 + 150 
       },
       rotation: (Math.random() - 0.5) * 6,
@@ -518,7 +589,7 @@ export const InteractivePortfolioSection: React.FC<{
         </div>
       ),
       position: { 
-        x: Math.random() * 300 + 100, 
+        x: Math.random() * 300 + 450, 
         y: Math.random() * 250 + 100 
       },
       rotation: (Math.random() - 0.5) * 12,
@@ -581,6 +652,17 @@ export const InteractivePortfolioSection: React.FC<{
   const [introPosition, setIntroPosition] = useState({ x: 300, y: 200 });
   const [isDraggingIntro, setIsDraggingIntro] = useState(false);
   const [showScribblePad, setShowScribblePad] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  // Mobile detection
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Extract mouse move handler for intro dragging
   const createMouseMoveHandler = (offsetX: number, offsetY: number, rect: DOMRect) => {
@@ -610,6 +692,8 @@ export const InteractivePortfolioSection: React.FC<{
   const createMouseUpHandler = (handleMouseMove: (e: MouseEvent) => void) => {
     const mouseUpHandler = () => {
       setIsDraggingIntro(false);
+      setDroppingCursor(); // Brief dropping animation
+      setTimeout(() => setEyeCursor(), 150); // Then return to eye
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', mouseUpHandler);
     };
@@ -619,6 +703,7 @@ export const InteractivePortfolioSection: React.FC<{
   // Handle intro dragging
   const handleIntroMouseDown = (e: React.MouseEvent) => {
     setIsDraggingIntro(true);
+    setGrabbingCursor();
     
     // Get the current element bounds
     const rect = e.currentTarget.getBoundingClientRect();
@@ -637,22 +722,18 @@ export const InteractivePortfolioSection: React.FC<{
 
   // Extract drag end handler to reduce nesting
   const handleItemDragEnd = useCallback((item: DraggableItem, event: any, info: any) => {
-    // Calculate new position with bounds checking
-    let newX = item.position.x + info.offset.x;
-    let newY = item.position.y + info.offset.y;
+    // Use the point from info which gives us the final position
+    const newX = info.point.x;
+    const newY = info.point.y;
     
-    // Ensure the item stays within viewport bounds
-    const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 800;
-    const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 600;
-    const elementWidth = 200; // Approximate element width
-    const elementHeight = 150; // Approximate element height
-    
-    newX = Math.max(0, Math.min(viewportWidth - elementWidth, newX));
-    newY = Math.max(0, Math.min(viewportHeight - elementHeight, newY));
-    
+    // Update position and bring to front when moved
     const newItems = notebookItems.map(i => 
       i.id === item.id 
-        ? { ...i, position: { x: newX, y: newY } }
+        ? { 
+            ...i, 
+            position: { x: newX, y: newY },
+            zIndex: (i.zIndex ?? 100) + 1 
+          }
         : i
     );
     setNotebookItems(newItems);
@@ -666,32 +747,47 @@ export const InteractivePortfolioSection: React.FC<{
     return (
       <motion.div
         key={`${achievementId}-${index}`}
-        initial={{ opacity: 0, y: 50, scale: 0.8, rotate: -5 }}
+        initial={{ opacity: 0, y: isMobile ? -30 : 50, scale: 0.8, rotate: isMobile ? 0 : -5 }}
         animate={{ opacity: 1, y: 0, scale: 1, rotate: 0 }}
-        exit={{ opacity: 0, y: -50, scale: 0.8, rotate: 5 }}
-        className="fixed bottom-32 right-8 bg-gradient-to-br from-yellow-100 to-yellow-200 border-4 border-dashed border-yellow-400 rounded-2xl p-4 shadow-xl z-40 transform rotate-1 hover:rotate-0 transition-transform duration-300"
-        style={{ marginBottom: `${index * 90}px` }}
-        whileHover={{ scale: 1.05 }}
+        exit={{ opacity: 0, y: isMobile ? -30 : -50, scale: 0.8, rotate: isMobile ? 0 : 5 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className={`fixed bg-gradient-to-br from-yellow-100 to-yellow-200 border-4 border-dashed border-yellow-400 rounded-2xl shadow-xl z-40 transition-transform duration-300 ${
+          isMobile 
+            ? 'top-4 left-1/2 transform -translate-x-1/2 p-3 max-w-xs mx-2' 
+            : 'bottom-32 right-8 p-4 transform rotate-1 hover:rotate-0'
+        }`}
+        style={{ 
+          marginBottom: isMobile ? '0px' : `${index * 90}px`,
+          marginTop: isMobile ? `${index * 80}px` : '0px'
+        }}
+        whileHover={{ scale: isMobile ? 1.01 : 1.02 }}
       >
-        <div className="flex items-center gap-3">
+        <div className={`flex items-center ${isMobile ? 'gap-2' : 'gap-3'}`}>
           <motion.span 
-            className="text-3xl"
+            className={`${isMobile ? 'text-2xl' : 'text-3xl'} flex-shrink-0`}
             animate={{ 
               rotate: [0, 10, -10, 0],
               scale: [1, 1.2, 1]
             }}
             transition={{ 
-              duration: 2, 
+              duration: 3, 
               repeat: Infinity, 
-              ease: "easeInOut" 
+              ease: "easeInOut",
+              repeatDelay: 1
             }}
           >
             {achievement.icon}
           </motion.span>
-          <div>
-            <div className="font-bold text-gray-800 text-lg" style={{ fontFamily: 'Left Hand, cursive' }}>Achievement Unlocked! 🎉</div>
-            <div className="text-base text-gray-700 font-semibold" style={{ fontFamily: 'Left Hand, cursive' }}>{achievement.title}</div>
-            <div className="text-sm text-gray-600 opacity-90" style={{ fontFamily: 'Left Hand, cursive' }}>{achievement.description}</div>
+          <div className="flex-1 min-w-0">
+            <div className={`font-bold text-gray-800 ${isMobile ? 'text-sm' : 'text-lg'}`} style={{ fontFamily: 'Left Hand, cursive' }}>
+              Achievement Unlocked! 🎉
+            </div>
+            <div className={`text-gray-700 font-semibold ${isMobile ? 'text-sm' : 'text-base'}`} style={{ fontFamily: 'Left Hand, cursive' }}>
+              {achievement.title}
+            </div>
+            <div className={`text-gray-600 opacity-90 ${isMobile ? 'text-xs' : 'text-sm'}`} style={{ fontFamily: 'Left Hand, cursive' }}>
+              {achievement.description}
+            </div>
           </div>
         </div>
         
@@ -700,7 +796,7 @@ export const InteractivePortfolioSection: React.FC<{
         <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-yellow-300 rounded-full"></div>
       </motion.div>
     );
-  }, [achievements]);
+  }, [achievements, isMobile]);
 
   // Extract achievement panel item rendering to reduce nesting
   const renderAchievementPanelItem = useCallback((achievement: Achievement) => (
@@ -756,6 +852,7 @@ export const InteractivePortfolioSection: React.FC<{
     setShowAchievements(!showAchievements);
   }, [showAchievements]);
 
+
   return (
     <section className={`fixed inset-0 w-full h-full overflow-hidden bg-white notebook-bg ${className}`} style={{ zIndex: 1 }}>
       <ScribeCanvas />
@@ -763,24 +860,27 @@ export const InteractivePortfolioSection: React.FC<{
       {/* Movable Personal Intro */}
       {showIntro && (
         <motion.div
-          className="absolute z-30 cursor-move"
+          className={`absolute z-30 ${isMobile ? 'cursor-default' : 'cursor-move'}`}
           style={{
-            left: introPosition.x,
-            top: introPosition.y,
+            left: isMobile ? '50%' : introPosition.x,
+            top: isMobile ? '10%' : introPosition.y,
+            transform: isMobile ? 'translateX(-50%)' : 'none',
             zIndex: isDraggingIntro ? 1000 : 30
           }}
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.9 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
-          onMouseDown={handleIntroMouseDown}
-          whileHover={{ scale: 1.02 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          onMouseDown={isMobile ? undefined : handleIntroMouseDown}
+          whileHover={isMobile ? {} : { scale: 1.01 }}
         >
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-100 border-4 border-dashed border-blue-300 rounded-2xl p-4 shadow-xl relative max-w-md select-none">
-            {/* Drag handle */}
-            <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-8 h-4 bg-blue-300 rounded-b-lg flex items-center justify-center cursor-grab active:cursor-grabbing">
-              <div className="w-4 h-1 bg-blue-500 rounded-full"></div>
-            </div>
+          <div className={`bg-gradient-to-r from-blue-50 to-indigo-100 border-4 border-dashed border-blue-300 rounded-2xl p-4 shadow-xl relative select-none ${isMobile ? 'max-w-xs mx-2' : 'max-w-md'}`}>
+            {/* Drag handle - only show on desktop */}
+            {!isMobile && (
+              <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-10 h-6 bg-blue-300 rounded-b-lg flex items-center justify-center cursor-grab active:cursor-grabbing border-2 border-blue-400">
+                <ScribbledDragIcon size={16} className="text-blue-700" />
+              </div>
+            )}
             
             {/* Close button */}
             <button
@@ -794,7 +894,7 @@ export const InteractivePortfolioSection: React.FC<{
             <div className="flex items-center gap-3 mb-3">
               <motion.div
                 animate={{ rotate: [0, 10, -10, 0] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", repeatDelay: 2 }}
                 className="text-3xl"
               >
                 👋
@@ -835,7 +935,7 @@ export const InteractivePortfolioSection: React.FC<{
 
             <motion.div
               className="text-center"
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ scale: 1.02 }}
             >
               <div className="handwritten text-xs text-gray-600 bg-white/90 px-3 py-2 rounded-full border border-dashed border-gray-300">
                 ✨ Interactive portfolio ahead! ✨
@@ -846,98 +946,217 @@ export const InteractivePortfolioSection: React.FC<{
       )}
       
       {/* Tools and Analytics */}
-      <div className="absolute top-8 right-8 z-20">
+      <div className={`absolute z-20 ${isMobile ? 'top-4 left-4 right-4' : 'top-8 right-8'}`}>
         <div className="flex flex-col gap-3">
+          {/* Toolbar with Labels */}
           <div className="bg-white/95 backdrop-blur-sm border-2 border-black rounded-lg p-3 sketch-border shadow-lg">
-            <div className="flex items-center justify-center gap-2">
-              <motion.button
-                onClick={addProjectCard}
-                whileHover={{ scale: 1.1, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                className="w-10 h-10 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-lg rounded-full transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md"
-                title="Add Project Card"
-              >
-                💼
-              </motion.button>
-              <motion.button
-                onClick={addPersonalNote}
-                whileHover={{ scale: 1.1, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                className="w-10 h-10 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-lg rounded-full transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md"
-                title="Add Personal Note"
-              >
-                📝
-              </motion.button>
-              <motion.button
-                onClick={addSkillBubble}
-                whileHover={{ scale: 1.1, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                className="w-10 h-10 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-lg rounded-full transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md"
-                title="Add Skill Bubble"
-              >
-                🎯
-              </motion.button>
-              <div className="w-px h-6 bg-gray-300 mx-1"></div>
-              <motion.button
-                onClick={addInteractiveResume}
-                whileHover={{ scale: 1.1, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                className="w-10 h-10 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-lg rounded-full transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md"
-                title="Add Resume"
-              >
-                🎓
-              </motion.button>
-              <motion.button
-                onClick={addTestimonial}
-                whileHover={{ scale: 1.1, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                className="w-10 h-10 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-lg rounded-full transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md"
-                title="Add Testimonial"
-              >
-                💬
-              </motion.button>
-              <div className="w-px h-6 bg-gray-300 mx-1"></div>
-              <motion.button
-                onClick={addScribbleElement}
-                whileHover={{ scale: 1.1, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                className="w-10 h-10 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-lg rounded-full transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md"
-                title="Add Scribble"
-              >
-                ✏️
-              </motion.button>
-              <div className="w-px h-6 bg-gray-300 mx-1"></div>
-              <motion.button
-                onClick={toggleAchievements}
-                whileHover={{ scale: 1.1, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                className="w-10 h-10 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-lg rounded-full transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md relative"
-                title="Achievements"
-              >
-                🏆
-                {achievements.filter(a => a.unlocked).length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                    {achievements.filter(a => a.unlocked).length}
-                  </span>
-                )}
-              </motion.button>
-              <motion.button
-                onClick={clearWorkspace}
-                whileHover={{ scale: 1.1, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                className="w-10 h-10 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-lg rounded-full transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md"
-                title="Reset Workspace"
-              >
-                🗑️
-              </motion.button>
+            <div className="text-center mb-2">
+              <h3 className="text-xs font-semibold text-gray-700 handwritten">🎨 Creative Tools</h3>
             </div>
+            {isMobile ? (
+              /* Mobile: Grid layout with labels */
+              <div className="grid grid-cols-3 gap-2">
+                <motion.button
+                  onClick={addProjectCard}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="flex flex-col items-center p-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition-all duration-200 shadow-sm"
+                >
+                  <span className="text-lg">💼</span>
+                  <span className="text-xs text-gray-600">Project</span>
+                </motion.button>
+                <motion.button
+                  onClick={addPersonalNote}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="flex flex-col items-center p-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition-all duration-200 shadow-sm"
+                >
+                  <span className="text-lg">📝</span>
+                  <span className="text-xs text-gray-600">Note</span>
+                </motion.button>
+                <motion.button
+                  onClick={addSkillBubble}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="flex flex-col items-center p-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition-all duration-200 shadow-sm"
+                >
+                  <span className="text-lg">🎯</span>
+                  <span className="text-xs text-gray-600">Skill</span>
+                </motion.button>
+                <motion.button
+                  onClick={addInteractiveResume}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="flex flex-col items-center p-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition-all duration-200 shadow-sm"
+                >
+                  <span className="text-lg">🎓</span>
+                  <span className="text-xs text-gray-600">Resume</span>
+                </motion.button>
+                <motion.button
+                  onClick={addTestimonial}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="flex flex-col items-center p-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition-all duration-200 shadow-sm"
+                >
+                  <span className="text-lg">💬</span>
+                  <span className="text-xs text-gray-600">Review</span>
+                </motion.button>
+                <motion.button
+                  onClick={addScribbleElement}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="flex flex-col items-center p-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition-all duration-200 shadow-sm"
+                >
+                  <span className="text-lg">✏️</span>
+                  <span className="text-xs text-gray-600">Draw</span>
+                </motion.button>
+              </div>
+            ) : (
+              /* Desktop: Row layout with hover labels */
+              <div className="flex items-center justify-center gap-2">
+                <motion.button
+                  onClick={addProjectCard}
+                  whileHover={{ scale: 1.1, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="relative group w-10 h-10 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-lg rounded-full transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md"
+                  title="Add Project Card"
+                >
+                  💼
+                  <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                    Project
+                  </div>
+                </motion.button>
+                <motion.button
+                  onClick={addPersonalNote}
+                  whileHover={{ scale: 1.1, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="relative group w-10 h-10 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-lg rounded-full transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md"
+                  title="Add Personal Note"
+                >
+                  📝
+                  <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                    Note
+                  </div>
+                </motion.button>
+                <motion.button
+                  onClick={addSkillBubble}
+                  whileHover={{ scale: 1.1, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="relative group w-10 h-10 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-lg rounded-full transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md"
+                  title="Add Skill Bubble"
+                >
+                  🎯
+                  <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                    Skill
+                  </div>
+                </motion.button>
+                <div className="w-px h-6 bg-gray-300 mx-1"></div>
+                <motion.button
+                  onClick={addInteractiveResume}
+                  whileHover={{ scale: 1.1, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="relative group w-10 h-10 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-lg rounded-full transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md"
+                  title="Add Resume"
+                >
+                  🎓
+                  <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                    Resume
+                  </div>
+                </motion.button>
+                <motion.button
+                  onClick={addTestimonial}
+                  whileHover={{ scale: 1.1, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="relative group w-10 h-10 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-lg rounded-full transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md"
+                  title="Add Testimonial"
+                >
+                  💬
+                  <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                    Testimonial
+                  </div>
+                </motion.button>
+                <div className="w-px h-6 bg-gray-300 mx-1"></div>
+                <motion.button
+                  onClick={addScribbleElement}
+                  whileHover={{ scale: 1.1, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="relative group w-10 h-10 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-lg rounded-full transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md"
+                  title="Add Scribble"
+                >
+                  ✏️
+                  <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                    Draw
+                  </div>
+                </motion.button>
+                <div className="w-px h-6 bg-gray-300 mx-1"></div>
+                <motion.button
+                  onClick={toggleAchievements}
+                  whileHover={{ scale: 1.1, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="relative group w-10 h-10 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-lg rounded-full transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md"
+                  title="Achievements"
+                >
+                  🏆
+                  {achievements.filter(a => a.unlocked).length > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                      {achievements.filter(a => a.unlocked).length}
+                    </span>
+                  )}
+                  <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                    Goals
+                  </div>
+                </motion.button>
+                <motion.button
+                  onClick={clearWorkspace}
+                  whileHover={{ scale: 1.1, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="relative group w-10 h-10 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-lg rounded-full transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md"
+                  title="Reset Workspace"
+                >
+                  🗑️
+                  <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                    Clear
+                  </div>
+                </motion.button>
+              </div>
+            )}
+            
+            {/* Action buttons row for mobile */}
+            {isMobile && (
+              <div className="flex justify-center gap-2 mt-3 pt-2 border-t border-gray-200">
+                <motion.button
+                  onClick={toggleAchievements}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="flex flex-col items-center p-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition-all duration-200 shadow-sm relative"
+                >
+                  <span className="text-lg">🏆</span>
+                  <span className="text-xs text-gray-600">Goals</span>
+                  {achievements.filter(a => a.unlocked).length > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                      {achievements.filter(a => a.unlocked).length}
+                    </span>
+                  )}
+                </motion.button>
+                <motion.button
+                  onClick={clearWorkspace}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="flex flex-col items-center p-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition-all duration-200 shadow-sm"
+                >
+                  <span className="text-lg">🗑️</span>
+                  <span className="text-xs text-gray-600">Clear</span>
+                </motion.button>
+              </div>
+            )}
           </div>
 
+          {/* Analytics Panel */}
           <div className="bg-white/95 backdrop-blur-sm border-2 border-black rounded-lg p-3 sketch-border shadow-lg">
             <div className="text-center mb-1">
               <h3 className="text-xs font-semibold text-gray-700 handwritten">📈 Live Analytics</h3>
             </div>
-            <div className="flex items-center justify-center gap-4 text-xs handwritten">
+            <div className={`flex items-center justify-center text-xs handwritten ${isMobile ? 'grid grid-cols-2 gap-2' : 'gap-4'}`}>
               <div className="text-center">
                 <div className="font-bold text-blue-800">{interactiveStats.itemsCreated}</div>
                 <div className="text-gray-600">Items</div>
@@ -978,39 +1197,83 @@ export const InteractivePortfolioSection: React.FC<{
             {notebookItems.map((item) => (
               <motion.div
                 key={item.id}
-                className="absolute cursor-move"
+                className={`absolute group ${isMobile ? 'cursor-default' : 'cursor-move'}`}
                 style={{
-                  left: item.position.x,
-                  top: item.position.y,
                   transform: `rotate(${item.rotation ?? 0}deg) scale(${item.scale ?? 1})`,
-                  zIndex: 100
+                  zIndex: item.zIndex ?? 100
                 }}
-                drag
+                initial={
+                  item.id === 'welcome-note' || item.id === 'about-card'
+                    ? { opacity: 0, x: item.position.x, y: item.position.y }
+                    : { x: item.position.x, y: item.position.y }
+                }
+                animate={{
+                  opacity: 1
+                }}
+                drag={!isMobile}
                 dragMomentum={false}
                 dragElastic={0.1}
                 dragConstraints={{
                   left: 0,
-                  right: typeof window !== 'undefined' ? window.innerWidth - 200 : 800,
+                  right: (typeof window !== 'undefined' ? window.innerWidth : 800) - 200,
                   top: 0,
-                  bottom: typeof window !== 'undefined' ? window.innerHeight - 150 : 600
+                  bottom: (typeof window !== 'undefined' ? window.innerHeight : 600) - 150
                 }}
                 onDragEnd={(event, info) => handleItemDragEnd(item, event, info)}
-                whileHover={{ scale: (item.scale ?? 1) * 1.02 }}
-                whileDrag={{ 
-                  scale: (item.scale ?? 1) * 1.05, 
+                whileHover={isMobile ? {} : { scale: (item.scale ?? 1) * 1.01 }}
+                whileDrag={isMobile ? {} : { 
+                  scale: (item.scale ?? 1) * 1.02, 
                   zIndex: 1000,
                   rotate: (item.rotation ?? 0) + (Math.random() - 0.5) * 2,
                   boxShadow: '0 8px 25px rgba(0,0,0,0.15)'
                 }}
+                transition={{
+                  type: "spring", 
+                  damping: 25, 
+                  stiffness: 200,
+                  ...(item.id === 'welcome-note' || item.id === 'about-card' 
+                    ? {
+                        duration: 1,
+                        delay: item.id === 'welcome-note' ? 0.5 : 1,
+                        ease: "easeOut"
+                      }
+                    : {})
+                }}
               >
+                {/* Drag indicator overlay when dragging */}
+                {!isMobile && (
+                  <motion.div
+                    className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                    initial={{ opacity: 0 }}
+                    whileDrag={{ opacity: 1 }}
+                    style={{ zIndex: 10 }}
+                  >
+                    <div className="bg-white/90 rounded-full p-2 border-2 border-dashed border-indigo-400">
+                      <ScribbledMoveIcon size={20} className="text-indigo-600" />
+                    </div>
+                  </motion.div>
+                )}
+                
                 {item.type === 'sticky-note' ? (
-                  <div className={`p-3 rounded-lg shadow-lg border-2 border-gray-300 min-w-[150px] min-h-[100px] ${
-                    getStickyNoteColorClass(item.color)
-                  }`}>
+                  <div className={`relative p-3 rounded-lg shadow-lg border-2 border-gray-300 ${
+                    isMobile ? 'min-w-[120px] min-h-[80px] text-sm' : 'min-w-[150px] min-h-[100px]'
+                  } ${getStickyNoteColorClass(item.color)}`}>
+                    {!isMobile && (
+                      <div className="absolute -top-1 -right-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <ScribbledDragIcon size={12} className="text-gray-500" />
+                      </div>
+                    )}
                     {item.content}
                   </div>
                 ) : (
-                  <div className="p-4 bg-white rounded-lg shadow-lg border-2 border-black min-w-[200px] min-h-[150px] sketch-border">
+                  <div className={`relative p-4 bg-white rounded-lg shadow-lg border-2 border-black sketch-border ${
+                    isMobile ? 'min-w-[160px] min-h-[120px] text-sm' : 'min-w-[200px] min-h-[150px]'
+                  }`}>
+                    {!isMobile && (
+                      <div className="absolute -top-1 -right-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <ScribbledDragIcon size={14} className="text-gray-600" />
+                      </div>
+                    )}
                     {item.content}
                   </div>
                 )}
@@ -1035,18 +1298,22 @@ export const InteractivePortfolioSection: React.FC<{
             onClick={handleCloseAchievements}
           >
             <motion.div
-              className="bg-white border-2 border-black rounded-lg p-6 max-w-md w-full mx-4 sketch-border"
+              className={`bg-white border-2 border-black rounded-lg p-6 sketch-border ${
+                isMobile ? 'max-w-xs w-full mx-2 max-h-96' : 'max-w-md w-full mx-4'
+              }`}
               onClick={handleStopPropagation}
             >
-              <SketchHeading level={2} className="text-xl mb-4 text-center">
+              <SketchHeading level={2} className={`${isMobile ? 'text-lg' : 'text-xl'} mb-4 text-center`}>
                 🏆 Achievements
               </SketchHeading>
-              <div className="space-y-3 max-h-64 overflow-y-auto">
+              <div className={`space-y-3 overflow-y-auto ${isMobile ? 'max-h-48' : 'max-h-64'}`}>
                 {achievements.map(renderAchievementPanelItem)}
               </div>
               <button
                 onClick={handleCloseAchievements}
-                className="w-full mt-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition-colors"
+                className={`w-full mt-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition-colors ${
+                  isMobile ? 'text-sm' : ''
+                }`}
               >
                 Close
               </button>

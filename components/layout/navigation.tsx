@@ -34,8 +34,21 @@ const Navigation = () => {
   const [showQuickActions, setShowQuickActions] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [contextualSuggestions, setContextualSuggestions] = useState<string[]>([]);
+  const [isMobile, setIsMobile] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const chatMessagesRef = useRef<HTMLDivElement>(null);
+
+  // Mobile detection
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   // Auto-scroll chat to bottom when new messages are added
   useEffect(() => {
     if (chatMessagesRef.current) {
@@ -46,8 +59,10 @@ const Navigation = () => {
   // Handle hydration
   useEffect(() => {
     setMounted(true);
-  }, []);// Handle AI search
-  const handleSearch = (e: React.FormEvent) => {
+  }, []);
+
+  // Handle AI search with Perplexity API
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!search.trim()) return;
     
@@ -68,24 +83,67 @@ const Navigation = () => {
     setIsTyping(false);
     setShowQuickActions(false);
     
-    // Get instant AI response with scribble effect (faster speed: 12ms per char)
-    const answer = aiModel(query);
-    scribbleTextEffect(answer, 
-      (displayed) => setCurrentAiResponse(displayed), 
-      () => {
-        // When scribble is complete, add final AI message to chat
-        const aiMessage: ChatMessage = {
-          id: (Date.now() + 1).toString(),
-          type: 'ai',
-          content: answer,
-          timestamp: new Date()
-        };
-        setChatMessages(prev => [...prev, aiMessage]);
-        setCurrentAiResponse('');
-        setAiThinking(false);
-      }, 
-      12
-    );
+    try {
+      // Call Perplexity API
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: query,
+          conversationHistory: chatMessages.slice(-4).map(msg => ({
+            role: msg.type === 'user' ? 'user' : 'assistant',
+            content: msg.content
+          }))
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to get response');
+      }
+
+      // Show response with scribble effect (faster speed: 8ms per char for better UX)
+      scribbleTextEffect(data.response, 
+        (displayed) => setCurrentAiResponse(displayed), 
+        () => {
+          // When scribble is complete, add final AI message to chat
+          const aiMessage: ChatMessage = {
+            id: (Date.now() + 1).toString(),
+            type: 'ai',
+            content: data.response,
+            timestamp: new Date()
+          };
+          setChatMessages(prev => [...prev, aiMessage]);
+          setCurrentAiResponse('');
+          setAiThinking(false);
+        }, 
+        8 // Faster typing effect for API responses
+      );
+
+    } catch (error) {
+      console.error('Chat error:', error);
+      
+      // Fallback to local AI model on error
+      const fallbackAnswer = aiModel(query);
+      scribbleTextEffect(fallbackAnswer, 
+        (displayed) => setCurrentAiResponse(displayed), 
+        () => {
+          const aiMessage: ChatMessage = {
+            id: (Date.now() + 1).toString(),
+            type: 'ai',
+            content: fallbackAnswer + '\n\n⚠️ (Fallback response - API temporarily unavailable)',
+            timestamp: new Date()
+          };
+          setChatMessages(prev => [...prev, aiMessage]);
+          setCurrentAiResponse('');
+          setAiThinking(false);
+        }, 
+        12
+      );
+    }
   };
   // Handle typing indicator with debouncing and smart suggestions
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -190,9 +248,10 @@ const Navigation = () => {
     { href: '/about', label: 'About', IconComponent: AboutIcon, hasInteractive: true },
     { href: '/work', label: 'Work', IconComponent: WorkIcon, hasInteractive: true },
     { href: '/case-studies', label: 'Studies', IconComponent: StudiesIcon, hasInteractive: true },
+    { href: '/progress', label: 'Progress', IconComponent: WorkIcon, hasInteractive: false },
     { href: '/contact', label: 'Contact', IconComponent: ContactIcon, hasInteractive: true },
   ];  // Base classes for navigation items
-  const baseNavItemClass = 'flex flex-col items-center justify-center px-3 py-2 cursor-pointer transition-all duration-200 outline-none min-h-[60px]';
+  const baseNavItemClass = "px-4 py-2 handwritten text-white hover:text-gray-300 transition-colors duration-200 text-center min-w-[60px] flex flex-col items-center justify-center";
   
   // Navigation item styling with strikethrough/bold logic
   const getNavItemClass = (idx: number) => {
@@ -221,8 +280,8 @@ const Navigation = () => {
   };
   // Helper function for chat icon styling
   const getChatIconClass = () => {
-    if (aiThinking) return 'animate-pulse text-blue-500';
-    if (isTyping) return 'text-blue-600';
+    if (aiThinking) return 'animate-pulse text-black';
+    if (isTyping) return 'text-yellow-500';
     return 'text-black';
   };
 
@@ -261,10 +320,19 @@ const Navigation = () => {
 
   // Simplified chat button click handler  
   const handleChatButtonClick = (e: React.MouseEvent) => {
+    e.preventDefault();
     setChatOpen(!chatOpen);
-    // If there are no messages, prevent default to show welcome screen
-    if (chatMessages.length === 0 && !aiThinking) {
-      e.preventDefault();
+    if (!chatOpen) {
+      // When opening chat, clear any previous state and focus input
+      setSearch('');
+      setCurrentAiResponse('');
+      setAiThinking(false);
+      setShowQuickActions(false);
+      setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+        }
+      }, 100);
     }
   };
 
@@ -293,7 +361,7 @@ const Navigation = () => {
         style={{ boxShadow: 'none', borderColor: '#000', borderWidth: 2 }}
       >
         {/* Nav items */}
-        <div className="flex-1 flex items-center justify-between">
+        <div className="flex-1 flex items-center justify-center space-x-4">
           {navItems.map((item, idx) => (
             <a
               key={item.href}
@@ -308,105 +376,145 @@ const Navigation = () => {
               onClick={() => handleNavClick(idx)}
               onKeyDown={e => handleNavKeyDown(e, idx, item.href)}
             >
-              <item.IconComponent selected={mounted && pathname === item.href} />
+              <item.IconComponent 
+                selected={mounted && pathname === item.href}
+                className="w-5 h-5 text-black"
+              />
               <span className={getTextClass(idx)} style={{ letterSpacing: 0 }}>
                 {item.label}
               </span>
             </a>
           ))}
           {/* Removed InteractiveEye icon button from navbar */}
-        </div>        {/* AI Search Bar */}
-        <div className="relative ml-4">
-          <form
-            className={`flex items-center bg-black border-2 border-yellow-300 rounded-full px-3 py-2 sketch-border transition-all duration-200 ${
-              isInputFocused ? 'sketch-border-thick shadow-md' : ''
-            } ${isTyping ? 'border-blue-500' : ''}`}
-            style={{ minWidth: 180, maxWidth: 260 }}
-            onSubmit={handleSearch}
-            role="search"
-          >            <button
-              type="submit"
-              className="mr-2 p-1 transition-all duration-200 flex items-center justify-center relative rounded-full bg-yellow-400 text-black font-bold border-2 border-yellow-600 hover:bg-yellow-300 focus:ring-2 focus:ring-yellow-400"
-              aria-label="Ask about me"
-              tabIndex={0}              onClick={handleChatButtonClick}
+        </div>        {/* AI Chat Icon - Shows when chat is closed */}
+        {!chatOpen && (
+          <div className="relative ml-4">
+            <div
+              className="p-2 cursor-pointer transition-all duration-300 flex items-center justify-center relative hover:scale-110 animate-bounce-slow"
+              aria-label="Open AI Assistant"
+              tabIndex={0}
+              onClick={handleChatButtonClick}
+              onKeyDown={e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  handleChatButtonClick(e as any);
+                }
+              }}
             >
-              <ChatIcon className={`w-5 h-5 transition-colors ${getChatIconClass()}`} />
+              <ChatIcon className={`w-7 h-7 transition-all duration-300 text-black hover:text-yellow-500 animate-pulse-gentle`} />
               {/* Message count indicator */}
-              {chatMessages.length > 0 && (                <div className="absolute -top-1 -right-1 bg-black text-white text-xs rounded-full w-4 h-4 flex items-center justify-center handwritten animate-bounce-once">
+              {chatMessages.length > 0 && (
+                <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center animate-bounce border border-red-600">
                   {chatMessages.length}
                 </div>
               )}
               {/* Typing indicator pulse */}
               {isTyping && (
-                <div className="absolute inset-0 rounded-full border-2 border-blue-400 animate-ping"></div>
+                <div className="absolute inset-0 rounded-full border-2 border-blue-400 animate-ping opacity-50"></div>
               )}
-            </button>            <input
-              ref={inputRef}
-              type="text"
-              className="bg-black text-white outline-none border-none handwritten text-sm w-full transition-all duration-200 font-bold px-3 py-2 rounded-full"
-              placeholder={isInputFocused ? "Type your question..." : "Ask about me..."}
-              value={search}
-              onChange={handleInputChange}
-              onFocus={handleInputFocus}
-              onBlur={handleInputBlur}
-              onKeyDown={e => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSearch(e as any);
-                } else if (e.key === 'Escape') {
-                  if (chatOpen) {
+            </div>
+            
+            {/* Handwritten arrow and text - positioned outside the icon */}
+            <div className="absolute -right-28 top-1/2 transform -translate-y-1/2 pointer-events-none animate-fade-in">
+              <div className="flex items-center space-x-2">
+                <svg 
+                  width="20" 
+                  height="14" 
+                  viewBox="0 0 20 14" 
+                  className="text-gray-500 transform rotate-12"
+                  fill="none"
+                >
+                  <path 
+                    d="M2 7 C6 5, 10 9, 14 7 L18 7 M16 5 L18 7 L16 9" 
+                    stroke="currentColor" 
+                    strokeWidth="1.5" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                    className="animate-draw"
+                  />
+                </svg>
+                <span className="text-gray-500 handwritten text-xs whitespace-nowrap transform -rotate-2">
+                  ask about me
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* AI Search Bar - Shows when chat is open and fills the nav bar */}
+        {chatOpen && (
+          <div className="absolute inset-0 bg-white/95 border-2 border-black rounded-2xl backdrop-blur-md z-10 flex items-center px-4">
+            <form
+              className="flex items-center bg-black border-2 border-yellow-300 rounded-full px-3 py-2 sketch-border transition-all duration-200 flex-1 mr-2"
+              onSubmit={handleSearch}
+              role="search"
+            >
+              <ChatIcon className={`w-5 h-5 mr-2 transition-colors ${getChatIconClass()}`} />
+              <input
+                ref={inputRef}
+                type="text"
+                className="bg-black text-white outline-none border-none handwritten text-sm w-full transition-all duration-200 font-bold px-3 py-2 rounded-full"
+                placeholder="Ask me anything about Arun..."
+                value={search}
+                onChange={handleInputChange}
+                onFocus={handleInputFocus}
+                onBlur={handleInputBlur}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSearch(e as any);
+                  } else if (e.key === 'Escape') {
                     setChatOpen(false);
                     setCurrentAiResponse('');
                     setAiThinking(false);
                     setIsInputFocused(false);
+                    setSearch('');
                   }
-                }
+                }}
+                aria-label="Ask about Arun Kumar"
+                disabled={aiThinking}
+                autoFocus
+              />
+              {/* Loading indicator inside input */}
+              {aiThinking && (
+                <div className="ml-2 flex space-x-1">
+                  <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce"></div>
+                  <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                </div>
+              )}
+            </form>
+            
+            {/* Close button */}
+            <button
+              type="button"
+              onClick={() => {
+                setChatOpen(false);
+                setCurrentAiResponse('');
+                setAiThinking(false);
+                setIsInputFocused(false);
+                setSearch('');
               }}
-              aria-label="Ask about Arun Kumar"
-              aria-describedby="search-suggestions"
-              role="combobox"
-              aria-autocomplete="list"
-              aria-controls="search-suggestions"
-              aria-expanded={showQuickActions}
-              disabled={aiThinking}
-            />
-            {/* Loading indicator inside input */}
-            {aiThinking && (
-              <div className="ml-2 flex space-x-1">
-                <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce"></div>
-                <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-              </div>
-            )}
-          </form>          {/* Contextual Quick Suggestions - Only show when typing */}
-          {showQuickActions && search.length > 0 && contextualSuggestions.length > 0 && (
-            <section 
-              id="search-suggestions"
-              className="absolute bottom-full left-0 right-0 mb-2 bg-white border-2 border-gray-200 rounded-xl shadow-lg z-10 overflow-hidden animate-fade-in"
-              aria-label="Quick suggestions"
+              className="p-2 text-gray-600 hover:text-black transition-colors rounded-full hover:bg-gray-100"
+              aria-label="Close chat (ESC)"
             >
-              <div className="p-2">
-                <div className="text-xs text-gray-500 handwritten-small mb-2 px-2">💡 Suggestions based on your input:</div>
-                {contextualSuggestions.map((suggestion, index) => (
-                  <button
-                    key={suggestion}
-                    onClick={() => handleSuggestionClick(suggestion)}
-                    className="w-full text-left px-3 py-2 text-sm handwritten-small hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-200 focus:border-blue-400 focus:outline-none"
-                    tabIndex={0}
-                  >
-                    <span className="text-blue-600">→</span> {suggestion}
-                  </button>
-                ))}
-              </div>
-            </section>
-          )}
-        </div>
-      </div>      {/* Chat Interface */}
-      {chatOpen && (
-        <div className="absolute left-1/2 bottom-36 transform -translate-x-1/2 z-50 w-full max-w-2xl flex justify-center pointer-events-none">
-          <div className="bg-white border-2 border-black rounded-xl shadow-2xl pointer-events-auto mx-4 w-full max-h-96 overflow-hidden animate-chat-enter backdrop-blur-sm">
+              <span className="text-xl">×</span>
+            </button>
+          </div>
+        )}
+      </div>      {/* Chat Interface - Only show below nav when there are messages or AI is thinking */}
+      {chatOpen && (chatMessages.length > 0 || currentAiResponse || aiThinking) && (
+        <div className={`${
+          isMobile 
+            ? 'absolute left-1/2 bottom-20 transform -translate-x-1/2 z-50 w-full px-4'
+            : 'absolute left-1/2 bottom-36 transform -translate-x-1/2 z-50 w-full max-w-2xl'
+        } flex justify-center pointer-events-none`}>
+          <div className={`bg-white border-2 border-black shadow-2xl pointer-events-auto overflow-hidden animate-chat-enter backdrop-blur-sm flex flex-col ${
+            isMobile 
+              ? 'w-full max-h-80 rounded-xl'
+              : 'mx-4 w-full max-h-96 rounded-xl'
+          }`}>
             {/* Chat Header */}
-            <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-gradient-to-r from-white to-gray-50">
+            <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-gradient-to-r from-white to-gray-50 flex-shrink-0">
               <div className="flex items-center space-x-2">
                 <div className="relative">
                   <ChatIcon className={`w-4 h-4 transition-all duration-300 ${getChatIconClass()}`} />
@@ -446,7 +554,7 @@ const Navigation = () => {
             {/* Chat Messages */}
             <div 
               ref={chatMessagesRef}
-              className="p-4 space-y-4 max-h-72 overflow-y-auto chat-handwritten scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
+              className="p-4 space-y-4 flex-1 overflow-y-auto chat-handwritten scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
               style={{ scrollBehavior: 'smooth' }}
             >
               {/* Welcome message when chat is empty */}
@@ -545,33 +653,38 @@ const Navigation = () => {
             </div>
 
             {/* Chat Footer */}
-            <div className="px-4 py-3 border-t border-gray-200 bg-gradient-to-r from-gray-50 to-white">
+            <div className="px-4 py-3 border-t border-gray-200 bg-gradient-to-r from-gray-50 to-white flex-shrink-0">
               <div className="flex justify-between items-center text-xs text-gray-500 handwritten-small">
                 <div className="flex items-center gap-2">
                   <span className="flex items-center gap-1">
                     {chatMessages.length > 0 ? (
                       <>
                         <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                        {getFooterMessageText()}
+                        <span className="hidden sm:inline">{getFooterMessageText()}</span>
+                        <span className="sm:hidden">Active</span>
                       </>
                     ) : (
                       <>
                         <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                        <span>New conversation</span>
+                        <span className="hidden sm:inline">New conversation</span>
+                        <span className="sm:hidden">New</span>
                       </>
                     )}
                   </span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">ESC</kbd>
-                  <span>to close</span>
-                  <span>•</span>
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="hidden sm:flex items-center gap-2">
+                    <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">ESC</kbd>
+                    <span>to close</span>
+                    <span>•</span>
+                  </div>
                   <button 
                     onClick={clearChat}
-                    className="hover:text-red-500 transition-colors underline decoration-dotted"
+                    className="hover:text-red-500 transition-colors underline decoration-dotted text-xs"
                     disabled={chatMessages.length === 0}
                   >
-                    Clear all
+                    <span className="hidden sm:inline">Clear all</span>
+                    <span className="sm:hidden">Clear</span>
                   </button>
                 </div>
               </div>
@@ -581,6 +694,36 @@ const Navigation = () => {
       )}      {/* Enhanced CSS Animations */}
       <style>
         {`
+        /* New animations for chat icon */
+        .animate-bounce-slow {
+          animation: bounceSlow 3s ease-in-out infinite;
+        }
+        
+        .animate-pulse-gentle {
+          animation: pulseGentle 2s ease-in-out infinite;
+        }
+        
+        @keyframes bounceSlow {
+          0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+          }
+          40% {
+            transform: translateY(-4px);
+          }
+          60% {
+            transform: translateY(-2px);
+          }
+        }
+        
+        @keyframes pulseGentle {
+          0%, 100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.7;
+          }
+        }
+        
         .animate-wiggle { animation: wiggle 0.3s; }
         .animate-bounce { animation: bounce 0.5s cubic-bezier(.28,.84,.42,1) 1; }
         .animate-bounce-once { animation: bounceOnce 0.6s ease-out; }
@@ -670,6 +813,28 @@ const Navigation = () => {
           }
           50% { 
             box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); 
+          }
+        }
+        
+        /* New arrow drawing animation */
+        .animate-draw {
+          stroke-dasharray: 30;
+          stroke-dashoffset: 30;
+          animation: drawArrow 2s ease-in-out infinite;
+        }
+        
+        @keyframes drawArrow {
+          0%, 20% { 
+            stroke-dashoffset: 30; 
+            opacity: 0.3;
+          }
+          50% { 
+            stroke-dashoffset: 0; 
+            opacity: 1;
+          }
+          80%, 100% { 
+            stroke-dashoffset: -30; 
+            opacity: 0.3;
           }
         }
         

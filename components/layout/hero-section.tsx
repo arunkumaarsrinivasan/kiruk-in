@@ -3,19 +3,17 @@
 import { motion } from 'framer-motion';
 import ScribbleAnimation from '../three/scribble-animation';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 const HeroSection = () => {
-  const [showWelcome, setShowWelcome] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState(0);
+  const router = useRouter();
 
-  const handleWelcomeClose = () => {
-    setShowWelcome(false);
-    // Start onboarding sequence after welcome is closed
-    setTimeout(() => {
-      setShowOnboarding(true);
-    }, 1000);
+  const handleRedirectToAbout = () => {
+    router.push('/about');
   };
+
 
   const nextOnboardingStep = () => {
     if (onboardingStep < 2) {
@@ -39,15 +37,15 @@ const HeroSection = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.5 }}
       >        <div className="text-lg text-gray-700">
-          <div className="architect-font text-3xl mb-2 font-bold kiruk-title">KIRUK</div>
+          <div className="architect-font text-3xl mb-2 font-bold kiruk-title" style={{ color: '#111' }}>KIRUK</div>
           <div className="handwritten text-sm font-bold">Arun kumaar Sreenivasan</div>
-          <div className="handwritten text-xs text-gray-600 mt-1">SDE 1 @ HP Inc | Design Consultant</div>
-          <div className="handwritten text-xs text-gray-500">📍 Bangalore (Hybrid)</div>
+          <div className="handwritten text-xs text-gray-600 mt-1">Full-Stack Developer & Designer</div>
+          <div className="handwritten text-xs text-gray-500">📍 Bangalore</div>
         </div>
       </motion.div>
 
       <motion.div
-        className="absolute top-20 right-20 hidden lg:block"
+        className="absolute top-20 right-20 hidden lg:block cursor-pointer"
         animate={{ 
           rotate: [0, 2, -2, 0],
           y: [0, -5, 5, 0] 
@@ -57,13 +55,16 @@ const HeroSection = () => {
           repeat: Infinity, 
           ease: "easeInOut" 
         }}
-      >        <div className="sketch-font text-xl text-sketch-orange transform rotate-12">
+        whileHover={{ scale: 1.1, rotate: 8 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={handleRedirectToAbout}
+      >        <div className="sketch-font text-xl text-sketch-orange transform rotate-12 hover:text-orange-600 transition-colors">
           SDE 1
         </div>
       </motion.div>
 
       <motion.div
-        className="absolute bottom-20 left-20 hidden lg:block"
+        className="absolute bottom-20 left-20 hidden lg:block cursor-pointer"
         animate={{ 
           rotate: [0, -3, 3, 0],
           x: [0, 3, -3, 0] 
@@ -74,13 +75,16 @@ const HeroSection = () => {
           ease: "easeInOut",
           delay: 2 
         }}
-      >        <div className="handwritten text-lg text-sketch-blue transform -rotate-6">
+        whileHover={{ scale: 1.1, rotate: -3 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={handleRedirectToAbout}
+      >        <div className="handwritten text-lg text-sketch-blue transform -rotate-6 hover:text-blue-600 transition-colors">
           AWS + Spring Boot
         </div>
       </motion.div>
 
       <motion.div
-        className="absolute top-1/2 right-10 hidden lg:block"
+        className="absolute top-1/2 right-10 hidden lg:block cursor-pointer"
         animate={{ 
           scale: [1, 1.1, 1],
           rotate: [0, 5, -5, 0] 
@@ -91,7 +95,10 @@ const HeroSection = () => {
           ease: "easeInOut",
           delay: 1 
         }}
-      >        <div className="handwritten text-base text-sketch-green transform rotate-90">
+        whileHover={{ scale: 1.15, rotate: 85 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={handleRedirectToAbout}
+      >        <div className="handwritten text-base text-sketch-green transform rotate-90 hover:text-green-600 transition-colors">
           UX/UI + Dev 🎨
         </div>
       </motion.div>      {/* Subtle center hint */}
@@ -103,9 +110,9 @@ const HeroSection = () => {
       >
       </motion.div>
       
-      {/* Adventure spirit indicators */}
+      {/* Adventure spirit indicators - Now clickable */}
       <motion.div
-        className="absolute top-1/3 left-10 hidden lg:block"
+        className="absolute top-1/3 left-10 hidden lg:block cursor-pointer"
         animate={{ 
           y: [0, -10, 10, 0],
           rotate: [0, 3, -3, 0] 
@@ -116,13 +123,16 @@ const HeroSection = () => {
           ease: "easeInOut",
           delay: 0.5 
         }}
-      >        <div className="handwritten text-sm text-sketch-purple transform -rotate-12">
+        whileHover={{ scale: 1.1, rotate: -8 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={handleRedirectToAbout}
+      >        <div className="handwritten text-sm text-sketch-purple transform -rotate-12 hover:text-purple-600 transition-colors">
           🏔️ Trekking {'>'}{'>'} Party
         </div>
       </motion.div>
 
       <motion.div
-        className="absolute bottom-1/3 right-1/3 hidden lg:block"
+        className="absolute bottom-1/3 right-1/3 hidden lg:block cursor-pointer"
         animate={{ 
           rotate: [0, -4, 4, 0],
           scale: [1, 1.05, 1] 
@@ -133,14 +143,17 @@ const HeroSection = () => {
           ease: "easeInOut",
           delay: 3 
         }}
-      >        <div className="handwritten text-sm text-sketch-orange transform rotate-6">
+        whileHover={{ scale: 1.15, rotate: 3 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={handleRedirectToAbout}
+      >        <div className="handwritten text-sm text-sketch-orange transform rotate-6 hover:text-orange-600 transition-colors">
           🏓 Table Tennis Pro
         </div>
       </motion.div>
 
-      {/* Additional professional elements */}
+      {/* Additional professional elements - Now clickable */}
       <motion.div
-        className="absolute top-1/4 right-1/4 hidden lg:block"
+        className="absolute top-1/4 right-1/4 hidden lg:block cursor-pointer"
         animate={{ 
           rotate: [0, 2, -2, 0],
           y: [0, -8, 8, 0] 
@@ -151,14 +164,17 @@ const HeroSection = () => {
           ease: "easeInOut",
           delay: 1.5 
         }}
+        whileHover={{ scale: 1.1, rotate: 12 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={handleRedirectToAbout}
       >
-        <div className="handwritten text-xs text-sketch-blue transform rotate-15">
+        <div className="handwritten text-xs text-sketch-blue transform rotate-15 hover:text-blue-600 transition-colors">
           ☁️ AWS Expert
         </div>
       </motion.div>
 
       <motion.div
-        className="absolute bottom-1/4 left-1/4 hidden lg:block"
+        className="absolute bottom-1/4 left-1/4 hidden lg:block cursor-pointer"
         animate={{ 
           scale: [1, 1.1, 1],
           rotate: [0, -3, 3, 0] 
@@ -169,14 +185,17 @@ const HeroSection = () => {
           ease: "easeInOut",
           delay: 2.5 
         }}
+        whileHover={{ scale: 1.15, rotate: -5 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={handleRedirectToAbout}
       >
-        <div className="handwritten text-xs text-sketch-green transform -rotate-8">
+        <div className="handwritten text-xs text-sketch-green transform -rotate-8 hover:text-green-600 transition-colors">
           🎵 Music Lover
         </div>
       </motion.div>
 
       <motion.div
-        className="absolute top-2/3 left-1/3 hidden lg:block"
+        className="absolute top-2/3 left-1/3 hidden lg:block cursor-pointer"
         animate={{ 
           x: [0, 5, -5, 0],
           rotate: [0, 4, -4, 0] 
@@ -187,67 +206,13 @@ const HeroSection = () => {
           ease: "easeInOut",
           delay: 0.8 
         }}
-      >        <div className="handwritten text-xs text-sketch-purple transform rotate-12">
+        whileHover={{ scale: 1.1, rotate: 8 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={handleRedirectToAbout}
+      >        <div className="handwritten text-xs text-sketch-purple transform rotate-12 hover:text-purple-600 transition-colors">
           🤝 Collaboration
         </div>
-      </motion.div>      {/* Welcome Guide - Sketch Style */}
-      {showWelcome && (
-        <motion.div
-          className="absolute top-6 left-1/2 transform -translate-x-1/2 z-30"
-          initial={{ opacity: 0, y: -30, scale: 0.9, rotate: -3 }}
-          animate={{ opacity: 1, y: 0, scale: 1, rotate: 1 }}
-          exit={{ opacity: 0, y: -30, scale: 0.9, rotate: -3 }}
-          transition={{ duration: 0.6, delay: 1.2 }}
-        >
-          <div className="bg-white/95 border-3 border-dashed border-blue-300 rounded-2xl p-6 max-w-lg backdrop-blur-md shadow-lg transform rotate-1 relative">
-            {/* Sketch-style close button */}
-            <button
-              onClick={handleWelcomeClose}
-              className="absolute -top-3 -right-3 w-8 h-8 bg-red-400 hover:bg-red-500 text-white rounded-full flex items-center justify-center text-lg font-bold transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-110 transform rotate-12 border-2 border-red-600"
-              title="Close guide"
-            >
-              ×
-            </button>
-            
-            {/* Sketch decorations around the welcome */}
-            <div className="absolute -top-4 left-4 text-2xl transform -rotate-12 animate-bounce">✨</div>
-            <div className="absolute -top-2 right-12 text-xl transform rotate-45">🎨</div>
-            <div className="absolute -bottom-3 -left-2 text-lg transform rotate-30">✎</div>
-            <div className="absolute -bottom-2 right-8 text-xl transform -rotate-15">⭐</div>
-            
-            <div className="text-center">
-              <div className="text-2xl mb-3">👋</div>
-              <h2 className="text-xl font-bold text-gray-800 mb-4 handwritten transform -rotate-1">Welcome to KIRUK's Interactive Portfolio!</h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div className="bg-blue-50/80 border-2 border-dashed border-blue-200 rounded-lg p-3 transform rotate-1 hover:rotate-2 transition-transform">
-                  <div className="text-2xl mb-2">🎨</div>
-                  <div className="font-bold text-blue-800 handwritten">Draw & Explore</div>
-                  <div className="text-blue-600 text-xs handwritten">Use the canvas to doodle and interact</div>
-                </div>
-                
-                <div className="bg-green-50/80 border-2 border-dashed border-green-200 rounded-lg p-3 transform -rotate-1 hover:-rotate-2 transition-transform">
-                  <div className="text-2xl mb-2">📱</div>
-                  <div className="font-bold text-green-800 handwritten">Navigate</div>
-                  <div className="text-green-600 text-xs handwritten">Use the menu below to explore sections</div>
-                </div>
-                
-                <div className="bg-purple-50/80 border-2 border-dashed border-purple-200 rounded-lg p-3 transform rotate-1 hover:rotate-2 transition-transform">
-                  <div className="text-2xl mb-2">⚡</div>
-                  <div className="font-bold text-purple-800 handwritten">Interact</div>
-                  <div className="text-purple-600 text-xs handwritten">Click on floating elements & tools</div>
-                </div>
-              </div>
-              
-              <div className="mt-4 p-3 bg-yellow-100/80 rounded-lg border-2 border-dashed border-yellow-300 transform -rotate-1">
-                <div className="text-sm text-yellow-800 handwritten">
-                  <span className="font-bold">💡 Quick Start:</span> Try drawing on the canvas or click the toolbar icons above!
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )}
+      </motion.div>
 
       {/* Floating Navigation Hints */}
       <motion.div
@@ -282,10 +247,6 @@ const HeroSection = () => {
                   ×
                 </button>
                 
-                {/* Hand-drawn arrow pointing down */}
-                <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 text-2xl animate-bounce">
-                  ↙️
-                </div>
                 
                 <div className="handwritten text-center">
                   <div className="text-3xl mb-3">✏️</div>
@@ -298,10 +259,7 @@ const HeroSection = () => {
                     Got it! →
                   </button>
                 </div>
-                
-                {/* Sketch decorations */}
-                <div className="absolute -bottom-2 -left-2 text-blue-400 transform rotate-45">✎</div>
-                <div className="absolute -top-1 -right-4 text-yellow-500 transform -rotate-12">★</div>
+                ;
               </div>
             </motion.div>
           )}

@@ -490,28 +490,7 @@ html {
   opacity: 0.7;
 }
 
-/* Sticky note tape effect */
-.sticky-tape {
-  position: relative;
-}
-
-.sticky-tape::before {
-  content: '';
-  position: absolute;
-  top: -8px;
-  left: 20%;
-  width: 60%;
-  height: 16px;
-  background: linear-gradient(45deg, 
-    transparent 25%, 
-    #ffffff 25%, 
-    #ffffff 75%, 
-    transparent 75%
-  );
-  background-size: 8px 8px;
-  border: 1px solid #e5e5e5;
-  transform: rotate(-2deg);
-}
+/* Sticky note tape effect removed - using the enhanced version below */
 
 /* Paper clip effect */
 .paper-clip {

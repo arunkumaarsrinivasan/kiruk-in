@@ -3,6 +3,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { StickyNote, SketchCard, SketchHeading } from '../../ui/sketch-elements';
+import { useCursor } from '../../ui/CursorContext';
 
 // Types for draggable items
 export interface DraggableItem {
@@ -52,9 +53,11 @@ const DraggableNotebookItem: React.FC<{
   const [isHovered, setIsHovered] = useState(false);
   const dragControls = useDragControls();
   const itemRef = useRef<HTMLDivElement>(null);
+  const { setGrabCursor, setGrabbingCursor, setDroppingCursor, setEyeCursor } = useCursor();
 
   const handleDragStart = () => {
     setIsDragging(true);
+    setGrabbingCursor();
     onSelect?.(item.id);
   };
 
@@ -79,6 +82,12 @@ const DraggableNotebookItem: React.FC<{
 
   const handleDragEnd = (event: any, info: any) => {
     setIsDragging(false);
+    setDroppingCursor(); // Show dropping animation briefly
+    
+    // Brief dropping cursor before returning to eye
+    setTimeout(() => {
+      setEyeCursor();
+    }, 150);
     
     // Apply grid snap if enabled (only at the end)
     if (gridSnap) {
@@ -205,8 +214,18 @@ const DraggableNotebookItem: React.FC<{
       onDragStart={handleDragStart}
       onDrag={handleDrag}
       onDragEnd={handleDragEnd}
-      onHoverStart={() => setIsHovered(true)}
-      onHoverEnd={() => setIsHovered(false)}
+      onHoverStart={() => {
+        setIsHovered(true);
+        if (allowEditing && !item.locked) {
+          setGrabCursor();
+        }
+      }}
+      onHoverEnd={() => {
+        setIsHovered(false);
+        if (!isDragging) {
+          setEyeCursor();
+        }
+      }}
       onClick={handleSelect}
       onKeyDown={handleKeyDown}
       tabIndex={allowEditing && !item.locked ? 0 : -1}
