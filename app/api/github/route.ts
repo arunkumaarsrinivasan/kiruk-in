@@ -1,51 +1,103 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { ajApi } from '../../../lib/arcjet';
 
 const REPO_OWNER = 'arunkumaarsrinivasan';
 const REPO_NAME = 'kiruk-in';
 
+// Helper function to handle Arcjet protection responses
+function handleArcjetDenial(decision: any): NextResponse {
+  if (decision.reason.isRateLimit()) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      { status: 429 }
+    );
+  } else if (decision.reason.isBot()) {
+    return NextResponse.json(
+      { error: 'Bot traffic detected. Access denied.' },
+      { status: 403 }
+    );
+  } else {
+    return NextResponse.json(
+      { error: 'Access denied.' },
+      { status: 403 }
+    );
+  }
+}
+
+// Helper function to build GitHub API URLs
+function buildGitHubUrl(endpoint: string, perPage: string, since: string | null): string {
+  const baseUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`;
+  const sinceParam = since ? `&since=${since}` : '';
+  
+  switch (endpoint) {
+    case 'commits':
+      return `${baseUrl}/commits?per_page=${perPage}${sinceParam}`;
+    case 'commits-with-stats':
+      return `${baseUrl}/commits?per_page=${Math.min(parseInt(perPage), 10)}${sinceParam}`;
+    case 'releases':
+      return `${baseUrl}/releases?per_page=${perPage}`;
+    case 'issues':
+      return `${baseUrl}/issues?state=all&per_page=${perPage}`;
+    case 'repo':
+      return baseUrl;
+    case 'contributors':
+      return `${baseUrl}/contributors?per_page=${perPage}`;
+    case 'stats':
+      return `${baseUrl}/stats/participation`;
+    default:
+      throw new Error('Invalid endpoint. Supported: commits, commits-with-stats, releases, issues, repo, contributors, stats');
+  }
+}
+
+// Helper function to enhance commits with stats
+async function enhanceCommitsWithStats(commits: any[], headers: Record<string, string>): Promise<any[]> {
+  return Promise.all(
+    commits.slice(0, 10).map(async (commit: any) => {
+      try {
+        const commitDetailResponse = await fetch(
+          `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/commits/${commit.sha}`,
+          { headers }
+        );
+        
+        if (commitDetailResponse.ok) {
+          const commitDetail = await commitDetailResponse.json();
+          return {
+            ...commit,
+            stats: commitDetail.stats,
+            files: commitDetail.files
+          };
+        }
+        return commit;
+      } catch (error) {
+        console.warn(`Failed to fetch details for commit ${commit.sha}:`, error);
+        return commit;
+      }
+    })
+  );
+}
+
 export async function GET(request: NextRequest) {
   try {
+    // Apply Arcjet protection
+    const decision = await ajApi.protect(request, { requested: 1 });
+    
+    if (decision.isDenied()) {
+      return handleArcjetDenial(decision);
+    }
+
     const { searchParams } = new URL(request.url);
     const endpoint = searchParams.get('endpoint') || 'commits';
     const perPage = searchParams.get('per_page') || '50';
-    const since = searchParams.get('since'); // Optional since parameter for filtering commits
+    const since = searchParams.get('since');
 
-    let githubUrl = '';
-    
-    switch (endpoint) {
-      case 'commits':
-        githubUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/commits?per_page=${perPage}`;
-        if (since) {
-          githubUrl += `&since=${since}`;
-        }
-        break;
-      case 'commits-with-stats':
-        // Enhanced endpoint to get commits with file change statistics - will be enhanced later in the code
-        githubUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/commits?per_page=${Math.min(parseInt(perPage), 10)}`;
-        if (since) {
-          githubUrl += `&since=${since}`;
-        }
-        break;
-      case 'releases':
-        githubUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases?per_page=${perPage}`;
-        break;
-      case 'issues':
-        githubUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/issues?state=all&per_page=${perPage}`;
-        break;
-      case 'repo':
-        githubUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`;
-        break;
-      case 'contributors':
-        githubUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contributors?per_page=${perPage}`;
-        break;
-      case 'stats':
-        githubUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/stats/participation`;
-        break;
-      default:
-        return NextResponse.json(
-          { error: 'Invalid endpoint. Supported: commits, commits-with-stats, releases, issues, repo, contributors, stats' },
-          { status: 400 }
-        );
+    let githubUrl: string;
+    try {
+      githubUrl = buildGitHubUrl(endpoint, perPage, since);
+    } catch (error) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : 'Invalid endpoint' },
+        { status: 400 }
+      );
     }
 
     const headers: Record<string, string> = {
@@ -68,30 +120,7 @@ export async function GET(request: NextRequest) {
 
     // For commits-with-stats endpoint, fetch additional details for each commit
     if (endpoint === 'commits-with-stats' && Array.isArray(data)) {
-      const enhancedCommits = await Promise.all(
-        data.slice(0, 10).map(async (commit: any) => {
-          try {
-            const commitDetailResponse = await fetch(
-              `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/commits/${commit.sha}`,
-              { headers }
-            );
-            
-            if (commitDetailResponse.ok) {
-              const commitDetail = await commitDetailResponse.json();
-              return {
-                ...commit,
-                stats: commitDetail.stats,
-                files: commitDetail.files
-              };
-            }
-            return commit;
-          } catch (error) {
-            console.warn(`Failed to fetch details for commit ${commit.sha}:`, error);
-            return commit;
-          }
-        })
-      );
-      data = enhancedCommits;
+      data = await enhanceCommitsWithStats(data, headers);
     }
 
     return NextResponse.json({

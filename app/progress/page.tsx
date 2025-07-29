@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { getLifeGoals, getBucketList, getMonthlyGoals, getLifeUpdates } from '@/lib/sanity'
+import { motion } from 'framer-motion'
+import ScribbleAnimation from '@/components/three/scribble-animation'
 
 interface GitHubCommit {
   sha: string
@@ -82,13 +84,14 @@ interface LifeUpdate {
 }
 
 export default function UnifiedProgress() {
-  const [activeTab, setActiveTab] = useState<'development' | 'life' | 'monthly' | 'bucket'>('development')
   const [devCommits, setDevCommits] = useState<GitHubCommit[]>([])
   const [lifeGoals, setLifeGoals] = useState<LifeGoal[]>([])
   const [bucketList, setBucketList] = useState<BucketListItem[]>([])
   const [monthlyGoals, setMonthlyGoals] = useState<MonthlyGoal[]>([])
   const [lifeUpdates, setLifeUpdates] = useState<LifeUpdate[]>([])
   const [loading, setLoading] = useState(true)
+
+
 
   useEffect(() => {
     fetchAllData()
@@ -171,157 +174,166 @@ export default function UnifiedProgress() {
   }
 
   return (
-    <div className="min-h-screen bg-white p-6 notebook-bg">
+    <div className="min-h-screen bg-white notebook-bg p-6">
       <div className="max-w-6xl mx-auto">
-        {/* Header with sketch-like title */}
-        <div className="text-center mb-8">
-          <h1 className="text-6xl font-bold text-black mb-4 transform -rotate-1 sketch-font">
-            📋 My Progress Journal
+        {/* Page Header */}
+        <div className="text-center mb-8 transform -rotate-1 p-8">
+          <h1 className="text-4xl font-bold text-black sketch-font mb-2">
+            📋 MY PROGRESS JOURNAL
           </h1>
-          <div className="w-32 h-1 bg-black mx-auto transform rotate-1 mb-2"></div>
-          <p className="text-gray-700 handwritten text-lg">
-            📝 Development & Life Adventures
+          <p className="handwritten text-gray-600 text-lg">
+            🚀 Development & Life Adventures
           </p>
         </div>
 
-        {/* Sketch Tab Navigation */}
-        <div className="flex justify-center mb-8 space-x-2">
-          {[
-            { id: 'development', name: 'Code Commits', icon: '💻', rotation: 'rotate-1' },
-            { id: 'life', name: 'Life Goals', icon: '🎯', rotation: '-rotate-1' },
-            { id: 'monthly', name: 'Monthly Focus', icon: '📅', rotation: 'rotate-2' },
-            { id: 'bucket', name: 'Bucket List', icon: '🪣', rotation: '-rotate-2' }
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`transform ${tab.rotation} transition-all duration-200 hover:scale-105 sketch-button
-                ${activeTab === tab.id 
-                  ? 'bg-white border-2 border-black z-10' 
-                  : 'bg-gray-50 hover:bg-gray-100 border border-gray-400'
-                } 
-                px-6 py-3 rounded-lg handwritten text-sm font-bold text-black 
-                backdrop-blur-sm border-dashed`}
-            >
-              <span className="text-lg mr-2">{tab.icon}</span>
-              {tab.name}
-            </button>
-          ))}
-        </div>
-
-        {/* Main Content Area - Notebook Style */}
-        <div className="bg-white backdrop-blur-sm rounded-3xl border-2 border-black overflow-hidden transform rotate-1 sketch-border">
-          <div className="bg-gray-50 p-6 border-b-2 border-dashed border-gray-400">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-black sketch-font">
-                {activeTab === 'development' && '💻 Development Progress'}
-                {activeTab === 'life' && '🎯 Life Goals Checklist'}
-                {activeTab === 'monthly' && '📅 This Month\'s Focus'}
-                {activeTab === 'bucket' && '🪣 Dream Adventures'}
+        {/* Unified Journal Content */}
+        <div className="space-y-8">
+          
+          {/* Development Section */}
+          <div className="bg-white backdrop-blur-sm rounded-3xl border-2 border-black overflow-hidden transform rotate-1 sketch-border">
+            <div className="bg-blue-50 p-6 border-b-2 border-dashed border-blue-400">
+              <h2 className="text-2xl font-bold text-blue-900 sketch-font flex items-center gap-2">
+                💻 Development Journey
               </h2>
-              <div className="text-gray-700 handwritten text-sm">
-                {new Date().toLocaleDateString('en-US', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-                })}
-              </div>
+              <p className="handwritten text-blue-700 mt-2">
+                Recent coding adventures and project milestones
+              </p>
             </div>
-          </div>
+            
+            <div className="p-6">
+              {devCommits.length > 0 ? (
+                <div className="space-y-4">
+                  {devCommits.slice(0, 8).map((commit, index) => {
+                    const message = commit.commit.message.toLowerCase();
+                    let category = '🔧';
+                    let categoryText = 'Update';
+                    
+                    if (message.includes('add') || message.includes('new') || message.includes('create')) {
+                      category = '✨';
+                      categoryText = 'Feature';
+                    } else if (message.includes('fix') || message.includes('bug')) {
+                      category = '🐛';
+                      categoryText = 'Fix';
+                    } else if (message.includes('security') || message.includes('arcjet')) {
+                      category = '🛡️';
+                      categoryText = 'Security';
+                    } else if (message.includes('design') || message.includes('ui') || message.includes('style')) {
+                      category = '🎨';
+                      categoryText = 'Design';
+                    }
 
-          <div className="p-8 transform -rotate-1">
-            {/* Development Tab - GitHub Commits */}
-            {activeTab === 'development' && (
-              <div className="space-y-4">
-                <div className="text-center mb-6">
-                  <div className="inline-block bg-gray-100 border-2 border-gray-400 rounded-full px-6 py-2 transform rotate-2 sketch-border">
-                    <span className="text-black font-bold text-lg handwritten">{devCommits.length} commits</span>
-                  </div>
-                </div>
-                
-                {devCommits.map((commit, index) => (
-                  <div key={commit.sha} className={`transform ${index % 2 === 0 ? 'rotate-1' : '-rotate-1'} hover:rotate-0 transition-transform duration-200`}>
-                    <div className="bg-gray-50 border-l-4 border-black p-4 rounded-r-2xl sketch-border">
-                      <div className="flex items-start space-x-4">
-                        <img
-                          src={commit.author?.avatar_url}
-                          alt={commit.author?.login}
-                          className="w-12 h-12 rounded-full border-2 border-gray-400"
-                        />
-                        <div className="flex-1">
-                          <p className="handwritten text-black font-semibold leading-relaxed">
-                            ✓ {commit.commit.message}
-                          </p>
-                          <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">
-                            <span className="handwritten">👤 {commit.commit.author.name}</span>
-                            <span className="handwritten">📅 {formatDate(commit.commit.author.date)}</span>
-                            <span className="handwritten">⏰ {formatTime(commit.commit.author.date)}</span>
-                          </div>
-                          {commit.stats && (
-                            <div className="flex space-x-4 mt-2">
-                              <span className="bg-gray-200 text-black px-2 py-1 rounded-full text-xs handwritten">
-                                +{commit.stats.additions}
-                              </span>
-                              <span className="bg-gray-300 text-black px-2 py-1 rounded-full text-xs handwritten">
-                                -{commit.stats.deletions}
-                              </span>
+                    return (
+                      <div key={commit.sha} className={`transform ${index % 3 === 0 ? 'rotate-1' : index % 3 === 1 ? '-rotate-1' : 'rotate-2'} hover:rotate-0 transition-all duration-200`}>
+                        <div className="bg-gradient-to-r from-white to-blue-50 border-2 border-blue-200 p-4 rounded-xl sketch-border">
+                          <div className="flex items-start space-x-3">
+                            <div className="flex-shrink-0">
+                              <div className="w-10 h-10 bg-blue-100 border-2 border-blue-400 rounded-full flex items-center justify-center text-lg">
+                                {category}
+                              </div>
                             </div>
-                          )}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-bold handwritten">
+                                  {categoryText}
+                                </span>
+                                <span className="text-gray-500 text-sm handwritten">
+                                  {formatDate(commit.commit.author.date)}
+                                </span>
+                              </div>
+                              <h3 className="font-semibold text-gray-900 handwritten leading-relaxed">
+                                {commit.commit.message}
+                              </h3>
+                              <div className="flex items-center space-x-3 text-sm text-gray-600 mt-2">
+                                <span className="handwritten">
+                                  👤 {commit.commit.author.name}
+                                </span>
+                                <span className="handwritten">
+                                  ⏰ {formatTime(commit.commit.author.date)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
                         </div>
+                      </div>
+                    );
+                  })}
+                  
+                  {/* Development Summary */}
+                  <div className="mt-6 p-4 bg-blue-50 border-2 border-blue-200 rounded-xl transform -rotate-1">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                      <div>
+                        <div className="text-xl font-bold text-blue-600">{devCommits.length}</div>
+                        <div className="text-xs text-blue-700 handwritten">Commits</div>
+                      </div>
+                      <div>
+                        <div className="text-xl font-bold text-green-600">
+                          {devCommits.reduce((total, commit) => total + (commit.stats?.additions || 0), 0)}
+                        </div>
+                        <div className="text-xs text-green-700 handwritten">Lines Added</div>
+                      </div>
+                      <div>
+                        <div className="text-xl font-bold text-red-600">
+                          {devCommits.reduce((total, commit) => total + (commit.stats?.deletions || 0), 0)}
+                        </div>
+                        <div className="text-xs text-red-700 handwritten">Lines Removed</div>
+                      </div>
+                      <div>
+                        <div className="text-xl font-bold text-purple-600">
+                          {[...new Set(devCommits.map(c => new Date(c.commit.author.date).toDateString()))].length}
+                        </div>
+                        <div className="text-xs text-purple-700 handwritten">Active Days</div>
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-
-            {/* Life Goals Tab */}
-            {activeTab === 'life' && (
-              <div>
-                <div className="flex justify-between items-center mb-6">
-                  <div className="transform -rotate-2">
-                    <div className="bg-gray-100 border-2 border-gray-400 rounded-full px-4 py-2 sketch-border">
-                      <span className="text-black font-bold handwritten">{lifeGoals.filter(g => g.status === 'completed').length} completed</span>
-                    </div>
-                  </div>
-                  <a
-                    href="/studio"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="transform rotate-2 bg-gray-200 hover:bg-gray-300 text-black font-bold py-2 px-4 rounded-lg border-2 border-black transition-all duration-200 hover:scale-105 handwritten sketch-button"
-                  >
-                    ✏️ Edit Goals
-                  </a>
                 </div>
-                
+              ) : (
+                <div className="text-center py-8">
+                  <p className="handwritten text-gray-500">No development commits available yet...</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Life Goals Section */}
+          <div className="bg-white backdrop-blur-sm rounded-3xl border-2 border-black overflow-hidden transform -rotate-1 sketch-border">
+            <div className="bg-green-50 p-6 border-b-2 border-dashed border-green-400">
+              <h2 className="text-2xl font-bold text-green-900 sketch-font flex items-center gap-2">
+                🎯 Life Goals Journey
+              </h2>
+              <p className="handwritten text-green-700 mt-2">
+                Personal aspirations and achievements along the way
+              </p>
+            </div>
+            
+            <div className="p-6">
+              {lifeGoals.length > 0 ? (
                 <div className="space-y-4">
                   {lifeGoals.map((goal, index) => (
                     <div key={goal._id} className={`transform ${index % 3 === 0 ? 'rotate-1' : index % 3 === 1 ? '-rotate-1' : 'rotate-2'} hover:rotate-0 transition-transform duration-200`}>
-                      <div className={`p-4 rounded-2xl border-2 border-dashed sketch-border ${
-                        goal.status === 'completed' ? 'bg-gray-100 border-gray-400' :
-                        goal.status === 'in_progress' ? 'bg-white border-gray-300' :
+                      <div className={`p-4 rounded-xl border-2 border-dashed sketch-border ${
+                        goal.status === 'completed' ? 'bg-green-100 border-green-400' :
+                        goal.status === 'in_progress' ? 'bg-yellow-50 border-yellow-300' :
                         'bg-gray-50 border-gray-300'
                       }`}>
                         <div className="flex items-start space-x-3">
                           <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center mt-1 ${
-                            goal.status === 'completed' ? 'bg-black border-black' :
-                            goal.status === 'in_progress' ? 'bg-gray-600 border-gray-600' :
-                            'bg-gray-300 border-gray-500'
+                            goal.status === 'completed' ? 'bg-green-600 border-green-600' :
+                            goal.status === 'in_progress' ? 'bg-yellow-500 border-yellow-500' :
+                            'bg-gray-400 border-gray-400'
                           }`}>
                             {goal.status === 'completed' && <span className="text-white text-sm">✓</span>}
                             {goal.status === 'in_progress' && <span className="text-white text-xs">•</span>}
                           </div>
                           <div className="flex-1">
                             <h3 className={`handwritten font-bold text-lg ${
-                              goal.status === 'completed' ? 'line-through text-gray-600' : 'text-black'
+                              goal.status === 'completed' ? 'line-through text-green-700' : 'text-black'
                             }`}>
                               {goal.title}
                             </h3>
                             <p className="text-gray-700 handwritten text-sm mt-1">{goal.description}</p>
-                            <div className="flex items-center space-x-3 mt-3">
+                            <div className="flex items-center space-x-2 mt-2">
                               <span className="bg-white px-2 py-1 rounded-full text-xs handwritten border border-gray-300">
-                                📊 {goal.progress}%
+                                � {goal.progress}%
                               </span>
                               <span className="bg-white px-2 py-1 rounded-full text-xs handwritten border border-gray-300">
                                 🏷️ {goal.category}
@@ -336,57 +348,56 @@ export default function UnifiedProgress() {
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
-
-            {/* Monthly Goals Tab */}
-            {activeTab === 'monthly' && (
-              <div>
-                <div className="flex justify-between items-center mb-6">
-                  <div className="transform rotate-2">
-                    <div className="bg-gray-100 border-2 border-gray-400 rounded-full px-4 py-2 sketch-border">
-                      <span className="text-black font-bold handwritten">{monthlyGoals.length} monthly plans</span>
-                    </div>
-                  </div>
-                  <a
-                    href="/studio"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="transform -rotate-2 bg-gray-200 hover:bg-gray-300 text-black font-bold py-2 px-4 rounded-lg border-2 border-black transition-all duration-200 hover:scale-105 handwritten sketch-button"
-                  >
-                    ✏️ Plan Month
-                  </a>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="handwritten text-gray-500">No life goals tracked yet...</p>
                 </div>
-                
+              )}
+            </div>
+          </div>
+
+          {/* Monthly Goals Section */}
+          <div className="bg-white backdrop-blur-sm rounded-3xl border-2 border-black overflow-hidden transform rotate-2 sketch-border">
+            <div className="bg-purple-50 p-6 border-b-2 border-dashed border-purple-400">
+              <h2 className="text-2xl font-bold text-purple-900 sketch-font flex items-center gap-2">
+                📅 Monthly Adventures
+              </h2>
+              <p className="handwritten text-purple-700 mt-2">
+                Monthly goals, plans, and achievements
+              </p>
+            </div>
+            
+            <div className="p-6">
+              {monthlyGoals.length > 0 ? (
                 <div className="space-y-6">
                   {monthlyGoals.map((monthly, index) => {
                     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
                     return (
                       <div key={monthly._id} className={`transform ${index % 2 === 0 ? 'rotate-1' : '-rotate-1'} hover:rotate-0 transition-transform duration-200`}>
-                        <div className="bg-gray-50 border-2 border-dashed border-gray-400 p-6 rounded-3xl sketch-border">
+                        <div className="bg-purple-50 border-2 border-dashed border-purple-300 p-5 rounded-2xl sketch-border">
                           <div className="text-center mb-4">
-                            <h3 className="text-2xl font-bold text-black sketch-font">
+                            <h3 className="text-xl font-bold text-purple-900 sketch-font">
                               📅 {monthNames[monthly.month - 1]} {monthly.year}
                             </h3>
-                            <p className="text-gray-700 handwritten text-lg mt-1">{monthly.title}</p>
+                            <p className="text-purple-700 handwritten text-lg mt-1">{monthly.title}</p>
                             {monthly.description && (
-                              <p className="text-gray-600 handwritten text-sm mt-2">{monthly.description}</p>
+                              <p className="text-purple-600 handwritten text-sm mt-2">{monthly.description}</p>
                             )}
                           </div>
                           
                           {monthly.goals && monthly.goals.length > 0 && (
-                            <div className="mb-6">
-                              <h4 className="font-bold text-black mb-3 handwritten text-lg">🎯 Goals:</h4>
+                            <div className="mb-4">
+                              <h4 className="font-bold text-purple-900 mb-2 handwritten">🎯 Goals:</h4>
                               <div className="space-y-2">
                                 {monthly.goals.map((goal, goalIndex) => (
-                                  <div key={goalIndex} className="flex items-center space-x-3 p-2 bg-white/60 rounded-lg border border-gray-300">
-                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                                      goal.completed ? 'bg-black border-black' : 'bg-gray-300 border-gray-500'
+                                  <div key={goalIndex} className="flex items-center space-x-2 p-2 bg-white/60 rounded-lg">
+                                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                                      goal.completed ? 'bg-purple-600 border-purple-600' : 'bg-gray-300 border-gray-500'
                                     }`}>
                                       {goal.completed && <span className="text-white text-xs">✓</span>}
                                     </div>
-                                    <span className={`handwritten ${
-                                      goal.completed ? 'line-through text-gray-600' : 'text-black'
+                                    <span className={`handwritten text-sm ${
+                                      goal.completed ? 'line-through text-gray-600' : 'text-purple-900'
                                     }`}>
                                       {goal.goal}
                                     </span>
@@ -398,14 +409,14 @@ export default function UnifiedProgress() {
 
                           {monthly.achievements && monthly.achievements.length > 0 && (
                             <div>
-                              <h4 className="font-bold text-black mb-3 handwritten text-lg">🏆 Achievements:</h4>
+                              <h4 className="font-bold text-purple-900 mb-2 handwritten">🏆 Achievements:</h4>
                               <div className="space-y-2">
                                 {monthly.achievements.map((achievement, achIndex) => (
-                                  <div key={achIndex} className="flex items-center space-x-3 p-2 bg-gray-100/60 rounded-lg border border-gray-300">
-                                    <span className="text-gray-600 text-lg">🌟</span>
-                                    <span className="handwritten text-black">{achievement.achievement}</span>
+                                  <div key={achIndex} className="flex items-center space-x-2 p-2 bg-yellow-50 rounded-lg">
+                                    <span className="text-yellow-600 text-lg">🌟</span>
+                                    <span className="handwritten text-purple-900 text-sm">{achievement.achievement}</span>
                                     {achievement.date && (
-                                      <span className="text-xs text-gray-600 handwritten ml-auto">
+                                      <span className="text-xs text-purple-600 handwritten ml-auto">
                                         {formatDate(achievement.date)}
                                       </span>
                                     )}
@@ -419,40 +430,39 @@ export default function UnifiedProgress() {
                     )
                   })}
                 </div>
-              </div>
-            )}
-
-            {/* Bucket List Tab */}
-            {activeTab === 'bucket' && (
-              <div>
-                <div className="flex justify-between items-center mb-6">
-                  <div className="transform -rotate-2">
-                    <div className="bg-gray-100 border-2 border-gray-400 rounded-full px-4 py-2 sketch-border">
-                      <span className="text-black font-bold handwritten">{bucketList.filter(b => b.status === 'completed').length} dreams achieved</span>
-                    </div>
-                  </div>
-                  <a
-                    href="/studio"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="transform rotate-2 bg-gray-200 hover:bg-gray-300 text-black font-bold py-2 px-4 rounded-lg border-2 border-black transition-all duration-200 hover:scale-105 handwritten sketch-button"
-                  >
-                    ✏️ Add Dreams
-                  </a>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="handwritten text-gray-500">No monthly goals planned yet...</p>
                 </div>
-                
+              )}
+            </div>
+          </div>
+
+          {/* Bucket List Section */}
+          <div className="bg-white backdrop-blur-sm rounded-3xl border-2 border-black overflow-hidden transform -rotate-2 sketch-border">
+            <div className="bg-orange-50 p-6 border-b-2 border-dashed border-orange-400">
+              <h2 className="text-2xl font-bold text-orange-900 sketch-font flex items-center gap-2">
+                🪣 Dream Adventures
+              </h2>
+              <p className="handwritten text-orange-700 mt-2">
+                Bucket list of experiences and dreams to pursue
+              </p>
+            </div>
+            
+            <div className="p-6">
+              {bucketList.length > 0 ? (
                 <div className="space-y-4">
                   {bucketList.map((item, index) => (
                     <div key={item._id} className={`transform ${index % 4 === 0 ? 'rotate-2' : index % 4 === 1 ? '-rotate-1' : index % 4 === 2 ? 'rotate-1' : '-rotate-2'} hover:rotate-0 transition-transform duration-200`}>
-                      <div className={`p-4 rounded-2xl border-2 border-dashed sketch-border ${
-                        item.status === 'completed' ? 'bg-gray-100 border-gray-400' :
-                        item.status === 'in_progress' ? 'bg-gray-50 border-gray-300' :
-                        'bg-white border-gray-300'
+                      <div className={`p-4 rounded-xl border-2 border-dashed sketch-border ${
+                        item.status === 'completed' ? 'bg-orange-100 border-orange-400' :
+                        item.status === 'in_progress' ? 'bg-yellow-50 border-yellow-300' :
+                        'bg-white border-orange-300'
                       }`}>
                         <div className="flex items-start space-x-3">
                           <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center mt-1 ${
-                            item.status === 'completed' ? 'bg-black border-black' :
-                            item.status === 'in_progress' ? 'bg-gray-600 border-gray-600' :
+                            item.status === 'completed' ? 'bg-orange-600 border-orange-600' :
+                            item.status === 'in_progress' ? 'bg-yellow-500 border-yellow-500' :
                             'bg-gray-400 border-gray-400'
                           }`}>
                             {item.status === 'completed' && <span className="text-white text-sm">✓</span>}
@@ -461,12 +471,12 @@ export default function UnifiedProgress() {
                           </div>
                           <div className="flex-1">
                             <h3 className={`handwritten font-bold text-lg ${
-                              item.status === 'completed' ? 'line-through text-gray-600' : 'text-black'
+                              item.status === 'completed' ? 'line-through text-orange-700' : 'text-black'
                             }`}>
                               {item.title}
                             </h3>
                             <p className="text-gray-700 handwritten text-sm mt-1">{item.description}</p>
-                            <div className="flex flex-wrap gap-2 mt-3">
+                            <div className="flex flex-wrap gap-2 mt-2">
                               {item.location && (
                                 <span className="bg-white px-2 py-1 rounded-full text-xs handwritten border border-gray-300">
                                   📍 {item.location}
@@ -487,16 +497,21 @@ export default function UnifiedProgress() {
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="text-center py-8">
+                  <p className="handwritten text-gray-500">No bucket list items yet...</p>
+                </div>
+              )}
+            </div>
           </div>
+
         </div>
 
         {/* Bottom Note */}
         <div className="text-center mt-8">
-          <div className="inline-block bg-gray-100 border-2 border-dashed border-gray-400 rounded-2xl p-4 transform -rotate-1 sketch-border">
-            <p className="text-black handwritten text-sm">
-              📝 <strong>Journal Note:</strong> Development commits sync from GitHub • Life content managed via CMS
+          <div className="inline-block bg-gray-100 border-2 border-dashed border-gray-400 rounded-2xl p-4 transform rotate-1 sketch-border">
+            <p className="text-black handwritten">
+              📝 <strong>Personal Journal:</strong> Development syncs from GitHub • Life content managed privately
             </p>
           </div>
         </div>

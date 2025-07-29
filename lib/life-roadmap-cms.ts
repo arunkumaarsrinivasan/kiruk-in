@@ -60,55 +60,9 @@ class LifeRoadmapCMS {
     }
   }
 
-  static saveGoals(goals: LifeGoal[]): void {
-    try {
-      localStorage.setItem(this.GOALS_KEY, JSON.stringify(goals));
-    } catch (error) {
-      console.error('Error saving goals:', error);
-    }
-  }
+  // Save functions removed - read-only access
 
-  static addGoal(goal: Omit<LifeGoal, 'id' | 'createdAt' | 'updatedAt'>): LifeGoal {
-    const newGoal: LifeGoal = {
-      ...goal,
-      id: `goal_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-
-    const goals = this.getGoals();
-    goals.push(newGoal);
-    this.saveGoals(goals);
-    return newGoal;
-  }
-
-  static updateGoal(id: string, updates: Partial<LifeGoal>): LifeGoal | null {
-    const goals = this.getGoals();
-    const goalIndex = goals.findIndex(goal => goal.id === id);
-    
-    if (goalIndex === -1) return null;
-
-    const updatedGoal = {
-      ...goals[goalIndex],
-      ...updates,
-      updatedAt: new Date().toISOString()
-    };
-
-    goals[goalIndex] = updatedGoal;
-    this.saveGoals(goals);
-    return updatedGoal;
-  }
-
-  static deleteGoal(id: string): boolean {
-    const goals = this.getGoals();
-    const filteredGoals = goals.filter(goal => goal.id !== id);
-    
-    if (filteredGoals.length !== goals.length) {
-      this.saveGoals(filteredGoals);
-      return true;
-    }
-    return false;
-  }
+  // Editing functions removed - read-only access only
 
   // Life Updates Management
   static getUpdates(): LifeUpdate[] {
@@ -121,37 +75,9 @@ class LifeRoadmapCMS {
     }
   }
 
-  static saveUpdates(updates: LifeUpdate[]): void {
-    try {
-      localStorage.setItem(this.UPDATES_KEY, JSON.stringify(updates));
-    } catch (error) {
-      console.error('Error saving updates:', error);
-    }
-  }
+  // Save functions removed - read-only access
 
-  static addUpdate(update: Omit<LifeUpdate, 'id' | 'createdAt'>): LifeUpdate {
-    const newUpdate: LifeUpdate = {
-      ...update,
-      id: `update_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
-      createdAt: new Date().toISOString()
-    };
-
-    const updates = this.getUpdates();
-    updates.unshift(newUpdate); // Add to beginning for reverse chronological order
-    this.saveUpdates(updates);
-    return newUpdate;
-  }
-
-  static deleteUpdate(id: string): boolean {
-    const updates = this.getUpdates();
-    const filteredUpdates = updates.filter(update => update.id !== id);
-    
-    if (filteredUpdates.length !== updates.length) {
-      this.saveUpdates(filteredUpdates);
-      return true;
-    }
-    return false;
-  }
+  // Editing functions removed - read-only access only
 
   // Bucket List Management
   static getBucketList(): BucketListItem[] {
@@ -164,102 +90,7 @@ class LifeRoadmapCMS {
     }
   }
 
-  static saveBucketList(items: BucketListItem[]): void {
-    try {
-      localStorage.setItem(this.BUCKET_LIST_KEY, JSON.stringify(items));
-    } catch (error) {
-      console.error('Error saving bucket list:', error);
-    }
-  }
-
-  static addBucketListItem(item: Omit<BucketListItem, 'id' | 'createdAt'>): BucketListItem {
-    const newItem: BucketListItem = {
-      ...item,
-      id: `bucket_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
-      createdAt: new Date().toISOString()
-    };
-
-    const items = this.getBucketList();
-    items.push(newItem);
-    this.saveBucketList(items);
-    return newItem;
-  }
-
-  static updateBucketListItem(id: string, updates: Partial<BucketListItem>): BucketListItem | null {
-    const items = this.getBucketList();
-    const itemIndex = items.findIndex(item => item.id === id);
-    
-    if (itemIndex === -1) return null;
-
-    const updatedItem = {
-      ...items[itemIndex],
-      ...updates
-    };
-
-    items[itemIndex] = updatedItem;
-    this.saveBucketList(items);
-    return updatedItem;
-  }
-
-  static deleteBucketListItem(id: string): boolean {
-    const items = this.getBucketList();
-    const filteredItems = items.filter(item => item.id !== id);
-    
-    if (filteredItems.length !== items.length) {
-      this.saveBucketList(filteredItems);
-      return true;
-    }
-    return false;
-  }
-
-  // Quick Actions for common goals
-  static addQuickGoal(template: 'travel' | 'fitness' | 'learning' | 'career' | 'creative'): LifeGoal {
-    const templates = {
-      travel: {
-        title: 'Plan Amazing Trip',
-        description: 'Research destinations, book flights, and create unforgettable memories',
-        category: 'travel' as const,
-        priority: 'medium' as const,
-        tags: ['adventure', 'exploration', 'memories']
-      },
-      fitness: {
-        title: 'Achieve Fitness Goal',
-        description: 'Set and accomplish a meaningful fitness milestone',
-        category: 'health' as const,
-        priority: 'high' as const,
-        tags: ['health', 'exercise', 'wellness']
-      },
-      learning: {
-        title: 'Master New Skill',
-        description: 'Learn something new that excites and challenges you',
-        category: 'learning' as const,
-        priority: 'medium' as const,
-        tags: ['education', 'growth', 'knowledge']
-      },
-      career: {
-        title: 'Career Milestone',
-        description: 'Achieve a significant career goal or professional development',
-        category: 'career' as const,
-        priority: 'high' as const,
-        tags: ['professional', 'growth', 'achievement']
-      },
-      creative: {
-        title: 'Creative Project',
-        description: 'Express creativity through art, writing, music, or any creative endeavor',
-        category: 'hobbies' as const,
-        priority: 'medium' as const,
-        tags: ['creativity', 'art', 'expression']
-      }
-    };
-
-    const template_data = templates[template];
-    return this.addGoal({
-      ...template_data,
-      status: 'planned',
-      progress: 0,
-      targetDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // 3 months from now
-    });
-  }
+  // All editing functions removed - read-only access only
 
   // Get goals by month for calendar view
   static getGoalsByMonth(year: number, month: number): LifeGoal[] {
@@ -322,39 +153,7 @@ class LifeRoadmapCMS {
     };
   }
 
-  // Export/Import functionality
-  static exportData(): string {
-    const data = {
-      goals: this.getGoals(),
-      updates: this.getUpdates(),
-      bucketList: this.getBucketList(),
-      exportDate: new Date().toISOString(),
-      version: '1.0'
-    };
-    return JSON.stringify(data, null, 2);
-  }
-
-  static importData(jsonData: string): boolean {
-    try {
-      const data = JSON.parse(jsonData);
-      
-      if (data.goals) this.saveGoals(data.goals);
-      if (data.updates) this.saveUpdates(data.updates);
-      if (data.bucketList) this.saveBucketList(data.bucketList);
-      
-      return true;
-    } catch (error) {
-      console.error('Error importing data:', error);
-      return false;
-    }
-  }
-
-  // Clear all data
-  static clearAllData(): void {
-    localStorage.removeItem(this.GOALS_KEY);
-    localStorage.removeItem(this.UPDATES_KEY);
-    localStorage.removeItem(this.BUCKET_LIST_KEY);
-  }
+  // Import/Export and data modification functions removed - read-only access only
 
   // Helper methods
   private static groupByCategory(items: { category: string }[]) {

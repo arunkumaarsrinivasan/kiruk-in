@@ -147,7 +147,7 @@ const InteractiveLoadingPage: React.FC<InteractiveLoadingPageProps> = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1 }}
         >
-          <div className="text-center">
+          <div className="text-center relative">
             <SketchHeading 
               level={1} 
               className="text-4xl md:text-6xl text-gray-800 mb-4 transform -rotate-1"
@@ -155,6 +155,65 @@ const InteractiveLoadingPage: React.FC<InteractiveLoadingPageProps> = ({
             >
               Interactive Portfolio
             </SketchHeading>
+            
+            {/* Kiruk explanation with curved arrow */}
+            <motion.div
+              className="absolute -top-2 -right-4 md:-right-8"
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 1.5, duration: 0.8 }}
+            >
+              {/* Info icon */}
+              <motion.div
+                className="relative cursor-help group"
+                whileHover={{ scale: 1.1 }}
+                animate={{ 
+                  y: [0, -3, 0],
+                }}
+                transition={{ 
+                  duration: 2, 
+                  repeat: Infinity, 
+                  ease: "easeInOut" 
+                }}
+              >
+                <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold border-2 border-dashed border-blue-700">
+                  i
+                </div>
+                
+                {/* Curved arrow SVG */}
+                <svg 
+                  className="absolute -bottom-8 -left-12 w-16 h-12 text-blue-500 opacity-70"
+                  viewBox="0 0 64 48"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <motion.path
+                    d="M50 8 C40 20, 20 25, 8 35 L12 32 M8 35 L12 38"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeDasharray="3,3"
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ delay: 2, duration: 1.5, ease: "easeInOut" }}
+                  />
+                </svg>
+                
+                {/* Tooltip */}
+                <div className="absolute -bottom-16 -left-20 bg-white border-2 border-dashed border-gray-400 rounded-lg p-3 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-48 z-10">
+                  <p className="handwritten text-sm text-gray-700 font-bold">
+                    "Kiruk" = Tamil word for "Scribble" 
+                  </p>
+                  <p className="handwritten text-xs text-gray-500 mt-1">
+                    Represents creative doodles & sketches ✏️
+                  </p>
+                  {/* Small arrow pointing to the info icon */}
+                  <div className="absolute top-2 right-6 w-3 h-3 bg-white border-r-2 border-t-2 border-dashed border-gray-400 transform rotate-45"></div>
+                </div>
+              </motion.div>
+            </motion.div>
+            
             <motion.p 
               className="handwritten text-lg text-gray-600 transform rotate-1"
               initial={{ opacity: 0 }}

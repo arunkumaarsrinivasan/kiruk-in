@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { searchKnowledge } from '../../../data/personal-knowledge-base';
+import { ajChat } from '../../../lib/arcjet';
 
 // Initialize Perplexity client
 const PERPLEXITY_API_URL = 'https://api.perplexity.ai/chat/completions';
@@ -34,6 +35,33 @@ export async function POST(request: NextRequest) {
   let message = '';
   
   try {
+    // Apply Arcjet protection
+    const decision = await ajChat.protect(request, { requested: 1 });
+    
+    if (decision.isDenied()) {
+      if (decision.reason.isRateLimit()) {
+        return NextResponse.json(
+          { error: 'Too many requests. Please try again later.' },
+          { status: 429 }
+        );
+      } else if (decision.reason.isBot()) {
+        return NextResponse.json(
+          { error: 'Bot traffic detected. Access denied.' },
+          { status: 403 }
+        );
+      } else if (decision.reason.isShield()) {
+        return NextResponse.json(
+          { error: 'Suspicious activity detected. Access denied.' },
+          { status: 403 }
+        );
+      } else {
+        return NextResponse.json(
+          { error: 'Access denied.' },
+          { status: 403 }
+        );
+      }
+    }
+
     const { message: userMessage, conversationHistory = [] } = await request.json();
     message = userMessage;
 

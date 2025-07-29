@@ -11,6 +11,7 @@ import {
   ContactIcon,
   ChatIcon,
   ClearIcon,
+  ProgressIcon,
 } from '../ui/hand-drawn-icons';
 
 // Chat message type
@@ -32,8 +33,9 @@ const Navigation = () => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   const [showQuickActions, setShowQuickActions] = useState(false);
-  const [isInputFocused, setIsInputFocused] = useState(false);
   const [contextualSuggestions, setContextualSuggestions] = useState<string[]>([]);
+  const [isInputFocused, setIsInputFocused] = useState(false);
+
   const [isMobile, setIsMobile] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const chatMessagesRef = useRef<HTMLDivElement>(null);
@@ -81,7 +83,6 @@ const Navigation = () => {
     setAiThinking(true);
     setChatOpen(true);
     setIsTyping(false);
-    setShowQuickActions(false);
     
     try {
       // Call Perplexity API
@@ -248,7 +249,7 @@ const Navigation = () => {
     { href: '/about', label: 'About', IconComponent: AboutIcon, hasInteractive: true },
     { href: '/work', label: 'Work', IconComponent: WorkIcon, hasInteractive: true },
     { href: '/case-studies', label: 'Studies', IconComponent: StudiesIcon, hasInteractive: true },
-    { href: '/progress', label: 'Progress', IconComponent: WorkIcon, hasInteractive: false },
+    { href: '/progress', label: 'Progress', IconComponent: ProgressIcon, hasInteractive: false },
     { href: '/contact', label: 'Contact', IconComponent: ContactIcon, hasInteractive: true },
   ];  // Base classes for navigation items
   const baseNavItemClass = "px-4 py-2 handwritten text-white hover:text-gray-300 transition-colors duration-200 text-center min-w-[60px] flex flex-col items-center justify-center";
@@ -386,7 +387,9 @@ const Navigation = () => {
             </a>
           ))}
           {/* Removed InteractiveEye icon button from navbar */}
-        </div>        {/* AI Chat Icon - Shows when chat is closed */}
+        </div>
+
+        {/* AI Chat Icon - Shows when chat is closed */}
         {!chatOpen && (
           <div className="relative ml-4">
             <div

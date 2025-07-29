@@ -6,6 +6,7 @@ const CustomCursor: React.FC = () => {
   const cursorRef = useRef<HTMLDivElement>(null);
   const { cursorType } = useCursor();
   const [mouse, setMouse] = React.useState({ x: 0, y: 0 });
+  const mouseRef = useRef({ x: 0, y: 0 }); // Add ref for mouse position
   // For smooth pupil movement
   const [pupilPos, setPupilPos] = React.useState({ x: 0, y: 0 });
   // For blink animation
@@ -13,7 +14,9 @@ const CustomCursor: React.FC = () => {
 
   useEffect(() => {
     const moveCursor = (e: MouseEvent) => {
-      setMouse({ x: e.clientX, y: e.clientY });
+      const newPos = { x: e.clientX, y: e.clientY };
+      setMouse(newPos);
+      mouseRef.current = newPos; // Update ref as well
       if (cursorRef.current) {
         // Use transform for smoother movement instead of left/top
         cursorRef.current.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%, -50%)`;
@@ -36,8 +39,8 @@ const CustomCursor: React.FC = () => {
       const maxOffset = 10;
       
       // Use current mouse position directly for more responsive movement
-      const dx = mouse.x - window.innerWidth / 2;
-      const dy = mouse.y - window.innerHeight / 2;
+      const dx = mouseRef.current.x - window.innerWidth / 2;
+      const dy = mouseRef.current.y - window.innerHeight / 2;
       const angle = Math.atan2(dy, dx);
       const targetX = eyeCenter.x + Math.cos(angle) * maxOffset;
       const targetY = eyeCenter.y + Math.sin(angle) * maxOffset;
@@ -59,8 +62,8 @@ const CustomCursor: React.FC = () => {
     };
     animate();
     return () => cancelAnimationFrame(frame);
-    // eslint-disable-next-line
-  }, [mouse.x, mouse.y, cursorType]);
+    // Remove mouse dependencies to prevent infinite loop
+  }, [cursorType]);
 
   // Blink animation handler (only for eye cursor)
   const handleBlink = () => {

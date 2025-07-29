@@ -268,7 +268,8 @@ export const InteractivePortfolioSection: React.FC<{
       position: { x: 300, y: 100 },
       rotation: -3,
       color: 'medium',
-      size: 'md'
+      size: 'md',
+      zIndex: 100 // Base z-index for initial items
     },
     {
       id: 'about-card',
@@ -285,11 +286,21 @@ export const InteractivePortfolioSection: React.FC<{
       ),
       position: { x: 150, y: 450 },
       rotation: 2,
-      scale: 1
+      scale: 1,
+      zIndex: 105 // Slightly higher than welcome note
     }
   ]);
 
   const [scribbleItems, setScribbleItems] = useState<ScribbleDragItem[]>([]);
+
+  // Helper function to get the next available z-index (always on top)
+  const getNextZIndex = useCallback(() => {
+    const maxZIndex = Math.max(
+      ...notebookItems.map(item => item.zIndex || 100),
+      100 // minimum z-index
+    );
+    return maxZIndex + 10; // Add 10 to ensure new items are clearly on top
+  }, [notebookItems]);
 
   // Action functions
   const addProjectCard = useCallback(() => {
@@ -382,7 +393,8 @@ export const InteractivePortfolioSection: React.FC<{
         y: Math.random() * 200 + 100 
       },
       rotation: (Math.random() - 0.5) * 8,
-      scale: 1
+      scale: 1,
+      zIndex: getNextZIndex() // Ensure new items appear on top
     };
 
     setNotebookItems(prev => [...prev, newItem]);
@@ -433,7 +445,8 @@ export const InteractivePortfolioSection: React.FC<{
       },
       rotation: (Math.random() - 0.5) * 15,
       color: randomColor as any,
-      size: 'md'
+      size: 'md',
+      zIndex: getNextZIndex() // Ensure new items appear on top
     };
 
     setNotebookItems(prev => [...prev, newItem]);
@@ -485,7 +498,8 @@ export const InteractivePortfolioSection: React.FC<{
       },
       rotation: (Math.random() - 0.5) * 10,
       color: 'white',
-      size: 'sm'
+      size: 'sm',
+      zIndex: getNextZIndex() // Ensure new items appear on top
     };
 
     setNotebookItems(prev => [...prev, newItem]);
@@ -541,7 +555,8 @@ export const InteractivePortfolioSection: React.FC<{
         y: Math.random() * 200 + 150 
       },
       rotation: (Math.random() - 0.5) * 6,
-      scale: 1
+      scale: 1,
+      zIndex: getNextZIndex() // Ensure new items appear on top
     };
 
     setNotebookItems(prev => [...prev, newItem]);
@@ -594,7 +609,8 @@ export const InteractivePortfolioSection: React.FC<{
       },
       rotation: (Math.random() - 0.5) * 12,
       color: 'light',
-      size: 'md'
+      size: 'md',
+      zIndex: getNextZIndex() // Ensure new items appear on top
     };
 
     setNotebookItems(prev => [...prev, newItem]);
@@ -627,7 +643,8 @@ export const InteractivePortfolioSection: React.FC<{
       rotation: Math.random() * 10 - 5,
       scale: 1,
       color: 'white',
-      size: 'lg'
+      size: 'lg',
+      zIndex: getNextZIndex() // Ensure new items appear on top
     };
 
     setNotebookItems(prev => [...prev, newNote]);
@@ -726,13 +743,19 @@ export const InteractivePortfolioSection: React.FC<{
     const newX = info.point.x;
     const newY = info.point.y;
     
+    // Get the maximum z-index to ensure this item comes to front
+    const maxZIndex = Math.max(
+      ...notebookItems.map(i => i.zIndex || 100),
+      100
+    );
+    
     // Update position and bring to front when moved
     const newItems = notebookItems.map(i => 
       i.id === item.id 
         ? { 
             ...i, 
             position: { x: newX, y: newY },
-            zIndex: (i.zIndex ?? 100) + 1 
+            zIndex: maxZIndex + 10 // Ensure this item is clearly on top
           }
         : i
     );
@@ -951,7 +974,7 @@ export const InteractivePortfolioSection: React.FC<{
           {/* Toolbar with Labels */}
           <div className="bg-white/95 backdrop-blur-sm border-2 border-black rounded-lg p-3 sketch-border shadow-lg">
             <div className="text-center mb-2">
-              <h3 className="text-xs font-semibold text-gray-700 handwritten">🎨 Creative Tools</h3>
+              <h3 className="text-xs font-semibold text-gray-700 handwritten">🎨 Know more about this "KIRUK"</h3>
             </div>
             {isMobile ? (
               /* Mobile: Grid layout with labels */

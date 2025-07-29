@@ -12,6 +12,8 @@ import {
   ArrowRight,
   Lightbulb,
   Star,
+  ChartLineUp,
+  Gear,
 } from 'phosphor-react';
 
 // All icons below use duotone by default, but use fill if props.selected is true
@@ -57,4 +59,12 @@ export const LightbulbIcon = React.forwardRef<SVGSVGElement, IconProps>((props, 
 export const StarIcon = React.forwardRef<SVGSVGElement, IconProps>((props, ref: ForwardedRef<SVGSVGElement>) => {
   const { selected, ...rest } = props;
   return <Star weight={selected ? 'fill' : 'duotone'} ref={ref} {...rest} />;
+});
+export const ProgressIcon = React.forwardRef<SVGSVGElement, IconProps>((props, ref: ForwardedRef<SVGSVGElement>) => {
+  const { selected, ...rest } = props;
+  return <ChartLineUp weight={selected ? 'fill' : 'duotone'} ref={ref} {...rest} />;
+});
+export const SettingsIcon = React.forwardRef<SVGSVGElement, IconProps>((props, ref: ForwardedRef<SVGSVGElement>) => {
+  const { selected, ...rest } = props;
+  return <Gear weight={selected ? 'fill' : 'duotone'} ref={ref} {...rest} />;
 });

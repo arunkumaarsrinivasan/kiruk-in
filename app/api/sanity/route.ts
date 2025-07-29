@@ -1,7 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { client } from '@/lib/sanity'
+import { ajApi, ajForm } from '../../../lib/arcjet'
 
 export async function GET(request: NextRequest) {
+  // Apply Arcjet protection for API access
+  const decision = await ajApi.protect(request, { requested: 1 });
+  
+  if (decision.isDenied()) {
+    if (decision.reason.isRateLimit()) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429 }
+      );
+    } else {
+      return NextResponse.json(
+        { error: 'Access denied.' },
+        { status: 403 }
+      );
+    }
+  }
+
   const { searchParams } = new URL(request.url)
   const type = searchParams.get('type')
 
@@ -35,6 +53,28 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Apply stricter protection for form submissions
+    const decision = await ajForm.protect(request);
+    
+    if (decision.isDenied()) {
+      if (decision.reason.isRateLimit()) {
+        return NextResponse.json(
+          { error: 'Too many submissions. Please try again later.' },
+          { status: 429 }
+        );
+      } else if (decision.reason.isBot()) {
+        return NextResponse.json(
+          { error: 'Bot traffic detected. Access denied.' },
+          { status: 403 }
+        );
+      } else {
+        return NextResponse.json(
+          { error: 'Access denied.' },
+          { status: 403 }
+        );
+      }
+    }
+
     const body = await request.json()
     const { type, data } = body
 
