@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Overview
 
-## Getting Started
+Personal portfolio built with Next.js App Router, Tailwind CSS, Framer Motion, and Sanity. The project has been restructured around a `src` directory to better separate shared primitives from feature-specific modules.
 
-First, run the development server:
+## Project Layout
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+src/
+	app/                   Next.js routes, API handlers, layouts
+	assets/                Local fonts, images, and rich media
+	components/            Shared UI and layout building blocks
+	contexts/              React context providers
+	data/                  Static data sets and content helpers
+	hooks/                 Reusable React hooks
+	lib/                   External service clients and utility helpers
+	modules/               Feature-oriented modules (e.g., work, portfolio, vlogs)
+	styles/                Global and feature styles
+	types/                 Global TypeScript definitions
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Feature areas such as Work, Portfolio, and Vlogs now live under `src/modules/<feature>` with co-located components, data, and barrel exports. Shared UI (buttons, sketch elements, layout shells) remains under `src/components` while business logic and integrations (Supabase, Arcjet, Sanity) sit in `src/lib`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Commands
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `npm run dev` – start the Next.js dev server
+- `npm run lint` – run ESLint over the full codebase
+- `npm run build` – generate a production build
+- `npm run start` – serve the production build locally
 
-## Learn More
+## Notable Modules
 
-To learn more about Next.js, take a look at the following resources:
+- `@/modules/work` – constellation skills visualization and involvement stories surfaced on `/work`
+- `@/modules/portfolio` – draggable notebook, scribble workspace, and supporting types for the interactive portfolio landing experience
+- `@/modules/vlogs` – gallery components highlighting Instagram timelines and vlog cards
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Shared components (navigation, hero sections, themed layouts) continue to live under `@/components`, while data-fetching hooks and analytics helpers are consolidated in `@/hooks` and `@/lib` respectively.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Data & Services
 
-## Deploy on Vercel
+- Sanity content queries and mutations: `@/lib/sanity`
+- Arcjet protection for APIs and forms: `@/lib/arcjet`
+- Supabase admin utilities: `@/lib/supabase`
+- Static portfolio metadata: `@/data/portfolio-data`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Next Steps
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Continue migrating legacy components into feature modules
+- Trim remaining lint warnings (notably `any` usage and `<img>` elements)
+- Add integration tests around critical API routes (contact, analytics)

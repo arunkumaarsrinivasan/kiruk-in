@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { aj } from "./lib/arcjet";
+import { aj } from "@/lib/arcjet";
 
 export async function middleware(request: NextRequest) {
+  // Skip Arcjet protection if not configured (development mode)
+  if (!aj) {
+    return NextResponse.next();
+  }
+
   // Apply basic Arcjet protection to all routes
   const decision = await aj.protect(request);
 
@@ -11,18 +16,6 @@ export async function middleware(request: NextRequest) {
         { error: "Too many requests. Please try again later." },
         { status: 429 }
       );
-    } else if (decision.reason.isBot()) {
-      // Allow legitimate bots but log for monitoring
-      const ip = request.headers.get("x-forwarded-for") || "unknown";
-      console.log("Bot detected:", ip, request.headers.get("user-agent"));
-      
-      // For critical paths, you might want to block all bots
-      if (request.nextUrl.pathname.startsWith("/api/chat")) {
-        return NextResponse.json(
-          { error: "Bot access not allowed for this endpoint." },
-          { status: 403 }
-        );
-      }
     } else if (decision.reason.isShield()) {
       return NextResponse.json(
         { error: "Request blocked for security reasons." },

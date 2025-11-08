@@ -3,12 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build",
-    "start": "next start",
+    "dev": "set NODE_OPTIONS=--no-deprecation && next dev --turbopack",
+    "build": "set NODE_OPTIONS=--no-deprecation && next build",
+    "start": "set NODE_OPTIONS=--no-deprecation && next start",
     "lint": "next lint",
     "sanity:deploy": "sanity schema deploy",
-    "sanity:start": "sanity start"
+    "sanity:start": "sanity start",
+    "dev:trace": "set NODE_OPTIONS=--trace-deprecation && next dev --turbopack"
   },
   "dependencies": {
     "@arcjet/next": "^1.0.0-beta.9",
@@ -18,7 +19,7 @@
     "@sanity/client": "^7.8.1",
     "@sanity/image-url": "^1.1.0",
     "@sanity/vision": "^3.99.0",
-    "@types/react-is": "^19.0.0",
+    "@supabase/supabase-js": "^2.53.0",
     "@types/three": "^0.176.0",
     "@vercel/speed-insights": "^1.2.0",
     "clsx": "^2.1.1",
@@ -30,10 +31,8 @@
     "phosphor-react": "^1.4.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-is": "^19.1.0",
     "sanity": "^3.99.0",
     "seedrandom": "^3.0.5",
-    "styled-components": "^6.1.19",
     "tailwind-merge": "^3.3.0",
     "three": "^0.177.0"
   },
@@ -43,6 +42,9 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/seedrandom": "^3.0.8",
+    "dotenv": "^17.2.1",
+    "eslint": "9.32.0",
+    "eslint-config-next": "15.4.5",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
