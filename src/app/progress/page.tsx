@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState, useId, type CSSProperties, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { getLifeGoals, getBucketList, getMonthlyGoals } from '@/lib/sanity'
 
 interface GitHubCommit {
   sha: string
@@ -70,11 +69,20 @@ interface MonthlyGoal {
   }>
 }
 
+type ProgressDataResponse = {
+  source?: 'notion'
+  lifeGoals?: LifeGoal[]
+  bucketList?: BucketListItem[]
+  monthlyGoals?: MonthlyGoal[]
+  fetchedAt?: string
+}
+
 type ChartPoint = {
   label: string
   value: number
   secondary?: number
   detail?: string
+  meta?: string
 }
 
 const graphPaperStyle: CSSProperties = {
@@ -124,6 +132,7 @@ type LineChartProps = {
 
 function LineChart({ data, color, onHover, activeIndex }: LineChartProps) {
   const gradientId = useId()
+  const roughFilterId = `${gradientId}-rough`
   const width = 520
   const height = 200
   const paddingY = 24
@@ -139,6 +148,17 @@ function LineChart({ data, color, onHover, activeIndex }: LineChartProps) {
     })
   }, [data, height, paddingY, width])
 
+  const roughPath = useMemo(() => {
+    if (coordinates.length === 0) return ''
+    return coordinates
+      .map((point, index) => {
+        const jitterX = point.x + Math.cos(index * 1.75) * 0.8
+        const jitterY = point.y + Math.sin(index * 1.25) * 1.35
+        return `${index === 0 ? 'M' : 'L'} ${jitterX.toFixed(2)} ${jitterY.toFixed(2)}`
+      })
+      .join(' ')
+  }, [coordinates])
+
   if (data.length === 0) {
     return (
       <div className="h-48 flex items-center justify-center text-sm text-gray-500 handwritten">
@@ -147,12 +167,12 @@ function LineChart({ data, color, onHover, activeIndex }: LineChartProps) {
     )
   }
 
-  const linePoints = coordinates.map((point) => `${point.x},${point.y}`).join(' ')
   const areaPath = coordinates.length
     ? `M ${coordinates[0].x} ${height} L ${coordinates
         .map((point) => `${point.x} ${point.y}`)
         .join(' L ')} L ${coordinates[coordinates.length - 1].x} ${height} Z`
     : ''
+  const pencilStroke = '#1f2937'
 
   return (
     <div className="relative">
@@ -166,16 +186,34 @@ function LineChart({ data, color, onHover, activeIndex }: LineChartProps) {
             <stop offset="0%" stopColor={color} stopOpacity="0.35" />
             <stop offset="100%" stopColor={color} stopOpacity="0" />
           </linearGradient>
+          <filter id={roughFilterId} x="-10%" y="-10%" width="120%" height="120%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.8" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
         </defs>
         <path d={areaPath} fill={`url(#${gradientId})`} />
-        <polyline
-          points={linePoints}
-          fill="none"
-          stroke={color}
-          strokeWidth={3}
-          strokeLinejoin="round"
-          strokeLinecap="round"
-        />
+        {roughPath && (
+          <>
+            <path
+              d={roughPath}
+              fill="none"
+              stroke={color}
+              strokeWidth={5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              opacity={0.18}
+            />
+            <path
+              d={roughPath}
+              fill="none"
+              stroke={pencilStroke}
+              strokeWidth={2.6}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              filter={`url(#${roughFilterId})`}
+            />
+          </>
+        )}
         {coordinates.map((point, index) => (
           <g key={`${point.x}-${point.y}`}>
             <circle
@@ -183,8 +221,8 @@ function LineChart({ data, color, onHover, activeIndex }: LineChartProps) {
               cy={point.y}
               r={activeIndex === index ? 7 : 5}
               fill="#fff"
-              stroke={color}
-              strokeWidth={2}
+              stroke={pencilStroke}
+              strokeWidth={1.5}
               onPointerEnter={() => onHover?.(data[index], index)}
               className="cursor-pointer transition-transform"
             />
@@ -208,9 +246,10 @@ type BarChartProps = {
   color: string
   onHover?: (point: ChartPoint | null, index: number | null) => void
   activeIndex?: number | null
+  onSelect?: (point: ChartPoint, index: number) => void
 }
 
-function BarChart({ data, color, onHover, activeIndex }: BarChartProps) {
+function BarChart({ data, color, onHover, activeIndex, onSelect }: BarChartProps) {
   const maxValue = Math.max(...data.map((point) => point.value), 1)
 
   if (data.length === 0) {
@@ -232,6 +271,7 @@ function BarChart({ data, color, onHover, activeIndex }: BarChartProps) {
             className="group flex-1 flex flex-col items-center gap-2 focus:outline-none"
             onPointerEnter={() => onHover?.(point, index)}
             onPointerLeave={() => onHover?.(null, null)}
+            onClick={() => onSelect?.(point, index)}
           >
             <div className="relative w-full bg-gray-100/60 border border-dashed border-gray-300 rounded-sm pt-2">
               <div className="absolute inset-x-1 bottom-1 rounded-sm" style={{ height: `${heightPercent}%`, backgroundColor: color, opacity: activeIndex === index ? 0.95 : 0.75 }} />
@@ -299,10 +339,15 @@ export default function UnifiedProgress() {
   const [bucketList, setBucketList] = useState<BucketListItem[]>([])
   const [monthlyGoals, setMonthlyGoals] = useState<MonthlyGoal[]>([])
   const [loading, setLoading] = useState(true)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null)
 
   const [timelineView, setTimelineView] = useState<'dev' | 'monthly'>('dev')
   const [timelineHighlight, setTimelineHighlight] = useState<number | null>(null)
   const [barHighlight, setBarHighlight] = useState<number | null>(null)
+  const [timelineSpan, setTimelineSpan] = useState(12)
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null)
+  const [activeNotebook, setActiveNotebook] = useState<'lifeGoals' | 'bucketList' | 'monthlyGoals'>('lifeGoals')
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -320,26 +365,30 @@ export default function UnifiedProgress() {
         } else {
           setDevCommits([])
         }
-
-        if (process.env.NEXT_PUBLIC_SANITY_PROJECT_ID && process.env.NEXT_PUBLIC_SANITY_PROJECT_ID !== 'your-project-id') {
-          try {
-            const [goals, bucket, monthly] = await Promise.all([
-              getLifeGoals(),
-              getBucketList(),
-              getMonthlyGoals()
-            ])
-
-            setLifeGoals(goals || [])
-            setBucketList(bucket || [])
-            setMonthlyGoals(monthly || [])
-          } catch (sanityError) {
-            setLifeGoals([])
-            setBucketList([])
-            setMonthlyGoals([])
-          }
+        const progressResponse = await fetch('/api/progress-data')
+        if (!progressResponse.ok) {
+          const payload = (await progressResponse.json().catch(() => ({}))) as { message?: string }
+          setLifeGoals([])
+          setBucketList([])
+          setMonthlyGoals([])
+          setLastSyncedAt(null)
+          setErrorMessage(payload.message ?? 'Unable to sync data from Notion')
+        } else {
+          const payload = (await progressResponse.json()) as ProgressDataResponse
+          setLifeGoals(payload.lifeGoals ?? [])
+          setBucketList(payload.bucketList ?? [])
+          setMonthlyGoals(payload.monthlyGoals ?? [])
+          setLastSyncedAt(payload.fetchedAt ?? new Date().toISOString())
+          setErrorMessage(null)
         }
       } catch (error) {
+        console.error('Unified progress fetch failed', error)
         setDevCommits([])
+          setLifeGoals([])
+          setBucketList([])
+          setMonthlyGoals([])
+        setLastSyncedAt(null)
+        setErrorMessage('Unable to load progress data right now')
       }
       setLoading(false)
     }
@@ -367,7 +416,6 @@ export default function UnifiedProgress() {
         secondary: stats.additions,
         detail: `${stats.additions} additions • ${stats.deletions} deletions`
       }))
-      .slice(-12)
   }, [devCommits])
 
   const velocityTimeline = useMemo<ChartPoint[]>(() => {
@@ -383,7 +431,6 @@ export default function UnifiedProgress() {
           value: completion,
           detail: `${completed} of ${total} goals` }
       })
-      .slice(-12)
   }, [monthlyGoals])
 
   const lifeGoalBars = useMemo<ChartPoint[]>(() => {
@@ -396,9 +443,52 @@ export default function UnifiedProgress() {
       return {
         label: status.replace('_', ' '),
         value: average,
-        detail: `${matching.length} goals` }
+        detail: `${matching.length} goals`,
+        meta: status
+      }
     })
   }, [lifeGoals])
+
+  const lifeGoalsByStatus = useMemo(() => {
+    return lifeGoals.reduce<Record<string, LifeGoal[]>>((accumulator, goal) => {
+      const key = goal.status || 'pending'
+      if (!accumulator[key]) {
+        accumulator[key] = []
+      }
+      accumulator[key].push(goal)
+      return accumulator
+    }, {})
+  }, [lifeGoals])
+
+  useEffect(() => {
+    if (selectedStatus) return
+    const preferred = lifeGoalBars.find((point) => point.meta === 'in_progress')?.meta
+    const fallback = lifeGoalBars.find((point) => (lifeGoalsByStatus[point.meta ?? ''] ?? []).length > 0)?.meta
+    const nextStatus = preferred ?? fallback ?? null
+    if (nextStatus) {
+      setSelectedStatus(nextStatus)
+    }
+  }, [lifeGoalBars, lifeGoalsByStatus, selectedStatus])
+
+  const selectedStatusIndex = useMemo(() => {
+    if (!selectedStatus) return -1
+    return lifeGoalBars.findIndex((point) => point.meta === selectedStatus)
+  }, [lifeGoalBars, selectedStatus])
+
+  const selectedGoals = useMemo(() => {
+    if (!selectedStatus) return []
+    const goals = lifeGoalsByStatus[selectedStatus] ?? []
+    return goals
+      .slice()
+      .sort((a, b) => {
+        const progressDelta = (b.progress ?? 0) - (a.progress ?? 0)
+        if (progressDelta !== 0) return progressDelta
+        const targetA = a.targetDate ? new Date(a.targetDate).getTime() : Number.POSITIVE_INFINITY
+        const targetB = b.targetDate ? new Date(b.targetDate).getTime() : Number.POSITIVE_INFINITY
+        return targetA - targetB
+      })
+      .slice(0, 4)
+  }, [lifeGoalsByStatus, selectedStatus])
 
   const bucketProgress = useMemo(() => {
     const totals = bucketList.length
@@ -419,22 +509,180 @@ export default function UnifiedProgress() {
 
   const timelineData = timelineView === 'dev' ? commitTimeline : velocityTimeline
   const timelineColor = timelineView === 'dev' ? '#3b82f6' : '#a855f7'
+  const trimmedTimelineData = useMemo(() => {
+    const safeSpan = Math.max(2, timelineSpan)
+    return timelineData.slice(-safeSpan)
+  }, [timelineData, timelineSpan])
 
   const timelineHeadline = useMemo(() => {
-    if (timelineData.length === 0) {
+    if (trimmedTimelineData.length === 0) {
       return 'Awaiting data sync'
     }
     if (timelineView === 'dev') {
-      const totalCommits = commitTimeline.reduce((total, item) => total + item.value, 0)
-      return `${totalCommits} commits logged` }
+      const totalCommits = trimmedTimelineData.reduce((total, item) => total + item.value, 0)
+      return `${totalCommits} commits logged`
+    }
     const averageCompletion = Math.round(
-      velocityTimeline.reduce((total, item) => total + item.value, 0) / Math.max(velocityTimeline.length, 1)
+      trimmedTimelineData.reduce((total, item) => total + item.value, 0) / Math.max(trimmedTimelineData.length, 1)
     )
     return `${averageCompletion}% average completion`
-  }, [timelineData, timelineView, commitTimeline, velocityTimeline])
+  }, [trimmedTimelineData, timelineView])
 
-  const activePoint = timelineHighlight != null ? timelineData[timelineHighlight] : null
-  const activeBarPoint = barHighlight != null ? lifeGoalBars[barHighlight] : null
+  const activePoint = timelineHighlight != null ? trimmedTimelineData[timelineHighlight] : null
+
+  useEffect(() => {
+    setTimelineHighlight((current) => {
+      if (current == null) return null
+      if (current >= trimmedTimelineData.length) {
+        return trimmedTimelineData.length > 0 ? trimmedTimelineData.length - 1 : null
+      }
+      return current
+    })
+  }, [trimmedTimelineData])
+  const activeBarPoint = useMemo(() => {
+    if (barHighlight != null) {
+      return lifeGoalBars[barHighlight] ?? null
+    }
+    if (selectedStatusIndex >= 0) {
+      return lifeGoalBars[selectedStatusIndex] ?? null
+    }
+    return null
+  }, [barHighlight, lifeGoalBars, selectedStatusIndex])
+
+  const lifeGoalsCatalog = useMemo(() => {
+    return lifeGoals
+      .slice()
+      .sort((a, b) => {
+        const statusOrder = ['in_progress', 'pending', 'completed']
+        const rankA = (() => {
+          const index = statusOrder.indexOf(a.status)
+          return index === -1 ? statusOrder.length : index
+        })()
+        const rankB = (() => {
+          const index = statusOrder.indexOf(b.status)
+          return index === -1 ? statusOrder.length : index
+        })()
+        const statusDelta = rankA - rankB
+        if (statusDelta !== 0) return statusDelta
+        return (b.progress ?? 0) - (a.progress ?? 0)
+      })
+  }, [lifeGoals])
+
+  const bucketListCatalog = useMemo(() => {
+    return bucketList
+      .slice()
+      .sort((a, b) => {
+        const statusOrder = ['in_progress', 'dream', 'completed']
+        const rankA = (() => {
+          const index = statusOrder.indexOf(a.status)
+          return index === -1 ? statusOrder.length : index
+        })()
+        const rankB = (() => {
+          const index = statusOrder.indexOf(b.status)
+          return index === -1 ? statusOrder.length : index
+        })()
+        const statusDelta = rankA - rankB
+        if (statusDelta !== 0) return statusDelta
+        const dateA = a.targetDate ? new Date(a.targetDate).getTime() : Number.POSITIVE_INFINITY
+        const dateB = b.targetDate ? new Date(b.targetDate).getTime() : Number.POSITIVE_INFINITY
+        return dateA - dateB
+      })
+  }, [bucketList])
+
+  const monthlyCatalog = useMemo(() => {
+    return monthlyGoals
+      .slice()
+      .sort((a, b) => new Date(b.year, b.month - 1).getTime() - new Date(a.year, a.month - 1).getTime())
+  }, [monthlyGoals])
+
+  const categoryProgress = useMemo(() => {
+    const map = new Map<string, { total: number; count: number }>()
+    lifeGoals.forEach((goal) => {
+      const key = goal.category || 'Uncategorized'
+      const entry = map.get(key) ?? { total: 0, count: 0 }
+      entry.total += goal.progress ?? 0
+      entry.count += 1
+      map.set(key, entry)
+    })
+    return Array.from(map.entries())
+      .map(([category, stats]) => ({
+        category,
+        average: Math.round(stats.total / Math.max(stats.count, 1)),
+        count: stats.count
+      }))
+      .sort((a, b) => b.average - a.average)
+  }, [lifeGoals])
+
+  const priorityDeck = useMemo(() => {
+    if (!lifeGoals.length) return []
+    const rankMap: Record<string, number> = {
+      urgent: 0,
+      high: 1,
+      medium: 2,
+      low: 3
+    }
+    return lifeGoals
+      .slice()
+      .filter((goal) => goal.status !== 'completed')
+      .sort((a, b) => {
+        const rankA = rankMap[a.priority?.toLowerCase() ?? ''] ?? 4
+        const rankB = rankMap[b.priority?.toLowerCase() ?? ''] ?? 4
+        if (rankA !== rankB) return rankA - rankB
+        return (b.progress ?? 0) - (a.progress ?? 0)
+      })
+      .slice(0, 4)
+  }, [lifeGoals])
+
+  const tagHighlights = useMemo(() => {
+    const counts = new Map<string, number>()
+    const register = (tag?: string) => {
+      if (!tag) return
+      const key = tag.trim()
+      if (!key) return
+      counts.set(key, (counts.get(key) ?? 0) + 1)
+    }
+    lifeGoals.forEach((goal) => goal.tags?.forEach(register))
+    bucketList.forEach((item) => item.tags?.forEach(register))
+    return Array.from(counts.entries())
+      .map(([tag, count]) => ({ tag, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8)
+  }, [lifeGoals, bucketList])
+
+  const adventureSchedule = useMemo(() => {
+    return bucketList
+      .filter((item) => item.targetDate)
+      .slice()
+      .sort((a, b) => new Date(a.targetDate ?? '').getTime() - new Date(b.targetDate ?? '').getTime())
+      .slice(0, 5)
+  }, [bucketList])
+
+  const monthlyHighlights = useMemo(() => {
+    return monthlyGoals
+      .slice()
+      .sort((a, b) => new Date(b.year, b.month - 1).getTime() - new Date(a.year, a.month - 1).getTime())
+      .slice(0, 3)
+      .map((entry) => {
+        const total = entry.goals.length || 1
+        const done = entry.goals.filter((goal) => goal.completed).length
+        const achievements = Array.isArray(entry.achievements) ? entry.achievements : []
+        return {
+          id: entry._id,
+          title: entry.title || `${entry.month}/${entry.year}`,
+          completion: Math.round((done / total) * 100),
+          wins: achievements.slice(0, 2).map((win) => {
+            if (!win) return { label: '' }
+            if (typeof win === 'string') return { label: win }
+            if (typeof win === 'object') {
+              const label = win.achievement || win.title || win.name || ''
+              const detail = win.note || win.detail || win.description || ''
+              return { label, detail }
+            }
+            return { label: '' }
+          })
+        }
+      })
+  }, [monthlyGoals])
 
   if (loading) {
     return (
@@ -462,9 +710,20 @@ export default function UnifiedProgress() {
           <p className="mt-4 text-base text-gray-600 handwritten max-w-3xl mx-auto">
             A live board of my product experiments, life goals, and dream adventures—all plotted onto graph paper so we can see patterns at a glance.
           </p>
+          {errorMessage ? (
+            <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50/80 px-4 py-2 text-xs uppercase tracking-[0.3em] text-red-500 handwritten">
+              {errorMessage}
+            </div>
+          ) : (
+            <div className="mt-6 flex justify-center">
+              <span className="handwritten text-xs uppercase tracking-[0.35em] text-gray-500 rounded-full border border-dashed border-gray-300 px-4 py-1 bg-white/60">
+                Synced from Notion{lastSyncedAt ? ` · ${new Date(lastSyncedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}` : ''}
+              </span>
+            </div>
+          )}
         </motion.header>
 
-        <div className="mt-16 grid gap-8 lg:grid-cols-[minmax(0,1.9fr)_minmax(0,1.1fr)]">
+        <div className="mt-16">
           <ChartCard
             title="Trajectory"
             description="Switch between build velocity and life cadence to inspect momentum over time. Hover any node for more detail."
@@ -493,11 +752,25 @@ export default function UnifiedProgress() {
               </div>
               <span className="handwritten text-sm text-gray-600">{timelineHeadline}</span>
             </div>
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-gray-500 handwritten">
+              <label htmlFor="timeline-span" className="uppercase tracking-[0.25em]">
+                Window · {Math.max(2, timelineSpan)} points
+              </label>
+              <input
+                id="timeline-span"
+                type="range"
+                min={4}
+                max={24}
+                value={timelineSpan}
+                onChange={(event) => setTimelineSpan(Number(event.target.value))}
+                className="h-1 w-40 cursor-pointer appearance-none rounded-full bg-gray-200 accent-blue-500"
+              />
+            </div>
             <LineChart
-              data={timelineData}
+              data={trimmedTimelineData}
               color={timelineColor}
               onHover={(point, index) => {
-                setTimelineHighlight(index)
+                setTimelineHighlight(index ?? null)
               }}
               activeIndex={timelineHighlight}
             />
@@ -522,86 +795,6 @@ export default function UnifiedProgress() {
                 </motion.div>
               )}
             </AnimatePresence>
-          </ChartCard>
-
-          <ChartCard
-            title="Signals"
-            description="Snapshot metrics from this week across code, goals, and adventures."
-            accentColor="bg-amber-50"
-            className="self-start"
-          >
-            <div className="grid gap-6">
-              <div className="flex items-center justify-between rounded-xl border border-dashed border-gray-300 bg-white/70 px-5 py-4">
-                <div>
-                  <p className="handwritten text-xs uppercase tracking-[0.3em] text-gray-500">Coding streak</p>
-                  <p className="handwritten text-lg text-gray-900 mt-1">
-                    {commitTimeline.length > 0 ? `${commitTimeline.slice(-5).reduce((total, point) => total + point.value, 0)} commits in 5 days` : 'Waiting for GitHub sync'}
-                  </p>
-                </div>
-                <RadialChart value={commitTimeline.length ? Math.min(commitTimeline.slice(-5).reduce((total, point) => total + point.value, 0) * 10, 100) : 0} label="Momentum" accentColor="#3b82f6" />
-              </div>
-              <div className="flex items-center justify-between rounded-xl border border-dashed border-gray-300 bg-white/70 px-5 py-4">
-                <div>
-                  <p className="handwritten text-xs uppercase tracking-[0.3em] text-gray-500">Life goals in motion</p>
-                  <p className="handwritten text-lg text-gray-900 mt-1">{lifeGoals.filter((goal) => goal.status === 'in_progress').length} active • {lifeGoals.filter((goal) => goal.status === 'completed').length} done</p>
-                </div>
-                <RadialChart value={lifeGoalBars[0]?.value ?? 0} label="Avg progress" accentColor="#22c55e" />
-              </div>
-              <div className="flex items-center justify-between rounded-xl border border-dashed border-gray-300 bg-white/70 px-5 py-4">
-                <div>
-                  <p className="handwritten text-xs uppercase tracking-[0.3em] text-gray-500">Bucket list momentum</p>
-                  <p className="handwritten text-lg text-gray-900 mt-1">{bucketProgress.completed} complete • {bucketProgress.active} mapping</p>
-                </div>
-                <RadialChart value={bucketProgress.completedPercent} label="Done" accentColor="#fb923c" />
-              </div>
-            </div>
-          </ChartCard>
-        </div>
-
-        <div className="mt-12 grid gap-8 md:grid-cols-2">
-          <ChartCard
-            title="Life goal cohorts"
-            description="Average completion for each status. Hover a bar to show the cohort size."
-            accentColor="bg-emerald-50"
-          >
-            <BarChart
-              data={lifeGoalBars}
-              color="#22c55e"
-              onHover={(point, index) => {
-                setBarHighlight(index)
-              }}
-              activeIndex={barHighlight}
-            />
-            <AnimatePresence>
-              {activeBarPoint && (
-                <motion.div
-                  className="mt-6 rounded-lg border border-emerald-100 bg-white/90 px-4 py-3"
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 6 }}
-                >
-                  <p className="handwritten text-xs uppercase tracking-[0.3em] text-emerald-600">{activeBarPoint.label}</p>
-                  <p className="handwritten text-lg text-gray-900 mt-1">{activeBarPoint.detail}</p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </ChartCard>
-
-          <ChartCard
-            title="Adventure wheel"
-            description="Dreams vs action. Quick rollup of the bucket list."
-            accentColor="bg-orange-50"
-          >
-            <div className="relative flex flex-col items-center gap-8 md:flex-row md:justify-center">
-              <RadialChart value={bucketProgress.completedPercent} label="Completed" accentColor="#fb923c" />
-              <RadialChart value={bucketProgress.activePercent} label="In motion" accentColor="#f97316" />
-              <RadialChart value={bucketProgress.dreamPercent} label="Dreaming" accentColor="#fed7aa" />
-            </div>
-            <p className="mt-6 text-center text-sm text-gray-600 handwritten">
-              {bucketProgress.totals > 0
-                ? `${bucketProgress.totals} adventures mapped • ${bucketProgress.completedPercent}% already lived`
-                : 'Start logging adventures to plot them here'}
-            </p>
           </ChartCard>
         </div>
 
@@ -635,6 +828,353 @@ export default function UnifiedProgress() {
             <div className="text-center py-10 text-sm text-gray-500 handwritten">
               No commits to display yet.
             </div>
+          )}
+        </ChartCard>
+
+        <ChartCard
+          title="Notion boards"
+          description="Glide through the original databases pulled straight from Notion. Each tab surfaces a different playbook."
+          accentColor="bg-sky-50"
+          className="mt-12"
+        >
+          <div className="flex flex-wrap items-center gap-3">
+            {[
+              { key: 'lifeGoals', label: 'Life goals', icon: '🎯' },
+              { key: 'bucketList', label: 'Bucket list', icon: '🗺️' },
+              { key: 'monthlyGoals', label: 'Monthly goals', icon: '🗓️' }
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setActiveNotebook(tab.key as typeof activeNotebook)}
+                className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs uppercase tracking-[0.3em] transition handwritten ${
+                  activeNotebook === tab.key
+                    ? 'border-sky-500 bg-sky-500 text-white shadow-sm'
+                    : 'border-sky-200 bg-white/80 text-gray-700 hover:bg-sky-100/70'
+                }`}
+              >
+                <span aria-hidden>{tab.icon}</span>
+                {tab.label}
+              </button>
+            ))}
+          </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeNotebook}
+              className="mt-6 space-y-3"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+            >
+              {activeNotebook === 'lifeGoals' && (
+                lifeGoalsCatalog.length > 0 ? (
+                  <ul className="space-y-3">
+                    {lifeGoalsCatalog.slice(0, 6).map((goal) => (
+                      <li
+                        key={goal._id}
+                        className="flex flex-col gap-3 rounded-xl border border-emerald-200 bg-white/90 px-4 py-4 shadow-sm md:flex-row md:items-center md:justify-between"
+                      >
+                        <div className="space-y-2">
+                          <p className="handwritten text-lg text-gray-900">{goal.title}</p>
+                          {goal.description && (
+                            <p className="handwritten text-sm text-gray-600 max-w-xl">{goal.description}</p>
+                          )}
+                          <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-gray-500 handwritten">
+                            <span className="rounded-full bg-emerald-100 px-2 py-1 text-emerald-700">{goal.status.replace('_', ' ')}</span>
+                            {goal.priority && (
+                              <span className="rounded-full bg-emerald-50 px-2 py-1 text-emerald-600">Priority · {goal.priority}</span>
+                            )}
+                            {goal.tags?.slice(0, 3).map((tag) => (
+                              <span key={tag} className="rounded-full border border-emerald-200 px-2 py-1 text-emerald-500">
+                                #{tag.toLowerCase()}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="flex items-end gap-4 self-end md:self-auto">
+                          <div className="text-right">
+                            <p className="handwritten text-xs uppercase tracking-[0.3em] text-gray-500">Progress</p>
+                            <p className="handwritten text-xl text-emerald-600">{goal.progress ?? 0}%</p>
+                          </div>
+                          {goal.targetDate && (
+                            <div className="text-right">
+                              <p className="handwritten text-xs uppercase tracking-[0.3em] text-gray-500">Target</p>
+                              <p className="handwritten text-sm text-gray-700">{formatDate(goal.targetDate)}</p>
+                            </div>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="handwritten text-sm text-gray-500">Log life goals in Notion to populate this stream.</p>
+                )
+              )}
+
+              {activeNotebook === 'bucketList' && (
+                bucketListCatalog.length > 0 ? (
+                  <ul className="grid gap-3 md:grid-cols-2">
+                    {bucketListCatalog.slice(0, 6).map((item) => (
+                      <li
+                        key={item._id}
+                        className="flex h-full flex-col gap-3 rounded-xl border border-orange-200 bg-white/90 px-4 py-4 shadow-sm"
+                      >
+                        <div className="flex items-center justify-between">
+                          <p className="handwritten text-lg text-gray-900">{item.title}</p>
+                          <span className={`handwritten text-xs uppercase tracking-[0.3em] ${
+                            item.status === 'completed'
+                              ? 'text-orange-700'
+                              : item.status === 'in_progress'
+                                ? 'text-orange-500'
+                                : 'text-orange-300'
+                          }`}>
+                            {item.status.replace('_', ' ')}
+                          </span>
+                        </div>
+                        {item.description && (
+                          <p className="handwritten text-sm text-gray-600 flex-1">{item.description}</p>
+                        )}
+                        <div className="flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.25em] text-gray-500 handwritten">
+                          {item.location && (
+                            <span className="rounded-full border border-orange-200 bg-orange-50 px-2 py-1 text-orange-600">📍 {item.location}</span>
+                          )}
+                          {typeof item.estimatedCost === 'number' && (
+                            <span className="rounded-full border border-orange-200 bg-orange-50 px-2 py-1 text-orange-600">
+                              Budget · {item.estimatedCost.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })}
+                            </span>
+                          )}
+                          {item.targetDate && (
+                            <span className="rounded-full border border-orange-200 bg-orange-50 px-2 py-1 text-orange-600">Due {formatDate(item.targetDate)}</span>
+                          )}
+                        </div>
+                        {item.tags && item.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.2em] text-orange-400 handwritten">
+                            {item.tags.slice(0, 4).map((tag) => (
+                              <span key={tag} className="rounded-full border border-orange-100 px-2 py-1">
+                                #{tag.toLowerCase()}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="handwritten text-sm text-gray-500">Dream up adventures inside your Notion bucket list to see them here.</p>
+                )
+              )}
+
+              {activeNotebook === 'monthlyGoals' && (
+                monthlyCatalog.length > 0 ? (
+                  <ul className="space-y-3">
+                    {monthlyCatalog.slice(0, 4).map((entry) => {
+                      const total = entry.goals.length || 1
+                      const done = entry.goals.filter((goal) => goal.completed).length
+                      const percent = Math.round((done / total) * 100)
+                      return (
+                        <li
+                          key={entry._id}
+                          className="rounded-xl border border-purple-200 bg-white/90 px-4 py-4 shadow-sm"
+                        >
+                          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                            <div>
+                              <p className="handwritten text-lg text-gray-900">{entry.title || `Month ${entry.month}/${entry.year}`}</p>
+                              {entry.description && (
+                                <p className="handwritten text-sm text-gray-600 max-w-xl">{entry.description}</p>
+                              )}
+                            </div>
+                            <div className="text-right">
+                              <p className="handwritten text-xs uppercase tracking-[0.3em] text-gray-500">Completion</p>
+                              <p className="handwritten text-xl text-purple-600">{percent}%</p>
+                            </div>
+                          </div>
+                          <div className="mt-3 grid gap-3 md:grid-cols-2">
+                            <div className="rounded-lg border border-purple-100 bg-purple-50/70 px-3 py-3">
+                              <p className="handwritten text-xs uppercase tracking-[0.3em] text-purple-500">Goals checklist</p>
+                              <ul className="mt-2 space-y-1 text-xs handwritten text-gray-700">
+                                {entry.goals.slice(0, 4).map((goal, index) => (
+                                  <li key={`${entry._id}-goal-${index}`} className="flex items-center gap-2">
+                                    <span aria-hidden>{goal.completed ? '✅' : '⬜️'}</span>
+                                    <span>{goal.goal}</span>
+                                  </li>
+                                ))}
+                                {entry.goals.length > 4 && (
+                                  <li className="text-[11px] uppercase tracking-[0.25em] text-purple-400">+{entry.goals.length - 4} more</li>
+                                )}
+                              </ul>
+                            </div>
+                            <div className="rounded-lg border border-purple-100 bg-white px-3 py-3">
+                              <p className="handwritten text-xs uppercase tracking-[0.3em] text-purple-500">Wins</p>
+                              {entry.achievements.length > 0 ? (
+                                <ul className="mt-2 space-y-1 text-xs handwritten text-gray-700">
+                                  {entry.achievements.slice(0, 3).map((achievement, index) => (
+                                    <li key={`${entry._id}-win-${index}`}>{achievement.achievement}{achievement.note ? ` — ${achievement.note}` : ''}</li>
+                                  ))}
+                                  {entry.achievements.length > 3 && (
+                                    <li className="text-[11px] uppercase tracking-[0.25em] text-purple-400">+{entry.achievements.length - 3} more</li>
+                                  )}
+                                </ul>
+                              ) : (
+                                <p className="mt-2 text-xs text-gray-400 handwritten">Log wins in Notion to celebrate them here.</p>
+                              )}
+                            </div>
+                          </div>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                ) : (
+                  <p className="handwritten text-sm text-gray-500">Your monthly cadence will appear once the Notion board has entries.</p>
+                )
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </ChartCard>
+
+        <ChartCard
+          title="Goal strategy"
+          description="Where energy is flowing right now. Categories, priorities, and themes pulled from the Notion boards."
+          accentColor="bg-violet-50"
+        >
+          <div className="grid gap-8 lg:grid-cols-2">
+            <div>
+              <p className="handwritten text-xs uppercase tracking-[0.3em] text-violet-500">Category momentum</p>
+              {categoryProgress.length > 0 ? (
+                <ul className="mt-4 space-y-3">
+                  {categoryProgress.slice(0, 5).map((category) => (
+                    <li key={category.category}>
+                      <div className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-gray-500 handwritten">
+                        <span>{category.category}</span>
+                        <span>{category.average}% · {category.count} goals</span>
+                      </div>
+                      <div className="mt-2 h-2 rounded-full bg-violet-100">
+                        <div
+                          className="h-full rounded-full bg-violet-500"
+                          style={{ width: `${category.average}%` }}
+                        />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-4 text-sm text-gray-400 handwritten">Categorize life goals in Notion to see momentum here.</p>
+              )}
+            </div>
+            <div>
+              <p className="handwritten text-xs uppercase tracking-[0.3em] text-violet-500">Priority deck</p>
+              {priorityDeck.length > 0 ? (
+                <ul className="mt-4 space-y-3">
+                  {priorityDeck.map((goal) => (
+                    <li key={goal._id} className="flex items-center justify-between gap-3 rounded-xl border border-violet-200 bg-white/90 px-4 py-3 shadow-sm">
+                      <div>
+                        <p className="handwritten text-sm text-gray-900">{goal.title}</p>
+                        <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-gray-500 handwritten mt-1">
+                          {goal.priority && <span className="rounded-full border border-violet-200 bg-violet-50 px-2 py-1 text-violet-600">{goal.priority}</span>}
+                          <span className="rounded-full border border-violet-200 bg-white px-2 py-1 text-violet-600">{goal.status?.split('_').join(' ') ?? 'unspecified'}</span>
+                          {goal.targetDate && <span className="rounded-full border border-violet-200 bg-white px-2 py-1 text-violet-600">Due {formatDate(goal.targetDate)}</span>}
+                        </div>
+                      </div>
+                      <span className="handwritten text-lg text-violet-600">{goal.progress ?? 0}%</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-4 text-sm text-gray-400 handwritten">Flag priorities in Notion to auto-build this list.</p>
+              )}
+            </div>
+          </div>
+          {tagHighlights.length > 0 && (
+            <div className="mt-6">
+              <p className="handwritten text-xs uppercase tracking-[0.3em] text-violet-500">Recurring themes</p>
+              <div className="mt-3 flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.2em] handwritten">
+                {tagHighlights.map((tag) => (
+                  <span key={tag.tag} className="rounded-full border border-violet-200 bg-white px-3 py-1 text-violet-600">
+                    #{tag.tag.toLowerCase()} · {tag.count}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </ChartCard>
+
+        <ChartCard
+          title="Adventure timeline"
+          description="Upcoming experiences from the bucket list with the soonest dates surfaced first."
+          accentColor="bg-orange-50"
+        >
+          {adventureSchedule.length > 0 ? (
+            <ul className="space-y-4">
+              {adventureSchedule.map((item, index) => (
+                <li key={item._id} className="relative flex flex-col gap-2 rounded-xl border border-orange-200 bg-white/90 px-4 py-4 shadow-sm md:flex-row md:items-center md:justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="handwritten text-lg text-orange-500">{String(index + 1).padStart(2, '0')}</span>
+                    <div>
+                      <p className="handwritten text-base text-gray-900">{item.title}</p>
+                      {item.location && <p className="handwritten text-xs uppercase tracking-[0.3em] text-orange-400 mt-1">{item.location}</p>}
+                      {item.description && <p className="handwritten text-sm text-gray-600 mt-1 max-w-xl">{item.description}</p>}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    {item.tags?.slice(0, 3).map((tag) => (
+                      <span key={tag} className="handwritten text-xs uppercase tracking-[0.3em] text-orange-500 border border-orange-200 bg-orange-50 px-3 py-1 rounded-full">
+                        #{tag.toLowerCase()}
+                      </span>
+                    ))}
+                    {item.targetDate && (
+                      <div className="text-right">
+                        <p className="handwritten text-xs uppercase tracking-[0.3em] text-gray-500">Target date</p>
+                        <p className="handwritten text-lg text-orange-600">{formatDate(item.targetDate)}</p>
+                      </div>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="handwritten text-sm text-gray-500">Add target dates to bucket list items in Notion to populate the timeline.</p>
+          )}
+        </ChartCard>
+
+        <ChartCard
+          title="Monthly cadence"
+          description="Quick read on the latest Notion review cycles—completion percentage and headline wins."
+          accentColor="bg-purple-50"
+        >
+          {monthlyHighlights.length > 0 ? (
+            <div className="grid gap-4 md:grid-cols-3">
+              {monthlyHighlights.map((highlight) => (
+                <div key={highlight.id} className="rounded-xl border border-purple-200 bg-white/90 px-4 py-4 shadow-sm">
+                  <p className="handwritten text-xs uppercase tracking-[0.3em] text-purple-400">Snapshot</p>
+                  <p className="handwritten text-lg text-gray-900 mt-1">{highlight.title}</p>
+                  <div className="mt-3">
+                    <div className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-gray-500 handwritten">
+                      <span>Completion</span>
+                      <span>{highlight.completion}%</span>
+                    </div>
+                    <div className="mt-2 h-2 rounded-full bg-purple-100">
+                      <div className="h-full rounded-full bg-purple-500" style={{ width: `${highlight.completion}%` }} />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <p className="handwritten text-xs uppercase tracking-[0.3em] text-purple-400">Wins</p>
+                    {highlight.wins.some((win) => win.label) ? (
+                      <ul className="mt-2 space-y-1 text-xs handwritten text-gray-700">
+                        {highlight.wins.map((win, index) => (
+                          <li key={`${highlight.id}-win-${index}`}>
+                            {win.label}
+                            {win.detail ? ` — ${win.detail}` : ''}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="mt-2 text-xs text-gray-400 handwritten">Log wins in Notion to spotlight them here.</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="handwritten text-sm text-gray-500">Monthly goal reviews from Notion will appear once data is available.</p>
           )}
         </ChartCard>
 

@@ -107,7 +107,7 @@ export default function CaseStudies() {
             <div className="space-y-3 handwritten text-gray-800">
               <span className="block text-sm">🧩 Square Bridge prototype</span>
               <p className="text-base leading-relaxed">
-                Preview the capital matchmaking timeline, launch phases, and investor dashboards in the live Figma board.
+                Walk through the student portfolio builder, placement workflows, and HR hiring dashboard inside the live Figma board.
               </p>
             </div>
             <div className="mt-4 inline-flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50/70 px-3 py-1.5 text-slate-600 transition group-hover:-translate-y-1 group-hover:border-blue-300 group-hover:text-blue-700 handwritten text-sm">
@@ -160,7 +160,7 @@ export default function CaseStudies() {
                   </motion.button>
                 </div>
                 <p className="text-sm leading-relaxed text-gray-600">
-                  Navigate through the investor intake, deal-room dashboards, and the narrative-led pitch canvas. Use the hotspots and motion cues inside Figma to explore the full journey.
+                  Navigate through student onboarding, portfolio link creation, placement officer coordination, and HR shortlisting views. Use the hotspots and motion cues inside Figma to explore how hiring stays effortless.
                 </p>
               </div>
               <div className="relative w-full overflow-hidden" style={{ paddingTop: '56.25%' }}>

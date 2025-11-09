@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SketchHeading } from './sketch-elements';
 
@@ -10,25 +10,47 @@ interface InteractiveLoadingPageProps {
   showProgress?: boolean;
 }
 
-const InteractiveLoadingPage: React.FC<InteractiveLoadingPageProps> = ({ 
-  onComplete, 
-  duration = 4000,
-  showProgress = true 
+type LoadingStep = {
+  text: string;
+  icon: string;
+  delay: number;
+};
+
+const loadingSteps: LoadingStep[] = [
+  { text: 'Sketching workspace', icon: '🖍️', delay: 0 },
+  { text: 'Linking projects', icon: '🔗', delay: 1200 },
+  { text: 'Inking details', icon: '📝', delay: 2100 },
+  { text: 'Adding highlights', icon: '✨', delay: 3200 }
+];
+
+const creativeTips = [
+  'Hint: Watch the line sketch the shell of the site as it loads.',
+  'Tip: The scribble theme carries through the portfolio—keep an eye out.',
+  'Note: Everything here starts with one playful line and grows from there.'
+];
+
+const InteractiveLoadingPage: React.FC<InteractiveLoadingPageProps> = ({
+  onComplete,
+  duration = 4200,
+  showProgress = true
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
-  const [showSketchElements, setShowSketchElements] = useState(false);
+  const [activeTip, setActiveTip] = useState(0);
+  const [showScribbles, setShowScribbles] = useState(false);
 
-  const loadingSteps = [
-    { text: "Setting up workspace", icon: "🎨", delay: 0, color: "blue" },
-    { text: "Loading portfolio", icon: "💼", delay: 700, color: "purple" },
-    { text: "Preparing tools", icon: "✏️", delay: 1400, color: "green" },
-    { text: "Almost ready", icon: "⚡", delay: 2100, color: "yellow" },
-    { text: "Welcome!", icon: "✨", delay: 2800, color: "orange" }
-  ];
+  const floatingMarks = useMemo(
+    () =>
+      Array.from({ length: 4 }).map((_, index) => ({
+        id: `mark-${index}`,
+        left: ['18%', '72%', '32%', '78%'][index],
+        top: ['28%', '22%', '60%', '66%'][index],
+        delay: index * 0.5
+      })),
+    []
+  );
 
-  // Progress animation
   useEffect(() => {
     const handleComplete = () => {
       if (onComplete) {
@@ -41,334 +63,235 @@ const InteractiveLoadingPage: React.FC<InteractiveLoadingPageProps> = ({
         if (prev >= 100) {
           clearInterval(interval);
           setIsComplete(true);
-          setTimeout(handleComplete, 800);
+          setTimeout(handleComplete, 500);
           return 100;
         }
-        return prev + (100 / (duration / 50));
+        return prev + 100 / (duration / 60);
       });
-    }, 50);
+    }, 60);
 
     return () => clearInterval(interval);
   }, [duration, onComplete]);
 
-  // Step progression
   useEffect(() => {
-    loadingSteps.forEach((step, index) => {
-      setTimeout(() => {
-        setCurrentStep(index);
-      }, step.delay);
-    });
+    const handles = loadingSteps.map((step, index) =>
+      setTimeout(() => setCurrentStep(index), step.delay)
+    );
+
+    return () => handles.forEach(handle => clearTimeout(handle));
   }, []);
 
-  // Show sketch elements after initial load
   useEffect(() => {
-    setTimeout(() => setShowSketchElements(true), 500);
+    const tipInterval = setInterval(() => {
+      setActiveTip(prev => (prev + 1) % creativeTips.length);
+    }, 3200);
+
+    return () => clearInterval(tipInterval);
   }, []);
 
-  // Exit animation
+  useEffect(() => {
+    const timeout = setTimeout(() => setShowScribbles(true), 350);
+    return () => clearTimeout(timeout);
+  }, []);
+
   if (isComplete) {
     return (
       <motion.div
-        className="fixed inset-0 bg-white z-50 flex items-center justify-center"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-white"
         initial={{ opacity: 1 }}
         animate={{ opacity: 0 }}
-        transition={{ duration: 0.8 }}
+        transition={{ duration: 0.5 }}
         style={{ pointerEvents: 'none' }}
       >
-        <motion.div
+        <motion.span
+          className="text-7xl"
           initial={{ scale: 1 }}
-          animate={{ scale: 1.5, opacity: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-8xl"
+          animate={{ scale: 1.4, opacity: 0 }}
+          transition={{ duration: 0.5 }}
         >
           ✨
-        </motion.div>
+        </motion.span>
       </motion.div>
     );
   }
 
   return (
-    <div className="fixed inset-0 bg-white z-50 overflow-hidden">
-      {/* Background with notebook style */}
-      <div className="absolute inset-0 bg-white notebook-bg">
-        
-        {/* Animated sketch decorations */}
+    <div className="fixed inset-0 z-50 overflow-hidden bg-white">
+      <div className="absolute inset-0 notebook-bg">
         <AnimatePresence>
-          {showSketchElements && (
+          {showScribbles && (
             <>
-              {/* Minimal floating colored dots */}
-              <motion.div
-                className="absolute top-20 left-20"
-                animate={{ 
-                  y: [0, -10, 10, 0],
-                  opacity: 1,
-                  scale: 1
-                }}
-                transition={{ 
-                  duration: 6, 
-                  repeat: Infinity, 
-                  ease: "easeInOut" 
-                }}
-                initial={{ opacity: 0, scale: 0 }}
-                exit={{ opacity: 0, scale: 0 }}
-              >
-                <div className="w-3 h-3 bg-blue-400 rounded-full opacity-60"></div>
-              </motion.div>
-              
-              <motion.div
-                className="absolute bottom-1/4 right-1/4"
-                animate={{ 
-                  scale: [1, 1.2, 1],
-                  opacity: 1
-                }}
-                transition={{ 
-                  duration: 4, 
-                  repeat: Infinity, 
-                  ease: "easeInOut",
-                  delay: 2 
-                }}
-                initial={{ opacity: 0, scale: 0 }}
-                exit={{ opacity: 0, scale: 0 }}
-              >
-                <div className="w-4 h-4 bg-purple-400 rounded-full opacity-60"></div>
-              </motion.div>
+              {floatingMarks.map(mark => (
+                <motion.div
+                  key={mark.id}
+                  className="absolute pointer-events-none"
+                  style={{ left: mark.left, top: mark.top }}
+                  initial={{ opacity: 0, scale: 0.9, rotate: 0 }}
+                  animate={{
+                    opacity: [0.12, 0.4, 0.12],
+                    scale: [0.92, 1.05, 0.92],
+                    rotate: [-4, 2, -4]
+                  }}
+                  transition={{ duration: 6, repeat: Infinity, delay: mark.delay }}
+                >
+                  <svg width="54" height="54" viewBox="0 0 54 54" className="opacity-60">
+                    <motion.path
+                      d="M10 34 C 18 18, 32 16, 42 28"
+                      stroke="#1D4ED8"
+                      strokeWidth={2}
+                      strokeDasharray="4 7"
+                      fill="none"
+                      initial={{ pathLength: 0 }}
+                      animate={{ pathLength: [0, 1, 0.6, 1] }}
+                      transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                    />
+                  </svg>
+                </motion.div>
+              ))}
             </>
           )}
         </AnimatePresence>
       </div>
 
-      {/* Main loading content */}
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-8">
-        
-        {/* Header with portfolio title */}
+      <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 py-14">
         <motion.div
-          className="mb-16"
-          initial={{ opacity: 0, y: -40 }}
+          className="text-center"
+          initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1 }}
+          transition={{ duration: 0.55 }}
         >
-          <div className="text-center relative">
-            <SketchHeading 
-              level={1} 
-              className="text-4xl md:text-6xl text-gray-800 mb-4 transform -rotate-1"
-              underline={false}
-            >
-              Interactive Portfolio
-            </SketchHeading>
-            
-            {/* Kiruk explanation with curved arrow */}
-            <motion.div
-              className="absolute -top-2 -right-4 md:-right-8"
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 1.5, duration: 0.8 }}
-            >
-              {/* Info icon */}
-              <motion.div
-                className="relative cursor-help group"
-                whileHover={{ scale: 1.1 }}
-                animate={{ 
-                  y: [0, -3, 0],
-                }}
-                transition={{ 
-                  duration: 2, 
-                  repeat: Infinity, 
-                  ease: "easeInOut" 
-                }}
-              >
-                <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold border-2 border-dashed border-blue-700">
-                  i
-                </div>
-                
-                {/* Curved arrow SVG */}
-                <svg 
-                  className="absolute -bottom-8 -left-12 w-16 h-12 text-blue-500 opacity-70"
-                  viewBox="0 0 64 48"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <motion.path
-                    d="M50 8 C40 20, 20 25, 8 35 L12 32 M8 35 L12 38"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeDasharray="3,3"
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{ delay: 2, duration: 1.5, ease: "easeInOut" }}
-                  />
-                </svg>
-                
-                {/* Tooltip */}
-                <div className="absolute -bottom-16 -left-20 bg-white border-2 border-dashed border-gray-400 rounded-lg p-3 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-48 z-10">
-                  <p className="handwritten text-sm text-gray-700 font-bold">
-                    "Kiruk" = Tamil word for "Scribble" 
-                  </p>
-                  <p className="handwritten text-xs text-gray-500 mt-1">
-                    Represents creative doodles & sketches ✏️
-                  </p>
-                  {/* Small arrow pointing to the info icon */}
-                  <div className="absolute top-2 right-6 w-3 h-3 bg-white border-r-2 border-t-2 border-dashed border-gray-400 transform rotate-45"></div>
-                </div>
-              </motion.div>
-            </motion.div>
-            
-            <motion.p 
-              className="handwritten text-lg text-gray-600 transform rotate-1"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
-            >
-              Welcome to Arun's Workspace
-            </motion.p>
-          </div>
-        </motion.div>
-
-        {/* Loading progress container with sketch styling */}
-        <div className="w-full max-w-lg mx-auto">
-          <motion.div
-            className="relative bg-white/95 backdrop-blur-sm border-4 border-dashed border-gray-800 rounded-2xl p-6 shadow-xl mb-8"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.8, duration: 0.8 }}
-          >
-            {/* Sketch decorations around progress container */}
-            <div className="absolute -top-2 -left-2 w-3 h-3 bg-blue-300 rounded-full opacity-60"></div>
-            <div className="absolute -bottom-2 -right-2 w-3 h-3 bg-purple-300 rounded-full opacity-60"></div>
-            
-            {/* Progress header */}
-            <div className="text-center mb-4">
-              <h3 className="text-lg font-bold text-gray-800 handwritten transform rotate-1">
-                🎨 Loading Creative Tools
-              </h3>
-              <div className="w-20 h-1 bg-gray-300 rounded-full mx-auto mt-2 transform -rotate-1"></div>
-            </div>
-            
-            {/* Progress bar */}
-            {showProgress && (
-              <div className="relative mb-6">
-                <div className="h-6 bg-gray-200 rounded-full border-3 border-dashed border-gray-400 overflow-hidden">
-                  <motion.div
-                    className="h-full bg-gradient-to-r from-blue-400 via-purple-400 via-green-400 to-yellow-400 rounded-full relative"
-                    initial={{ width: "0%" }}
-                    animate={{ width: `${progress}%` }}
-                    transition={{ duration: 0.3, ease: "easeOut" }}
-                  >
-                    {/* Progress bar highlight */}
-                    <div className="absolute inset-0 bg-white/30 rounded-full animate-pulse"></div>
-                    {/* Moving sparkle effect */}
-                    <motion.div
-                      className="absolute right-0 top-1/2 transform -translate-y-1/2 text-white text-sm"
-                      animate={{ 
-                        scale: [1, 1.3, 1] 
-                      }}
-                      transition={{ 
-                        duration: 1, 
-                        repeat: Infinity 
-                      }}
-                    >
-                      ✨
-                    </motion.div>
-                  </motion.div>
-                </div>
-                
-                {/* Progress percentage */}
-                <motion.div
-                  className="absolute -top-10 left-1/2 transform -translate-x-1/2"
-                  animate={{ scale: [1, 1.1, 1] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                >
-                  <span className="handwritten text-lg font-bold text-gray-700 bg-white px-3 py-2 rounded-full border-2 border-dashed border-gray-400 shadow-lg">
-                    {Math.round(progress)}%
-                  </span>
-                </motion.div>
-              </div>
-            )}
-
-            {/* Current loading step */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentStep}
-                className="text-center"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.5 }}
-              >
-                <motion.div
-                  className="text-3xl mb-3"
-                  animate={{ 
-                    scale: [1, 1.1, 1] 
-                  }}
-                  transition={{ 
-                    duration: 2, 
-                    repeat: Infinity, 
-                    ease: "easeInOut" 
-                  }}
-                >
-                  {loadingSteps[currentStep]?.icon}
-                </motion.div>
-                <p className="handwritten text-lg font-bold text-gray-700">
-                  {loadingSteps[currentStep]?.text}
-                </p>
-              </motion.div>
-            </AnimatePresence>
-          </motion.div>
-
-          {/* Loading dots animation */}
-          <motion.div
-            className="flex justify-center space-x-3"
+          <SketchHeading level={1} className="-rotate-1 text-4xl text-slate-800 md:text-5xl" underline={false}>
+            Interactive Portfolio
+          </SketchHeading>
+          <motion.p
+            className="handwritten mt-4 text-base text-slate-600"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 1.2 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
           >
-            {[0, 1, 2].map((i) => (
-              <motion.div
-                key={i}
-                className="w-4 h-4 bg-gray-400 rounded-full"
-                animate={{
-                  scale: [1, 1.5, 1],
-                  opacity: [0.5, 1, 0.5],
-                  backgroundColor: [
-                    '#9CA3AF', 
-                    ['#3B82F6', '#EF4444', '#10B981'][i], 
-                    '#9CA3AF'
-                  ]
-                }}
-                transition={{
-                  duration: 1.8,
-                  repeat: Infinity,
-                  delay: i * 0.3,
-                  ease: "easeInOut"
-                }}
-              />
-            ))}
-          </motion.div>
+            One continuous line is drawing the workspace as it loads.
+          </motion.p>
+        </motion.div>
+
+        <motion.div
+          className="relative mt-10 w-full max-w-lg rounded-[26px] border-2 border-dashed border-slate-500 bg-white/95 p-8 shadow-xl"
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35, duration: 0.55 }}
+        >
+          <div className="flex items-center justify-between text-sm text-slate-500">
+            <span className="handwritten -rotate-1">Sketching in progress…</span>
+            {showProgress && (
+              <motion.span
+                className="handwritten rounded-full border border-dashed border-slate-400 bg-white px-3 py-1 text-slate-600"
+                animate={{ scale: [1, 1.08, 1] }}
+                transition={{ duration: 1.3, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                {Math.round(progress)}%
+              </motion.span>
+            )}
+          </div>
+
+          <motion.svg
+            className="mt-8 w-full"
+            viewBox="0 0 520 170"
+            fill="none"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
+          >
+            <motion.path
+              d="M18 118 C 96 58, 186 66, 272 108 C 332 138, 390 136, 502 82"
+              stroke="#334155"
+              strokeWidth={3}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeDasharray="6 10"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 2, ease: 'easeInOut' }}
+            />
+            <motion.circle
+              r={9}
+              fill="#2563EB"
+              animate={{
+                cx: showProgress ? Math.max(24, 18 + (progress / 100) * 484) : 502,
+                cy: showProgress ? 118 - (progress / 100) * 32 : 86
+              }}
+              transition={{ duration: 0.35, ease: 'easeOut' }}
+            />
+          </motion.svg>
+
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={loadingSteps[currentStep]?.text}
+              className="mt-6 flex items-center justify-center gap-3"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.28 }}
+            >
+              <motion.span
+                className="text-2xl"
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                {loadingSteps[currentStep]?.icon}
+              </motion.span>
+              <p className="handwritten text-lg text-slate-600">
+                {loadingSteps[currentStep]?.text}
+              </p>
+            </motion.div>
+          </AnimatePresence>
+
+          {showProgress && (
+            <div className="mt-6 flex justify-center gap-2 text-xs text-slate-400">
+              {loadingSteps.map((step, index) => (
+                <span
+                  key={step.text}
+                  className={`handwritten ${index === currentStep ? 'text-slate-600' : 'text-slate-300'}`}
+                >
+                  {index < currentStep ? '—' : '·'}
+                </span>
+              ))}
+            </div>
+          )}
+        </motion.div>
+
+        <div className="mt-10 w-full max-w-sm">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={creativeTips[activeTip]}
+              className="rounded-2xl border border-dashed border-slate-300 bg-white/90 px-5 py-4 text-center shadow-md"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.28 }}
+            >
+              <p className="handwritten text-sm text-slate-600">
+                {creativeTips[activeTip]}
+              </p>
+            </motion.div>
+          </AnimatePresence>
         </div>
 
-        {/* Simple quote at bottom */}
-        <motion.div
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
+        <motion.p
+          className="mt-12 handwritten text-sm text-slate-500"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 2 }}
+          transition={{ delay: 1.1, duration: 0.5 }}
         >
-          <p className="handwritten text-sm text-gray-500 text-center max-w-md transform rotate-1">
-            "Loading your creative experience" ✨
-          </p>
-        </motion.div>
+          “Loading your creative experience” ✨
+        </motion.p>
       </div>
 
-      {/* CSS for notebook background and animations */}
       <style jsx>{`
         .notebook-bg {
-          background-image: 
+          background-image:
             linear-gradient(90deg, #f8fafc 0%, #f1f5f9 50%, #f8fafc 100%),
-            radial-gradient(circle at 25% 35%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
-            radial-gradient(circle at 75% 65%, rgba(168, 85, 247, 0.08) 0%, transparent 50%),
-            radial-gradient(circle at 90% 20%, rgba(34, 197, 94, 0.06) 0%, transparent 50%);
-          background-size: 100% 100%, 400px 400px, 300px 300px, 500px 500px;
+            radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.07) 0%, transparent 55%),
+            radial-gradient(circle at 80% 70%, rgba(168, 85, 247, 0.07) 0%, transparent 55%);
+          background-size: 100% 100%, 360px 360px, 420px 420px;
           background-repeat: no-repeat;
         }
       `}</style>
