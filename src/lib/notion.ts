@@ -22,7 +22,7 @@ const hasNotionSetup = Boolean(
 
 const notionClient = hasNotionSetup ? new Client({ auth: notionConfig.secret }) : null
 
-type PropertyValue = QueryDatabaseResponse['results'][number]['properties'][string]
+type PropertyValue = PageObjectResponse['properties'][string]
 
 type LifeGoal = {
   _id: string

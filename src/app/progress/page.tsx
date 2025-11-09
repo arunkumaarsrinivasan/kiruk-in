@@ -674,8 +674,16 @@ export default function UnifiedProgress() {
             if (!win) return { label: '' }
             if (typeof win === 'string') return { label: win }
             if (typeof win === 'object') {
-              const label = win.achievement || win.title || win.name || ''
-              const detail = win.note || win.detail || win.description || ''
+              const structured = win as Partial<{
+                achievement: string
+                title: string
+                name: string
+                note: string
+                detail: string
+                description: string
+              }>
+              const label = structured.achievement ?? structured.title ?? structured.name ?? ''
+              const detail = structured.note ?? structured.detail ?? structured.description ?? ''
               return { label, detail }
             }
             return { label: '' }
