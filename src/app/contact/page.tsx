@@ -1,6 +1,6 @@
 'use client';
 
-import ScribbleAnimation from '@/components/three/scribble-animation';
+import CalScheduleEmbed from '@/components/ui/CalScheduleEmbed';
 import { SketchHeading, SketchCard, SketchButton, SketchHighlight, StickyNote } from '@/components/ui/sketch-elements';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
@@ -163,6 +163,25 @@ const CHECKLIST_ITEMS = [
   { id: 'metrics', label: 'Success metrics you care about most' },
 ] as const;
 
+const CAL_FLOATING_LINK = process.env.NEXT_PUBLIC_CAL_FLOATING
+  ?? process.env.NEXT_PUBLIC_CAL_EVENT_30
+  ?? 'arun-kumaar-sreenivasan-uihrg5/30min';
+
+const CAL_EVENTS = [
+  {
+    id: '15',
+    label: '15 min Quick Catch-up',
+    description: 'Great for intros, rapid questions, or gut-checks.',
+    slug: process.env.NEXT_PUBLIC_CAL_EVENT_15 ?? 'arun-kumaar-sreenivasan-uihrg5/15min',
+  },
+  {
+    id: '30',
+    label: '30 min Deep Dive',
+    description: 'Perfect when you want to explore ideas or scope a project.',
+    slug: process.env.NEXT_PUBLIC_CAL_EVENT_30 ?? 'arun-kumaar-sreenivasan-uihrg5/30min',
+  },
+];
+
 type StickyNoteType = {
   id: string;
   tip: string;
@@ -205,7 +224,12 @@ export default function Contact() {
     }, {} as Record<ChecklistItem['id'], boolean>);
   });
   const [messageTouched, setMessageTouched] = useState(false);
+  const [showConversationStarter, setShowConversationStarter] = useState(true);
   const confettiRef = useRef<HTMLDivElement>(null);
+  const messageRef = useRef<HTMLTextAreaElement>(null);
+  const mailOptionsRef = useRef<HTMLDivElement>(null);
+  const [mailDraft, setMailDraft] = useState<{ subject: string; body: string } | null>(null);
+  const [showMailOptions, setShowMailOptions] = useState(false);
 
   // On mount, update the second note's x position if window is available
   useEffect(() => {
@@ -218,23 +242,6 @@ export default function Contact() {
     }
   }, []);
 
-  // Helper to add a new sticky note
-  const addStickyNote = () => {
-    const tip = STICKY_TIPS[Math.floor(Math.random() * STICKY_TIPS.length)];
-    const color = STICKY_COLORS[Math.floor(Math.random() * STICKY_COLORS.length)];
-    const id = `note-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    const width = typeof window !== 'undefined' ? window.innerWidth : 800;
-    setStickyNotes(notes => [
-      ...notes,
-      {
-        id,
-        tip,
-        color,
-        x: 80 + Math.random() * (width - 300),
-        y: 120 + Math.random() * 200,
-      },
-    ]);
-  };
   // Helper to update sticky note position
   const moveStickyNote = (id: string, x: number, y: number) => {
     setStickyNotes(notes => notes.map(n => n.id === id ? { ...n, x, y } : n));
@@ -304,6 +311,18 @@ ${templateText}` : templateText;
     });
   };
 
+  const handlePastePreview = () => {
+    const templateText = conversationPreview.trim();
+    setForm(prev => ({ ...prev, message: templateText }));
+    setMessageTouched(true);
+    messageRef.current?.focus();
+    trackInteraction('contact_template_paste', {
+      projectType: projectType.id,
+      timeline: timeline.id,
+      collabStyle: collabStyle.id,
+    });
+  };
+
   const MESSAGE_GOAL = 220;
   const messageLength = form.message.trim().length;
   const wordsCount = form.message.trim().length ? form.message.trim().split(/\s+/).length : 0;
@@ -336,52 +355,62 @@ ${templateText}` : templateText;
   };
   // Shake animation on invalid submit
   const [shakeForm, setShakeForm] = useState(false);
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    
+
     if (!form.name || !form.email || !form.message) {
       setError('Please fill in all fields.');
       setShakeForm(true);
       setTimeout(() => setShakeForm(false), 500);
       return;
     }
-    
-    setStatus('sending');
-    
-    try {
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(form),
-      });
-      
-      const result = await response.json();
-      
-      if (response.ok) {
-        setStatus('success');
-        setForm({ name: '', email: '', message: '' });
-        triggerConfetti();
-        
-        // Track successful contact submission
-        trackContactSubmission();
-        trackInteraction('contact_form_success', { 
-          hasName: !!form.name, 
-          hasEmail: !!form.email, 
-          messageLength: form.message.length 
-        });
-      } else {
-        setStatus('error');
-        setError(result.error || 'Something went wrong. Please try again.');
-        trackInteraction('contact_form_error', { error: result.error });
-      }
-    } catch (error) {
-      setStatus('error');
-      setError('Network error. Please try again.');
-      trackInteraction('contact_form_network_error');
+
+    const subject = `Project conversation with ${form.name}`;
+    const summary = [
+      `Project focus: ${projectType.label}`,
+      `Timeline: ${timeline.label}`,
+      `Collaboration style: ${collabStyle.label}`,
+    ].join('\n');
+
+    const body = `Hi Arun,\n\n${form.message}\n\n---\nContact details\nName: ${form.name}\nEmail: ${form.email}\n\nQuick context\n${summary}\n\nSent via kiruk.in contact page.`;
+
+    setMailDraft({ subject, body });
+    setShowMailOptions(true);
+    trackInteraction('contact_mail_options_ready', {
+      hasName: !!form.name,
+      hasEmail: !!form.email,
+      messageLength: form.message.length,
+    });
+
+    setTimeout(() => {
+      mailOptionsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 120);
+  };
+
+  const openMailProvider = (provider: 'gmail' | 'outlook' | 'other') => {
+    if (!mailDraft) return;
+
+    const to = 'arunkumaar.srinivasan@gmail.com';
+    const encodedTo = encodeURIComponent(to);
+    const encodedSubject = encodeURIComponent(mailDraft.subject);
+    const encodedBody = encodeURIComponent(mailDraft.body);
+
+    let url: string;
+    if (provider === 'gmail') {
+      url = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodedTo}&su=${encodedSubject}&body=${encodedBody}`;
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } else if (provider === 'outlook') {
+      url = `https://outlook.office.com/mail/deeplink/compose?to=${encodedTo}&subject=${encodedSubject}&body=${encodedBody}`;
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } else {
+      url = `mailto:${to}?subject=${encodedSubject}&body=${encodedBody}`;
+      window.location.href = url;
     }
+
+    triggerConfetti();
+    trackContactSubmission();
+    trackInteraction('contact_mail_launch', { provider });
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -427,6 +456,8 @@ ${templateText}` : templateText;
     }, 600);
     setTimeout(() => setShowSparkle(false), 700);
     setMessageTouched(false);
+    setShowMailOptions(false);
+    setMailDraft(null);
   };
 
   return (
@@ -455,40 +486,6 @@ ${templateText}` : templateText;
           </StickyNote>
         </DraggableSticky>
       ))}
-      {/* Add Note Floating Button */}
-      <motion.button
-        className="fixed bottom-8 right-8 z-40 bg-yellow-200 border-2 border-yellow-400 rounded-full shadow-lg p-3 text-2xl hover:scale-110 active:scale-95 transition flex items-center justify-center"
-        whileHover={{ rotate: 8, scale: 1.1 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={addStickyNote}
-        aria-label="Add sticky note"
-        type="button"
-      >
-        {/* Hand-drawn plus icon SVG */}
-        <svg
-          width="32"
-          height="32"
-          viewBox="0 0 32 32"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className="w-7 h-7 text-black"
-        >
-          <path
-            d="M16 6 Q15.5 15 16 26"
-            stroke="currentColor"
-            strokeWidth="3.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M6 16 Q15 15.5 26 16"
-            stroke="currentColor"
-            strokeWidth="3.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </motion.button>
       {/* Single viewport section */}
       <section className="relative min-h-screen pb-28 flex flex-col">
         {/* Confetti doodle icon trigger */}
@@ -513,10 +510,6 @@ ${templateText}` : templateText;
             ✨
           </motion.div>
         )}
-        {/* Scribble Background */}
-        <div className="absolute inset-0 opacity-10">
-          <ScribbleAnimation className="w-full h-full" />
-        </div>
         {/* Floating contact note */}
         <motion.div
           className="absolute top-16 right-8 hidden lg:block z-20"
@@ -578,11 +571,11 @@ ${templateText}` : templateText;
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.5 }}
             >
-              <SketchCard tilt="left" className={`h-full p-4 relative ${showErase ? 'animate-shake' : ''} ${shakeForm ? 'animate-shake' : ''}`}> {/* shake animation on erase/invalid */}
+              <SketchCard tilt="left" className={`p-3 relative ${showErase ? 'animate-shake' : ''} ${shakeForm ? 'animate-shake' : ''}`}> {/* shake animation on erase/invalid */}
                 <SketchHeading level={2} className="heading-secondary-enhanced text-lg mb-3">
                   Send a Message
                 </SketchHeading>
-                <form className="space-y-3" onSubmit={handleSubmit} noValidate>
+                <form className="space-y-2" onSubmit={handleSubmit} noValidate>
                   <div>
                     <label htmlFor="contact-name" className="form-label-enhanced">
                       Name <span className="text-red-500" aria-label="required">*</span>
@@ -617,7 +610,7 @@ ${templateText}` : templateText;
                       id="contact-email"
                       name="email"
                       type="email"
-                      className="w-full p-2 border-2 border-gray-300 rounded-lg form-input-enhanced text-focus-enhanced sketch-focus focus:border-gray-600 outline-none"
+                      className="w-full p-2 border-2 border-gray-300 rounded-lg form-input-enhanced text-focus-enhanced sketch-focus focus:border-black outline-none"
                       placeholder="your@email.com"
                       value={form.email}
                       onChange={handleChange}
@@ -635,95 +628,148 @@ ${templateText}` : templateText;
                       </div>
                     )}
                   </div>
-                  <div className="border-2 border-dashed border-gray-300 rounded-xl bg-white/60 p-3 mt-2">
-                    <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="border-2 border-dashed border-gray-300 rounded-xl bg-white/60 p-3 mt-1">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                       <span className="handwritten text-xs text-gray-600">Conversation Starter</span>
-                      <motion.button
-                        type="button"
-                        onClick={handleApplyTemplate}
-                        className="px-2 py-1 border border-gray-300 rounded-lg text-[11px] handwritten bg-white hover:bg-yellow-100 transition"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.96 }}
-                      >
-                        ✍️ Use this template
-                      </motion.button>
-                    </div>
-                    <div className="space-y-2">
-                      <div>
-                        <span className="block text-[11px] uppercase tracking-[0.12em] text-gray-500 handwritten">Project focus</span>
-                        <div className="mt-1 flex flex-wrap gap-2">
-                          {PROJECT_TYPES.map(option => {
-                            const active = projectType.id === option.id;
-                            return (
-                              <motion.button
-                                key={option.id}
-                                type="button"
-                                onClick={() => handleProjectTypeSelect(option)}
-                                className={`px-2.5 py-1.5 rounded-lg border-2 text-xs handwritten transition ${
-                                  active ? 'bg-indigo-100 border-indigo-400 text-indigo-800' : 'bg-white border-gray-200 hover:border-gray-400 text-gray-700'
-                                }`}
-                                whileTap={{ scale: 0.95 }}
-                                whileHover={{ scale: 1.03 }}
-                                aria-pressed={active}
-                              >
-                                {option.label}
-                              </motion.button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                      <div>
-                        <span className="block text-[11px] uppercase tracking-[0.12em] text-gray-500 handwritten">Timeline</span>
-                        <div className="mt-1 flex flex-wrap gap-2">
-                          {TIMELINES.map(option => {
-                            const active = timeline.id === option.id;
-                            return (
-                              <motion.button
-                                key={option.id}
-                                type="button"
-                                onClick={() => handleTimelineSelect(option)}
-                                className={`px-2.5 py-1.5 rounded-lg border-2 text-xs handwritten transition ${
-                                  active ? 'bg-green-100 border-green-400 text-green-800' : 'bg-white border-gray-200 hover:border-gray-400 text-gray-700'
-                                }`}
-                                whileTap={{ scale: 0.95 }}
-                                whileHover={{ scale: 1.03 }}
-                                aria-pressed={active}
-                              >
-                                {option.label}
-                              </motion.button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                      <div>
-                        <span className="block text-[11px] uppercase tracking-[0.12em] text-gray-500 handwritten">Collaboration style</span>
-                        <div className="mt-1 flex flex-wrap gap-2">
-                          {COLLAB_STYLES.map(option => {
-                            const active = collabStyle.id === option.id;
-                            return (
-                              <motion.button
-                                key={option.id}
-                                type="button"
-                                onClick={() => handleCollabSelect(option)}
-                                className={`px-2.5 py-1.5 rounded-lg border-2 text-xs handwritten transition ${
-                                  active ? 'bg-purple-100 border-purple-400 text-purple-800' : 'bg-white border-gray-200 hover:border-gray-400 text-gray-700'
-                                }`}
-                                whileTap={{ scale: 0.95 }}
-                                whileHover={{ scale: 1.03 }}
-                                aria-pressed={active}
-                              >
-                                {option.label}
-                              </motion.button>
-                            );
-                          })}
-                        </div>
+                      <div className="flex items-center gap-2">
+                        <motion.button
+                          type="button"
+                          onClick={handleApplyTemplate}
+                          className="px-2 py-1 border border-gray-300 rounded-lg text-[11px] handwritten bg-white hover:bg-yellow-100 transition"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.96 }}
+                        >
+                          ✍️ Use template
+                        </motion.button>
+                        <motion.button
+                          type="button"
+                          onClick={() => setShowConversationStarter(prev => !prev)}
+                          className="px-2 py-1 border border-gray-300 rounded-lg text-[11px] handwritten bg-white hover:bg-gray-100 transition"
+                          whileHover={{ scale: 1.04 }}
+                          whileTap={{ scale: 0.95 }}
+                          aria-expanded={showConversationStarter}
+                        >
+                          {showConversationStarter ? 'Hide options' : 'Customize'}
+                        </motion.button>
                       </div>
                     </div>
-                    <div className="mt-3 bg-gray-50/80 border border-dashed border-gray-300 rounded-lg p-3 text-xs handwritten text-gray-600 leading-snug">
-                      {conversationPreview.split('\n').map((line, idx) => (
-                        <p key={idx} className="mb-1 last:mb-0">{line}</p>
-                      ))}
-                    </div>
+                    {!showConversationStarter && (
+                      <div className="mt-2 flex items-center justify-between gap-2 text-[11px] text-gray-500 handwritten">
+                        <span>{projectType.label} · {timeline.label} · {collabStyle.label}</span>
+                        <motion.button
+                          type="button"
+                          onClick={handlePastePreview}
+                          className="px-2 py-0.5 border border-gray-300 rounded-lg text-[10px] bg-white hover:bg-yellow-100 transition"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          Paste below
+                        </motion.button>
+                      </div>
+                    )}
+                    <AnimatePresence initial={false}>
+                      {showConversationStarter && (
+                        <motion.div
+                          key="conversation-settings"
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.25 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="mt-3 space-y-3">
+                            <div>
+                              <span className="block text-[11px] uppercase tracking-[0.12em] text-gray-500 handwritten">Project focus</span>
+                              <div className="mt-1 flex flex-wrap gap-2">
+                                {PROJECT_TYPES.map(option => {
+                                  const active = projectType.id === option.id;
+                                  return (
+                                    <motion.button
+                                      key={option.id}
+                                      type="button"
+                                      onClick={() => handleProjectTypeSelect(option)}
+                                      className={`px-2.5 py-1.5 rounded-lg border-2 text-xs handwritten transition ${
+                                        active ? 'bg-indigo-100 border-indigo-400 text-indigo-800' : 'bg-white border-gray-200 hover:border-gray-400 text-gray-700'
+                                      }`}
+                                      whileTap={{ scale: 0.95 }}
+                                      whileHover={{ scale: 1.03 }}
+                                      aria-pressed={active}
+                                    >
+                                      {option.label}
+                                    </motion.button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                            <div>
+                              <span className="block text-[11px] uppercase tracking-[0.12em] text-gray-500 handwritten">Timeline</span>
+                              <div className="mt-1 flex flex-wrap gap-2">
+                                {TIMELINES.map(option => {
+                                  const active = timeline.id === option.id;
+                                  return (
+                                    <motion.button
+                                      key={option.id}
+                                      type="button"
+                                      onClick={() => handleTimelineSelect(option)}
+                                      className={`px-2.5 py-1.5 rounded-lg border-2 text-xs handwritten transition ${
+                                        active ? 'bg-green-100 border-green-400 text-green-800' : 'bg-white border-gray-200 hover:border-gray-400 text-gray-700'
+                                      }`}
+                                      whileTap={{ scale: 0.95 }}
+                                      whileHover={{ scale: 1.03 }}
+                                      aria-pressed={active}
+                                    >
+                                      {option.label}
+                                    </motion.button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                            <div>
+                              <span className="block text-[11px] uppercase tracking-[0.12em] text-gray-500 handwritten">Collaboration style</span>
+                              <div className="mt-1 flex flex-wrap gap-2">
+                                {COLLAB_STYLES.map(option => {
+                                  const active = collabStyle.id === option.id;
+                                  return (
+                                    <motion.button
+                                      key={option.id}
+                                      type="button"
+                                      onClick={() => handleCollabSelect(option)}
+                                      className={`px-2.5 py-1.5 rounded-lg border-2 text-xs handwritten transition ${
+                                        active ? 'bg-purple-100 border-purple-400 text-purple-800' : 'bg-white border-gray-200 hover:border-gray-400 text-gray-700'
+                                      }`}
+                                      whileTap={{ scale: 0.95 }}
+                                      whileHover={{ scale: 1.03 }}
+                                      aria-pressed={active}
+                                    >
+                                      {option.label}
+                                    </motion.button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                            <div className="bg-gray-50/80 border border-dashed border-gray-300 rounded-lg p-3 text-xs handwritten text-gray-600 leading-snug">
+                              <div className="flex items-center justify-between gap-2 mb-2 text-[11px] uppercase tracking-[0.12em] text-gray-500">
+                                <span className="text-[10px]">Generated brief</span>
+                                <motion.button
+                                  type="button"
+                                  onClick={handlePastePreview}
+                                  className="px-2 py-0.5 border border-gray-300 rounded-lg text-[10px] bg-white hover:bg-yellow-100 transition"
+                                  whileHover={{ scale: 1.05 }}
+                                  whileTap={{ scale: 0.95 }}
+                                >
+                                  Paste below
+                                </motion.button>
+                              </div>
+                              <div className="space-y-1">
+                                {conversationPreview.split('\n').map((line, idx) => (
+                                  <p key={idx} className="mb-1 last:mb-0">{line}</p>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                   <div>
                     <label htmlFor="contact-message" className="form-label-enhanced">
@@ -736,6 +782,7 @@ ${templateText}` : templateText;
                       className="w-full p-2 border-2 border-gray-300 rounded-lg form-input-enhanced text-focus-enhanced sketch-focus focus:border-gray-600 outline-none resize-none"
                       placeholder={activeMood.placeholder}
                       value={form.message}
+                      ref={messageRef}
                       onChange={handleChange}
                       disabled={status === 'sending'}
                       required
@@ -780,9 +827,9 @@ ${templateText}` : templateText;
                       {error}
                     </div>
                   )}
-                  {status === 'success' && (
-                    <div className="text-xs text-green-600 handwritten" role="alert" aria-live="polite">
-                      Thank you! I'll get back to you soon.
+                  {showMailOptions && mailDraft && (
+                    <div className="text-xs text-indigo-700 handwritten" role="alert" aria-live="polite">
+                      Choose your email app below to send the draft.
                     </div>
                   )}
                   <div ref={confettiRef} style={{ position: 'absolute', left: '50%', top: '-2.5rem', transform: 'translateX(-50%)', fontSize: '2rem', pointerEvents: 'none', transition: 'all 1s cubic-bezier(.17,.67,.83,.67)', opacity: 0 }} aria-hidden="true" />
@@ -821,6 +868,68 @@ ${templateText}` : templateText;
                     </AnimatePresence>
                   </motion.div>
                 </form>
+                <AnimatePresence>
+                  {showMailOptions && mailDraft && (
+                    <motion.div
+                      key="mail-options"
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 12 }}
+                      transition={{ duration: 0.25 }}
+                      className="mt-4 border-2 border-dashed border-gray-300 rounded-xl bg-white/70 p-4 space-y-3"
+                      ref={mailOptionsRef}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="handwritten text-sm text-gray-700">Send this draft with your favorite email app.</span>
+                        <motion.button
+                          type="button"
+                          onClick={() => { setShowMailOptions(false); setMailDraft(null); }}
+                          className="px-3 py-1 border border-gray-300 rounded-lg text-[11px] handwritten bg-white hover:bg-gray-100 transition"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          Close
+                        </motion.button>
+                      </div>
+                      <div className="grid sm:grid-cols-3 gap-3">
+                        <motion.button
+                          type="button"
+                          onClick={() => openMailProvider('gmail')}
+                          className="px-3 py-2 border-2 border-amber-300 rounded-xl bg-amber-50 handwritten text-sm text-gray-800 hover:bg-amber-100 transition text-left"
+                          whileHover={{ scale: 1.03 }}
+                          whileTap={{ scale: 0.96 }}
+                        >
+                          📧 Open in Gmail
+                        </motion.button>
+                        <motion.button
+                          type="button"
+                          onClick={() => openMailProvider('outlook')}
+                          className="px-3 py-2 border-2 border-sky-300 rounded-xl bg-sky-50 handwritten text-sm text-gray-800 hover:bg-sky-100 transition text-left"
+                          whileHover={{ scale: 1.03 }}
+                          whileTap={{ scale: 0.96 }}
+                        >
+                          💼 Open in Outlook
+                        </motion.button>
+                        <motion.button
+                          type="button"
+                          onClick={() => openMailProvider('other')}
+                          className="px-3 py-2 border-2 border-gray-300 rounded-xl bg-white handwritten text-sm text-gray-800 hover:bg-gray-100 transition text-left"
+                          whileHover={{ scale: 1.03 }}
+                          whileTap={{ scale: 0.96 }}
+                        >
+                          ✉️ Other email apps
+                        </motion.button>
+                      </div>
+                      <div className="bg-white border border-dashed border-gray-200 rounded-lg p-3">
+                        <div className="handwritten text-xs text-gray-600 leading-snug select-text">
+                          {mailDraft.body.split('\n').map((line, idx) => (
+                            <p key={idx}>{line || ' '}</p>
+                          ))}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
                 {/* Extra floating doodle icons */} 
                 <motion.div
                   className="absolute right-2 bottom-8 text-xl select-none"
@@ -830,6 +939,15 @@ ${templateText}` : templateText;
                 >
                   🗒️
                 </motion.div>
+              </SketchCard>
+              <SketchCard tilt="left" className="p-3 mt-4">
+                <SketchHeading level={2} className="heading-secondary-enhanced text-lg mb-3">
+                  Book A Call
+                </SketchHeading>
+                <p className="handwritten text-xs text-gray-600 mb-4">
+                  Grab a quick 15 minute intro or dive deeper for 30 minutes. Pick what suits you and we will jam.
+                </p>
+                <CalScheduleEmbed events={CAL_EVENTS} primaryColor="#000000" theme="light" />
               </SketchCard>
             </motion.div>
 

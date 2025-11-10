@@ -1,6 +1,6 @@
 ## Overview
 
-Personal portfolio built with Next.js App Router, Tailwind CSS, Framer Motion, and Sanity. The project has been restructured around a `src` directory to better separate shared primitives from feature-specific modules.
+Personal portfolio built with Next.js App Router, Tailwind CSS, and Framer Motion. The project has been restructured around a `src` directory to better separate shared primitives from feature-specific modules.
 
 ## Project Layout
 
@@ -18,7 +18,7 @@ src/
 	types/                 Global TypeScript definitions
 ```
 
-Feature areas such as Work, Portfolio, and Vlogs now live under `src/modules/<feature>` with co-located components, data, and barrel exports. Shared UI (buttons, sketch elements, layout shells) remains under `src/components` while business logic and integrations (Supabase, Arcjet, Sanity) sit in `src/lib`.
+Feature areas such as Work, Portfolio, and Vlogs now live under `src/modules/<feature>` with co-located components, data, and barrel exports. Shared UI (buttons, sketch elements, layout shells) remains under `src/components` while business logic and integrations (Supabase, Arcjet) sit in `src/lib`.
 
 ## Commands
 
@@ -37,7 +37,6 @@ Shared components (navigation, hero sections, themed layouts) continue to live u
 
 ## Data & Services
 
-- Sanity content queries and mutations: `@/lib/sanity`
 - Arcjet protection for APIs and forms: `@/lib/arcjet`
 - Supabase admin utilities: `@/lib/supabase`
 - Static portfolio metadata: `@/data/portfolio-data`

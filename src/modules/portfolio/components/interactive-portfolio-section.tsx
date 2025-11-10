@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DraggableItem } from './draggable-notebook';
 import ScribbleWorkspace, { EnhancedScribbleDragItem } from './scribble-workspace';
@@ -24,6 +25,14 @@ interface InteractiveStats {
   projectsViewed: string[];
 }
 
+interface ProjectLibraryEntry {
+  id: string;
+  title: string;
+  description: string;
+  tags: string[];
+  company: string;
+}
+
 interface Achievement {
   id: string;
   title: string;
@@ -33,64 +42,19 @@ interface Achievement {
   condition: (stats: InteractiveStats) => boolean;
 }
 
-const PROJECT_LIBRARY = [
-  {
-    id: 'hp-print-ai',
-    title: 'HP Print AI - Intelligent Print Experience',
-    description: 'Email and webmail print pipelines rebuilt with Spring Boot, Node.js, and AI cues—reduced setup clicks by 35% and page usage by 20%.',
-    tags: ['Spring Boot', 'Node.js', 'AI'],
-    company: 'HP Inc'
-  },
-  {
-    id: 'squarebridge-design',
-    title: 'Squarebridge Platform Design System',
-    description: '200+ candidates interviewed, 150+ Figma screens shipped, and a living design kit for student-recruiter collaboration.',
-    tags: ['UX Research', 'Design Systems', 'Figma'],
-    company: 'SNS Square'
-  },
-  {
-    id: 'print-uberization',
-    title: 'Print Platform - B2C Uberization',
-    description: 'Designed responsive onboarding that connects customers, jobbers, and logistics partners across 500K+ mobile users.',
-    tags: ['Next.js', 'Responsive UI', 'Service Design'],
-    company: 'HP Inc'
-  },
-  {
-    id: 'ai-stack-studio',
-    title: 'HP AI Stack Internal Studio',
-    description: 'Branded and built the internal AI platform so 500+ teammates could query models with confidence.',
-    tags: ['Next.js', 'Branding', 'AI Enablement'],
-    company: 'HP Inc'
-  },
-  {
-    id: 'peoplegamez-gamification',
-    title: 'HR Gamification Playlab',
-    description: 'Interaction design internship where weekly feedback loops shaped 100+ assets and data stories.',
-    tags: ['Gamification', 'Interaction Design', 'Data Viz'],
-    company: 'PeopleGamez.com'
-  },
-  {
-    id: 'kirukism-habit-tracker',
-    title: 'Kirukism Habit Tracker',
-    description: 'Mobile app prototype blending data viz and motivation loops—helped early testers stay accountable.',
-    tags: ['Mobile', 'Data Viz', 'Product Thinking'],
-    company: 'Personal Lab'
-  }
-];
-
 const PERSONAL_NOTE_LIBRARY = [
-  '🏡 Grew up in a 30-member creative joint family—critiques were the soundtrack to dinner.',
-  "📝 Class 6 to 10: QA testing my uncle's ERP builds for biryani while sketching in the margins.",
-  '🎭 Led Sona cultural design crew, keeping the campus voice playful yet clear.',
-  '🧪 Pandemic playlab with my cousin: shipped mobile games, iterated in FigJam, learned motion the hard way.',
-  '🚀 HP Print AI launch season = prompt rehearsals, dry runs, and observability rituals with ops & writers.',
-  '🎨 Squarebridge design system: 150+ screens, async Loom walkthroughs, recruiters finally breathing easy.',
-  '🎮 PeopleGamez internship taught me to remix gamification loops into HR dashboards.',
-  '🎓 Guest lectures for 60+ students on how design systems and dev pipelines actually meet.',
-  '🌈 Present day: split weekends between kirukism sketches and documenting micro-learnings.',
-  '🏔️ Trekking keeps the creative barometer steady; bring chai and stories.',
-  '🤝 Workshop-style collaboration is my default—ideas stay on paper until the team nods.',
-  '📮 Always open to trading notes on AI, design systems, or travel routes.'
+  '🏡 30-person creative family; feedback was dinner talk.',
+  "📝 Middle school QA for my uncle's ERP in exchange for biryani.",
+  '🎭 Led Sona cultural design crew with a playful voice.',
+  '🧪 Pandemic lab with my cousin: mobile games, FigJam, motion lessons.',
+  '🚀 HP Print AI launches meant prompt drills and shared dashboards.',
+  '🎨 Squarebridge: 150 screens, async Loom tours, calmer recruiters.',
+  '🎮 PeopleGamez internship taught gamified HR dashboards.',
+  '🎓 Hosted workshops for 60+ students on design-meets-dev.',
+  '🌈 Weekends split between kirukism sketches and tiny notes.',
+  '🏔️ Trekking keeps the creative barometer steady; bring chai.',
+  '🤝 Workshop-first collaborator; ideas stay on paper till the team nods.',
+  '📮 Always up to trade notes on AI, systems, or travel.'
 ];
 
 const SKILL_LIBRARY = [
@@ -108,24 +72,96 @@ const SKILL_LIBRARY = [
 
 const TESTIMONIAL_LIBRARY = [
   {
-    text: 'Arun mapped the HP Print AI observability story in a week—dashboards finally speak the same language as our stand-ups.',
+    text: 'Arun mapped HP Print AI observability in days and aligned our stand-up dashboards.',
     author: 'Engineering Lead, HP Print AI',
     rating: '⭐⭐⭐⭐⭐'
   },
   {
-    text: "Squarebridge's design system went from chaos to choreography; developers quote his Loom walkthroughs daily.",
+    text: "Squarebridge's design system went from chaos to choreography; devs still cite his Looms.",
     author: 'Product Manager, SNS Square',
     rating: '⭐⭐⭐⭐⭐'
   },
   {
-    text: 'His UI/UX workshop turned design systems into something our students could actually implement.',
+    text: 'His UI/UX workshop made design systems feel buildable for our students.',
     author: 'Faculty Coordinator, Sona College',
     rating: '⭐⭐⭐⭐⭐'
   },
   {
-    text: 'PeopleGamez prototypes hit production faster because Arun co-created loops with product and engineering on the same fig page.',
+    text: 'PeopleGamez prototypes shipped faster because he co-created loops with product and engineering.',
     author: 'Founder, PeopleGamez.com',
     rating: '⭐⭐⭐⭐⭐'
+  }
+];
+
+const PROJECT_LIBRARY: ProjectLibraryEntry[] = [
+  {
+    id: 'hp-print-ai-observability',
+    title: 'HP Print AI Observability',
+    description: 'Automated incident rituals with Grafana, prompt libraries, and live KPI dashboards for the Print AI org.',
+    tags: ['Observability', 'AI Ops', 'Automation'],
+    company: 'HP Inc.'
+  },
+  {
+    id: 'hp-print-ai-workflows',
+    title: 'Print AI Workflow Launchpad',
+    description: 'Shipped workflow guides, stakeholder tours, and onboarding microsites to unblock cross-continent launches.',
+    tags: ['Product Enablement', 'UX Writing', 'Launch'],
+    company: 'HP Inc.'
+  },
+  {
+    id: 'squarebridge-design-system',
+    title: 'Squarebridge Design System',
+    description: 'Codified 150+ screens into a unified system with Loom walkthroughs so engineering could sprint in sync.',
+    tags: ['Design System', 'Storybook', 'Enterprise'],
+    company: 'SNS Square'
+  },
+  {
+    id: 'peoplegamez-culture-sim',
+    title: 'PeopleGamez Culture Sim',
+    description: 'Built gamified HR dashboards and scorecards to make hiring stories measurable and playful.',
+    tags: ['Gamification', 'Dashboards', 'Product'],
+    company: 'PeopleGamez.com'
+  },
+  {
+    id: 'kirukism-mobile-studio',
+    title: 'Kirukism Mobile Studio',
+    description: 'Prototype mobile-first storytelling studio for kiruk sketches, travel logs, and quick audio drops.',
+    tags: ['Mobile', 'Storytelling', 'Prototype'],
+    company: 'Kiruk Studio'
+  },
+  {
+    id: 'kiruk-alternative-instagram',
+    title: 'Alternative Instagram Vault',
+    description: 'Personal content hub that syncs travel, learning, and life updates with storytelling widgets.',
+    tags: ['Content Systems', 'CMS'],
+    company: 'Kiruk Studio'
+  }
+];
+
+const INTRO_HIGH_LIGHTS = [
+  {
+    id: 'sketch',
+    icon: '✍️',
+    title: 'Notebook First',
+    note: 'Every feature begins as a scribble in my Kiruk sketchbook.'
+  },
+  {
+    id: 'collab',
+    icon: '🗣️',
+    title: 'Stakeholder Jam Sessions',
+    note: 'Hosts tiny workshops to collect input, sketch together, and land on aligned stories.'
+  },
+  {
+    id: 'process',
+    icon: '🌀',
+    title: 'Enjoy The Process',
+    note: 'Gathers inputs early, iterates mid-flight, and celebrates the messy middle as much as launch day.'
+  },
+  {
+    id: 'generalist',
+    icon: '🛠️',
+    title: 'Sketch-to-Service',
+    note: 'Generalist builder who goes from notebook scamps to shipped services.'
   }
 ];
 
@@ -145,7 +181,7 @@ const ScribbledDragIcon: React.FC<{ className?: string; size?: number }> = ({
       height={size} 
       viewBox="0 0 24 24" 
       className={className}
-      style={{ filter: 'drop-shadow(1px 1px 1px rgba(0,0,0,0.1))' }}
+      style={{ filter: 'drop-shadow(1px 1px 1px rgba(0,0,0,0.1))' }} 
     >
       {/* Hand-drawn style drag dots */}
       <g fill="currentColor" opacity="0.8">
@@ -158,14 +194,12 @@ const ScribbledDragIcon: React.FC<{ className?: string; size?: number }> = ({
         <circle cx="6.1" cy="11.8" r="1.9" />
         <circle cx="12.2" cy="12.1" r="1.8" />
         <circle cx="17.7" cy="11.7" r="1.8" />
-        
         {/* Bottom row dots */}
         <circle cx="5.9" cy="17.9" r="1.7" />
         <circle cx="11.8" cy="18.2" r="1.9" />
         <circle cx="18.1" cy="17.8" r="1.8" />
       </g>
       
-      {/* Scribbled outline effect */}
       <g fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.3">
         <path d="M4,4 Q6,3 8,4 Q10,5 8,6 Q6,7 4,6 Q2,5 4,4" />
         <path d="M16,4 Q18,3 20,4 Q22,5 20,6 Q18,7 16,6 Q14,5 16,4" />
@@ -243,7 +277,8 @@ export const InteractivePortfolioSection: React.FC<{
     achievementsUnlocked: [],
     skillsExplored: [],
     projectsViewed: []
-  });  const [achievements, setAchievements] = useState<Achievement[]>([
+  });
+  const [achievements, setAchievements] = useState<Achievement[]>([
     {
       id: 'first-interaction',
       title: 'Getting Started',
@@ -291,12 +326,14 @@ export const InteractivePortfolioSection: React.FC<{
       icon: '🎨',
       unlocked: false,
       condition: (stats) => stats.itemsCreated >= 5
-    }  ]);
+    }
+  ]);
 
   const [showAchievements, setShowAchievements] = useState(false);
   const [newlyUnlockedAchievements, setNewlyUnlockedAchievements] = useState<string[]>([]);
 
   // Time tracking effect
+  // Auto-dismiss intro note after 10 seconds of visibility.
   useEffect(() => {
     const timer = setInterval(() => {
       setInteractiveStats(prev => ({
@@ -360,7 +397,8 @@ export const InteractivePortfolioSection: React.FC<{
       content: (
         <div className="handwritten text-sm">
           <div className="font-bold mb-1">👋 Hey, I'm Arun.</div>
-          <div>Grab a token, slide a note—this desk stitches HP Print AI builds, kirukism sketches, and the stories that shaped me. Every drag unlocks a new chapter.</div>
+          <div>Grab a story badge—this desk is my notebook online. "Kiruk" is Tamil for scribble and every idea starts on paper.</div>
+          <div className="mt-2">Badges show how sketches turn into shipped work.</div>
         </div>
       ),
       position: { x: 300, y: 100 },
@@ -376,11 +414,11 @@ export const InteractivePortfolioSection: React.FC<{
         <div>
           <SketchHeading level={3} className="text-lg mb-2">About Me</SketchHeading>
           <div className="handwritten text-sm text-gray-700">
-            Versatile engineer and designer blending technical depth with creative problem-solving. Skilled across full-stack development, cloud infrastructure, product design, and AI integration to deliver end-to-end solutions.
+            Product-minded engineer and designer shipping end-to-end tools.
             <br /><br />
-            Currently shaping HP Print AI experiences while exploring playful interfaces through kirukism projects.
+            Currently shaping HP Print AI and playful kirukism experiments.
             <br /><br />
-            📍 Bengaluru & Remote | ✉️ arunkumaar.srinivasan@gmail.com
+            📍 Bengaluru · ✉️ arunkumaar.srinivasan@gmail.com
           </div>
         </div>
       ),
@@ -392,13 +430,38 @@ export const InteractivePortfolioSection: React.FC<{
   ]);
 
   const [scribbleItems, setScribbleItems] = useState<ScribbleDragItem[]>([]);
+  const [highlightedItems, setHighlightedItems] = useState<string[]>([]);
+  const highlightTimeoutsRef = useRef<Record<string, number>>({});
 
   const [journeyStepsCompleted, setJourneyStepsCompleted] = useState<string[]>([]);
-  const [boardNote, setBoardNote] = useState('Tap a token to explore a story. A green check means it is done.');
+  const boardNoteMessage = 'Story badges guide the desk. Tap one to open a chapter and watch the green check mark what you have unlocked.';
+  const [boardNote, setBoardNote] = useState(boardNoteMessage);
   const [boardMood, setBoardMood] = useState('🚀');
 
   const markJourneyStep = useCallback((stepId: string) => {
     setJourneyStepsCompleted(prev => (prev.includes(stepId) ? prev : [...prev, stepId]));
+  }, []);
+
+  const addNotebookItem = useCallback((item: DraggableItem) => {
+    setNotebookItems(prev => [...prev, item]);
+    setHighlightedItems(prev => [...prev.filter(id => id !== item.id), item.id]);
+
+    if (highlightTimeoutsRef.current[item.id]) {
+      window.clearTimeout(highlightTimeoutsRef.current[item.id]);
+    }
+
+    highlightTimeoutsRef.current[item.id] = window.setTimeout(() => {
+      setHighlightedItems(prev => prev.filter(id => id !== item.id));
+      delete highlightTimeoutsRef.current[item.id];
+    }, 3000);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      Object.values(highlightTimeoutsRef.current).forEach((timeoutId) => {
+        window.clearTimeout(timeoutId);
+      });
+    };
   }, []);
 
 
@@ -465,7 +528,7 @@ export const InteractivePortfolioSection: React.FC<{
       zIndex: getNextZIndex() // Ensure new items appear on top
     };
 
-    setNotebookItems(prev => [...prev, newItem]);
+    addNotebookItem(newItem);
     setInteractiveStats(prev => ({
       ...prev,
       itemsCreated: prev.itemsCreated + 1,
@@ -505,7 +568,7 @@ export const InteractivePortfolioSection: React.FC<{
       zIndex: getNextZIndex() // Ensure new items appear on top
     };
 
-    setNotebookItems(prev => [...prev, newItem]);
+    addNotebookItem(newItem);
     setInteractiveStats(prev => ({
       ...prev,
       itemsCreated: prev.itemsCreated + 1,
@@ -548,7 +611,7 @@ export const InteractivePortfolioSection: React.FC<{
       zIndex: getNextZIndex() // Ensure new items appear on top
     };
 
-    setNotebookItems(prev => [...prev, newItem]);
+    addNotebookItem(newItem);
     setInteractiveStats(prev => ({
       ...prev,
       itemsCreated: prev.itemsCreated + 1,
@@ -571,7 +634,7 @@ export const InteractivePortfolioSection: React.FC<{
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <strong>Role:</strong> Software Systems Engineer 1 @ HP Print AI (Aug 2023 - Present)
+              <strong>Role:</strong> Software Systems Engineer @ HP Print AI (2023-present)
             </motion.div>
             <motion.div 
               className="bg-green-50 p-2 rounded handwritten text-sm"
@@ -585,14 +648,14 @@ export const InteractivePortfolioSection: React.FC<{
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <strong>Freelance:</strong> SNS Square design lead delivering end-to-end product UX (Nov 2023 - Aug 2024)
+              <strong>Freelance:</strong> SNS Square design lead for end-to-end UX (Nov 2023-Aug 2024)
             </motion.div>
             <motion.div 
               className="bg-pink-50 p-2 rounded handwritten text-sm"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <strong>Education:</strong> B.E. Computer Science & Engineering (8.9 CGPA) | 60+ students mentored via UI/UX workshops
+              <strong>Education:</strong> B.E. CSE (8.9 CGPA) | mentored 60+ students through UI/UX workshops
             </motion.div>
           </div>
         </div>
@@ -606,7 +669,7 @@ export const InteractivePortfolioSection: React.FC<{
       zIndex: getNextZIndex() // Ensure new items appear on top
     };
 
-    setNotebookItems(prev => [...prev, newItem]);
+    addNotebookItem(newItem);
     setInteractiveStats(prev => ({
       ...prev,
       itemsCreated: prev.itemsCreated + 1,
@@ -638,7 +701,7 @@ export const InteractivePortfolioSection: React.FC<{
       zIndex: getNextZIndex() // Ensure new items appear on top
     };
 
-    setNotebookItems(prev => [...prev, newItem]);
+    addNotebookItem(newItem);
     setInteractiveStats(prev => ({
       ...prev,
       itemsCreated: prev.itemsCreated + 1,
@@ -673,7 +736,7 @@ export const InteractivePortfolioSection: React.FC<{
       zIndex: getNextZIndex() // Ensure new items appear on top
     };
 
-    setNotebookItems(prev => [...prev, newNote]);
+    addNotebookItem(newNote);
     setInteractiveStats(prev => ({
       ...prev,
       itemsCreated: prev.itemsCreated + 1,
@@ -688,42 +751,42 @@ export const InteractivePortfolioSection: React.FC<{
         id: 'projects',
         icon: '💼',
         title: 'Project Drops',
-        description: 'Launch curated case studies onto the desk.',
+        description: 'Drop a quick case study card.',
         action: addProjectCard
       },
       {
         id: 'notes',
         icon: '📝',
         title: 'Personal Scribbles',
-        description: 'Drop a quick note from my day-to-day stories.',
+        description: 'Add a tiny note from my day-to-day.',
         action: addPersonalNote
       },
       {
         id: 'skills',
         icon: '🎯',
         title: 'Skill Bubbles',
-        description: 'Reveal the stacks and crafts I love working on.',
+        description: 'Show a stack bubble I rely on.',
         action: addSkillBubble
       },
       {
         id: 'resume',
         icon: '🎓',
         title: 'Mini Resume',
-        description: 'Pin a quick highlight reel of my journey.',
+        description: 'Pin a mini resume snapshot.',
         action: addInteractiveResume
       },
       {
         id: 'testimonials',
         icon: '💬',
         title: 'Kind Words',
-        description: 'Hear what teammates and partners say.',
+        description: 'Surface a short teammate quote.',
         action: addTestimonial
       },
       {
         id: 'scribble',
         icon: '✏️',
         title: 'Make A Doodle',
-        description: 'Sketch something and stick it to the notebook.',
+        description: 'Sketch and pin it on the notebook.',
         action: addScribbleElement
       }
     ],
@@ -740,27 +803,27 @@ export const InteractivePortfolioSection: React.FC<{
   const journeyStoryMoments = useMemo(
     () => ({
       projects: {
-        note: 'Peek into shipped case studies and impact metrics.',
+        note: 'Quick peek at shipped case studies.',
         mood: '🛠️'
       },
       notes: {
-        note: 'Sticky notes from my day-to-day craft and quirks.',
+        note: 'Tiny notes from daily craft.',
         mood: '📒'
       },
       skills: {
-        note: 'Tech stacks and creative tools I jam with.',
+        note: 'Stacks and tools I lean on.',
         mood: '🧰'
       },
       resume: {
-        note: 'Quick highlights from HP Inc to classrooms.',
+        note: 'Highlights from HP work to classrooms.',
         mood: '🎓'
       },
       testimonials: {
-        note: 'Voices from teammates, students, and partners.',
+        note: 'Voices from teammates and students.',
         mood: '💬'
       },
       scribble: {
-        note: 'Leave your own doodle on the desk—go wild.',
+        note: 'Drop your doodle on the desk.',
         mood: '✏️'
       }
     }),
@@ -798,7 +861,7 @@ export const InteractivePortfolioSection: React.FC<{
 
   useEffect(() => {
     if (journeyStepsCompleted.length === 0) {
-      setBoardNote('Tap a token to explore a story. A green check means it is done.');
+      setBoardNote(boardNoteMessage);
       setBoardMood('🚀');
       return;
     }
@@ -811,7 +874,7 @@ export const InteractivePortfolioSection: React.FC<{
     }
 
     if (journeyStepsCompleted.length === journeySteps.length) {
-      setBoardNote('You reached every corner—feel free to remix the desk or drop a doodle.');
+      setBoardNote('All badges cleared—remix the desk or drop a doodle.');
       setBoardMood('🎉');
     }
   }, [journeyStepsCompleted, journeySteps.length, journeyStoryMoments]);
@@ -825,8 +888,13 @@ export const InteractivePortfolioSection: React.FC<{
     setNotebookItems([]);
     setScribbleItems([]);
     setJourneyStepsCompleted([]);
-    setBoardNote('Tap a token to explore a story. A green check means it is done.');
+    setBoardNote(boardNoteMessage);
     setBoardMood('🚀');
+    setHighlightedItems([]);
+    Object.values(highlightTimeoutsRef.current).forEach((timeoutId) => {
+      window.clearTimeout(timeoutId);
+    });
+    highlightTimeoutsRef.current = {};
     setInteractiveStats(prev => ({
       ...prev,
       itemsCreated: 0,
@@ -838,11 +906,93 @@ export const InteractivePortfolioSection: React.FC<{
   };
 
   const [showIntro, setShowIntro] = useState(true);
+  const [isIntroDocked, setIsIntroDocked] = useState(false);
+  const [introPromptToClose, setIntroPromptToClose] = useState(false);
+  const introHighlights = INTRO_HIGH_LIGHTS;
+  const [activeHighlightIndex, setActiveHighlightIndex] = useState(0);
   const [introPosition, setIntroPosition] = useState({ x: 300, y: 200 });
   const [isDraggingIntro, setIsDraggingIntro] = useState(false);
   const [showScribblePad, setShowScribblePad] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [forceDesktopExperience, setForceDesktopExperience] = useState(false);
+  const [showProjectSpotlight, setShowProjectSpotlight] = useState(false);
+  const [projectSpotlightDismissed, setProjectSpotlightDismissed] = useState(false);
+  const [projectSpotlightLayout, setProjectSpotlightLayout] = useState<{
+    centerX: number;
+    top: number;
+    viewportWidth: number;
+  } | null>(null);
+  const projectSpotlightMetrics = useMemo(() => {
+    if (!projectSpotlightLayout) {
+      return null;
+    }
+
+    const messageWidth = 320;
+    const minLeft = 16;
+    const maxLeft = projectSpotlightLayout.viewportWidth - messageWidth - 16;
+    const messageLeft = Math.min(Math.max(projectSpotlightLayout.centerX - messageWidth / 2, minLeft), maxLeft);
+    const messageTop = Math.max(projectSpotlightLayout.top - 210, 24);
+    const anchorX = projectSpotlightLayout.centerX - messageLeft;
+    const anchorY = projectSpotlightLayout.top - messageTop;
+
+    return {
+      messageLeft,
+      messageTop,
+      anchorX,
+      anchorY,
+      messageWidth
+    };
+  }, [projectSpotlightLayout]);
+  const projectSpotlightScribble = useMemo(() => {
+    if (!projectSpotlightMetrics) {
+      return null;
+    }
+
+    const svgHeight = Math.max(projectSpotlightMetrics.anchorY + 30, 110);
+    const controlOffsetX = (projectSpotlightMetrics.anchorX - projectSpotlightMetrics.messageWidth / 2) * 0.4;
+    const controlY = svgHeight * 0.45;
+    const pathD = `M ${projectSpotlightMetrics.messageWidth / 2} 30 C ${projectSpotlightMetrics.messageWidth / 2 + controlOffsetX} ${controlY}, ${projectSpotlightMetrics.anchorX} ${controlY + 30}, ${projectSpotlightMetrics.anchorX} ${svgHeight - 10}`;
+    const labelLeft = Math.min(
+      Math.max(projectSpotlightMetrics.anchorX - 70, 12),
+      projectSpotlightMetrics.messageWidth - 80
+    );
+    const labelBottom = Math.max(12, svgHeight - projectSpotlightMetrics.anchorY + 4);
+
+    return {
+      svgHeight,
+      pathD,
+      labelLeft,
+      labelBottom
+    };
+  }, [projectSpotlightMetrics]);
+
+  const activeHighlight = introHighlights.length > 0
+    ? introHighlights[activeHighlightIndex % introHighlights.length]
+    : null;
+
+  useEffect(() => {
+    if (!showIntro) {
+      return;
+    }
+
+    setIntroPromptToClose(false);
+    const timeout = window.setTimeout(() => {
+      setIntroPromptToClose(true);
+    }, 15000);
+    return () => window.clearTimeout(timeout);
+  }, [showIntro]);
+
+  useEffect(() => {
+    if (!showIntro || introHighlights.length === 0) {
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      setActiveHighlightIndex((previous) => (previous + 1) % introHighlights.length);
+    }, 9000);
+
+    return () => window.clearInterval(interval);
+  }, [showIntro, introHighlights.length]);
   // Mobile detection
   useEffect(() => {
     const checkMobile = () => {
@@ -853,6 +1003,66 @@ export const InteractivePortfolioSection: React.FC<{
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  useEffect(() => {
+    if (projectSpotlightDismissed) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setShowProjectSpotlight(true);
+    }, 35000);
+
+    return () => window.clearTimeout(timer);
+  }, [projectSpotlightDismissed]);
+
+  useEffect(() => {
+    if (showIntro || projectSpotlightDismissed || showProjectSpotlight) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setShowProjectSpotlight(true);
+    }, 4000);
+
+    return () => window.clearTimeout(timer);
+  }, [showIntro, projectSpotlightDismissed, showProjectSpotlight]);
+
+  useEffect(() => {
+    if (showProjectSpotlight) {
+      trackInteraction('portfolio_project_spotlight_shown', {});
+    }
+  }, [showProjectSpotlight, trackInteraction]);
+
+  useEffect(() => {
+    if (!showProjectSpotlight) {
+      setProjectSpotlightLayout(null);
+      return;
+    }
+
+    const updateLayout = () => {
+      const navLink = document.querySelector<HTMLAnchorElement>("#navigation a[href='/case-studies']");
+      if (!navLink) {
+        setProjectSpotlightLayout(null);
+        return;
+      }
+      const rect = navLink.getBoundingClientRect();
+      setProjectSpotlightLayout({
+        centerX: rect.left + rect.width / 2,
+        top: rect.top,
+        viewportWidth: window.innerWidth
+      });
+    };
+
+    updateLayout();
+    window.addEventListener('resize', updateLayout);
+    window.addEventListener('scroll', updateLayout, { passive: true });
+
+    return () => {
+      window.removeEventListener('resize', updateLayout);
+      window.removeEventListener('scroll', updateLayout);
+    };
+  }, [showProjectSpotlight]);
 
   // Extract mouse move handler for intro dragging
   const createMouseMoveHandler = (offsetX: number, offsetY: number, rect: DOMRect) => {
@@ -1136,6 +1346,12 @@ export const InteractivePortfolioSection: React.FC<{
 
   const handleCloseIntro = useCallback(() => {
     setShowIntro(false);
+    setIsIntroDocked(true);
+  }, []);
+
+  const handleRestoreIntro = useCallback(() => {
+    setIsIntroDocked(false);
+    setShowIntro(true);
   }, []);
 
   const toggleAchievements = useCallback(() => {
@@ -1151,6 +1367,21 @@ export const InteractivePortfolioSection: React.FC<{
     setForceDesktopExperience(false);
     trackInteraction('portfolio_mobile_back_to_summary', {});
   }, [trackInteraction]);
+
+  const handleDismissProjectSpotlight = useCallback(() => {
+    setShowProjectSpotlight(false);
+    setProjectSpotlightDismissed(true);
+    trackInteraction('portfolio_project_spotlight_dismiss', {});
+  }, [trackInteraction]);
+
+  const handleProjectSpotlightNavigate = useCallback(
+    (destination: string) => {
+      setShowProjectSpotlight(false);
+      setProjectSpotlightDismissed(true);
+      trackInteraction('portfolio_project_spotlight_navigate', { destination });
+    },
+    [trackInteraction]
+  );
 
   const shouldRenderDesktopExperience = !isMobile || forceDesktopExperience;
 
@@ -1181,11 +1412,11 @@ export const InteractivePortfolioSection: React.FC<{
               </div>
             </div>
             <p className="handwritten text-sm text-gray-700 leading-snug mt-4">
-              This pocket view keeps the essentials handy—projects, skills, and goals in a clean scroll. Tap the button below whenever you want to explore the draggable desk.
+              This pocket view lists key projects, skills, and goals. Tap below to open the draggable desk.
             </p>
             <div className="mt-4 flex justify-center">
               <p className="handwritten text-sm text-gray-800 leading-snug text-center bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-2 shadow-sm">
-                For the full interactive portfolio, hop onto a desktop or wider screen where every draggable note and badge comes alive.
+                To see every draggable note, hop onto a wider screen and launch the full desk.
               </p>
             </div>
           </div>
@@ -1208,7 +1439,7 @@ export const InteractivePortfolioSection: React.FC<{
                   {journeySteps.length}
                 </div>
                 <div className="text-[11px] text-gray-600 handwritten uppercase tracking-wide">
-                  Story Tokens
+                  Story Badges
                 </div>
               </div>
               <div>
@@ -1221,7 +1452,7 @@ export const InteractivePortfolioSection: React.FC<{
               </div>
             </div>
             <p className="handwritten text-xs text-gray-600 leading-snug mt-3">
-              Ready for the full canvas? Launch the interactive desk to move notes, unlock badges, and explore deep case studies.
+              Ready for the full desk? Launch it to move notes and unlock badges.
             </p>
           </div>
 
@@ -1336,7 +1567,8 @@ export const InteractivePortfolioSection: React.FC<{
       <ScribeCanvas />
       
       {/* Movable Personal Intro */}
-      {showIntro && (
+      <AnimatePresence>
+        {showIntro && (
         <motion.div
           className={`absolute z-30 ${isMobile ? 'cursor-default' : 'cursor-move'}`}
           style={{
@@ -1352,7 +1584,7 @@ export const InteractivePortfolioSection: React.FC<{
           onMouseDown={isMobile ? undefined : handleIntroMouseDown}
           whileHover={isMobile ? {} : { scale: 1.01 }}
         >
-          <div className={`bg-gradient-to-r from-blue-50 to-indigo-100 border-4 border-dashed border-blue-300 rounded-2xl p-4 shadow-xl relative select-none ${isMobile ? 'max-w-xs mx-2' : 'max-w-md'}`}>
+            <div className={`bg-gradient-to-r from-blue-50 to-indigo-100 border-4 border-dashed border-blue-300 rounded-2xl p-4 shadow-xl relative select-none ${isMobile ? 'max-w-xs mx-2' : 'max-w-md'}`}>
             {/* Drag handle - only show on desktop */}
             {!isMobile && (
               <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-10 h-6 bg-blue-300 rounded-b-lg flex items-center justify-center cursor-grab active:cursor-grabbing border-2 border-blue-400">
@@ -1376,53 +1608,154 @@ export const InteractivePortfolioSection: React.FC<{
                 className="text-3xl"
               >
                 👋
-              </motion.div>              <div>                <h2 className="text-xl font-bold text-gray-800" style={{ fontFamily: 'Left Hand, cursive' }}>
+              </motion.div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-800" style={{ fontFamily: 'Left Hand, cursive' }}>
                   Hey! I'm Arun
                 </h2>
                 <div className="handwritten text-sm text-blue-600">
-                  SDE 1 @ HP Inc | Designer & Developer
+                  SDE 1 @ HP Inc · Designer-Developer Hybrid
+                </div>
+                <div className="handwritten text-xs text-blue-500">
+                  Kiruk = scribble — every build starts in my notebook.
                 </div>
               </div>
             </div>
 
             <div className="handwritten text-gray-700 text-sm mb-3">
-              <p>
-                🚀 Full-stack developer who loves crafting delightful experiences. 
-                When not coding, you'll find me trekking 🥾 or playing ping pong 🏓
-              </p>
+              <p>✍️ Keeping pen-and-paper energy alive while I craft digital experiences.</p>
             </div>
 
-            <div className="grid grid-cols-4 gap-2 mb-3">
-              <div className="bg-white/80 rounded-lg p-2 text-center text-xs">
-                <div className="text-lg">⚡</div>
-                <div>Dev</div>
-              </div>
-              <div className="bg-white/80 rounded-lg p-2 text-center text-xs">
-                <div className="text-lg">🎨</div>
-                <div>Design</div>
-              </div>
-              <div className="bg-white/80 rounded-lg p-2 text-center text-xs">
-                <div className="text-lg">☁️</div>
-                <div>AWS</div>
-              </div>
-              <div className="bg-white/80 rounded-lg p-2 text-center text-xs">
-                <div className="text-lg">🏔️</div>
-                <div>Trek</div>
-              </div>
-            </div>
+            {activeHighlight && (
+              <motion.div
+                key={activeHighlight.id}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="mb-3 bg-white/85 border border-dashed border-blue-200 rounded-xl p-3 shadow-sm flex items-start gap-3"
+              >
+                <span className="text-2xl">{activeHighlight.icon}</span>
+                <div>
+                  <p className="text-sm font-semibold text-gray-800" style={{ fontFamily: 'Left Hand, cursive' }}>
+                    {activeHighlight.title}
+                  </p>
+                  <p className="handwritten text-xs text-gray-600 leading-snug mt-1">
+                    {activeHighlight.note}
+                  </p>
+                </div>
+              </motion.div>
+            )}
 
-            <motion.div
-              className="text-center"
-              whileHover={{ scale: 1.02 }}
-            >
-              <div className="handwritten text-xs text-gray-600 bg-white/90 px-3 py-2 rounded-full border border-dashed border-gray-300">
-                ✨ Interactive portfolio ahead! ✨
-              </div>
-            </motion.div>
+            <div className="text-center">
+              <motion.div whileHover={{ scale: 1.03 }} className={`inline-flex items-center gap-1 px-3 py-2 rounded-full border border-dashed handwritten text-xs shadow-sm ${
+                introPromptToClose
+                  ? 'bg-yellow-100 border-yellow-300 text-yellow-800'
+                  : 'bg-white/90 border-gray-300 text-gray-600'
+              }`}>
+                {introPromptToClose
+                  ? '👋 Ready? Tap the red dot to tuck this away.'
+                  : '✨ Interactive portfolio ahead — move notes, unlock badges, scribble freely. ✨'}
+              </motion.div>
+            </div>
           </div>
         </motion.div>
-      )}
+        )}
+      </AnimatePresence>
       
+      <AnimatePresence>
+        {isIntroDocked && !showIntro && (
+          <motion.button
+            type="button"
+            onClick={handleRestoreIntro}
+            className="absolute z-40"
+            style={{
+              bottom: isMobile ? '88px' : '32px',
+              left: isMobile ? '16px' : '32px'
+            }}
+            initial={{ opacity: 0, scale: 0.7, rotate: -6 }}
+            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            exit={{ opacity: 0, scale: 0.7, rotate: -6 }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+            whileHover={{ scale: 1.05, rotate: 2 }}
+            whileTap={{ scale: 0.95 }}
+            aria-label="Reopen intro notebook"
+          >
+            <div className="relative flex flex-col gap-1 items-start bg-yellow-100/95 border-2 border-dashed border-yellow-400 rounded-xl px-3 py-2 shadow-[4px_6px_0_rgba(0,0,0,0.12)] handwritten text-xs text-yellow-900 min-w-[120px]">
+              <span className="text-base">👋</span>
+              <span className="font-semibold tracking-wide">Hey, I'm Arun</span>
+              <span className="text-[10px] text-yellow-800/80">Tap to pop open the intro again.</span>
+              <span className="absolute -top-2 -right-2 w-5 h-5 rounded-full border-2 border-yellow-500 bg-white flex items-center justify-center text-[10px] font-bold text-yellow-600 shadow-sm">
+                ↗
+              </span>
+            </div>
+          </motion.button>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showProjectSpotlight && (
+          <motion.aside
+            key="project-spotlight"
+            className="absolute z-60 pointer-events-auto"
+            style={{
+              bottom: isMobile
+                ? 'calc(152px + env(safe-area-inset-bottom, 0px))'
+                : '144px',
+              left: isMobile ? '16px' : '32px',
+              right: 'auto'
+            }}
+            initial={{ opacity: 0, y: 40, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 30, scale: 0.92 }}
+            transition={{ duration: 0.45, ease: 'easeOut' }}
+          >
+            <div className="relative flex flex-col gap-3 bg-white/95 backdrop-blur-sm border border-gray-300 rounded-2xl px-3.5 py-3 shadow-[3px_4px_0_rgba(0,0,0,0.12)] max-w-xs">
+              <button
+                type="button"
+                onClick={handleDismissProjectSpotlight}
+                className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-gray-900 text-white text-xs font-bold flex items-center justify-center shadow-sm hover:bg-black transition-colors"
+                aria-label="Dismiss project spotlight"
+              >
+                ×
+              </button>
+              <div className="flex items-start gap-2">
+                <span className="text-xl leading-none">📁</span>
+                <div className="space-y-1">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gray-700 handwritten">
+                    Recruiter quick path
+                  </p>
+                  <p className="handwritten text-xs text-gray-600 leading-snug">
+                    Straight links: case studies, work reels, resume. Prefer browsing? Hit the bottom nav.
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Link
+                    href="/case-studies"
+                    onClick={() => handleProjectSpotlightNavigate('case-studies')}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full border border-indigo-300 bg-indigo-50 text-[11px] font-semibold text-indigo-700 handwritten transition-colors hover:bg-indigo-500 hover:text-white"
+                  >
+                    <span>View case studies</span>
+                    <span className="text-base leading-none">↗</span>
+                  </Link>
+                </motion.div>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Link
+                    href="/work"
+                    onClick={() => handleProjectSpotlightNavigate('work')}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full border border-gray-300 bg-white text-[11px] font-semibold text-gray-700 handwritten transition-colors hover:bg-gray-900 hover:text-white"
+                  >
+                    <span>See work highlights</span>
+                    <span className="text-base leading-none">↗</span>
+                  </Link>
+                </motion.div>
+              </div>
+            </div>
+          </motion.aside>
+        )}
+      </AnimatePresence>
+
       {/* Journey Command Center */}
       <div
         className={`absolute z-20 ${isMobile ? 'px-4 w-full' : ''}`}
@@ -1457,9 +1790,12 @@ export const InteractivePortfolioSection: React.FC<{
             <div className="flex items-start justify-between gap-2">
               <div>
                 <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-700 handwritten">Kiruk Desk Board</h3>
-                <p className="text-[11px] text-gray-600 handwritten mt-1 leading-snug">
+                <p className="text-[11px] text-gray-600 handwritten leading-snug mt-1">
+                  Kiruk is Tamil for scribble. This desk is just my paper notebook brought on screen.
+                </p>
+                <p className="text-[11px] text-gray-600 handwritten leading-snug mt-1">
                   {nextJourneyStep
-                    ? `Tap a token to unlock "${nextJourneyStep.title}".`
+                    ? `Tap a story badge to unlock "${nextJourneyStep.title}".`
                     : 'Everything is unlocked — remix the desk!'}
                 </p>
               </div>
@@ -1607,14 +1943,19 @@ export const InteractivePortfolioSection: React.FC<{
             />
           </div>
             <div className="absolute inset-0" style={{ zIndex: 2 }}>
-            {notebookItems.map((item) => (
-              <motion.div
-                key={item.id}
-                className={`absolute group ${isMobile ? 'cursor-default' : 'cursor-move'}`}
-                style={{
-                  transform: `rotate(${item.rotation ?? 0}deg) scale(${item.scale ?? 1})`,
-                  zIndex: item.zIndex ?? 100
-                }}
+            {notebookItems.map((item) => {
+              const baseZIndex = item.zIndex ?? 100;
+              const isHighlighted = highlightedItems.includes(item.id);
+              const computedZIndex = isHighlighted ? baseZIndex + 200 : baseZIndex;
+
+              return (
+                <motion.div
+                  key={item.id}
+                  className={`absolute group ${isMobile ? 'cursor-default' : 'cursor-move'} transition-[box-shadow] duration-300 ease-out`}
+                  style={{
+                    transform: `rotate(${item.rotation ?? 0}deg) scale(${item.scale ?? 1})`,
+                    zIndex: computedZIndex
+                  }}
                 initial={
                   item.id === 'welcome-note' || item.id === 'about-card'
                     ? { opacity: 0, x: item.position.x, y: item.position.y }
@@ -1653,6 +1994,18 @@ export const InteractivePortfolioSection: React.FC<{
                     : {})
                 }}
               >
+                <AnimatePresence>
+                  {isHighlighted && (
+                    <motion.span
+                      className="absolute -inset-2 rounded-3xl pointer-events-none shadow-[0_10px_18px_rgba(15,23,42,0.12)]"
+                      initial={{ opacity: 0, scale: 0.98 }}
+                      animate={{ opacity: 0.35, scale: 1 }}
+                      exit={{ opacity: 0, scale: 1.02 }}
+                      transition={{ duration: 0.35, ease: 'easeOut' }}
+                      style={{ zIndex: -1, background: 'transparent' }}
+                    />
+                  )}
+                </AnimatePresence>
                 {/* Drag indicator overlay when dragging */}
                 {!isMobile && (
                   <motion.div
@@ -1690,8 +2043,9 @@ export const InteractivePortfolioSection: React.FC<{
                     {item.content}
                   </div>
                 )}
-              </motion.div>
-            ))}
+                </motion.div>
+              );
+            })}
           </div>
         </div>      </div>      {/* Achievement Notifications */}
       <AnimatePresence>

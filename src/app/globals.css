@@ -80,6 +80,14 @@ html {
   scroll-behavior: smooth;
 }
 
+input::selection,
+textarea::selection,
+input::-moz-selection,
+textarea::-moz-selection {
+  background: #fde68a !important;
+  color: #111827 !important;
+}
+
 /* Custom scrollable container class */
 .scrollable-content {
   width: 100%;
