@@ -1,10 +1,12 @@
 "use client";
 
 import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion";
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { VlogGallery } from "@/modules/vlogs";
-import { SketchCard, SketchHeading } from "@/components/ui/sketch-elements";
+import { SketchHeading } from "@/components/ui/sketch-elements";
+import { ThemedCard, ThemeType, themeNames } from "./components/ThemedCard";
 
 // Life events data with timeline
 type TimelineEvent = {
@@ -23,6 +25,7 @@ type TimelineEvent = {
 	milestone?: boolean;
 	current?: boolean;
 	collapsed?: boolean;
+	theme: ThemeType;
 };
 
 const lifeEvents: TimelineEvent[] = [
@@ -40,6 +43,7 @@ const lifeEvents: TimelineEvent[] = [
 		tags: ["Joint family", "Creative roots", "Entrepreneurial home"],
 		lane: "upper",
 		milestone: true,
+		theme: "xp",
 	},
 	{
 		id: "family-collective-2008",
@@ -54,6 +58,7 @@ const lifeEvents: TimelineEvent[] = [
 		details: "Critique circles happened over tea; I learnt that every idea invites another perspective before it ships.",
 		tags: ["Crochet to calligraphy", "30 voices", "Shared critiques"],
 		lane: "lower",
+		theme: "web2",
 	},
 	{
 		id: "scribble-tester-2014",
@@ -68,6 +73,7 @@ const lifeEvents: TimelineEvent[] = [
 		details: "Regression checklists, bug logs, and biryani rewards made quality assurance feel like a family game.",
 		tags: ["ERP testing", "Biryani rewards", "Sketchy notebooks"],
 		lane: "upper",
+		theme: "material",
 	},
 	{
 		id: "freelance-2018",
@@ -83,6 +89,7 @@ const lifeEvents: TimelineEvent[] = [
 		tags: ["Poster design", "Illustration gigs", "First pay"],
 		lane: "lower",
 		milestone: true,
+		theme: "iphone",
 	},
 	{
 		id: "engineering-start-2019",
@@ -99,6 +106,7 @@ const lifeEvents: TimelineEvent[] = [
 		lane: "upper",
 		milestone: true,
 		collapsed: true,
+		theme: "neumorphism",
 	},
 	{
 		id: "campus-design-2020",
@@ -113,6 +121,7 @@ const lifeEvents: TimelineEvent[] = [
 		details: "Balanced stage branding, stakeholder reviews, and sprint rituals so the campus voice stayed playful yet clear.",
 		tags: ["Cultural design lead", "Website redesign", "Medical app UX"],
 		lane: "lower",
+		theme: "widgets",
 	},
 	{
 		id: "pandemic-playlab-2020",
@@ -127,6 +136,7 @@ const lifeEvents: TimelineEvent[] = [
 		details: "Lockdown evenings turned into game art jams, motion experiments, freelance sprints, and internship case studies.",
 		tags: ["Game assets", "Play Store launch", "Lockdown experiments"],
 		lane: "upper",
+		theme: "neumorphism",
 	},
 	{
 		id: "design-awakening-2021",
@@ -141,6 +151,7 @@ const lifeEvents: TimelineEvent[] = [
 		details: "Pattern libraries, accessibility checklists, and case study write-ups helped align engineers, mentors, and clients remotely.",
 		tags: ["Design systems", "UX playbooks", "Remote collaboration"],
 		lane: "lower",
+		theme: "widgets",
 	},
 	{
 		id: "peoplegamez-2022",
@@ -156,6 +167,7 @@ const lifeEvents: TimelineEvent[] = [
 		tags: ["Gamified journeys", "Feedback jams", "Remote rituals"],
 		lane: "upper",
 		milestone: true,
+		theme: "claymorphism",
 	},
 	{
 		id: "hp-intern-2023",
@@ -171,6 +183,7 @@ const lifeEvents: TimelineEvent[] = [
 		tags: ["Observability playbooks", "Pair scripting", "Spring experiments"],
 		lane: "lower",
 		milestone: true,
+		theme: "claymorphism",
 	},
 	{
 		id: "hp-sde1-2023",
@@ -186,6 +199,7 @@ const lifeEvents: TimelineEvent[] = [
 		tags: ["Cross-team co-creation", "Service design", "Print journaling"],
 		lane: "upper",
 		milestone: true,
+		theme: "brutalism",
 	},
 	{
 		id: "sns-square-2024",
@@ -201,6 +215,7 @@ const lifeEvents: TimelineEvent[] = [
 		tags: ["Research sprints", "Design systems", "Async storytelling"],
 		lane: "lower",
 		milestone: true,
+		theme: "minimalism",
 	},
 	{
 		id: "print-ai-2024",
@@ -216,6 +231,7 @@ const lifeEvents: TimelineEvent[] = [
 		tags: ["Prompt rehearsals", "Team dry runs", "Observability circles"],
 		lane: "upper",
 		milestone: true,
+		theme: "aurora",
 	},
 	{
 		id: "present-2025",
@@ -232,6 +248,7 @@ const lifeEvents: TimelineEvent[] = [
 		lane: "lower",
 		milestone: true,
 		current: true,
+		theme: "glass",
 	},
 ];
 
@@ -286,6 +303,7 @@ export default function About() {
 	const [modalOpen, setModalOpen] = useState(false);
 		// State for tracking expanded collapsed events
 	const [expandedEvents, setExpandedEvents] = useState<Set<string>>(new Set());
+	const [atTimelineEnd, setAtTimelineEnd] = useState(false);
 
 	const openModal = (event: TimelineEvent) => {
 		setSelectedEvent(event);
@@ -392,6 +410,26 @@ export default function About() {
 		container.addEventListener("wheel", handleWheel, { passive: false });
 		return () => container.removeEventListener("wheel", handleWheel);
 	}, []);
+
+	useEffect(() => {
+		const container = containerRef.current;
+		if (!container) return;
+
+		const handleScroll = () => {
+			const maxScrollLeft = container.scrollWidth - container.clientWidth;
+			const threshold = 32;
+			const nearEnd = maxScrollLeft <= 0 ? true : container.scrollLeft >= maxScrollLeft - threshold;
+			setAtTimelineEnd(nearEnd);
+		};
+
+		handleScroll();
+		container.addEventListener("scroll", handleScroll);
+		return () => container.removeEventListener("scroll", handleScroll);
+	}, []);
+
+	const scrollToInstagram = () => {
+		document.getElementById("instagram-section")?.scrollIntoView({ behavior: "smooth" });
+	};
 
 	return (
 		<main className="min-h-screen notebook-bg">
@@ -504,9 +542,10 @@ export default function About() {
 												whileTap={{ scale: 0.98 }}
 												transition={{ type: "spring", stiffness: 300 }}
 											>
-												<SketchCard
-													className={`timeline-card relative h-32 cursor-pointer ${event.color} border-2 border-dashed border-gray-300 group-hover:border-indigo-400 opacity-60 hover:opacity-80 transition-opacity`}
-													tilt={index % 2 === 0 ? "left" : "right"}
+												<ThemedCard
+													theme={event.theme}
+													isCollapsed={true}
+													className={`timeline-card relative h-32 cursor-pointer opacity-60 hover:opacity-80 transition-opacity`}
 												>
 													<div className="p-4 h-full flex flex-col items-center justify-center text-center">
 														<span className="text-2xl mb-2">{event.icon}</span>
@@ -518,15 +557,9 @@ export default function About() {
 														</p>
 														<div className="flex items-center gap-1 text-xs text-indigo-600">
 															<span>Click to expand</span>
-															<motion.span
-																animate={{ rotate: [0, 10, -10, 0] }}
-																transition={{ duration: 2, repeat: Infinity }}
-															>
-																📖
-															</motion.span>
 														</div>
 													</div>
-												</SketchCard>
+												</ThemedCard>
 											</motion.div>
 										</button>
 									</div>
@@ -559,32 +592,14 @@ export default function About() {
 											<motion.div
 												whileHover={{
 													scale: 1.04,
-													boxShadow: "0 8px 32px rgba(99,102,241,0.15)",
 												}}
 												whileTap={{ scale: 0.98 }}
 												transition={{ type: "spring", stiffness: 300 }}
 											>
-												<SketchCard
-													className={`timeline-card relative h-96 cursor-pointer ${event.color} border-2 border-gray-300 ${event.current ? "ring-4 ring-purple-300 ring-opacity-50" : ""
-														} ${event.milestone ? "shadow-2xl" : "shadow-lg"} group-hover:border-indigo-400 group-active:border-indigo-600`}
-													tilt={index % 2 === 0 ? "left" : "right"}
+												<ThemedCard
+													theme={event.theme}
+													className={`timeline-card relative h-96 cursor-pointer hover:shadow-[0_8px_32px_rgba(99,102,241,0.15)] ${event.milestone ? "shadow-2xl" : "shadow-lg"}`}
 												>
-													{/* Milestone Star */}
-													{event.milestone && (
-														<div className="absolute -top-2 -left-2">
-															<motion.div
-																animate={{ rotate: 360 }}
-																transition={{
-																	duration: 4,
-																	repeat: Infinity,
-																	ease: "linear",
-																}}
-																className="text-2xl"
-															>
-																⭐
-															</motion.div>
-														</div>
-													)}
 													{/* Content */}
 													<div className="p-6 h-full flex flex-col">
 														<div className="flex items-center gap-3 mb-4">
@@ -674,26 +689,9 @@ export default function About() {
 																))}
 															</div>
 														) : null}
-														{/* Detail Box */}
-														<div className="bg-white/70 rounded-lg p-3 border border-gray-200">
-															<p className="handwritten text-xs text-gray-600 italic">
-																💭 {event.details}
-															</p>
-														</div>
 														{/* Current Indicator */}
-														{event.current && (
-															<motion.div
-																animate={{ scale: [1, 1.1, 1] }}
-																transition={{ duration: 2, repeat: Infinity }}
-																className="mt-3 text-center"
-															>
-																<span className="text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full">
-																	✨ Present Day ✨
-																</span>
-															</motion.div>
-														)}
 													</div>
-												</SketchCard>
+												</ThemedCard>
 											</motion.div>
 										</button>
 									</div>
@@ -717,38 +715,35 @@ export default function About() {
 						whileInView={{ opacity: 1 }}
 						transition={{ duration: 0.8 }}
 					>
-						<button
-							className="focus:outline-none group w-full text-left p-0 bg-transparent border-none cursor-pointer"
-							onClick={() => {
-								setSelectedEvent({
-									id: "future-2026",
-									title: "The Future",
-									description: "Your story is still being written!",
-									icon: "🌟",
-									details: "Stay tuned for more adventures!",
-									year: 2026,
-									age: "",
-									location: "",
-									color: "",
-									milestone: false,
-								});
-								setModalOpen(true);
-							}}
-						>
-							<SketchCard className="h-64 bg-gradient-to-br from-gray-100 via-white to-gray-50 border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:scale-105 transition-transform duration-300">
-								<div className="p-6 h-full flex flex-col items-center justify-center text-center">
-									<span className="text-4xl mb-4">🌟</span>
-									<h3 className="handwritten text-lg font-bold text-gray-600 mb-2">To Be Continued...</h3>
-									<p className="handwritten text-sm text-gray-500">The story continues with new adventures, learning, and growth.</p>
-									<motion.div animate={{ y: [-5, 5, -5] }} transition={{ duration: 2, repeat: Infinity }} className="mt-4 text-2xl">✨</motion.div>
+						<div className="focus:outline-none group w-full text-left p-0 bg-transparent border-none">
+							<ThemedCard theme="paper" className="h-64 flex flex-col items-center justify-center transition-transform duration-300">
+								<div className="p-6 h-full flex flex-col items-center justify-center text-center relative z-10">
+									<motion.span
+										className="text-4xl mb-4"
+										animate={{ rotate: [0, 4, -4, 0] }}
+										transition={{ duration: 4, repeat: Infinity }}
+									>
+										🌟
+									</motion.span>
+									<h3 className="handwritten text-lg font-bold text-gray-700 mb-2">To Be Continued...</h3>
+									<p className="handwritten text-sm text-gray-600 mb-4">
+										The story continues with new adventures, learning, and growth.
+									</p>
+									<Link
+										href="/progress"
+										className="inline-flex items-center gap-2 rounded-full border border-blue-300 bg-white/90 px-5 py-1.5 handwritten text-base text-blue-600 shadow-sm hover:bg-blue-50"
+									>
+										Visit progress
+										<span aria-hidden="true">↗</span>
+									</Link>
 								</div>
-							</SketchCard>
-						</button>
+							</ThemedCard>
+						</div>
 					</motion.div>
 				</div>
 			</div>
 			{/* Timeline Navigation Buttons */}
-			<div className="fixed bottom-24 right-6 z-20 flex flex-col gap-3">
+			<div className="fixed bottom-24 right-6 z-20 flex flex-col gap-3 items-end">
 				<button
 					type="button"
 					onClick={() => handleNavClick("left")}
@@ -767,6 +762,21 @@ export default function About() {
 				>
 					→
 				</button>
+				<AnimatePresence>
+					{atTimelineEnd && (
+						<motion.button
+							type="button"
+							onClick={scrollToInstagram}
+							initial={{ opacity: 0, y: 10 }}
+							animate={{ opacity: 1, y: 0 }}
+							exit={{ opacity: 0, y: 10 }}
+							transition={{ duration: 0.2 }}
+							className="mt-2 inline-flex items-center gap-2 rounded-full border border-rose-200 bg-white/90 px-4 py-2 text-sm font-semibold text-rose-600 shadow-lg backdrop-blur-sm"
+						>
+							Go to Instagram ↓
+						</motion.button>
+					)}
+				</AnimatePresence>
 			</div>
 			{/* Modal for Event Details */}
 			<AnimatePresence>
@@ -787,70 +797,75 @@ export default function About() {
 						}}
 					>
 						<motion.div
-							className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 relative border-4 border-indigo-200"
+							className="max-w-md w-full relative"
 							initial={{ scale: 0.9, y: 40, opacity: 0 }}
 							animate={{ scale: 1, y: 0, opacity: 1 }}
 							exit={{ scale: 0.9, y: 40, opacity: 0 }}
 							transition={{ type: "spring", stiffness: 300, damping: 25 }}
 						>
-							<button
-								onClick={closeModal}
-								className="absolute top-3 right-3 text-gray-400 hover:text-indigo-600 text-2xl focus:outline-none"
-								aria-label="Close"
-							>
-								×
-							</button>
-							<div className="flex items-center gap-4 mb-4">
-								<span className="text-4xl">{selectedEvent.icon}</span>
-								<div>
-									<h2 className="text-xl font-bold handwritten text-gray-800 mb-1">
-										{selectedEvent.title}
-									</h2>
-									<p className="text-sm text-gray-600 handwritten">
-										📍 {selectedEvent.location}
-									</p>
-									{selectedEvent.period && (
-										<p className="text-xs text-indigo-600 handwritten mt-1">
-											🗓 {selectedEvent.period}
+							<ThemedCard theme={selectedEvent.theme} className="w-full shadow-2xl">
+								<button
+									onClick={closeModal}
+									className="absolute top-3 right-3 text-gray-400 hover:text-indigo-600 text-2xl focus:outline-none z-50"
+									aria-label="Close"
+								>
+									×
+								</button>
+								<div className="flex items-center gap-4 mb-4">
+									<span className="text-4xl">{selectedEvent.icon}</span>
+									<div>
+										<h2 className="text-xl font-bold handwritten text-gray-800 mb-1">
+											{selectedEvent.title}
+										</h2>
+										<p className="text-sm text-gray-600 handwritten">
+											📍 {selectedEvent.location}
 										</p>
-									)}
+										{selectedEvent.period && (
+											<p className="text-xs text-indigo-600 handwritten mt-1">
+												🗓 {selectedEvent.period}
+											</p>
+										)}
+									</div>
 								</div>
-							</div>
-							<p className="text-gray-700 handwritten mb-3">
-								{selectedEvent.description}
-							</p>
-							<div className="bg-indigo-50 rounded-lg p-4 border border-indigo-100 mb-2">
-								<p className="text-xs text-indigo-700 handwritten italic">
-									💭 {selectedEvent.details}
+								<p className="text-gray-700 handwritten mb-3">
+									{selectedEvent.description}
 								</p>
-							</div>
-							{selectedEvent.tags?.length ? (
-								<div className="flex flex-wrap gap-2 mt-3">
-									{selectedEvent.tags.map((tag) => (
-										<span
-											key={`modal-tag-${tag}`}
-											className="handwritten text-xs bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full border border-indigo-200"
-										>
-											{tag}
-										</span>
-									))}
+								<div className="bg-indigo-50 rounded-lg p-4 border border-indigo-100 mb-2">
+									<p className="text-xs text-indigo-700 handwritten italic">
+										💭 {selectedEvent.details}
+									</p>
 								</div>
-							) : null}
-							<div className="flex items-center gap-2 mt-2">
-								<span className="text-xs bg-indigo-200 text-indigo-800 px-2 py-1 rounded-full handwritten">
-									Year: {selectedEvent.year}
-								</span>
-								<span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full handwritten">
-									Age: {selectedEvent.age}
-								</span>
-							</div>
+								{selectedEvent.tags?.length ? (
+									<div className="flex flex-wrap gap-2 mt-3">
+										{selectedEvent.tags.map((tag) => (
+											<span
+												key={`modal-tag-${tag}`}
+												className="handwritten text-xs bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full border border-indigo-200"
+											>
+												{tag}
+											</span>
+										))}
+									</div>
+								) : null}
+								<div className="flex items-center gap-2 mt-2">
+									<span className="text-xs bg-indigo-200 text-indigo-800 px-2 py-1 rounded-full handwritten">
+										Year: {selectedEvent.year}
+									</span>
+									<span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full handwritten">
+										Age: {selectedEvent.age}
+									</span>
+									<span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full handwritten border border-green-200">
+										🎨 {themeNames[selectedEvent.theme]}
+									</span>
+								</div>
+							</ThemedCard>
 						</motion.div>
 					</motion.dialog>
 				)}
 			</AnimatePresence>
 
 			{/* Vlog Gallery Section */}
-			<div className="max-w-7xl mx-auto px-4 py-16 mt-20 relative">
+			<div id="instagram-section" className="max-w-7xl mx-auto px-4 py-16 mt-20 relative">
 				{/* Sketchy section divider */}
 				<div className="text-center mb-8">
 					<div className="inline-block border-2 border-dashed border-black rounded-2xl px-8 py-4 bg-white shadow-lg transform -rotate-1">

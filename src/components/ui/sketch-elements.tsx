@@ -314,3 +314,47 @@ export const SketchArrow = ({
     </motion.div>
   );
 };
+
+// Wireframe-style card component with long measurement lines
+export const WireframeCard = ({ 
+  children, 
+  className = '',
+  measurement
+}: {
+  children: React.ReactNode;
+  className?: string;
+  measurement?: string;
+}) => {
+  return (
+    <div className={`relative mb-12 ${className}`}>
+      {/* Long Horizontal Lines - extending far beyond */}
+      <div className="absolute top-0 left-[-100vw] right-[-100vw] h-px bg-gray-300" />
+      <div className="absolute bottom-0 left-[-100vw] right-[-100vw] h-px bg-gray-300" />
+      
+      {/* Long Vertical Lines - extending far beyond */}
+      <div className="absolute top-[-100vh] bottom-[-100vh] left-0 w-px bg-gray-300" />
+      <div className="absolute top-[-100vh] bottom-[-100vh] right-0 w-px bg-gray-300" />
+
+      {/* Measurement Label */}
+      {measurement && (
+        <div className="absolute -top-3 left-4 text-xs text-black bg-white px-2 handwritten border border-black z-20">
+          DURATION: {measurement}
+        </div>
+      )}
+
+      {/* Content Container */}
+      <div className="relative z-10 bg-white border-2 border-black">
+        {children}
+      </div>
+    </div>
+  );
+};
+
+// Internal grid separator for wireframe layout
+export const WireframeSeparator = ({ vertical = false }: { vertical?: boolean }) => {
+  if (vertical) {
+    return <div className="absolute top-[-100vh] bottom-[-100vh] w-px bg-gray-300" />;
+  }
+  return <div className="absolute left-[-100vw] right-[-100vw] h-px bg-gray-300" />;
+};
+

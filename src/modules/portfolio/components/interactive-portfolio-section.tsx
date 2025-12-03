@@ -443,7 +443,14 @@ export const InteractivePortfolioSection: React.FC<{
   }, []);
 
   const addNotebookItem = useCallback((item: DraggableItem) => {
-    setNotebookItems(prev => [...prev, item]);
+    setNotebookItems(prev => {
+      const newItems = [...prev, item];
+      // Keep only the last 3 items to prevent clutter
+      if (newItems.length > 3) {
+        return newItems.slice(newItems.length - 3);
+      }
+      return newItems;
+    });
     setHighlightedItems(prev => [...prev.filter(id => id !== item.id), item.id]);
 
     if (highlightTimeoutsRef.current[item.id]) {
@@ -1354,6 +1361,18 @@ export const InteractivePortfolioSection: React.FC<{
     setShowIntro(true);
   }, []);
 
+  useEffect(() => {
+    if (!showIntro) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      handleCloseIntro();
+    }, 5000);
+
+    return () => window.clearTimeout(timer);
+  }, [showIntro, handleCloseIntro]);
+
   const toggleAchievements = useCallback(() => {
     setShowAchievements(!showAchievements);
   }, [showAchievements]);
@@ -1709,45 +1728,45 @@ export const InteractivePortfolioSection: React.FC<{
             exit={{ opacity: 0, y: 30, scale: 0.92 }}
             transition={{ duration: 0.45, ease: 'easeOut' }}
           >
-            <div className="relative flex flex-col gap-3 bg-white/95 backdrop-blur-sm border border-gray-300 rounded-2xl px-3.5 py-3 shadow-[3px_4px_0_rgba(0,0,0,0.12)] max-w-xs">
+            <div className="relative flex flex-col gap-2 bg-white/95 backdrop-blur-sm border border-gray-300 rounded-xl px-3 py-2.5 shadow-[2px_3px_0_rgba(0,0,0,0.12)] max-w-[260px]">
               <button
                 type="button"
                 onClick={handleDismissProjectSpotlight}
-                className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-gray-900 text-white text-xs font-bold flex items-center justify-center shadow-sm hover:bg-black transition-colors"
+                className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-gray-900 text-white text-[10px] font-bold flex items-center justify-center shadow-sm hover:bg-black transition-colors"
                 aria-label="Dismiss project spotlight"
               >
                 ×
               </button>
               <div className="flex items-start gap-2">
-                <span className="text-xl leading-none">📁</span>
-                <div className="space-y-1">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gray-700 handwritten">
+                <span className="text-lg leading-none">📁</span>
+                <div className="space-y-0.5">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-gray-700 handwritten">
                     Recruiter quick path
                   </p>
-                  <p className="handwritten text-xs text-gray-600 leading-snug">
+                  <p className="handwritten text-[10px] text-gray-600 leading-tight">
                     Straight links: case studies, work reels, resume. Prefer browsing? Hit the bottom nav.
                   </p>
                 </div>
               </div>
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-1.5">
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Link
                     href="/case-studies"
                     onClick={() => handleProjectSpotlightNavigate('case-studies')}
-                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full border border-indigo-300 bg-indigo-50 text-[11px] font-semibold text-indigo-700 handwritten transition-colors hover:bg-indigo-500 hover:text-white"
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-indigo-300 bg-indigo-50 text-[10px] font-semibold text-indigo-700 handwritten transition-colors hover:bg-indigo-500 hover:text-white"
                   >
                     <span>View case studies</span>
-                    <span className="text-base leading-none">↗</span>
+                    <span className="text-sm leading-none">↗</span>
                   </Link>
                 </motion.div>
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Link
                     href="/work"
                     onClick={() => handleProjectSpotlightNavigate('work')}
-                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full border border-gray-300 bg-white text-[11px] font-semibold text-gray-700 handwritten transition-colors hover:bg-gray-900 hover:text-white"
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-gray-300 bg-white text-[10px] font-semibold text-gray-700 handwritten transition-colors hover:bg-gray-900 hover:text-white"
                   >
                     <span>See work highlights</span>
-                    <span className="text-base leading-none">↗</span>
+                    <span className="text-sm leading-none">↗</span>
                   </Link>
                 </motion.div>
               </div>
@@ -1756,180 +1775,284 @@ export const InteractivePortfolioSection: React.FC<{
         )}
       </AnimatePresence>
 
-      {/* Journey Command Center */}
-      <div
-        className={`absolute z-20 ${isMobile ? 'px-4 w-full' : ''}`}
-        style={
-          isMobile
-            ? {
-                top: '16px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                maxWidth: '19rem',
-                width: 'calc(100% - 2rem)',
-                maxHeight: 'calc(100vh - 2rem)',
-                overflowY: 'auto'
-              }
-            : {
-                top: '2.5rem',
-                right: '2rem',
-                width: '18.5rem',
-                maxHeight: 'calc(100vh - 5rem)',
-                overflowY: 'auto'
-              }
-        }
-      >
-        <div className="flex flex-col gap-3 pointer-events-auto pr-1">
-          <motion.div
-            className="bg-white/95 backdrop-blur-md border-2 border-black rounded-2xl p-3 sketch-border shadow-[3px_4px_0px_rgba(0,0,0,0.14)]"
-            style={{ width: '100%' }}
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.25 }}
-          >
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-700 handwritten">Kiruk Desk Board</h3>
-                <p className="text-[11px] text-gray-600 handwritten leading-snug mt-1">
-                  Kiruk is Tamil for scribble. This desk is just my paper notebook brought on screen.
-                </p>
-                <p className="text-[11px] text-gray-600 handwritten leading-snug mt-1">
-                  {nextJourneyStep
-                    ? `Tap a story badge to unlock "${nextJourneyStep.title}".`
-                    : 'Everything is unlocked — remix the desk!'}
-                </p>
+      {/* Journey Command Center - Mobile (Unified) */}
+      {isMobile && (
+        <div
+          className="absolute z-20 px-4 w-full"
+          style={{
+            top: '16px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            maxWidth: '19rem',
+            width: 'calc(100% - 2rem)',
+            maxHeight: 'calc(100vh - 2rem)',
+            overflowY: 'auto'
+          }}
+        >
+          <div className="flex flex-col gap-3 pointer-events-auto pr-1">
+            <motion.div
+              className="bg-white/95 backdrop-blur-md border-2 border-black rounded-2xl p-3 sketch-border shadow-[3px_4px_0px_rgba(0,0,0,0.14)]"
+              style={{ width: '100%' }}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.25 }}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-700 handwritten">Kiruk Desk Board</h3>
+                  <p className="text-[11px] text-gray-600 handwritten leading-snug mt-1">
+                    Kiruk is Tamil for scribble. This desk is just my paper notebook brought on screen.
+                  </p>
+                  <p className="text-[11px] text-gray-600 handwritten leading-snug mt-1">
+                    {nextJourneyStep
+                      ? `Tap a story badge to unlock "${nextJourneyStep.title}".`
+                      : 'Everything is unlocked — remix the desk!'}
+                  </p>
+                </div>
+                <motion.span
+                  className="text-2xl"
+                  animate={{ rotate: [0, -5, 5, 0] }}
+                  transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', repeatDelay: 4 }}
+                >
+                  📎
+                </motion.span>
               </div>
-              <motion.span
-                className="text-2xl"
-                animate={{ rotate: [0, -5, 5, 0] }}
-                transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', repeatDelay: 4 }}
-              >
-                📎
-              </motion.span>
+              <div className="mt-2">
+                <div className="flex items-center justify-between text-[10px] text-gray-500 handwritten">
+                  <span>Progress</span>
+                  <span>{Math.round(journeyProgress * 100)}%</span>
+                </div>
+                <div className="mt-1 h-1.5 rounded-full bg-gray-200 border border-gray-300 overflow-hidden">
+                  <motion.div
+                    className="h-full bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${journeyProgressWidth}%` }}
+                    transition={{ duration: 0.6, ease: 'easeOut' }}
+                  />
+                </div>
+              </div>
+              <div className="mt-2 grid grid-cols-3 gap-1.5">
+                {journeySteps.map((step) => {
+                  const isComplete = journeyStepsCompleted.includes(step.id);
+                  const isNextUp = !isComplete && nextJourneyStep?.id === step.id;
+                  return (
+                    <motion.button
+                      key={step.id}
+                      onClick={() => {
+                        step.action();
+                        trackInteraction('portfolio_journey_step', { stepId: step.id });
+                      }}
+                      whileHover={{ scale: 1.04 }}
+                      whileTap={{ scale: 0.95 }}
+                      aria-pressed={isComplete}
+                      className={`relative flex flex-col items-center justify-center gap-1 px-2 py-2 rounded-lg border-2 text-center transition-all duration-200 shadow-sm ${
+                        isComplete
+                          ? 'bg-green-50 border-green-300'
+                          : isNextUp
+                          ? 'bg-indigo-50/70 border-indigo-300 shadow-[0_4px_12px_rgba(79,70,229,0.25)]'
+                          : 'bg-white/80 border-gray-300 hover:border-indigo-300 hover:bg-indigo-50'
+                      }`}
+                    >
+                      <motion.div
+                        className={`relative flex items-center justify-center w-9 h-9 rounded-full border-2 ${
+                          isComplete
+                            ? 'border-green-300 bg-green-50'
+                            : isNextUp
+                            ? 'border-indigo-300 bg-white shadow-[0_0_0_2px_rgba(99,102,241,0.15)]'
+                            : 'border-gray-300 bg-white'
+                        }`}
+                        animate={
+                          isComplete
+                            ? { scale: 1 }
+                            : isNextUp
+                            ? { scale: [1, 1.12, 1], rotate: [0, 2, -2, 0] }
+                            : { scale: [1, 1.04, 1], rotate: [0, 1.2, -1.2, 0] }
+                        }
+                        transition={{ duration: 2.4, repeat: isComplete ? 0 : Infinity, ease: 'easeInOut' }}
+                      >
+                        <span className="text-lg">{step.icon}</span>
+                        {isComplete && (
+                          <motion.span
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-green-500 text-[10px] font-semibold text-white"
+                          >
+                            ✓
+                          </motion.span>
+                        )}
+                        {isNextUp && (
+                          <motion.span
+                            className="absolute -top-2 left-1/2 -translate-x-1/2 text-sm text-indigo-500"
+                            initial={{ opacity: 0, y: -4 }}
+                            animate={{ opacity: [0, 1, 0.6, 1], y: [-4, -8, -6, -8] }}
+                            transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
+                          >
+                            ✨
+                          </motion.span>
+                        )}
+                      </motion.div>
+                      <span className="text-[11px] text-gray-700 handwritten leading-tight">
+                        {step.title}
+                      </span>
+                    </motion.button>
+                  );
+                })}
+              </div>
+              <div className="mt-2">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={boardNote}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.3 }}
+                    className="flex items-start gap-2 rounded-lg border border-dashed border-gray-300 bg-white/80 px-2.5 py-2 shadow-inner"
+                  >
+                    <span className="text-xl">{boardMood}</span>
+                    <p className="text-[11px] text-gray-600 handwritten leading-snug">{boardNote}</p>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+              <div className="mt-2 flex items-center justify-between gap-2">
+                <motion.button
+                  onClick={toggleAchievements}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="flex-1 px-2 py-1.5 rounded-lg border border-gray-300 bg-white text-[10px] text-gray-700 handwritten hover:border-indigo-300 hover:text-indigo-600 transition-colors"
+                >
+                  Goals
+                  {achievementsUnlockedCount > 0 && (
+                    <span className="ml-1 inline-flex items-center justify-center rounded-full bg-indigo-500 text-white text-[9px] px-1">
+                      {achievementsUnlockedCount}
+                    </span>
+                  )}
+                </motion.button>
+                <motion.button
+                  onClick={clearWorkspace}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-2 py-1.5 rounded-lg border border-gray-300 bg-gray-900 text-white text-[10px] handwritten hover:bg-gray-800 transition-colors flex items-center gap-1"
+                >
+                  <span role="img" aria-label="Reset desk">🧹</span>
+                  Reset
+                </motion.button>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      )}
+
+
+
+      {/* Desktop - Top Right Gamified Toolbar */}
+      {!isMobile && (
+        <motion.div
+          className="fixed top-6 right-6 z-40 flex flex-col items-end gap-2 pointer-events-auto"
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.5 }}
+        >
+          {/* The Gamified Bar */}
+          <div className="relative flex items-center gap-1 p-2 bg-white/95 backdrop-blur-md border-2 border-black rounded-full shadow-[4px_4px_0px_rgba(0,0,0,0.15)] sketch-border">
+            
+            {/* Progress Line Background */}
+            <div className="absolute left-4 right-4 top-1/2 -translate-y-1/2 h-1.5 bg-gray-100 rounded-full overflow-hidden z-0">
+               <motion.div 
+                 className="h-full bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300"
+                 initial={{ width: 0 }}
+                 animate={{ width: `${journeyProgressWidth}%` }}
+                 transition={{ duration: 0.6 }}
+               />
             </div>
-            <div className="mt-2">
-              <div className="flex items-center justify-between text-[10px] text-gray-500 handwritten">
-                <span>Progress</span>
-                <span>{Math.round(journeyProgress * 100)}%</span>
-              </div>
-              <div className="mt-1 h-1.5 rounded-full bg-gray-200 border border-gray-300 overflow-hidden">
-                <motion.div
-                  className="h-full bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${journeyProgressWidth}%` }}
-                  transition={{ duration: 0.6, ease: 'easeOut' }}
-                />
-              </div>
-            </div>
-            <div className="mt-2 grid grid-cols-3 gap-1.5">
-              {journeySteps.map((step) => {
-                const isComplete = journeyStepsCompleted.includes(step.id);
-                const isNextUp = !isComplete && nextJourneyStep?.id === step.id;
-                return (
+
+            {journeySteps.map((step, index) => {
+              const isComplete = journeyStepsCompleted.includes(step.id);
+              const isNextUp = !isComplete && nextJourneyStep?.id === step.id;
+              
+              return (
+                <div key={step.id} className="relative z-10 group">
                   <motion.button
-                    key={step.id}
                     onClick={() => {
                       step.action();
                       trackInteraction('portfolio_journey_step', { stepId: step.id });
                     }}
-                    whileHover={{ scale: 1.04 }}
-                    whileTap={{ scale: 0.95 }}
-                    aria-pressed={isComplete}
-                    className={`relative flex flex-col items-center justify-center gap-1 px-2 py-2 rounded-lg border-2 text-center transition-all duration-200 shadow-sm ${
+                    whileHover={{ scale: 1.15 }}
+                    whileTap={{ scale: 0.9 }}
+                    className={`relative flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all duration-300 ${
                       isComplete
-                        ? 'bg-green-50 border-green-300'
+                        ? 'bg-green-50 border-green-500 text-green-600 shadow-sm'
                         : isNextUp
-                        ? 'bg-indigo-50/70 border-indigo-300 shadow-[0_4px_12px_rgba(79,70,229,0.25)]'
-                        : 'bg-white/80 border-gray-300 hover:border-indigo-300 hover:bg-indigo-50'
+                        ? 'bg-white border-indigo-500 text-indigo-600 shadow-[0_0_15px_rgba(99,102,241,0.4)]'
+                        : 'bg-white border-gray-300 text-gray-400 hover:border-gray-400'
                     }`}
                   >
-                    <motion.div
-                      className={`relative flex items-center justify-center w-9 h-9 rounded-full border-2 ${
-                        isComplete
-                          ? 'border-green-300 bg-green-50'
-                          : isNextUp
-                          ? 'border-indigo-300 bg-white shadow-[0_0_0_2px_rgba(99,102,241,0.15)]'
-                          : 'border-gray-300 bg-white'
-                      }`}
-                      animate={
-                        isComplete
-                          ? { scale: 1 }
-                          : isNextUp
-                          ? { scale: [1, 1.12, 1], rotate: [0, 2, -2, 0] }
-                          : { scale: [1, 1.04, 1], rotate: [0, 1.2, -1.2, 0] }
-                      }
-                      transition={{ duration: 2.4, repeat: isComplete ? 0 : Infinity, ease: 'easeInOut' }}
-                    >
-                      <span className="text-lg">{step.icon}</span>
-                      {isComplete && (
-                        <motion.span
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-green-500 text-[10px] font-semibold text-white"
-                        >
-                          ✓
-                        </motion.span>
-                      )}
-                      {isNextUp && (
-                        <motion.span
-                          className="absolute -top-2 left-1/2 -translate-x-1/2 text-sm text-indigo-500"
-                          initial={{ opacity: 0, y: -4 }}
-                          animate={{ opacity: [0, 1, 0.6, 1], y: [-4, -8, -6, -8] }}
-                          transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
-                        >
-                          ✨
-                        </motion.span>
-                      )}
-                    </motion.div>
-                    <span className="text-[11px] text-gray-700 handwritten leading-tight">
-                      {step.title}
-                    </span>
+                    <span className="text-lg relative z-10">{step.icon}</span>
+                    {isComplete && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="absolute inset-0 bg-green-100 rounded-full -z-0"
+                      />
+                    )}
                   </motion.button>
-                );
-              })}
-            </div>
-            <div className="mt-2">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={boardNote}
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }}
-                  transition={{ duration: 0.3 }}
-                  className="flex items-start gap-2 rounded-lg border border-dashed border-gray-300 bg-white/80 px-2.5 py-2 shadow-inner"
-                >
-                  <span className="text-xl">{boardMood}</span>
-                  <p className="text-[11px] text-gray-600 handwritten leading-snug">{boardNote}</p>
-                </motion.div>
-              </AnimatePresence>
-            </div>
-            <div className="mt-2 flex items-center justify-between gap-2">
-              <motion.button
+                  
+                  {/* Tooltip */}
+                  <div className="absolute top-full right-0 mt-3 w-48 p-2 bg-gray-900 text-white text-xs rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 text-right">
+                    <div className="font-bold text-indigo-300">{step.title}</div>
+                    <div className="text-[10px] text-gray-300 leading-tight">{step.description}</div>
+                  </div>
+                </div>
+              );
+            })}
+
+            <div className="w-px h-6 bg-gray-200 mx-1" />
+
+            {/* Extra Actions */}
+            <div className="flex items-center gap-1 pl-1 relative z-10">
+               <motion.button
                 onClick={toggleAchievements}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex-1 px-2 py-1.5 rounded-lg border border-gray-300 bg-white text-[10px] text-gray-700 handwritten hover:border-indigo-300 hover:text-indigo-600 transition-colors"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="w-9 h-9 flex items-center justify-center rounded-full bg-yellow-50 border-2 border-yellow-200 text-yellow-600 hover:border-yellow-400 transition-colors"
+                title="Achievements"
               >
-                Goals
+                🏆
                 {achievementsUnlockedCount > 0 && (
-                  <span className="ml-1 inline-flex items-center justify-center rounded-full bg-indigo-500 text-white text-[9px] px-1">
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white border border-white">
                     {achievementsUnlockedCount}
                   </span>
                 )}
               </motion.button>
+
               <motion.button
                 onClick={clearWorkspace}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-2 py-1.5 rounded-lg border border-gray-300 bg-gray-900 text-white text-[10px] handwritten hover:bg-gray-800 transition-colors flex items-center gap-1"
+                whileHover={{ scale: 1.1, rotate: 15 }}
+                whileTap={{ scale: 0.9 }}
+                className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 border-2 border-gray-300 text-gray-500 hover:bg-red-50 hover:border-red-300 hover:text-red-500 transition-colors"
+                title="Reset Desk"
               >
-                <span role="img" aria-label="Reset desk">🧹</span>
-                Reset
+                🧹
               </motion.button>
             </div>
-          </motion.div>
-        </div>
-      </div>
+          </div>
+
+          {/* Mood/Note Bubble */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={boardNote}
+              initial={{ opacity: 0, x: 20, scale: 0.9 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, x: 10, scale: 0.9 }}
+              className="bg-white/90 backdrop-blur-sm border border-gray-200 rounded-xl px-3 py-2 shadow-sm max-w-xs text-right"
+            >
+              <div className="flex items-center justify-end gap-2">
+                <p className="text-[11px] text-gray-600 handwritten leading-snug">{boardNote}</p>
+                <span className="text-lg">{boardMood}</span>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </motion.div>
+      )}
 
       {/* Interactive workspace */}
       <div className="absolute inset-0 top-0" style={{ zIndex: 0 }}>

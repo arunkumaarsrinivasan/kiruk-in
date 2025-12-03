@@ -8,6 +8,7 @@ import {
   BookOpen,
   EnvelopeSimple,
   ChatCircleText,
+  MapTrifold,
   X,
   ArrowRight,
   Lightbulb,
@@ -43,6 +44,10 @@ export const ContactIcon = React.forwardRef<SVGSVGElement, IconProps>((props, re
 export const ChatIcon = React.forwardRef<SVGSVGElement, IconProps>((props, ref: ForwardedRef<SVGSVGElement>) => {
   const { selected, ...rest } = props;
   return <ChatCircleText weight={selected ? 'fill' : 'duotone'} ref={ref} {...rest} />;
+});
+export const MapIcon = React.forwardRef<SVGSVGElement, IconProps>((props, ref: ForwardedRef<SVGSVGElement>) => {
+  const { selected, ...rest } = props;
+  return <MapTrifold weight={selected ? 'fill' : 'duotone'} ref={ref} {...rest} />;
 });
 export const ClearIcon = React.forwardRef<SVGSVGElement, IconProps>((props, ref: ForwardedRef<SVGSVGElement>) => {
   const { selected, ...rest } = props;

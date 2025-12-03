@@ -9,6 +9,7 @@ import {
   StudiesIcon,
   ContactIcon,
   ProgressIcon,
+  MapIcon,
 } from '../ui/hand-drawn-icons';
 
 const Navigation = () => {
@@ -26,6 +27,7 @@ const Navigation = () => {
     { href: '/work', label: 'Work', IconComponent: WorkIcon },
     { href: '/case-studies', label: 'Projects', IconComponent: StudiesIcon },
     { href: '/progress', label: 'Progress', IconComponent: ProgressIcon },
+    { href: '/map', label: 'Map', IconComponent: MapIcon },
     { href: '/contact', label: 'Contact', IconComponent: ContactIcon },
   ];
 
@@ -76,7 +78,7 @@ const Navigation = () => {
         className="relative mx-auto flex items-center justify-center bg-white/90 border border-black rounded-2xl shadow-none py-2.5 sm:py-3 px-2.5 sm:px-4 backdrop-blur-md sketch-border transition-all duration-200 hover:shadow-lg hover:sketch-border-thick max-w-3xl w-full"
         style={{ boxShadow: 'none', borderColor: '#000', borderWidth: 2 }}
       >
-        <div className="grid grid-cols-6 items-center justify-between w-full gap-1.5 sm:flex sm:space-x-4 sm:gap-4">
+        <div className="grid grid-cols-7 items-center justify-between w-full gap-1.5 sm:flex sm:space-x-4 sm:gap-4">
           {navItems.map((item, idx) => (
             <a
               key={item.href}

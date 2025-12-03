@@ -244,6 +244,57 @@ textarea::-moz-selection {
   background-attachment: scroll;
 }
 
+/* Map background - latitude and longitude lines */
+.map-bg {
+  background-color: #f7f4ee;
+  background-image: 
+    linear-gradient(rgba(15, 15, 15, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 15, 15, 0.08) 1px, transparent 1px);
+  background-size: 100px 100px;
+  position: relative;
+}
+
+.map-bg::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    linear-gradient(rgba(15, 15, 15, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 15, 15, 0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+}
+
+/* Wireframe background - graph paper style */
+.wireframe-bg {
+  background-color: #fdfdfd;
+  background-image: 
+    linear-gradient(#e5e5e5 1px, transparent 1px),
+    linear-gradient(90deg, #e5e5e5 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-position: center top;
+}
+
+/* Ruler border effect */
+.ruler-border {
+  border: 2px dashed #cbd5e1;
+  position: relative;
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(4px);
+}
+
+.ruler-border::before {
+  content: '';
+  position: absolute;
+  top: -4px; left: -4px; right: -4px; bottom: -4px;
+  border: 1px solid #94a3b8;
+  pointer-events: none;
+  border-radius: 4px;
+}
+
 /* Black and white theme utilities */
 .bg-primary {
   background-color: #ffffff;

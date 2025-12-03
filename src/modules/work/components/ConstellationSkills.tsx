@@ -4,60 +4,80 @@ import { motion, AnimatePresence } from "framer-motion";
 // Constellation configurations with mythological themes - wide layout with better spacing
 const constellations = [
   {
-    name: "Frontend Constellation",
-    mythName: "Orion the Developer",
-    description: "The mighty hunter of user interfaces",
-    color: "#3B82F6",
+    name: "Design & Research",
+    mythName: "Andromeda the Visionary",
+    description: "Crafting user-centric experiences",
+    color: "#EC4899", // Pink
     stars: [
-      { name: "React", x: 180, y: 120, brightness: 5, type: "supergiant", projects: 12 },
-      { name: "TypeScript", x: 280, y: 100, brightness: 5, type: "giant", projects: 10 },
-      { name: "Next.js", x: 150, y: 180, brightness: 4, type: "main", projects: 8 },
-      { name: "Tailwind CSS", x: 250, y: 160, brightness: 4, type: "main", projects: 9 },
-      { name: "Framer Motion", x: 320, y: 140, brightness: 3, type: "dwarf", projects: 6 },
+      { name: "Product Design", x: 120, y: 80, brightness: 5, type: "supergiant", projects: 20 },
+      { name: "UI/UX", x: 200, y: 120, brightness: 5, type: "supergiant", projects: 25 },
+      { name: "User Research", x: 80, y: 150, brightness: 4, type: "giant", projects: 15 },
+      { name: "Design Systems", x: 250, y: 80, brightness: 4, type: "giant", projects: 12 },
+      { name: "Prototyping", x: 180, y: 180, brightness: 4, type: "main", projects: 18 },
+      { name: "Accessibility", x: 280, y: 160, brightness: 3, type: "main", projects: 8 },
+      { name: "Branding", x: 100, y: 220, brightness: 3, type: "dwarf", projects: 10 },
     ],
-    connections: [[0, 1], [1, 2], [2, 3], [0, 4], [1, 4]]
+    connections: [[0, 1], [1, 3], [1, 4], [2, 4], [4, 5], [2, 6], [0, 2]]
   },
   {
-    name: "Design Constellation",
-    mythName: "Andromeda the Creative",
-    description: "The princess of visual storytelling",
-    color: "#EC4899",
+    name: "Creative Tools",
+    mythName: "Lyra the Creator",
+    description: "Instruments of digital creation",
+    color: "#8B5CF6", // Purple
     stars: [
-      { name: "UI/UX Design", x: 580, y: 110, brightness: 5, type: "supergiant", projects: 15 },
-      { name: "Figma", x: 680, y: 100, brightness: 4, type: "giant", projects: 12 },
-      { name: "Branding", x: 520, y: 170, brightness: 4, type: "main", projects: 8 },
-      { name: "Prototyping", x: 620, y: 180, brightness: 3, type: "main", projects: 7 },
-      { name: "Visual Design", x: 720, y: 150, brightness: 4, type: "giant", projects: 10 },
+      { name: "Figma", x: 150, y: 350, brightness: 5, type: "supergiant", projects: 30 },
+      { name: "Adobe CC", x: 80, y: 400, brightness: 4, type: "giant", projects: 20 },
+      { name: "Spline 3D", x: 220, y: 380, brightness: 4, type: "main", projects: 5 },
+      { name: "Rive", x: 280, y: 340, brightness: 3, type: "dwarf", projects: 3 },
+      { name: "Blender", x: 180, y: 450, brightness: 3, type: "main", projects: 4 },
+      { name: "Protopie", x: 260, y: 420, brightness: 3, type: "dwarf", projects: 6 },
     ],
-    connections: [[0, 1], [0, 2], [1, 4], [2, 3], [3, 4]]
+    connections: [[0, 1], [0, 2], [1, 4], [2, 3], [2, 5], [4, 5]]
   },
   {
-    name: "Backend Constellation",
-    mythName: "Hercules the Builder",
-    description: "The strongest force in system architecture",
-    color: "#10B981",
+    name: "Frontend Engineering",
+    mythName: "Orion the Builder",
+    description: "Architecting the visual web",
+    color: "#3B82F6", // Blue
     stars: [
-      { name: "Node.js", x: 200, y: 320, brightness: 4, type: "giant", projects: 8 },
-      { name: "Python", x: 300, y: 350, brightness: 4, type: "giant", projects: 6 },
-      { name: "AWS", x: 160, y: 380, brightness: 5, type: "supergiant", projects: 10 },
-      { name: "Docker", x: 260, y: 400, brightness: 3, type: "main", projects: 5 },
-      { name: "Databases", x: 340, y: 320, brightness: 3, type: "main", projects: 7 },
+      { name: "React", x: 450, y: 100, brightness: 5, type: "supergiant", projects: 25 },
+      { name: "TypeScript", x: 550, y: 80, brightness: 5, type: "giant", projects: 20 },
+      { name: "Next.js", x: 400, y: 160, brightness: 4, type: "main", projects: 15 },
+      { name: "Flutter", x: 600, y: 140, brightness: 4, type: "giant", projects: 10 },
+      { name: "ThreeJS", x: 500, y: 200, brightness: 3, type: "main", projects: 5 },
+      { name: "GSAP", x: 620, y: 220, brightness: 3, type: "dwarf", projects: 4 },
     ],
-    connections: [[0, 1], [0, 2], [1, 4], [2, 3], [0, 4]]
+    connections: [[0, 1], [0, 2], [1, 3], [0, 4], [3, 5], [4, 5]]
   },
   {
-    name: "AI/Data Constellation",
-    mythName: "Cassiopeia the Wise",
-    description: "The oracle of artificial intelligence",
-    color: "#8B5CF6",
+    name: "Backend & Cloud",
+    mythName: "Hercules the Scaler",
+    description: "Powering robust infrastructure",
+    color: "#10B981", // Green
     stars: [
-      { name: "Machine Learning", x: 600, y: 300, brightness: 5, type: "supergiant", projects: 5 },
-      { name: "Data Analysis", x: 540, y: 340, brightness: 4, type: "giant", projects: 4 },
-      { name: "AI Integration", x: 680, y: 340, brightness: 4, type: "giant", projects: 3 },
-      { name: "Python ML", x: 620, y: 380, brightness: 3, type: "main", projects: 4 },
-      { name: "TensorFlow", x: 720, y: 310, brightness: 3, type: "dwarf", projects: 2 },
+      { name: "Node.js", x: 450, y: 350, brightness: 5, type: "supergiant", projects: 15 },
+      { name: "Spring Boot", x: 550, y: 330, brightness: 4, type: "giant", projects: 8 },
+      { name: "AWS", x: 400, y: 420, brightness: 5, type: "supergiant", projects: 12 },
+      { name: "Docker", x: 500, y: 400, brightness: 4, type: "main", projects: 10 },
+      { name: "PostgreSQL", x: 600, y: 380, brightness: 3, type: "main", projects: 8 },
+      { name: "Supabase", x: 620, y: 450, brightness: 3, type: "dwarf", projects: 6 },
     ],
-    connections: [[0, 1], [0, 2], [1, 3], [2, 3], [0, 4]]
+    connections: [[0, 1], [0, 2], [1, 4], [2, 3], [3, 4], [4, 5]]
+  },
+  {
+    name: "AI & Leadership",
+    mythName: "Cassiopeia the Guide",
+    description: "Leading with intelligence",
+    color: "#F59E0B", // Amber
+    stars: [
+      { name: "AI/LLMs", x: 800, y: 200, brightness: 5, type: "supergiant", projects: 8 },
+      { name: "Design Leadership", x: 900, y: 150, brightness: 5, type: "giant", projects: 5 },
+      { name: "Agile/Scrum", x: 850, y: 280, brightness: 4, type: "main", projects: 12 },
+      { name: "Mentoring", x: 750, y: 250, brightness: 4, type: "main", projects: 10 },
+      { name: "Splunk", x: 920, y: 250, brightness: 3, type: "dwarf", projects: 4 },
+      { name: "Stakeholder Mgmt", x: 820, y: 350, brightness: 3, type: "main", projects: 15 },
+    ],
+    connections: [[0, 1], [0, 3], [1, 2], [2, 4], [2, 5], [3, 5]]
   }
 ];
 
@@ -88,8 +108,8 @@ const generateBackgroundStars = (count: number) => {
     const baseSeed = i * 1000; // Larger increment for better distribution
     stars.push({
       id: `bg-star-${i}`,
-      x: seededRandom(baseSeed + 1) * 780 + 20,
-      y: seededRandom(baseSeed + 2) * 420 + 20,
+      x: seededRandom(baseSeed + 1) * 960 + 20,
+      y: seededRandom(baseSeed + 2) * 510 + 20,
       size: seededRandom(baseSeed + 3) * 1.5 + 0.5,
       opacity: seededRandom(baseSeed + 4) * 0.6 + 0.2,
       twinkleDelay: seededRandom(baseSeed + 5) * 4
@@ -176,27 +196,18 @@ export const ConstellationSkills: React.FC = () => {
 
   return (
     <div className="relative w-full max-w-7xl mx-auto overflow-visible">
-      {/* Hand-drawn notebook style background - wider */}
-      <div className="relative bg-white/95 border-2 border-dashed border-gray-300 rounded-2xl p-8 shadow-lg">
-        {/* Notebook spiral holes */}
-        <div className="absolute left-8 top-0 bottom-0 flex flex-col justify-around py-8">
-          {[...Array(12)].map((_, i) => (
-            <div
-              key={`spiral-hole-position-${i * 8.33}%`}
-              className="w-4 h-4 rounded-full border-2 border-gray-300 bg-white shadow-inner"
-            />
-          ))}
-        </div>
-
+      {/* Clean wireframe container - no notebook styles */}
+      <div className="relative bg-white p-4 md:p-8">
+        
         {/* Header with hand-drawn style */}
-        <div className="text-center mb-8 pl-16">
+        <div className="text-center mb-8 pl-0 md:pl-16">
           <motion.h2 
-            className={`text-3xl md:text-4xl font-bold text-gray-800 mb-2 handwritten`}
+            className={`text-3xl md:text-4xl font-bold text-black mb-2 handwritten`}
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             style={{ fontFamily: 'Left Hand, cursive' }}
           >
-            📌 My Skill Pin Board 📌
+            My Skill Pin Board
           </motion.h2>
           <motion.p 
             className={`text-lg text-gray-600 mb-4 handwritten`}
@@ -208,33 +219,33 @@ export const ConstellationSkills: React.FC = () => {
             Navigate the cosmos of my expertise • Hover over pins to discover their power
           </motion.p>
           
-          {/* Toggle constellation names - hand-drawn button */}
+          {/* Toggle constellation names - wireframe button */}
           <motion.button
             onClick={() => setShowConstellationNames(!showConstellationNames)}
-            className={`px-4 py-2 bg-blue-100 border-2 border-dashed border-blue-300 rounded-lg text-blue-700 hover:bg-blue-200 transition-all handwritten shadow-md`}
-            whileHover={{ scale: 1.05, rotate: 1 }}
+            className={`px-4 py-2 bg-white border border-black text-black hover:bg-gray-50 transition-all handwritten`}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             style={{ fontFamily: 'Left Hand, cursive' }}
           >
-            {showConstellationNames ? '🌙 Hide Names' : '🌟 Show Names'}
+            {showConstellationNames ? 'Hide Names' : 'Show Names'}
           </motion.button>
         </div>
 
-        {/* Constellation SVG with notebook grid background - wider layout */}
-        <div className="relative pl-16">
-          {/* Subtle notebook grid */}
-          <div className="absolute inset-0 opacity-20">
-            <svg width="100%" height="500" className="absolute inset-0">
+        {/* Constellation SVG with simple grid background */}
+        <div className="relative pl-0 md:pl-16">
+          {/* Subtle technical grid */}
+          <div className="absolute inset-0 opacity-10">
+            <svg width="100%" height="600" className="absolute inset-0">
               <defs>
-                <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                  <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#e5e7eb" strokeWidth="0.5"/>
+                <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                  <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#000" strokeWidth="0.5"/>
                 </pattern>
               </defs>
               <rect width="100%" height="100%" fill="url(#grid)" />
             </svg>
           </div>
 
-          <svg width="100%" height="500" className="overflow-visible relative" viewBox="0 0 820 480">
+          <svg width="100%" height="600" className="overflow-visible relative" viewBox="0 0 1000 550">
             {/* Background stars - more subtle */}
             {backgroundStars.map((star) => (
               <motion.circle
@@ -344,25 +355,29 @@ export const ConstellationSkills: React.FC = () => {
               // Fixed positioning for each constellation to prevent overlaps
               let labelX, labelY;
               switch (constIndex) {
-                case 0: // Orion (Frontend) - top left
-                  labelX = centerX - 20;
-                  labelY = centerY - 100;
+                case 0: // Design & Research - Top Left
+                  labelX = centerX;
+                  labelY = centerY - 80;
                   break;
-                case 1: // Andromeda (Design) - top right  
-                  labelX = centerX + 20;
-                  labelY = centerY - 100;
+                case 1: // Creative Tools - Bottom Left
+                  labelX = centerX;
+                  labelY = centerY + 80;
                   break;
-                case 2: // Hercules (Backend) - bottom left
-                  labelX = centerX - 20;
-                  labelY = centerY + 100;
+                case 2: // Frontend - Top Center
+                  labelX = centerX;
+                  labelY = centerY - 80;
                   break;
-                case 3: // Cassiopeia (AI) - bottom right
-                  labelX = centerX + 20;
-                  labelY = centerY + 100;
+                case 3: // Backend - Bottom Center
+                  labelX = centerX;
+                  labelY = centerY + 80;
+                  break;
+                case 4: // AI & Leadership - Right
+                  labelX = centerX;
+                  labelY = centerY - 80;
                   break;
                 default:
                   labelX = centerX;
-                  labelY = centerY > 240 ? centerY - 80 : centerY + 80;
+                  labelY = centerY > 275 ? centerY - 80 : centerY + 80;
               }
               
               return (
@@ -435,7 +450,7 @@ export const ConstellationSkills: React.FC = () => {
                     let tooltipY = star.y - tooltipHeight - 15;
                     
                     // Adjust if going off right edge
-                    if (tooltipX + tooltipWidth > 800) {
+                    if (tooltipX + tooltipWidth > 980) {
                       tooltipX = star.x - tooltipWidth - 25;
                     }
                     
@@ -445,7 +460,7 @@ export const ConstellationSkills: React.FC = () => {
                     }
                     
                     // Adjust if going off bottom edge
-                    if (tooltipY + tooltipHeight > 460) {
+                    if (tooltipY + tooltipHeight > 540) {
                       tooltipY = star.y - tooltipHeight - 15;
                     }
                     
