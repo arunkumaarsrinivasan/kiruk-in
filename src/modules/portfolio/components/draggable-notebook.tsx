@@ -4,6 +4,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { StickyNote, SketchCard, SketchHeading } from '@/components/ui/sketch-elements';
 import { useCursor } from '@/components/ui/CursorContext';
+import { GRID_SIZE, snapPositionToGrid } from '@/lib/utils';
 
 // Types for draggable items
 export interface DraggableItem {
@@ -29,6 +30,12 @@ interface DraggableNotebookProps {
   bounds?: { left: number; right: number; top: number; bottom: number };
 }
 
+const formatItemsForGrid = (list: DraggableItem[], active: boolean) =>
+  list.map(item => ({
+    ...item,
+    position: active ? snapPositionToGrid(item.position, GRID_SIZE) : item.position
+  }));
+
 // Individual draggable item component
 const DraggableNotebookItem: React.FC<{
   item: DraggableItem;
@@ -53,9 +60,15 @@ const DraggableNotebookItem: React.FC<{
   const [isHovered, setIsHovered] = useState(false);
   const dragControls = useDragControls();
   const itemRef = useRef<HTMLDivElement>(null);
+  const dragOriginRef = useRef(item.position);
   const { setGrabCursor, setGrabbingCursor, setDroppingCursor, setEyeCursor } = useCursor();
+  const snapPosition = useCallback(
+    (position: { x: number; y: number }) => (gridSnap ? snapPositionToGrid(position, GRID_SIZE) : position),
+    [gridSnap]
+  );
 
   const handleDragStart = () => {
+    dragOriginRef.current = item.position;
     setIsDragging(true);
     setGrabbingCursor();
     onSelect?.(item.id);
@@ -64,8 +77,9 @@ const DraggableNotebookItem: React.FC<{
   // New drag handler for real-time updates
   const handleDrag = (event: any, info: any) => {
     // Real-time position updates during drag for smoother experience
-    let newX = item.position.x + info.offset.x;
-    let newY = item.position.y + info.offset.y;
+    const origin = dragOriginRef.current;
+    let newX = origin.x + info.offset.x;
+    let newY = origin.y + info.offset.y;
 
     // Apply bounds if specified
     if (bounds && itemRef.current) {
@@ -76,7 +90,7 @@ const DraggableNotebookItem: React.FC<{
 
     // Update position in real-time for smooth dragging
     onUpdate(item.id, { 
-      position: { x: newX, y: newY }
+      position: snapPosition({ x: newX, y: newY })
     });
   };
 
@@ -90,18 +104,11 @@ const DraggableNotebookItem: React.FC<{
     }, 150);
     
     // Apply grid snap if enabled (only at the end)
-    if (gridSnap) {
-      const gridSize = 20;
-      const snappedX = Math.round(item.position.x / gridSize) * gridSize;
-      const snappedY = Math.round(item.position.y / gridSize) * gridSize;
-      
-      onUpdate(item.id, { 
-        position: { x: snappedX, y: snappedY }
-      });
-    }
-    
-    // Bring to front when moved
+    const snappedPosition = snapPosition(item.position);
+
+    // Snap to grid and bring to front when released
     onUpdate(item.id, { 
+      position: snappedPosition,
       zIndex: (item.zIndex ?? 0) + 1
     });
   };
@@ -150,11 +157,11 @@ const DraggableNotebookItem: React.FC<{
       
       case 'photo':
         return (
-          <div className="cursor-move bg-white p-2 shadow-lg border-2 border-gray-200 rounded-sm transform rotate-1">
-            <div className="bg-gray-100 aspect-square rounded-sm overflow-hidden">
+          <div className="cursor-move bg-[var(--bg-card)] p-2 shadow-none border border-[var(--border-color)] rounded-none transform rotate-0">
+            <div className="bg-[var(--bg-secondary)] aspect-square rounded-none overflow-hidden border border-[var(--border-color)]">
               {item.content}
             </div>
-            <div className="text-xs text-gray-500 mt-1 handwritten">Photo</div>
+            <div className="text-[10px] text-[var(--text-main)] mt-1 font-mono uppercase tracking-widest">Photo</div>
           </div>
         );
       
@@ -164,15 +171,8 @@ const DraggableNotebookItem: React.FC<{
             <svg 
               width="80" 
               height="80" 
-              className="stroke-current text-gray-700"
-              style={{ filter: 'url(#roughen)' }}
+              className="stroke-current text-[var(--text-main)]"
             >
-              <defs>
-                <filter id="roughen">
-                  <feTurbulence baseFrequency="0.04" numOctaves="3" result="noise" seed="1" />
-                  <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.8" />
-                </filter>
-              </defs>
               {item.content}
             </svg>
           </div>
@@ -180,8 +180,8 @@ const DraggableNotebookItem: React.FC<{
       
       case 'text-block':
         return (
-          <div className="cursor-move bg-white/80 p-3 border border-gray-300 rounded-sm max-w-[250px]">
-            <div className="handwritten text-sm text-gray-800">
+          <div className="cursor-move bg-[var(--bg-card)] p-3 border border-[var(--border-color)] shadow-none rounded-none max-w-[250px]">
+            <div className="font-mono text-xs text-[var(--text-main)] uppercase leading-relaxed">
               {item.content}
             </div>
           </div>
@@ -233,14 +233,14 @@ const DraggableNotebookItem: React.FC<{
       whileHover={{ scale: (item.scale ?? 1) * 1.02 }}
       whileDrag={{ 
         scale: (item.scale ?? 1) * 1.05,
-        rotate: (item.rotation ?? 0) + (Math.random() - 0.5) * 4,
+        rotate: (item.rotation ?? 0),
         zIndex: 1000
       }}
       animate={{
         boxShadow: (() => {
-          if (isDragging) return '0 8px 25px rgba(0,0,0,0.15)';
-          if (isSelected) return '0 0 0 2px #000';
-          return '0 2px 10px rgba(0,0,0,0.1)';
+          if (isDragging) return '8px 8px 0 var(--border-color)';
+          if (isSelected) return '0 0 0 2px var(--border-color)';
+          return 'none';
         })()
       }}
       transition={{ type: "spring", damping: 20, stiffness: 300 }}
@@ -251,7 +251,7 @@ const DraggableNotebookItem: React.FC<{
       <AnimatePresence>
         {allowEditing && (isHovered || isSelected) && !item.locked && (
           <motion.div
-            className="absolute -top-2 -right-2 flex gap-1"
+            className="absolute -top-5 -right-5 flex gap-1"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
@@ -263,7 +263,7 @@ const DraggableNotebookItem: React.FC<{
                 e.stopPropagation();
                 handleRotate();
               }}
-              className="w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-xs hover:bg-gray-800 transition-colors"
+              className="w-6 h-6 bg-[var(--bg-card)] text-[var(--text-main)] border border-[var(--border-color)] flex items-center justify-center text-xs hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] transition-colors"
               title="Rotate"
             >
               ↻
@@ -275,7 +275,7 @@ const DraggableNotebookItem: React.FC<{
                 e.stopPropagation();
                 handleResize('up');
               }}
-              className="w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-xs hover:bg-gray-800 transition-colors"
+              className="w-6 h-6 bg-[var(--bg-card)] text-[var(--text-main)] border border-[var(--border-color)] flex items-center justify-center text-xs hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] transition-colors"
               title="Make larger"
             >
               +
@@ -287,7 +287,7 @@ const DraggableNotebookItem: React.FC<{
                 e.stopPropagation();
                 handleResize('down');
               }}
-              className="w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-xs hover:bg-gray-800 transition-colors"
+              className="w-6 h-6 bg-[var(--bg-card)] text-[var(--text-main)] border border-[var(--border-color)] flex items-center justify-center text-xs hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] transition-colors"
               title="Make smaller"
             >
               −
@@ -300,7 +300,7 @@ const DraggableNotebookItem: React.FC<{
                   e.stopPropagation();
                   onDelete(item.id);
                 }}
-                className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                className="w-6 h-6 bg-[var(--text-main)] text-[var(--bg-main)] border border-[var(--border-color)] flex items-center justify-center text-xs hover:bg-[var(--bg-main)] hover:text-[var(--text-main)] transition-colors"
                 title="Delete"
               >
                 ×
@@ -312,8 +312,8 @@ const DraggableNotebookItem: React.FC<{
       
       {/* Locked indicator */}
       {item.locked && (
-        <div className="absolute top-1 right-1 w-4 h-4 bg-gray-400 rounded-full flex items-center justify-center">
-          <span className="text-white text-xs">🔒</span>
+        <div className="absolute top-1 right-1 w-4 h-4 bg-[var(--text-main)] flex items-center justify-center border border-[var(--bg-main)]">
+          <span className="text-[var(--bg-main)] text-[10px]">🔒</span>
         </div>
       )}
     </motion.div>
@@ -327,18 +327,36 @@ export const DraggableNotebook: React.FC<DraggableNotebookProps> = ({
   allowEditing = true,
   showControls = true,
   className = '',
-  gridSnap = false,
+  gridSnap = true,
   bounds
 }) => {
-  const [items, setItems] = useState<DraggableItem[]>(initialItems);
+  const [items, setItems] = useState<DraggableItem[]>(() => formatItemsForGrid(initialItems, gridSnap));
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [showAddMenu, setShowAddMenu] = useState(false);
   const containerRef = useRef<HTMLElement>(null);
+  const [isGridActive, setIsGridActive] = useState(gridSnap);
+
+  const snapPosition = useCallback(
+    (position: { x: number; y: number }, activeFlag?: boolean) => {
+      const shouldSnap = activeFlag ?? isGridActive;
+      return shouldSnap ? snapPositionToGrid(position, GRID_SIZE) : position;
+    },
+    [isGridActive]
+  );
+
+  const normalizeItems = useCallback(
+    (list: DraggableItem[], activeFlag?: boolean) =>
+      list.map(item => ({
+        ...item,
+        position: snapPosition(item.position, activeFlag)
+      })),
+    [snapPosition]
+  );
 
   // Update items when props change
   useEffect(() => {
-    setItems(initialItems);
-  }, [initialItems]);
+    setItems(normalizeItems(initialItems));
+  }, [initialItems, normalizeItems]);
 
   // Call onItemsChange only when items actually change, not during render
   useEffect(() => {
@@ -366,17 +384,17 @@ export const DraggableNotebook: React.FC<DraggableNotebookProps> = ({
       id: `item-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
       type,
       content,
-      position: { 
-        x: Math.random() * 300 + 50, 
-        y: Math.random() * 200 + 50 
-      },
-      rotation: (Math.random() - 0.5) * 10, // Slight random rotation
+      position: snapPosition({ 
+        x: Math.random() * 300 + 40, 
+        y: Math.random() * 200 + 40 
+      }),
+      rotation: 0, // No rotation for wireframe
       scale: 1,
       zIndex: items.length
     };
     setItems(prev => [...prev, newItem]);
     setShowAddMenu(false);
-  }, [items.length]);
+  }, [items.length, snapPosition]);
 
   const handleContainerClick = (e: React.MouseEvent) => {
     if (e.target === containerRef.current) {
@@ -390,6 +408,16 @@ export const DraggableNotebook: React.FC<DraggableNotebookProps> = ({
     }
   };
 
+  const toggleGridSnap = () => {
+    setIsGridActive(prev => {
+      const next = !prev;
+      if (next) {
+        setItems(current => normalizeItems(current, true));
+      }
+      return next;
+    });
+  };
+
   const clearAll = () => {
     setItems([]);
     setSelectedItemId(null);
@@ -400,17 +428,13 @@ export const DraggableNotebook: React.FC<DraggableNotebookProps> = ({
       {/* Notebook background with subtle grid */}
       <section 
         ref={containerRef}
-        className="w-full h-full bg-white notebook-bg relative"
+        className="w-full h-full bg-white relative"
         aria-label="Interactive notebook workspace"
         style={{
-          backgroundImage: gridSnap 
-            ? 'radial-gradient(circle, #ddd 1px, transparent 1px)' 
-            : 'none',
-          backgroundSize: gridSnap ? '20px 20px' : 'auto'
+          backgroundImage: 'linear-gradient(#e5e5e5 1px, transparent 1px), linear-gradient(90deg, #e5e5e5 1px, transparent 1px)',
+          backgroundSize: '20px 20px'
         }}
       >
-        {/* Notebook holes */}
-        <div className="absolute left-8 top-0 bottom-0 w-px bg-red-300 opacity-30" />
         
         {/* Invisible click handler for deselection */}
         <button
@@ -429,7 +453,7 @@ export const DraggableNotebook: React.FC<DraggableNotebookProps> = ({
             onUpdate={updateItem}
             onDelete={allowEditing ? deleteItem : undefined}
             allowEditing={allowEditing}
-            gridSnap={gridSnap}
+            gridSnap={isGridActive}
             bounds={bounds}
             isSelected={selectedItemId === item.id}
             onSelect={setSelectedItemId}
@@ -439,12 +463,12 @@ export const DraggableNotebook: React.FC<DraggableNotebookProps> = ({
 
       {/* Control panel */}
       {showControls && allowEditing && (
-        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm border-2 border-black rounded-lg p-2 sketch-border">
+        <div className="absolute top-4 right-4 bg-white border border-black p-2 shadow-none">
           <div className="flex flex-col gap-2">
             {/* Add items button */}
             <button
               onClick={() => setShowAddMenu(!showAddMenu)}
-              className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center hover:bg-gray-800 transition-colors"
+              className="w-8 h-8 bg-black text-white border border-black flex items-center justify-center hover:bg-white hover:text-black transition-colors"
               title="Add items"
             >
               +
@@ -452,11 +476,12 @@ export const DraggableNotebook: React.FC<DraggableNotebookProps> = ({
 
             {/* Grid snap toggle */}
             <button
-              onClick={() => {/* Grid snap toggle logic would go here */}}
-              className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-                gridSnap ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'
+              onClick={toggleGridSnap}
+              className={`w-8 h-8 flex items-center justify-center transition-colors border border-black ${
+                isGridActive ? 'bg-black text-white' : 'bg-white text-black'
               }`}
               title="Toggle grid snap"
+              aria-pressed={isGridActive}
             >
               ⊞
             </button>
@@ -464,7 +489,7 @@ export const DraggableNotebook: React.FC<DraggableNotebookProps> = ({
             {/* Clear all button */}
             <button
               onClick={clearAll}
-              className="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+              className="w-8 h-8 bg-white text-black border border-black flex items-center justify-center hover:bg-black hover:text-white transition-colors"
               title="Clear all"
             >
               🗑
@@ -475,40 +500,40 @@ export const DraggableNotebook: React.FC<DraggableNotebookProps> = ({
           <AnimatePresence>
             {showAddMenu && (
               <motion.div
-                className="absolute top-0 right-12 bg-white border-2 border-black rounded-lg p-2 min-w-[200px] sketch-border"
+                className="absolute top-0 right-12 bg-white border border-black p-2 min-w-[200px] shadow-none"
                 initial={{ opacity: 0, x: 10 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 10 }}
               >
-                <div className="text-xs font-bold mb-2 handwritten">Add Items:</div>
-                <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="text-xs font-black uppercase tracking-widest mb-2 border-b border-black pb-1">Add Items:</div>
+                <div className="grid grid-cols-2 gap-2 text-xs font-mono uppercase">
                   <button
                     onClick={() => addItem('sticky-note', '📝 Quick note')}
-                    className="p-2 bg-yellow-100 hover:bg-yellow-200 rounded border border-yellow-300 transition-colors"
+                    className="p-2 bg-white hover:bg-black hover:text-white border border-black transition-colors"
                   >
                     Sticky Note
                   </button>
                   <button
                     onClick={() => addItem('sketch-card', <SketchHeading level={3}>Card</SketchHeading>)}
-                    className="p-2 bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 transition-colors"
+                    className="p-2 bg-white hover:bg-black hover:text-white border border-black transition-colors"
                   >
                     Sketch Card
                   </button>
                   <button
-                    onClick={() => addItem('photo', <div className="w-full h-full bg-gradient-to-br from-blue-200 to-purple-200" />)}
-                    className="p-2 bg-blue-100 hover:bg-blue-200 rounded border border-blue-300 transition-colors"
+                    onClick={() => addItem('photo', <div className="w-full h-full bg-gray-100 border border-black" />)}
+                    className="p-2 bg-white hover:bg-black hover:text-white border border-black transition-colors"
                   >
                     Photo
                   </button>
                   <button
                     onClick={() => addItem('doodle', <circle cx="40" cy="40" r="30" fill="none" stroke="currentColor" strokeWidth="2" />)}
-                    className="p-2 bg-green-100 hover:bg-green-200 rounded border border-green-300 transition-colors"
+                    className="p-2 bg-white hover:bg-black hover:text-white border border-black transition-colors"
                   >
                     Doodle
                   </button>
                   <button
                     onClick={() => addItem('text-block', 'This is a text block that you can move around!')}
-                    className="p-2 bg-purple-100 hover:bg-purple-200 rounded border border-purple-300 transition-colors col-span-2"
+                    className="p-2 bg-white hover:bg-black hover:text-white border border-black transition-colors col-span-2"
                   >
                     Text Block
                   </button>
@@ -522,10 +547,10 @@ export const DraggableNotebook: React.FC<DraggableNotebookProps> = ({
       {/* Instructions */}
       {items.length === 0 && allowEditing && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="text-center text-gray-500 handwritten">
+          <div className="text-center text-black font-mono uppercase tracking-widest">
             <div className="text-2xl mb-2">📝</div>
-            <div className="text-lg mb-1">Your interactive notebook</div>
-            <div className="text-sm">Click the + button to add items and drag them around!</div>
+            <div className="text-lg mb-1 font-black">Your wireframe workspace</div>
+            <div className="text-xs">Click the + button to add items and drag them around!</div>
           </div>
         </div>
       )}

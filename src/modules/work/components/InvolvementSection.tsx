@@ -41,7 +41,7 @@ const InvolvementCard = ({ item, index }: { item: InvolvementItem; index: number
     transition={{ duration: 0.4, delay: index * 0.08 }}
   >
     <WireframeCard className="bg-white h-full">
-      <div className="p-6 flex flex-col h-full relative">
+      <div className="p-4 flex flex-col h-full relative">
         {/* Corner accents */}
         <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-black" />
         <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-black" />
@@ -51,7 +51,7 @@ const InvolvementCard = ({ item, index }: { item: InvolvementItem; index: number
         <div className="flex items-start justify-between gap-4 mb-4">
           <div className="flex items-start gap-3">
             <span
-              className="flex h-10 w-10 items-center justify-center border border-black text-xl bg-gray-50"
+              className="flex h-8 w-8 items-center justify-center border border-black text-xl bg-gray-50"
             >
               {item.icon}
             </span>
@@ -92,7 +92,7 @@ export const InvolvementSection = ({ involvementData }: InvolvementSectionProps)
           {statChips.map((chip) => (
             <div
               key={chip.label}
-              className="group relative flex min-w-[190px] flex-col gap-1 border border-black bg-white px-5 py-4 text-left transition-all hover:shadow-none"
+              className="group relative flex min-w-[190px] flex-col gap-1 border border-black bg-white px-4 py-4 text-left transition-all hover:shadow-none"
             >
               {/* Wireframe corners for chips */}
               <div className="absolute -top-px -left-px w-1.5 h-1.5 border-t border-l border-black" />
@@ -109,7 +109,7 @@ export const InvolvementSection = ({ involvementData }: InvolvementSectionProps)
         </motion.div>
       </div>
 
-      <div className="mt-10 grid gap-6 md:grid-cols-2 mb-16">
+      <div className="mt-8 grid gap-4 md:grid-cols-2 mb-16">
         {involvementData.map((item, index) => (
           <InvolvementCard key={item.title} item={item} index={index} />
         ))}
@@ -119,10 +119,10 @@ export const InvolvementSection = ({ involvementData }: InvolvementSectionProps)
         <WireframeCard className="bg-white max-w-3xl mx-auto">
           <div className="p-8 text-center relative">
              {/* Wireframe accents */}
-            <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-black" />
-            <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-black" />
-            <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-black" />
-            <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-black" />
+            <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-black" />
+            <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-black" />
+            <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-black" />
+            <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-black" />
 
             <h3 className="text-2xl font-bold text-black handwritten mb-4">Let us build something together</h3>
             <p className="mx-auto mb-6 max-w-xl text-sm text-gray-600 handwritten leading-relaxed">
@@ -140,7 +140,7 @@ export const InvolvementSection = ({ involvementData }: InvolvementSectionProps)
             
             <motion.a
               href="/contact"
-              className="inline-flex items-center gap-2 border-2 border-black bg-black text-white px-8 py-3 text-sm font-bold handwritten hover:bg-white hover:text-black transition-colors uppercase tracking-widest"
+              className="inline-flex items-center gap-2 border border-black bg-black text-white px-8 py-3 text-sm font-bold handwritten hover:bg-white hover:text-black transition-colors uppercase tracking-widest"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >

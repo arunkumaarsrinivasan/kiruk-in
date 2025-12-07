@@ -153,7 +153,7 @@ const InteractiveLoadingPage: React.FC<InteractiveLoadingPageProps> = ({
         </AnimatePresence>
       </div>
 
-      <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 py-14">
+      <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4 py-14">
         <motion.div
           className="text-center"
           initial={{ opacity: 0, y: -20 }}
@@ -174,7 +174,7 @@ const InteractiveLoadingPage: React.FC<InteractiveLoadingPageProps> = ({
         </motion.div>
 
         <motion.div
-          className="relative mt-10 w-full max-w-lg rounded-[26px] border-2 border-dashed border-slate-500 bg-white/95 p-8 shadow-xl"
+          className="relative mt-8 w-full max-w-lg rounded-none border border-dashed border-slate-500 bg-white/95 p-8 shadow-xl"
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35, duration: 0.55 }}
@@ -183,7 +183,7 @@ const InteractiveLoadingPage: React.FC<InteractiveLoadingPageProps> = ({
             <span className="handwritten -rotate-1">Sketching in progress…</span>
             {showProgress && (
               <motion.span
-                className="handwritten rounded-full border border-dashed border-slate-400 bg-white px-3 py-1 text-slate-600"
+                className="handwritten rounded-none border border-dashed border-slate-400 bg-white px-3 py-1 text-slate-600"
                 animate={{ scale: [1, 1.08, 1] }}
                 transition={{ duration: 1.3, repeat: Infinity, ease: 'easeInOut' }}
               >
@@ -258,11 +258,11 @@ const InteractiveLoadingPage: React.FC<InteractiveLoadingPageProps> = ({
           )}
         </motion.div>
 
-        <div className="mt-10 w-full max-w-sm">
+        <div className="mt-8 w-full max-w-sm">
           <AnimatePresence mode="wait">
             <motion.div
               key={creativeTips[activeTip]}
-              className="rounded-2xl border border-dashed border-slate-300 bg-white/90 px-5 py-4 text-center shadow-md"
+              className="rounded-none border border-dashed border-slate-300 bg-white/90 px-4 py-4 text-center shadow-md"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}

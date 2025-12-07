@@ -254,25 +254,17 @@ const lifeEvents: TimelineEvent[] = [
 
 const LIFE_EVENTS_COUNT = lifeEvents.length;
 
-// SVG path for the scribble line that connects all events
-const generateScribblePath = (eventCount: number, totalWidth: number) => {
+// Straight line path for wireframe style
+const generateWireframePath = (eventCount: number, totalWidth: number) => {
 	const safeEvents = Math.max(eventCount, 1);
 	const fallbackWidth = safeEvents * 520 + 640;
 	const width = Math.max(totalWidth, fallbackWidth);
 	const startX = 140;
 	const endPadding = 160;
 	const baseY = 320;
-	const amplitude = 48;
-	const step = (width - startX - endPadding) / safeEvents;
-
-	let path = `M ${startX} ${baseY}`;
-	for (let i = 1; i <= safeEvents; i += 1) {
-		const x = startX + step * i;
-		const controlX = x - step / 2;
-		const controlY = baseY + (i % 2 === 0 ? amplitude : -amplitude);
-		path += ` Q ${controlX} ${controlY} ${x} ${baseY}`;
-	}
-	return path;
+	
+	// Just a straight line
+	return `M ${startX} ${baseY} L ${width - endPadding} ${baseY}`;
 };
 
 export default function About() {
@@ -293,8 +285,8 @@ export default function About() {
 		[]
 	);
 	const effectiveTrackWidth = trackWidth || fallbackTrackWidth;
-	const scribblePath = useMemo(
-		() => generateScribblePath(LIFE_EVENTS_COUNT, effectiveTrackWidth),
+	const wireframePath = useMemo(
+		() => generateWireframePath(LIFE_EVENTS_COUNT, effectiveTrackWidth),
 		[effectiveTrackWidth]
 	);
 
@@ -362,11 +354,11 @@ export default function About() {
 	}, []);
 
 	useEffect(() => {
-		if (scribblePath && pathRef.current) {
+		if (wireframePath && pathRef.current) {
 			const length = pathRef.current.getTotalLength();
 			setPathLength(length);
 		}
-	}, [scribblePath]);
+	}, [wireframePath]);
 
 	useEffect(() => {
 		if (!pathRef.current || !pathLength) return;
@@ -434,12 +426,12 @@ export default function About() {
 	return (
 		<main className="min-h-screen notebook-bg">
 			{/* Header */}
-			<div className="fixed top-0 left-0 right-0 z-10 bg-white/90 backdrop-blur-sm border-b-2 border-dashed border-black p-4">
+			<div className="fixed top-0 left-0 right-0 z-10 bg-white/90 backdrop-blur-sm border-b-2 border-black p-4">
 				<div className="max-w-7xl mx-auto">
-					<SketchHeading level={1} className="text-2xl text-center sketch-font">
-						The Journey of Kiruk 🛤️
+					<SketchHeading level={1} className="text-2xl text-center">
+						The Journey of Kiruk
 					</SketchHeading>
-					<p className="text-center text-sm text-gray-600 handwritten mt-2">
+					<p className="text-center text-sm text-gray-600 uppercase tracking-widest mt-2">
 						A scrapbook of the processes I cherish—take your time through each chapter.
 					</p>
 				</div>
@@ -455,46 +447,47 @@ export default function About() {
 			>
 				<div
 					ref={trackRef}
-					className="relative h-full flex items-start gap-28 px-24 pt-20 pb-32"
+					className="relative h-full flex items-start gap-28 px-25 pt-16 pb-32"
 					style={{ width: `${effectiveTrackWidth}px` }}
 				>
-					{/* Animated Scribble Line */}
+					{/* Animated Wireframe Line */}
 					<svg
 						className="absolute top-0 left-0 w-full h-full pointer-events-none"
 						style={{ minWidth: `${effectiveTrackWidth}px` }}
 					>
 						{/* Background path (faded) */}
 						<path
-							d={scribblePath}
+							d={wireframePath}
 							stroke="#e5e7eb"
-							strokeWidth="4"
+							strokeWidth="2"
 							fill="none"
 							strokeDasharray="8,4"
-							className="opacity-30"
+							className="opacity-50"
 						/>
 						{/* Animated drawing path */}
 						<motion.path
 							ref={pathRef}
-							d={scribblePath}
-							stroke="#6366f1"
-							strokeWidth="3"
+							d={wireframePath}
+							stroke="#000"
+							strokeWidth="2"
 							fill="none"
-							strokeLinecap="round"
-							strokeLinejoin="round"
+							strokeLinecap="square"
+							strokeLinejoin="miter"
 							strokeDasharray={pathLength}
 							strokeDashoffset={useTransform(
 								pathDraw,
 								(latest) => pathLength - latest
 							)}
-							className="scribble-path drop-shadow-sm"
+							className="drop-shadow-sm"
 						/>
 						{/* Animated drawing tip */}
-						<motion.circle
-							r="6"
-							fill="#6366f1"
+						<motion.rect
+							width="12"
+							height="12"
+							fill="#000"
 							className="drop-shadow-lg"
-							cx={circlePos.x}
-							cy={circlePos.y}
+							x={circlePos.x - 6}
+							y={circlePos.y - 6}
 						/>
 					</svg>
 
@@ -519,12 +512,12 @@ export default function About() {
 							viewport={{ once: true }}
 						>
 								{/* Year Marker */}
-								<div className="absolute -top-8 left-1/2 transform -translate-x-1/2">
+								<div className="absolute -top-10 left-1/2 transform -translate-x-1/2">
 									<div
-										className={`px-3 py-1 rounded-full text-sm font-bold text-white shadow-lg ${
-											event.milestone ? "bg-purple-500" : "bg-gray-400"
-										} ${event.current ? "bg-gradient-to-r from-purple-500 to-pink-500 animate-pulse" : ""
-											} ${isCollapsed ? "bg-gray-300" : ""}`}
+										className={`px-3 py-1 text-sm font-bold text-white shadow-[2px_2px_0px_#000] border border-black ${
+											event.milestone ? "bg-black" : "bg-gray-600"
+										} ${event.current ? "bg-black animate-pulse" : ""
+											} ${isCollapsed ? "bg-gray-400" : ""}`}
 									>
 										{event.year}
 									</div>
@@ -549,13 +542,13 @@ export default function About() {
 												>
 													<div className="p-4 h-full flex flex-col items-center justify-center text-center">
 														<span className="text-2xl mb-2">{event.icon}</span>
-														<h3 className="handwritten text-sm font-bold text-gray-700 mb-1">
+														<h3 className="text-sm font-bold text-gray-700 mb-1 uppercase tracking-wider">
 															{event.title}
 														</h3>
-														<p className="handwritten text-xs text-gray-500 mb-2">
+														<p className="text-xs text-gray-500 mb-2 uppercase">
 															📍 {event.location}
 														</p>
-														<div className="flex items-center gap-1 text-xs text-indigo-600">
+														<div className="flex items-center gap-1 text-xs text-black font-bold">
 															<span>Click to expand</span>
 														</div>
 													</div>
@@ -569,7 +562,7 @@ export default function About() {
 										{/* Collapse button for expanded events */}
 										{event.collapsed && (
 											<button
-												className="absolute -top-2 -right-2 z-10 bg-white rounded-full p-1 shadow-md hover:shadow-lg transition-shadow border border-gray-200"
+												className="absolute -top-2.5 -right-2.5 z-10 bg-white p-1 shadow-[2px_2px_0px_#000] border border-black hover:bg-gray-100 transition-colors"
 												onClick={(e) => {
 													e.stopPropagation();
 													toggleEventExpansion(event.id);
@@ -577,7 +570,7 @@ export default function About() {
 												aria-label="Collapse event"
 											>
 												<motion.span
-													className="text-sm"
+													className="text-sm font-bold"
 													whileHover={{ rotate: 180 }}
 													transition={{ duration: 0.2 }}
 												>
@@ -591,47 +584,32 @@ export default function About() {
 										>
 											<motion.div
 												whileHover={{
-													scale: 1.04,
+													scale: 1.02,
 												}}
 												whileTap={{ scale: 0.98 }}
 												transition={{ type: "spring", stiffness: 300 }}
 											>
 												<ThemedCard
 													theme={event.theme}
-													className={`timeline-card relative h-96 cursor-pointer hover:shadow-[0_8px_32px_rgba(99,102,241,0.15)] ${event.milestone ? "shadow-2xl" : "shadow-lg"}`}
+													className={`timeline-card relative h-96 cursor-pointer hover:shadow-[6px_6px_0px_#000] transition-shadow`}
 												>
 													{/* Content */}
-													<div className="p-6 h-full flex flex-col">
+													<div className="p-4 h-full flex flex-col">
 														<div className="flex items-center gap-3 mb-4">
 															<span className="text-3xl">{event.icon}</span>
 															<div>
-																<h3 className="handwritten text-lg font-bold text-gray-800 mb-1 flex items-center gap-2">
+																<h3 className="text-lg font-bold text-gray-800 mb-1 flex items-center gap-2 uppercase tracking-wider">
 																	{event.title}
 																	{/* Animated Age Number */}
 																	<motion.span
-																		className="inline-block text-indigo-500 text-base font-extrabold px-2 py-0.5 rounded-lg bg-indigo-50 ml-2 shadow-sm cursor-pointer relative"
+																		className="inline-block text-black text-base font-extrabold px-2 py-0.5 border border-black bg-white ml-2 shadow-[2px_2px_0px_#000] cursor-pointer relative"
 																		whileHover={{
-																			scale: 1.25,
-																			rotate: [0, 10, -10, 0],
-																			backgroundColor: [
-																				"#fbbf24",
-																				"#f472b6",
-																				"#a5b4fc",
-																				"#6ee7b7",
-																				"#fbbf24",
-																			],
+																			scale: 1.1,
+																			backgroundColor: "#000",
 																			color: "#fff",
-																			transition: {
-																				duration: 0.8,
-																				repeat: Infinity,
-																				repeatType: "loop",
-																			},
 																		}}
 																		whileTap={{
-																			scale: 1.5,
-																			rotate: 0,
-																			backgroundColor: "#f472b6",
-																			color: "#fff",
+																			scale: 0.95,
 																		}}
 																		onClick={(e) => {
 																			// Confetti burst effect (simple emoji burst)
@@ -657,23 +635,19 @@ export default function About() {
 																		title={`Age: ${event.age}`}
 																	>
 																		{event.age}
-																		{/* Tooltip for accessibility */}
-																		<span className="absolute left-1/2 -bottom-7 -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-90 transition-opacity pointer-events-none whitespace-nowrap z-10">
-																			Click for a surprise!
-																		</span>
 																	</motion.span>
 																</h3>
-																<p className="handwritten text-sm text-gray-600">
+																<p className="text-sm text-gray-600 uppercase">
 																	📍 {event.location}
 																</p>
 																{event.period && (
-																	<p className="handwritten text-xs text-indigo-600 mt-1 flex items-center gap-1">
+																	<p className="text-xs text-black font-bold mt-1 flex items-center gap-1 uppercase">
 																		🗓 {event.period}
 																	</p>
 																)}
 															</div>
 														</div>
-														<p className="handwritten text-sm text-gray-700 mb-4 flex-grow">
+														<p className="text-sm text-gray-700 mb-4 flex-grow font-mono">
 															{event.description}
 														</p>
 														{event.tags?.length ? (
@@ -681,8 +655,8 @@ export default function About() {
 																{event.tags.map((tag) => (
 																	<motion.span
 																		key={`${event.id}-tag-${tag}`}
-																		className="handwritten text-xs text-indigo-700 bg-white/80 border border-indigo-200 rounded-full px-3 py-1 shadow-sm"
-																		whileHover={{ scale: 1.08, rotate: lane === "upper" ? -1 : 1 }}
+																		className="text-xs text-black bg-white border border-black px-3 py-1 shadow-[2px_2px_0px_#000] uppercase tracking-wider"
+																		whileHover={{ scale: 1.05 }}
 																	>
 																		{tag}
 																	</motion.span>
@@ -699,7 +673,7 @@ export default function About() {
 								{/* Connection Line to Timeline */}
 								<div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
 									<motion.div
-										className="w-4 h-4 rounded-full bg-indigo-500 border-4 border-white shadow-lg group-hover:scale-125 transition-transform duration-300"
+										className="w-4 h-4 bg-black border-2 border-white shadow-lg group-hover:scale-125 transition-transform duration-300"
 										whileHover={{ scale: 1.5 }}
 										transition={{ type: "spring", stiffness: 300 }}
 									/>
@@ -717,7 +691,7 @@ export default function About() {
 					>
 						<div className="focus:outline-none group w-full text-left p-0 bg-transparent border-none">
 							<ThemedCard theme="paper" className="h-64 flex flex-col items-center justify-center transition-transform duration-300">
-								<div className="p-6 h-full flex flex-col items-center justify-center text-center relative z-10">
+								<div className="p-4 h-full flex flex-col items-center justify-center text-center relative z-10">
 									<motion.span
 										className="text-4xl mb-4"
 										animate={{ rotate: [0, 4, -4, 0] }}
@@ -725,13 +699,13 @@ export default function About() {
 									>
 										🌟
 									</motion.span>
-									<h3 className="handwritten text-lg font-bold text-gray-700 mb-2">To Be Continued...</h3>
-									<p className="handwritten text-sm text-gray-600 mb-4">
+									<h3 className="text-lg font-bold text-gray-700 mb-2 uppercase tracking-wider">To Be Continued...</h3>
+									<p className="text-sm text-gray-600 mb-4 font-mono">
 										The story continues with new adventures, learning, and growth.
 									</p>
 									<Link
 										href="/progress"
-										className="inline-flex items-center gap-2 rounded-full border border-blue-300 bg-white/90 px-5 py-1.5 handwritten text-base text-blue-600 shadow-sm hover:bg-blue-50"
+										className="inline-flex items-center gap-2 border-2 border-black bg-white px-4 py-1.5 text-base text-black shadow-[4px_4px_0px_#000] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_#000] transition-all uppercase font-bold"
 									>
 										Visit progress
 										<span aria-hidden="true">↗</span>
@@ -743,11 +717,11 @@ export default function About() {
 				</div>
 			</div>
 			{/* Timeline Navigation Buttons */}
-			<div className="fixed bottom-24 right-6 z-20 flex flex-col gap-3 items-end">
+			<div className="fixed bottom-25 right-4 z-20 flex flex-col gap-3 items-end">
 				<button
 					type="button"
 					onClick={() => handleNavClick("left")}
-					className="h-12 w-12 rounded-full border-2 border-dashed border-gray-400 bg-white/90 shadow-lg backdrop-blur-sm text-xl hover:border-indigo-400 hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2"
+					className="h-12 w-12 border-2 border-black bg-white shadow-[4px_4px_0px_#000] text-xl hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_#000] focus:outline-none active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center"
 					aria-label="Scroll timeline to the left"
 					title="Scroll left"
 				>
@@ -756,7 +730,7 @@ export default function About() {
 				<button
 					type="button"
 					onClick={() => handleNavClick("right")}
-					className="h-12 w-12 rounded-full border-2 border-dashed border-gray-400 bg-white/90 shadow-lg backdrop-blur-sm text-xl hover:border-indigo-400 hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2"
+					className="h-12 w-12 border-2 border-black bg-white shadow-[4px_4px_0px_#000] text-xl hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_#000] focus:outline-none active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center"
 					aria-label="Scroll timeline to the right"
 					title="Scroll right"
 				>
@@ -771,7 +745,7 @@ export default function About() {
 							animate={{ opacity: 1, y: 0 }}
 							exit={{ opacity: 0, y: 10 }}
 							transition={{ duration: 0.2 }}
-							className="mt-2 inline-flex items-center gap-2 rounded-full border border-rose-200 bg-white/90 px-4 py-2 text-sm font-semibold text-rose-600 shadow-lg backdrop-blur-sm"
+							className="mt-2 inline-flex items-center gap-2 border-2 border-black bg-white px-4 py-2 text-sm font-bold text-black shadow-[4px_4px_0px_#000] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_#000] transition-all uppercase"
 						>
 							Go to Instagram ↓
 						</motion.button>
@@ -803,10 +777,10 @@ export default function About() {
 							exit={{ scale: 0.9, y: 40, opacity: 0 }}
 							transition={{ type: "spring", stiffness: 300, damping: 25 }}
 						>
-							<ThemedCard theme={selectedEvent.theme} className="w-full shadow-2xl">
+							<ThemedCard theme={selectedEvent.theme} className="w-full shadow-[8px_8px_0px_#000] border-2 border-black">
 								<button
 									onClick={closeModal}
-									className="absolute top-3 right-3 text-gray-400 hover:text-indigo-600 text-2xl focus:outline-none z-50"
+									className="absolute top-3 right-3 text-black hover:text-gray-600 text-2xl focus:outline-none z-50 font-bold"
 									aria-label="Close"
 								>
 									×
@@ -814,24 +788,24 @@ export default function About() {
 								<div className="flex items-center gap-4 mb-4">
 									<span className="text-4xl">{selectedEvent.icon}</span>
 									<div>
-										<h2 className="text-xl font-bold handwritten text-gray-800 mb-1">
+										<h2 className="text-xl font-bold text-gray-800 mb-1 uppercase tracking-wider">
 											{selectedEvent.title}
 										</h2>
-										<p className="text-sm text-gray-600 handwritten">
+										<p className="text-sm text-gray-600 uppercase">
 											📍 {selectedEvent.location}
 										</p>
 										{selectedEvent.period && (
-											<p className="text-xs text-indigo-600 handwritten mt-1">
+											<p className="text-xs text-black font-bold mt-1 uppercase">
 												🗓 {selectedEvent.period}
 											</p>
 										)}
 									</div>
 								</div>
-								<p className="text-gray-700 handwritten mb-3">
+								<p className="text-gray-700 mb-3 font-mono">
 									{selectedEvent.description}
 								</p>
-								<div className="bg-indigo-50 rounded-lg p-4 border border-indigo-100 mb-2">
-									<p className="text-xs text-indigo-700 handwritten italic">
+								<div className="bg-gray-50 rounded-none p-4 border border-black mb-2 shadow-[2px_2px_0px_#000]">
+									<p className="text-xs text-black font-mono italic">
 										💭 {selectedEvent.details}
 									</p>
 								</div>
@@ -840,7 +814,7 @@ export default function About() {
 										{selectedEvent.tags.map((tag) => (
 											<span
 												key={`modal-tag-${tag}`}
-												className="handwritten text-xs bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full border border-indigo-200"
+												className="text-xs bg-white text-black px-3 py-1 border border-black shadow-[2px_2px_0px_#000] uppercase tracking-wider"
 											>
 												{tag}
 											</span>
@@ -848,13 +822,13 @@ export default function About() {
 									</div>
 								) : null}
 								<div className="flex items-center gap-2 mt-2">
-									<span className="text-xs bg-indigo-200 text-indigo-800 px-2 py-1 rounded-full handwritten">
+									<span className="text-xs bg-white text-black px-2 py-1 border border-black uppercase font-bold">
 										Year: {selectedEvent.year}
 									</span>
-									<span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full handwritten">
+									<span className="text-xs bg-white text-black px-2 py-1 border border-black uppercase font-bold">
 										Age: {selectedEvent.age}
 									</span>
-									<span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full handwritten border border-green-200">
+									<span className="text-xs bg-white text-black px-2 py-1 border border-black uppercase font-bold">
 										🎨 {themeNames[selectedEvent.theme]}
 									</span>
 								</div>
@@ -865,12 +839,12 @@ export default function About() {
 			</AnimatePresence>
 
 			{/* Vlog Gallery Section */}
-			<div id="instagram-section" className="max-w-7xl mx-auto px-4 py-16 mt-20 relative">
+			<div id="instagram-section" className="max-w-7xl mx-auto px-4 py-12 mt-16 relative">
 				{/* Sketchy section divider */}
 				<div className="text-center mb-8">
-					<div className="inline-block border-2 border-dashed border-black rounded-2xl px-8 py-4 bg-white shadow-lg transform -rotate-1">
-						<h2 className="sketch-font text-xl text-black mb-2">📱 Stories & Adventures</h2>
-						<p className="handwritten text-sm text-gray-600">Swipe through my digital diary</p>
+					<div className="inline-block border-2 border-black px-8 py-4 bg-white shadow-[4px_4px_0px_#000]">
+						<h2 className="text-xl text-black mb-2 font-bold uppercase tracking-widest">📱 Stories & Adventures</h2>
+						<p className="text-sm text-gray-600 uppercase">Swipe through my digital diary</p>
 					</div>
 				</div>
 				<VlogGallery />

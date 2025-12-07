@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { ThemeConfig, AVAILABLE_THEMES } from '@/data/portfolio-data';
+import { DesignSystemTokens, getDesignSystemForTheme } from '@/data/design-systems';
 
 interface ThemeContextType {
   currentTheme: ThemeConfig;
@@ -10,6 +11,7 @@ interface ThemeContextType {
   isThemeSelected: boolean;
   showThemeSelector: boolean;
   setShowThemeSelector: (show: boolean) => void;
+  designSystem: DesignSystemTokens;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -30,6 +32,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const [currentTheme, setCurrentTheme] = useState<ThemeConfig>(AVAILABLE_THEMES[0]); // Default to sketch
   const [isThemeSelected, setIsThemeSelected] = useState(false);
   const [showThemeSelector, setShowThemeSelector] = useState(false);
+  const [designSystem, setDesignSystem] = useState<DesignSystemTokens>(() => getDesignSystemForTheme(AVAILABLE_THEMES[0]));
 
   // Load theme from localStorage on mount
   useEffect(() => {
@@ -66,10 +69,35 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     root.style.setProperty('--theme-font-secondary', theme.fonts.secondary);
     root.style.setProperty('--theme-font-accent', theme.fonts.accent);
     
-    // Add theme class to body
-    document.body.className = document.body.className.replace(/theme-\w+/g, '');
+    // Set data attributes for global styles
+    document.body.setAttribute('data-era', theme.id);
+    document.body.setAttribute('data-style', theme.style);
+    
+    // Toggle theme-* classes without wiping other body classes
+    const themeClasses = ['theme-sketch', 'theme-minimal', 'theme-absurd'];
+    themeClasses.forEach(themeClass => document.body.classList.remove(themeClass));
     document.body.classList.add(`theme-${theme.style}`);
   }, [currentTheme]);
+
+  useEffect(() => {
+    setDesignSystem(getDesignSystemForTheme(currentTheme));
+  }, [currentTheme]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const { surface, cards } = designSystem.vars;
+
+    root.style.setProperty('--surface-pattern', surface.pattern);
+    root.style.setProperty('--surface-pattern-size', surface.size);
+    root.style.setProperty('--surface-pattern-position', surface.position);
+    root.style.setProperty('--surface-pattern-repeat', surface.repeat);
+    root.style.setProperty('--surface-pattern-opacity', surface.opacity);
+
+    root.style.setProperty('--card-border-style', cards.borderStyle);
+    root.style.setProperty('--card-tilt', cards.tilt);
+    root.style.setProperty('--card-background', cards.background);
+    root.style.setProperty('--card-shadow', cards.shadow);
+  }, [designSystem]);
 
   const setTheme = (themeId: string) => {
     const theme = AVAILABLE_THEMES.find(t => t.id === themeId);
@@ -91,6 +119,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     isThemeSelected,
     showThemeSelector,
     setShowThemeSelector,
+    designSystem,
   };
 
   return (
@@ -98,4 +127,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       {children}
     </ThemeContext.Provider>
   );
+};
+
+export const useDesignSystem = () => {
+  const context = useContext(ThemeContext);
+  if (context === undefined) {
+    throw new Error('useDesignSystem must be used within a ThemeProvider');
+  }
+  return context.designSystem;
 };

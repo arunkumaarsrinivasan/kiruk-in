@@ -6,9 +6,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { DraggableItem } from './draggable-notebook';
 import ScribbleWorkspace, { EnhancedScribbleDragItem } from './scribble-workspace';
 import { SketchHeading } from '@/components/ui/sketch-elements';
-import ScribblePad from './scribble-pad';
 import { useCursor } from '@/components/ui/CursorContext';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { useDesignSystem } from '@/contexts/ThemeContext';
 
 // Type alias for compatibility
 type ScribbleDragItem = EnhancedScribbleDragItem;
@@ -58,16 +58,16 @@ const PERSONAL_NOTE_LIBRARY = [
 ];
 
 const SKILL_LIBRARY = [
-  { name: 'Spring Boot Systems', color: 'bg-green-100 text-green-800', icon: '🍃' },
-  { name: 'Node.js + TypeScript', color: 'bg-emerald-100 text-emerald-800', icon: '🟢' },
-  { name: 'Next.js Storytelling', color: 'bg-indigo-100 text-indigo-800', icon: '⚡' },
-  { name: 'UX Research Rituals', color: 'bg-rose-100 text-rose-800', icon: '🔍' },
-  { name: 'Design Systems', color: 'bg-purple-100 text-purple-800', icon: '🎨' },
-  { name: 'Observability (Splunk & Prometheus)', color: 'bg-orange-100 text-orange-800', icon: '📈' },
-  { name: 'AI Facilitation', color: 'bg-blue-100 text-blue-800', icon: '🤖' },
-  { name: 'Gamified Interaction', color: 'bg-pink-100 text-pink-800', icon: '🎮' },
-  { name: 'Workshop Hosting', color: 'bg-yellow-100 text-yellow-800', icon: '📚' },
-  { name: 'Mobile Product Loops', color: 'bg-teal-100 text-teal-800', icon: '📱' }
+  { name: 'Spring Boot Systems', color: 'bg-[var(--bg-secondary)] text-[var(--text-main)] border border-[var(--border-color)]', icon: '🍃' },
+  { name: 'Node.js + TypeScript', color: 'bg-[var(--bg-secondary)] text-[var(--text-main)] border border-[var(--border-color)]', icon: '🟢' },
+  { name: 'Next.js Storytelling', color: 'bg-[var(--bg-secondary)] text-[var(--text-main)] border border-[var(--border-color)]', icon: '⚡' },
+  { name: 'UX Research Rituals', color: 'bg-[var(--bg-secondary)] text-[var(--text-main)] border border-[var(--border-color)]', icon: '🔍' },
+  { name: 'Design Systems', color: 'bg-[var(--bg-secondary)] text-[var(--text-main)] border border-[var(--border-color)]', icon: '🎨' },
+  { name: 'Observability (Splunk & Prometheus)', color: 'bg-[var(--bg-secondary)] text-[var(--text-main)] border border-[var(--border-color)]', icon: '📈' },
+  { name: 'AI Facilitation', color: 'bg-[var(--bg-secondary)] text-[var(--text-main)] border border-[var(--border-color)]', icon: '🤖' },
+  { name: 'Gamified Interaction', color: 'bg-[var(--bg-secondary)] text-[var(--text-main)] border border-[var(--border-color)]', icon: '🎮' },
+  { name: 'Workshop Hosting', color: 'bg-[var(--bg-secondary)] text-[var(--text-main)] border border-[var(--border-color)]', icon: '📚' },
+  { name: 'Mobile Product Loops', color: 'bg-[var(--bg-secondary)] text-[var(--text-main)] border border-[var(--border-color)]', icon: '📱' }
 ];
 
 const TESTIMONIAL_LIBRARY = [
@@ -97,7 +97,7 @@ const PROJECT_LIBRARY: ProjectLibraryEntry[] = [
   {
     id: 'hp-print-ai-observability',
     title: 'HP Print AI Observability',
-    description: 'Automated incident rituals with Grafana, prompt libraries, and live KPI dashboards for the Print AI org.',
+    description: 'Automated incident rituals with Splunk, prompt libraries, and live KPI dashboards for the Print IOT org.',
     tags: ['Observability', 'AI Ops', 'Automation'],
     company: 'HP Inc.'
   },
@@ -112,7 +112,7 @@ const PROJECT_LIBRARY: ProjectLibraryEntry[] = [
     id: 'squarebridge-design-system',
     title: 'Squarebridge Design System',
     description: 'Codified 150+ screens into a unified system with Loom walkthroughs so engineering could sprint in sync.',
-    tags: ['Design System', 'Storybook', 'Enterprise'],
+    tags: ['Design System', 'E2E Solutions', 'Enterprise'],
     company: 'SNS Square'
   },
   {
@@ -122,20 +122,6 @@ const PROJECT_LIBRARY: ProjectLibraryEntry[] = [
     tags: ['Gamification', 'Dashboards', 'Product'],
     company: 'PeopleGamez.com'
   },
-  {
-    id: 'kirukism-mobile-studio',
-    title: 'Kirukism Mobile Studio',
-    description: 'Prototype mobile-first storytelling studio for kiruk sketches, travel logs, and quick audio drops.',
-    tags: ['Mobile', 'Storytelling', 'Prototype'],
-    company: 'Kiruk Studio'
-  },
-  {
-    id: 'kiruk-alternative-instagram',
-    title: 'Alternative Instagram Vault',
-    description: 'Personal content hub that syncs travel, learning, and life updates with storytelling widgets.',
-    tags: ['Content Systems', 'CMS'],
-    company: 'Kiruk Studio'
-  }
 ];
 
 const INTRO_HIGH_LIGHTS = [
@@ -170,7 +156,7 @@ const ScribeCanvas: React.FC<{ className?: string }> = ({ className = '' }) => {
   return <canvas className={`absolute inset-0 pointer-events-none ${className}`} />;
 };
 
-// Scribbled Drag Icon Component
+// Wireframe Drag Icon Component
 const ScribbledDragIcon: React.FC<{ className?: string; size?: number }> = ({ 
   className = '', 
   size = 20 
@@ -181,36 +167,25 @@ const ScribbledDragIcon: React.FC<{ className?: string; size?: number }> = ({
       height={size} 
       viewBox="0 0 24 24" 
       className={className}
-      style={{ filter: 'drop-shadow(1px 1px 1px rgba(0,0,0,0.1))' }} 
     >
-      {/* Hand-drawn style drag dots */}
-      <g fill="currentColor" opacity="0.8">
-        {/* Top row dots - slightly wobbly */}
-        <circle cx="6.2" cy="6.1" r="1.8" />
-        <circle cx="11.9" cy="5.8" r="1.7" />
-        <circle cx="17.8" cy="6.3" r="1.9" />
+      <g fill="currentColor">
+        <rect x="4" y="4" width="4" height="4" />
+        <rect x="10" y="4" width="4" height="4" />
+        <rect x="16" y="4" width="4" height="4" />
         
-        {/* Middle row dots */}
-        <circle cx="6.1" cy="11.8" r="1.9" />
-        <circle cx="12.2" cy="12.1" r="1.8" />
-        <circle cx="17.7" cy="11.7" r="1.8" />
-        {/* Bottom row dots */}
-        <circle cx="5.9" cy="17.9" r="1.7" />
-        <circle cx="11.8" cy="18.2" r="1.9" />
-        <circle cx="18.1" cy="17.8" r="1.8" />
-      </g>
-      
-      <g fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.3">
-        <path d="M4,4 Q6,3 8,4 Q10,5 8,6 Q6,7 4,6 Q2,5 4,4" />
-        <path d="M16,4 Q18,3 20,4 Q22,5 20,6 Q18,7 16,6 Q14,5 16,4" />
-        <path d="M4,16 Q6,15 8,16 Q10,17 8,18 Q6,19 4,18 Q2,17 4,16" />
-        <path d="M16,16 Q18,15 20,16 Q22,17 20,18 Q18,19 16,18 Q14,17 16,16" />
+        <rect x="4" y="10" width="4" height="4" />
+        <rect x="10" y="10" width="4" height="4" />
+        <rect x="16" y="10" width="4" height="4" />
+        
+        <rect x="4" y="16" width="4" height="4" />
+        <rect x="10" y="16" width="4" height="4" />
+        <rect x="16" y="16" width="4" height="4" />
       </g>
     </svg>
   );
 };
 
-// Enhanced Scribbled Move Icon for active dragging
+// Wireframe Move Icon for active dragging
 const ScribbledMoveIcon: React.FC<{ className?: string; size?: number }> = ({ 
   className = '', 
   size = 24 
@@ -221,29 +196,17 @@ const ScribbledMoveIcon: React.FC<{ className?: string; size?: number }> = ({
       height={size} 
       viewBox="0 0 24 24" 
       className={className}
-      style={{ filter: 'drop-shadow(2px 2px 2px rgba(0,0,0,0.2))' }}
     >
-      {/* Hand-drawn move arrows */}
-      <g fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-        {/* Up arrow */}
-        <path d="M12,3 L12,8 M9,5 Q11,3 12,3 Q13,3 15,5" opacity="0.9" />
-        {/* Down arrow */}
-        <path d="M12,21 L12,16 M9,19 Q11,21 12,21 Q13,21 15,19" opacity="0.9" />
-        {/* Left arrow */}
-        <path d="M3,12 L8,12 M5,9 Q3,11 3,12 Q3,13 5,15" opacity="0.9" />
-        {/* Right arrow */}
-        <path d="M21,12 L16,12 M19,9 Q21,11 21,12 Q21,13 19,15" opacity="0.9" />
-      </g>
-      
-      {/* Central scribbled circle */}
-      <g fill="currentColor" opacity="0.6">
-        <circle cx="12.1" cy="11.9" r="2.2" />
-      </g>
-      
-      {/* Wobbly decorative lines */}
-      <g fill="none" stroke="currentColor" strokeWidth="1" opacity="0.4">
-        <path d="M8,8 Q10,6 12,8 Q14,10 16,8" />
-        <path d="M8,16 Q10,18 12,16 Q14,14 16,16" />
+      <g fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M12,2 L12,22" />
+        <path d="M2,12 L22,12" />
+        <rect x="10" y="10" width="4" height="4" fill="currentColor" />
+        
+        {/* Arrowheads */}
+        <path d="M12,2 L9,5 M12,2 L15,5" />
+        <path d="M12,22 L9,19 M12,22 L15,19" />
+        <path d="M2,12 L5,9 M2,12 L5,15" />
+        <path d="M22,12 L19,9 M22,12 L19,15" />
       </g>
     </svg>
   );
@@ -258,16 +221,28 @@ export const InteractivePortfolioSection: React.FC<{
 }) => {
   const { setGrabbingCursor, setDroppingCursor, setEyeCursor } = useCursor();
   const { trackPortfolioInteraction, trackInteraction } = useAnalytics();
+  const designSystem = useDesignSystem();
+  const stickyNoteBaseClass = designSystem.components.stickyNotes.base;
+  const cardContainerClass = designSystem.components.cards.base;
+  const cardTagClass = designSystem.components.cards.tag;
+  const cardHeadingClass = designSystem.components.cards.heading;
+  const primaryButtonClass = designSystem.components.buttons.primary;
+  const toolbarBadgeClass = designSystem.components.toolbar.badge;
+  const toolbarActiveBadgeClass = designSystem.components.toolbar.activeBadge;
+  const toolbarIconClass = designSystem.components.toolbar.icon;
   
-  // Helper function for sticky note color
-  const getStickyNoteColorClass = (color?: string) => {
-    switch (color) {
-      case 'light': return 'bg-yellow-100';
-      case 'medium': return 'bg-yellow-200';
-      case 'white': return 'bg-white';
-      default: return 'bg-yellow-50';
-    }
-  };
+  const getStickyNoteColorClass = useCallback(
+    (color?: string) => {
+      const palette = designSystem.components.stickyNotes.palette;
+      if (!color) {
+        return palette.light;
+      }
+
+      const tone = color as keyof typeof palette;
+      return palette[tone] ?? palette.light;
+    },
+    [designSystem]
+  );
 
   // State management
   const [interactiveStats, setInteractiveStats] = useState<InteractiveStats>({
@@ -395,15 +370,15 @@ export const InteractivePortfolioSection: React.FC<{
       id: 'welcome-note',
       type: 'sticky-note',
       content: (
-        <div className="handwritten text-sm">
-          <div className="font-bold mb-1">👋 Hey, I'm Arun.</div>
-          <div>Grab a story badge—this desk is my notebook online. "Kiruk" is Tamil for scribble and every idea starts on paper.</div>
-          <div className="mt-2">Badges show how sketches turn into shipped work.</div>
+        <div className="font-mono text-xs uppercase tracking-wide">
+          <div className="font-black mb-2 border-b border-[var(--border-color)] pb-1">👋 Hey, I'm Arun.</div>
+          <div className="leading-relaxed">Grab a story badge—this desk is my wireframe workspace. "Kiruk" is Tamil for scribble and every idea starts on paper.</div>
+          <div className="mt-2 font-bold">Badges show how sketches turn into shipped work.</div>
         </div>
       ),
       position: { x: 300, y: 100 },
-      rotation: -3,
-      color: 'medium',
+      rotation: 0,
+      color: 'white',
       size: 'md',
       zIndex: 100 // Base z-index for initial items
     },
@@ -412,8 +387,8 @@ export const InteractivePortfolioSection: React.FC<{
       type: 'sketch-card',
       content: (
         <div>
-          <SketchHeading level={3} className="text-lg mb-2">About Me</SketchHeading>
-          <div className="handwritten text-sm text-gray-700">
+          <SketchHeading level={3} className="text-sm font-black uppercase tracking-widest mb-2 border-b border-[var(--border-color)] pb-1">About Me</SketchHeading>
+          <div className="font-mono text-xs text-[var(--text-main)] leading-relaxed uppercase">
             Product-minded engineer and designer shipping end-to-end tools.
             <br /><br />
             Currently shaping HP Print AI and playful kirukism experiments.
@@ -423,7 +398,7 @@ export const InteractivePortfolioSection: React.FC<{
         </div>
       ),
       position: { x: 150, y: 450 },
-      rotation: 2,
+      rotation: 0,
       scale: 1,
       zIndex: 105 // Slightly higher than welcome note
     }
@@ -484,53 +459,35 @@ export const InteractivePortfolioSection: React.FC<{
   // Action functions
   const addProjectCard = useCallback(() => {
     const randomProject = PROJECT_LIBRARY[Math.floor(Math.random() * PROJECT_LIBRARY.length)];
-    const randomColors = [
-      'bg-indigo-100 text-indigo-800',
-      'bg-emerald-100 text-emerald-800',
-      'bg-rose-100 text-rose-800'
-    ];
-    const randomColorClass = randomColors[Math.floor(Math.random() * randomColors.length)];
 
     const newItem: DraggableItem = {
       id: `project-${Date.now()}-${Math.random().toString(36).substring(2)}`,
       type: 'sketch-card',
       content: (
-        <div className="max-w-sm">
-          <SketchHeading level={4} className="text-base mb-2">{randomProject.title}</SketchHeading>
-          <div className="handwritten text-sm text-gray-600 mb-3">
+        <div className="max-w-sm space-y-3">
+          <SketchHeading level={4} className={`${cardHeadingClass} mb-1`}>
+            {randomProject.title}
+          </SketchHeading>
+          <div className="font-mono text-xs text-[var(--text-main)] uppercase leading-relaxed">
             {randomProject.description}
           </div>
           <div className="flex flex-wrap gap-1 mb-2">
             {randomProject.tags.slice(0, 3).map(tag => (
-              <span key={tag} className={`px-2 py-1 rounded-full text-xs ${randomColorClass}`}>
+              <span key={tag} className={cardTagClass}>
                 {tag}
               </span>
             ))}
           </div>
-          <div className="text-xs text-gray-600 mb-2 handwritten">
+          <div className="text-[10px] text-[var(--text-main)] mb-2 font-mono uppercase">
             @ {randomProject.company}
           </div>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => {
-              setInteractiveStats(prev => ({
-                ...prev,
-                projectsViewed: [...new Set([...prev.projectsViewed, randomProject.id])],
-                interactionsCount: prev.interactionsCount + 1
-              }));
-            }}
-            className="text-xs bg-gray-800 text-white px-3 py-1 rounded hover:bg-gray-700 transition-colors"
-          >
-            View Details
-          </motion.button>
         </div>
       ),
       position: { 
         x: Math.random() * 400 + 350, 
         y: Math.random() * 200 + 100 
       },
-      rotation: (Math.random() - 0.5) * 8,
+      rotation: 0,
       scale: 1,
       zIndex: getNextZIndex() // Ensure new items appear on top
     };
@@ -550,18 +507,18 @@ export const InteractivePortfolioSection: React.FC<{
       projectTitle: randomProject.title,
       company: randomProject.company
     });
-  }, [markJourneyStep, trackPortfolioInteraction]);
+  }, [cardHeadingClass, cardTagClass, markJourneyStep, primaryButtonClass, trackPortfolioInteraction]);
 
   const addPersonalNote = useCallback(() => {
     const randomNote = PERSONAL_NOTE_LIBRARY[Math.floor(Math.random() * PERSONAL_NOTE_LIBRARY.length)];
-    const stickyColors = ['light', 'medium', 'white', 'pink', 'blue', 'green'];
-    const randomColor = stickyColors[Math.floor(Math.random() * stickyColors.length)];
+    // Wireframe style: only white
+    const randomColor = 'white';
 
     const newItem: DraggableItem = {
       id: `note-${Date.now()}-${Math.random().toString(36).substring(2)}`,
       type: 'sticky-note',
       content: (
-        <div className="handwritten text-sm">
+        <div className="font-mono text-xs uppercase leading-relaxed">
           {randomNote}
         </div>
       ),
@@ -569,7 +526,7 @@ export const InteractivePortfolioSection: React.FC<{
         x: Math.random() * 350 + 400, 
         y: Math.random() * 250 + 50 
       },
-      rotation: (Math.random() - 0.5) * 15,
+      rotation: 0,
       color: randomColor as any,
       size: 'md',
       zIndex: getNextZIndex() // Ensure new items appear on top
@@ -602,8 +559,8 @@ export const InteractivePortfolioSection: React.FC<{
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
         >
-          <div className="text-lg mb-1">{randomSkill.icon}</div>
-          <div className={`handwritten text-sm font-bold ${randomSkill.color.split(' ')[1]}`}>
+          <div className="text-lg mb-1 grayscale">{randomSkill.icon}</div>
+          <div className="font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--text-main)]">
             {randomSkill.name}
           </div>
         </motion.div>
@@ -612,7 +569,7 @@ export const InteractivePortfolioSection: React.FC<{
         x: Math.random() * 400 + 350, 
         y: Math.random() * 300 + 150 
       },
-      rotation: (Math.random() - 0.5) * 10,
+      rotation: 0,
       color: 'white',
       size: 'sm',
       zIndex: getNextZIndex() // Ensure new items appear on top
@@ -633,47 +590,23 @@ export const InteractivePortfolioSection: React.FC<{
       id: `resume-${Date.now()}`,
       type: 'sketch-card',
       content: (
-        <div>
-          <SketchHeading level={3} className="text-lg mb-3">🎓 Professional Summary</SketchHeading>
-          <div className="space-y-3">
-            <motion.div 
-              className="bg-blue-50 p-2 rounded handwritten text-sm"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <strong>Role:</strong> Software Systems Engineer @ HP Print AI (2023-present)
-            </motion.div>
-            <motion.div 
-              className="bg-green-50 p-2 rounded handwritten text-sm"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <strong>Stack:</strong> Spring Boot, Node.js, Next.js, AWS, Splunk, Prometheus
-            </motion.div>
-            <motion.div 
-              className="bg-purple-50 p-2 rounded handwritten text-sm"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <strong>Freelance:</strong> SNS Square design lead for end-to-end UX (Nov 2023-Aug 2024)
-            </motion.div>
-            <motion.div 
-              className="bg-pink-50 p-2 rounded handwritten text-sm"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <strong>Education:</strong> B.E. CSE (8.9 CGPA) | mentored 60+ students through UI/UX workshops
-            </motion.div>
-          </div>
+        <div className="space-y-2 text-[11px] uppercase tracking-[0.16em] text-[var(--text-main)]">
+          <p className="font-bold">HP Print AI · Engineering</p>
+          <p className="text-[var(--text-muted)]">Node · Spring Boot · Next.js</p>
+          <p>Squarebridge · Design Lead</p>
+          <p className="text-[var(--text-muted)]">150 screens · Loom walkthroughs</p>
+          <p>Workshops · 60+ students mentored</p>
         </div>
       ),
-      position: { 
-        x: Math.random() * 350 + 400, 
-        y: Math.random() * 200 + 150 
+      position: {
+        x: Math.random() * 320 + 420,
+        y: Math.random() * 220 + 140
       },
-      rotation: (Math.random() - 0.5) * 6,
+      rotation: (Math.random() - 0.5) * 8,
       scale: 1,
-      zIndex: getNextZIndex() // Ensure new items appear on top
+      color: 'white',
+      size: 'lg',
+      zIndex: getNextZIndex()
     };
 
     addNotebookItem(newItem);
@@ -687,25 +620,25 @@ export const InteractivePortfolioSection: React.FC<{
 
   const addTestimonial = useCallback(() => {
     const randomTestimonial = TESTIMONIAL_LIBRARY[Math.floor(Math.random() * TESTIMONIAL_LIBRARY.length)];
-    
+
     const newItem: DraggableItem = {
       id: `testimonial-${Date.now()}`,
       type: 'sticky-note',
       content: (
-        <div className="handwritten text-sm">
+        <div className="font-mono text-xs uppercase leading-relaxed">
           <div className="mb-2">💬 "{randomTestimonial.text}"</div>
-          <div className="text-xs text-gray-600">- {randomTestimonial.author}</div>
+          <div className="text-[10px] text-[var(--text-main)] font-bold">- {randomTestimonial.author}</div>
           <div className="mt-1">{randomTestimonial.rating}</div>
         </div>
       ),
-      position: { 
-        x: Math.random() * 300 + 450, 
-        y: Math.random() * 250 + 100 
+      position: {
+        x: Math.random() * 300 + 450,
+        y: Math.random() * 250 + 100
       },
-      rotation: (Math.random() - 0.5) * 12,
-      color: 'light',
+      rotation: (Math.random() - 0.5) * 10,
+      color: 'white',
       size: 'md',
-      zIndex: getNextZIndex() // Ensure new items appear on top
+      zIndex: getNextZIndex()
     };
 
     addNotebookItem(newItem);
@@ -715,41 +648,6 @@ export const InteractivePortfolioSection: React.FC<{
       interactionsCount: prev.interactionsCount + 1
     }));
     markJourneyStep('testimonials');
-  }, [markJourneyStep]);
-  const addScribbleElement = useCallback(() => {
-    setShowScribblePad(true);
-  }, []);
-  const handleScribbleInsert = useCallback((scribbleData: string) => {
-    const newNote: DraggableItem = {
-      id: `scribble-note-${Date.now()}`,
-      type: 'sketch-element',
-      content: (
-        <div className="w-full h-full flex items-center justify-center p-2">
-          <img 
-            src={scribbleData} 
-            alt="Hand-drawn scribble" 
-            className="max-w-full max-h-full object-contain"
-          />
-        </div>
-      ),
-      position: { 
-        x: Math.random() * (window.innerWidth - 250) + 50, 
-        y: Math.random() * (window.innerHeight - 200) + 100 
-      },
-      rotation: Math.random() * 10 - 5,
-      scale: 1,
-      color: 'white',
-      size: 'lg',
-      zIndex: getNextZIndex() // Ensure new items appear on top
-    };
-
-    addNotebookItem(newNote);
-    setInteractiveStats(prev => ({
-      ...prev,
-      itemsCreated: prev.itemsCreated + 1,
-      interactionsCount: prev.interactionsCount + 1
-    }));
-    markJourneyStep('scribble');
   }, [markJourneyStep]);
 
   const journeySteps = useMemo(
@@ -788,20 +686,12 @@ export const InteractivePortfolioSection: React.FC<{
         title: 'Kind Words',
         description: 'Surface a short teammate quote.',
         action: addTestimonial
-      },
-      {
-        id: 'scribble',
-        icon: '✏️',
-        title: 'Make A Doodle',
-        description: 'Sketch and pin it on the notebook.',
-        action: addScribbleElement
       }
     ],
     [
       addInteractiveResume,
       addPersonalNote,
       addProjectCard,
-      addScribbleElement,
       addSkillBubble,
       addTestimonial
     ]
@@ -828,10 +718,6 @@ export const InteractivePortfolioSection: React.FC<{
       testimonials: {
         note: 'Voices from teammates and students.',
         mood: '💬'
-      },
-      scribble: {
-        note: 'Drop your doodle on the desk.',
-        mood: '✏️'
       }
     }),
     []
@@ -919,7 +805,6 @@ export const InteractivePortfolioSection: React.FC<{
   const [activeHighlightIndex, setActiveHighlightIndex] = useState(0);
   const [introPosition, setIntroPosition] = useState({ x: 300, y: 200 });
   const [isDraggingIntro, setIsDraggingIntro] = useState(false);
-  const [showScribblePad, setShowScribblePad] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [forceDesktopExperience, setForceDesktopExperience] = useState(false);
   const [showProjectSpotlight, setShowProjectSpotlight] = useState(false);
@@ -1156,13 +1041,6 @@ export const InteractivePortfolioSection: React.FC<{
   const renderAchievementNotification = useCallback((achievementId: string, index: number) => {
     const achievement = achievements.find(a => a.id === achievementId);
     if (!achievement) return null;
-    const cardColors = [
-      { bg: 'from-pink-100 via-indigo-100 to-blue-100', border: 'border-indigo-300' },
-      { bg: 'from-yellow-100 via-rose-100 to-pink-100', border: 'border-pink-300' },
-      { bg: 'from-emerald-100 via-teal-100 to-cyan-100', border: 'border-emerald-300' }
-    ];
-
-    const palette = cardColors[index % cardColors.length];
 
     return (
       <motion.div
@@ -1174,7 +1052,7 @@ export const InteractivePortfolioSection: React.FC<{
         className={`fixed z-40 pointer-events-auto ${
           isMobile
             ? 'top-4 left-1/2 -translate-x-1/2 w-[90%] max-w-xs'
-            : 'bottom-24 right-6 w-80'
+            : 'bottom-25 right-4 w-80'
         }`}
         style={{
           marginBottom: isMobile ? '0px' : `${index * 96}px`,
@@ -1182,18 +1060,12 @@ export const InteractivePortfolioSection: React.FC<{
         }}
       >
         <motion.div
-          className={`relative overflow-hidden rounded-3xl border-4 ${palette.border} shadow-[0_12px_20px_rgba(0,0,0,0.15)] bg-gradient-to-br ${palette.bg}`}
+          className="relative overflow-hidden border border-[var(--border-color)] shadow-none bg-[var(--bg-card)]"
           whileHover={{ scale: 1.02, rotate: isMobile ? 0 : 1 }}
         >
-          <div
-            className="absolute inset-0 opacity-40"
-            style={{
-              backgroundImage: 'radial-gradient(circle at 20% 20%, rgba(255,255,255,0.7) 0, rgba(255,255,255,0) 60%), radial-gradient(circle at 70% 30%, rgba(255,255,255,0.5) 0, rgba(255,255,255,0) 55%), radial-gradient(circle at 40% 80%, rgba(255,255,255,0.4) 0, rgba(255,255,255,0) 60%)'
-            }}
-          ></div>
           <div className="relative p-4 flex items-start gap-3">
             <motion.div
-              className="text-3xl"
+              className="text-3xl grayscale"
               animate={{ rotate: [0, -12, 12, 0], scale: [1, 1.15, 1] }}
               transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
             >
@@ -1201,20 +1073,20 @@ export const InteractivePortfolioSection: React.FC<{
             </motion.div>
             <div className="flex-1 space-y-1">
               <div className="flex items-center gap-2">
-                <h4 className="text-base font-semibold text-gray-900 handwritten tracking-wide uppercase">Achievement</h4>
+                <h4 className="text-xs font-black text-[var(--text-main)] uppercase tracking-widest">Achievement</h4>
                 <motion.span
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: 'spring', stiffness: 260, damping: 12 }}
-                  className="px-2 py-0.5 text-[10px] bg-gray-900 text-white rounded-full"
+                  className="px-2 py-0.5 text-[9px] bg-[var(--text-main)] text-[var(--bg-main)] border border-[var(--border-color)] uppercase tracking-wide font-bold"
                 >
                   New Badge
                 </motion.span>
               </div>
-              <div className="flex items-center gap-2 text-gray-800 font-semibold text-sm handwritten">
+              <div className="flex items-center gap-2 text-[var(--text-main)] font-bold text-sm uppercase tracking-tight">
                 <span>{achievement.title}</span>
                 <motion.span
-                  className="text-green-600"
+                  className="text-[var(--text-main)]"
                   initial={{ opacity: 0, scale: 0.5 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.2, type: 'spring', stiffness: 200, damping: 15 }}
@@ -1222,22 +1094,22 @@ export const InteractivePortfolioSection: React.FC<{
                   ✓
                 </motion.span>
               </div>
-              <p className="text-xs text-gray-700 handwritten leading-snug">
+              <p className="text-xs text-[var(--text-secondary)] font-mono leading-snug">
                 {achievement.description}
               </p>
               <motion.div
-                className="mt-1 flex items-center gap-3"
+                className="mt-2 flex items-center gap-3"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3 }}
               >
-                <span className="flex items-center gap-1 text-[10px] text-indigo-500">
+                <span className="flex items-center gap-1 text-[10px] text-[var(--text-muted)] font-mono uppercase">
                   <span role="img" aria-label="confetti">🎉</span>
-                  Added to trophy shelf
+                  Added to shelf
                 </span>
                 <motion.button
                   onClick={() => setShowAchievements(true)}
-                  className="text-[10px] px-2 py-0.5 border border-indigo-400 text-indigo-600 rounded-full bg-white/80 hover:bg-indigo-50 transition-colors"
+                  className="text-[10px] px-2 py-0.5 border border-[var(--border-color)] text-[var(--text-main)] bg-[var(--bg-card)] hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] transition-colors font-mono uppercase tracking-wide"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -1246,18 +1118,6 @@ export const InteractivePortfolioSection: React.FC<{
               </motion.div>
             </div>
           </div>
-          <motion.div
-            className="absolute -top-3 -left-3 w-12 h-12 rounded-full border-4 border-white/70 bg-white/70"
-            animate={{ scale: [1, 1.08, 1], opacity: [0.5, 0.2, 0.5] }}
-            transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-          ></motion.div>
-          <motion.div
-            className="absolute -bottom-4 right-4 text-2xl"
-            animate={{ y: [0, -6, 0], rotate: [0, 3, -3, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-          >
-            ✨
-          </motion.div>
         </motion.div>
       </motion.div>
     );
@@ -1273,22 +1133,16 @@ export const InteractivePortfolioSection: React.FC<{
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ type: 'spring', stiffness: 120, damping: 14 }}
-        className={`relative overflow-hidden rounded-3xl border-4 px-4 py-4 shadow-[0_10px_18px_rgba(0,0,0,0.12)] backdrop-blur-sm ${
+        className={`relative overflow-hidden rounded-none border px-4 py-4 shadow-none backdrop-blur-sm ${
           isUnlocked
-            ? 'bg-gradient-to-br from-emerald-50 via-white to-emerald-100 border-emerald-300'
-            : 'bg-gradient-to-br from-gray-100 via-white to-gray-200 border-gray-300'
+            ? 'bg-[var(--bg-secondary)] border-[var(--border-color)]'
+            : 'bg-[var(--bg-muted)] border-[var(--border-color)]'
         }`}
       >
-        <div
-          className="absolute inset-0 opacity-40"
-          style={{
-            backgroundImage: 'radial-gradient(circle at 25% 25%, rgba(255,255,255,0.8) 0, rgba(255,255,255,0) 60%), radial-gradient(circle at 80% 40%, rgba(255,255,255,0.5) 0, rgba(255,255,255,0) 55%)'
-          }}
-        ></div>
         <div className="relative flex items-start gap-4">
           <motion.div
-            className={`flex h-12 w-12 items-center justify-center rounded-2xl border-2 ${
-              isUnlocked ? 'border-emerald-400 bg-white/80' : 'border-gray-300 bg-white/70'
+            className={`flex h-12 w-12 items-center justify-center rounded-none border ${
+              isUnlocked ? 'border-[var(--border-color)] bg-[var(--bg-card)]' : 'border-[var(--border-color)] bg-[var(--bg-card)]'
             } text-2xl`}
             animate={isUnlocked ? { rotate: [0, -8, 8, 0] } : {}}
             transition={{ duration: 4, repeat: isUnlocked ? Infinity : 0, ease: 'easeInOut', repeatDelay: 1 }}
@@ -1297,22 +1151,22 @@ export const InteractivePortfolioSection: React.FC<{
           </motion.div>
           <div className="flex-1 space-y-1">
             <div className="flex items-center gap-2">
-              <h4 className={`text-lg font-semibold handwritten ${isUnlocked ? 'text-emerald-700' : 'text-gray-500'}`}>
+              <h4 className={`text-lg font-semibold handwritten ${isUnlocked ? 'text-[var(--text-main)]' : 'text-[var(--text-muted)]'}`}>
                 {achievement.title}
               </h4>
               <span
-                className={`text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wide handwritten ${
-                  isUnlocked ? 'bg-emerald-500 text-white' : 'bg-gray-300 text-gray-700'
+                className={`text-[10px] px-2 py-0.5 rounded-none uppercase tracking-wide handwritten ${
+                  isUnlocked ? 'bg-[var(--text-main)] text-[var(--bg-main)]' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)]'
                 }`}
               >
                 {isUnlocked ? 'Unlocked' : 'In Progress'}
               </span>
             </div>
-            <p className={`text-sm leading-snug handwritten ${isUnlocked ? 'text-emerald-600' : 'text-gray-500'}`}>
+            <p className={`text-sm leading-snug handwritten ${isUnlocked ? 'text-[var(--text-secondary)]' : 'text-[var(--text-muted)]'}`}>
               {achievement.description}
             </p>
             {!isUnlocked && (
-              <div className="flex items-center gap-2 text-xs text-gray-600 handwritten">
+              <div className="flex items-center gap-2 text-xs text-[var(--text-muted)] handwritten">
                 <span role="img" aria-label="hint">💡</span>
                 Keep exploring the desk to unlock this badge.
               </div>
@@ -1323,7 +1177,7 @@ export const InteractivePortfolioSection: React.FC<{
               initial={{ scale: 0.6, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: 'spring', stiffness: 180, damping: 12 }}
-              className="text-emerald-600 text-2xl"
+              className="text-[var(--text-main)] text-2xl"
             >
               ✓
             </motion.div>
@@ -1331,7 +1185,7 @@ export const InteractivePortfolioSection: React.FC<{
         </div>
         {isUnlocked && (
           <motion.div
-            className="absolute -bottom-5 right-6 text-3xl"
+            className="absolute -bottom-5 right-4 text-3xl"
             animate={{ y: [0, -6, 0], rotate: [0, 4, -4, 0] }}
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
           >
@@ -1408,77 +1262,74 @@ export const InteractivePortfolioSection: React.FC<{
   if (!shouldRenderDesktopExperience) {
     return (
       <section
-        className={`relative w-full min-h-screen bg-white overflow-hidden notebook-bg ${className}`}
+        className={`relative w-full min-h-screen bg-[var(--bg-main)] overflow-hidden ${className}`}
       >
-        <ScribeCanvas className="opacity-40" />
-        <div className="relative z-10 px-5 py-8 space-y-6">
-          <div className="bg-white/95 border-2 border-black rounded-2xl p-5 sketch-border shadow-[3px_4px_0_rgba(0,0,0,0.12)]">
-            <SketchHeading level={2} className="text-lg mb-3">
+        <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(to_right,var(--border-color)_1px,transparent_1px),linear-gradient(to_bottom,var(--border-color)_1px,transparent_1px)] bg-[size:20px_20px] opacity-10" />
+        <div className="relative z-10 px-4 py-8 space-y-5">
+          <div className="bg-[var(--bg-card)] border border-[var(--border-color)] p-4 shadow-none">
+            <SketchHeading level={2} className="text-lg mb-3 uppercase tracking-widest">
               {sectionTitle}
             </SketchHeading>
             <div className="flex items-center gap-3">
               <div className="text-3xl">👋</div>
               <div>
-                <h2
-                  className="text-xl font-semibold text-gray-800"
-                  style={{ fontFamily: 'Left Hand, cursive' }}
-                >
+                <h2 className="text-xl font-bold text-[var(--text-main)] uppercase tracking-tight">
                   Arun Kumaar Srinivasan
                 </h2>
-                <p className="handwritten text-sm text-blue-600">
+                <p className="font-mono text-xs text-[var(--text-secondary)] uppercase tracking-wider">
                   SDE 1 @ HP Inc · Bengaluru & Remote
                 </p>
               </div>
             </div>
-            <p className="handwritten text-sm text-gray-700 leading-snug mt-4">
+            <p className="font-mono text-xs text-[var(--text-secondary)] leading-relaxed mt-4 border-l border-[var(--border-color)] pl-3">
               This pocket view lists key projects, skills, and goals. Tap below to open the draggable desk.
             </p>
             <div className="mt-4 flex justify-center">
-              <p className="handwritten text-sm text-gray-800 leading-snug text-center bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-2 shadow-sm">
+              <p className="font-mono text-xs text-[var(--text-main)] leading-snug text-center bg-[var(--bg-secondary)] border border-[var(--border-color)] px-4 py-2 shadow-none">
                 To see every draggable note, hop onto a wider screen and launch the full desk.
               </p>
             </div>
           </div>
 
-          <div className="bg-indigo-50/80 border border-indigo-200 rounded-2xl p-4 shadow-inner">
-            <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-800 handwritten">
+          <div className="bg-[var(--bg-card)] border border-[var(--border-color)] p-4 shadow-none">
+            <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--text-main)] border-b border-[var(--border-color)] pb-2 mb-3">
               Desk Snapshot
             </h3>
-            <div className="mt-3 grid grid-cols-3 gap-3 text-center">
-              <div>
-                <div className="text-lg font-semibold text-gray-900">
+            <div className="grid grid-cols-3 gap-3 text-center">
+              <div className="border-r border-[var(--border-color)] last:border-r-0">
+                <div className="text-lg font-black text-[var(--text-main)]">
                   {notebookItems.length}
                 </div>
-                <div className="text-[11px] text-gray-600 handwritten uppercase tracking-wide">
-                  Cards Ready
+                <div className="text-[10px] text-[var(--text-secondary)] font-mono uppercase tracking-wide">
+                  Cards
                 </div>
               </div>
-              <div>
-                <div className="text-lg font-semibold text-gray-900">
+              <div className="border-r border-[var(--border-color)] last:border-r-0">
+                <div className="text-lg font-black text-[var(--text-main)]">
                   {journeySteps.length}
                 </div>
-                <div className="text-[11px] text-gray-600 handwritten uppercase tracking-wide">
-                  Story Badges
+                <div className="text-[10px] text-[var(--text-secondary)] font-mono uppercase tracking-wide">
+                  Badges
                 </div>
               </div>
               <div>
-                <div className="text-lg font-semibold text-gray-900">
+                <div className="text-lg font-black text-[var(--text-main)]">
                   {achievementsUnlockedCount}
                 </div>
-                <div className="text-[11px] text-gray-600 handwritten uppercase tracking-wide">
-                  Goals Cleared
+                <div className="text-[10px] text-[var(--text-secondary)] font-mono uppercase tracking-wide">
+                  Goals
                 </div>
               </div>
             </div>
-            <p className="handwritten text-xs text-gray-600 leading-snug mt-3">
+            <p className="font-mono text-[10px] text-[var(--text-secondary)] leading-snug mt-3 pt-2 border-t border-[var(--border-color)]">
               Ready for the full desk? Launch it to move notes and unlock badges.
             </p>
           </div>
 
-          <div className="bg-white/95 border-2 border-black rounded-2xl p-4 sketch-border shadow-[3px_4px_0_rgba(0,0,0,0.12)]">
-            <div className="flex items-center gap-2 mb-3">
+          <div className="bg-[var(--bg-card)] border border-[var(--border-color)] p-4 shadow-none">
+            <div className="flex items-center gap-2 mb-3 border-b border-[var(--border-color)] pb-2">
               <span className="text-xl">🧭</span>
-              <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-gray-800 handwritten">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--text-main)]">
                 Explore Highlights
               </h3>
             </div>
@@ -1486,22 +1337,17 @@ export const InteractivePortfolioSection: React.FC<{
               {mobileJourneySummary.map((entry) => (
                 <div
                   key={entry.id}
-                  className="border border-dashed border-gray-300 rounded-xl bg-white/85 px-3 py-2.5 shadow-sm"
+                  className="border border-[var(--border-color)] bg-[var(--bg-card)] px-3 py-2.5.5 hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] transition-colors group"
                 >
                   <div className="flex items-start gap-3">
-                    <span className="text-2xl">{entry.icon}</span>
+                    <span className="text-2xl grayscale group-hover:grayscale-0">{entry.icon}</span>
                     <div className="flex-1">
-                      <p className="handwritten text-sm font-semibold text-gray-800">
+                      <p className="font-bold text-xs uppercase tracking-wide group-hover:text-[var(--bg-main)]">
                         {entry.title}
                       </p>
-                      <p className="handwritten text-xs text-gray-600 leading-snug mt-0.5">
+                      <p className="font-mono text-[10px] text-[var(--text-secondary)] leading-snug mt-0.5 group-hover:text-[var(--bg-main)] opacity-80">
                         {entry.description}
                       </p>
-                      {entry.note && (
-                        <p className="handwritten text-[11px] text-gray-500 leading-snug mt-1">
-                          {entry.note}
-                        </p>
-                      )}
                     </div>
                   </div>
                 </div>
@@ -1509,10 +1355,10 @@ export const InteractivePortfolioSection: React.FC<{
             </div>
           </div>
 
-          <div className="bg-white/95 border-2 border-black rounded-2xl p-4 sketch-border shadow-[3px_4px_0_rgba(0,0,0,0.12)]">
-            <div className="flex items-center gap-2 mb-3">
+          <div className="bg-[var(--bg-card)] border border-[var(--border-color)] p-4 shadow-none">
+            <div className="flex items-center gap-2 mb-3 border-b border-[var(--border-color)] pb-2">
               <span className="text-xl">🚀</span>
-              <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-gray-800 handwritten">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--text-main)]">
                 Project Spotlights
               </h3>
             </div>
@@ -1520,25 +1366,25 @@ export const InteractivePortfolioSection: React.FC<{
               {mobileProjectSpotlight.map((project) => (
                 <div
                   key={project.id}
-                  className="border border-gray-200 rounded-xl bg-gradient-to-r from-indigo-50/80 via-white to-indigo-50/60 px-3 py-2.5 shadow-sm"
+                  className="border border-[var(--border-color)] bg-[var(--bg-card)] px-3 py-2.5.5 hover:translate-x-1 transition-transform"
                 >
-                  <p className="handwritten text-sm font-semibold text-gray-800">
+                  <p className="font-bold text-xs uppercase tracking-wide text-[var(--text-main)]">
                     {project.title}
                   </p>
-                  <p className="handwritten text-xs text-gray-600 leading-snug mt-1">
+                  <p className="font-mono text-[10px] text-[var(--text-secondary)] leading-snug mt-1">
                     {project.description}
                   </p>
                   <div className="mt-2 flex flex-wrap gap-1">
                     {project.tags.slice(0, 2).map((tag) => (
                       <span
                         key={tag}
-                        className="px-2 py-0.5 rounded-full bg-gray-900 text-white text-[10px] uppercase tracking-wide"
+                        className="px-2 py-0.5 border border-[var(--border-color)] bg-[var(--text-main)] text-[var(--bg-main)] text-[9px] uppercase tracking-wide font-bold"
                       >
                         {tag}
                       </span>
                     ))}
                   </div>
-                  <p className="handwritten text-[11px] text-gray-500 mt-1">
+                  <p className="font-mono text-[9px] text-[var(--text-muted)] mt-1 uppercase tracking-wider">
                     @ {project.company}
                   </p>
                 </div>
@@ -1550,12 +1396,12 @@ export const InteractivePortfolioSection: React.FC<{
             onClick={handleLaunchInteractive}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.97 }}
-            className="w-full px-4 py-3 rounded-2xl bg-gray-900 text-white handwritten text-sm tracking-wide shadow-[3px_4px_0_rgba(0,0,0,0.18)]"
+            className="w-full px-4 py-3 bg-[var(--text-main)] text-[var(--bg-main)] font-bold text-xs uppercase tracking-widest shadow-none border border-[var(--border-color)] hover:bg-[var(--bg-main)] hover:text-[var(--text-main)] transition-colors"
           >
             Launch Interactive Desk
           </motion.button>
-          <p className="text-center handwritten text-xs text-gray-500">
-            Prefer the lighter view? Stay here and dip into the highlights anytime.
+          <p className="text-center font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-wide">
+            Prefer the lighter view? Stay here.
           </p>
         </div>
       </section>
@@ -1563,12 +1409,12 @@ export const InteractivePortfolioSection: React.FC<{
   }
 
   return (
-    <section className={`fixed inset-0 w-full h-full overflow-hidden bg-white notebook-bg ${className}`} style={{ zIndex: 1 }}>
+    <section className={`fixed inset-0 w-full h-full overflow-hidden bg-[var(--bg-main)] notebook-bg ${className}`} style={{ zIndex: 1 }}>
       {isMobile && forceDesktopExperience && (
         <div className="absolute top-4 left-4 z-40">
           <button
             onClick={handleReturnToSummary}
-            className="px-3 py-1.5 rounded-full bg-white/90 border border-gray-300 text-xs text-gray-700 handwritten shadow-[2px_3px_0_rgba(0,0,0,0.12)]"
+            className="px-3 py-1.5 rounded-none bg-[var(--bg-card)]/90 border border-[var(--border-color)] text-xs text-[var(--text-secondary)] handwritten shadow-none"
           >
             Back to mobile view
           </button>
@@ -1576,8 +1422,8 @@ export const InteractivePortfolioSection: React.FC<{
       )}
       {isMobile && forceDesktopExperience && (
         <div className="absolute top-14 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-sm">
-          <div className="bg-white/95 border-2 border-dashed border-gray-300 rounded-xl px-4 py-3 shadow-[2px_3px_0_rgba(0,0,0,0.12)]">
-            <p className="handwritten text-xs text-gray-600 text-center leading-snug">
+          <div className="bg-[var(--bg-card)]/95 border border-dashed border-[var(--border-color)] rounded-none px-4 py-3 shadow-none">
+            <p className="handwritten text-xs text-[var(--text-secondary)] text-center leading-snug">
               Heads up: this interactive desk feels best on a larger screen where every draggable note and badge is easier to explore.
             </p>
           </div>
@@ -1603,47 +1449,23 @@ export const InteractivePortfolioSection: React.FC<{
           onMouseDown={isMobile ? undefined : handleIntroMouseDown}
           whileHover={isMobile ? {} : { scale: 1.01 }}
         >
-            <div className={`bg-gradient-to-r from-blue-50 to-indigo-100 border-4 border-dashed border-blue-300 rounded-2xl p-4 shadow-xl relative select-none ${isMobile ? 'max-w-xs mx-2' : 'max-w-md'}`}>
+            <div className={`bg-[var(--bg-card)] border border-[var(--border-color)] p-4 shadow-none relative select-none ${isMobile ? 'max-w-xs mx-2' : 'max-w-md'}`}>
             {/* Drag handle - only show on desktop */}
             {!isMobile && (
-              <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-10 h-6 bg-blue-300 rounded-b-lg flex items-center justify-center cursor-grab active:cursor-grabbing border-2 border-blue-400">
-                <ScribbledDragIcon size={16} className="text-blue-700" />
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 w-12 h-6 bg-[var(--text-main)] flex items-center justify-center cursor-grab active:cursor-grabbing border border-[var(--border-color)]">
+                <ScribbledDragIcon size={16} className="text-[var(--bg-main)]" />
               </div>
             )}
             
             {/* Close button */}
             <button
               onClick={handleCloseIntro}
-              className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-sm font-bold transition-colors duration-200 shadow-lg"
+              className="absolute -top-3 -right-3 w-8 h-8 bg-[var(--text-main)] text-[var(--bg-main)] border border-[var(--bg-main)] flex items-center justify-center text-lg font-bold transition-colors duration-200 shadow-none hover:bg-[var(--bg-main)] hover:text-[var(--text-main)] hover:border-[var(--border-color)]"
               title="Close intro"
             >
               ×
             </button>
 
-            <div className="flex items-center gap-3 mb-3">
-              <motion.div
-                animate={{ rotate: [0, 10, -10, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", repeatDelay: 2 }}
-                className="text-3xl"
-              >
-                👋
-              </motion.div>
-              <div>
-                <h2 className="text-xl font-bold text-gray-800" style={{ fontFamily: 'Left Hand, cursive' }}>
-                  Hey! I'm Arun
-                </h2>
-                <div className="handwritten text-sm text-blue-600">
-                  SDE 1 @ HP Inc · Designer-Developer Hybrid
-                </div>
-                <div className="handwritten text-xs text-blue-500">
-                  Kiruk = scribble — every build starts in my notebook.
-                </div>
-              </div>
-            </div>
-
-            <div className="handwritten text-gray-700 text-sm mb-3">
-              <p>✍️ Keeping pen-and-paper energy alive while I craft digital experiences.</p>
-            </div>
 
             {activeHighlight && (
               <motion.div
@@ -1651,14 +1473,14 @@ export const InteractivePortfolioSection: React.FC<{
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
-                className="mb-3 bg-white/85 border border-dashed border-blue-200 rounded-xl p-3 shadow-sm flex items-start gap-3"
+                className="mb-4 bg-[var(--bg-secondary)] border border-[var(--border-color)] p-3 shadow-none flex items-start gap-3"
               >
-                <span className="text-2xl">{activeHighlight.icon}</span>
+                <span className="text-2xl grayscale">{activeHighlight.icon}</span>
                 <div>
-                  <p className="text-sm font-semibold text-gray-800" style={{ fontFamily: 'Left Hand, cursive' }}>
+                  <p className="text-sm font-bold text-[var(--text-main)] uppercase tracking-wide">
                     {activeHighlight.title}
                   </p>
-                  <p className="handwritten text-xs text-gray-600 leading-snug mt-1">
+                  <p className="font-mono text-xs text-[var(--text-secondary)] leading-snug mt-1">
                     {activeHighlight.note}
                   </p>
                 </div>
@@ -1666,14 +1488,14 @@ export const InteractivePortfolioSection: React.FC<{
             )}
 
             <div className="text-center">
-              <motion.div whileHover={{ scale: 1.03 }} className={`inline-flex items-center gap-1 px-3 py-2 rounded-full border border-dashed handwritten text-xs shadow-sm ${
+              <motion.div whileHover={{ scale: 1.03 }} className={`inline-flex items-center gap-1 px-3 py-2 border font-mono text-[10px] uppercase tracking-wider shadow-none ${
                 introPromptToClose
-                  ? 'bg-yellow-100 border-yellow-300 text-yellow-800'
-                  : 'bg-white/90 border-gray-300 text-gray-600'
+                  ? 'bg-[var(--notepad-bg)] border-[var(--border-color)] text-[var(--notepad-text)]'
+                  : 'bg-[var(--bg-card)] border-[var(--border-color)] text-[var(--text-main)]'
               }`}>
                 {introPromptToClose
-                  ? '👋 Ready? Tap the red dot to tuck this away.'
-                  : '✨ Interactive portfolio ahead — move notes, unlock badges, scribble freely. ✨'}
+                  ? '👋 Ready? Tap the X to tuck this away.'
+                  : '✨ Interactive portfolio ahead — move notes, unlock badges. ✨'}
               </motion.div>
             </div>
           </div>
@@ -1699,14 +1521,6 @@ export const InteractivePortfolioSection: React.FC<{
             whileTap={{ scale: 0.95 }}
             aria-label="Reopen intro notebook"
           >
-            <div className="relative flex flex-col gap-1 items-start bg-yellow-100/95 border-2 border-dashed border-yellow-400 rounded-xl px-3 py-2 shadow-[4px_6px_0_rgba(0,0,0,0.12)] handwritten text-xs text-yellow-900 min-w-[120px]">
-              <span className="text-base">👋</span>
-              <span className="font-semibold tracking-wide">Hey, I'm Arun</span>
-              <span className="text-[10px] text-yellow-800/80">Tap to pop open the intro again.</span>
-              <span className="absolute -top-2 -right-2 w-5 h-5 rounded-full border-2 border-yellow-500 bg-white flex items-center justify-center text-[10px] font-bold text-yellow-600 shadow-sm">
-                ↗
-              </span>
-            </div>
           </motion.button>
         )}
       </AnimatePresence>
@@ -1728,49 +1542,6 @@ export const InteractivePortfolioSection: React.FC<{
             exit={{ opacity: 0, y: 30, scale: 0.92 }}
             transition={{ duration: 0.45, ease: 'easeOut' }}
           >
-            <div className="relative flex flex-col gap-2 bg-white/95 backdrop-blur-sm border border-gray-300 rounded-xl px-3 py-2.5 shadow-[2px_3px_0_rgba(0,0,0,0.12)] max-w-[260px]">
-              <button
-                type="button"
-                onClick={handleDismissProjectSpotlight}
-                className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-gray-900 text-white text-[10px] font-bold flex items-center justify-center shadow-sm hover:bg-black transition-colors"
-                aria-label="Dismiss project spotlight"
-              >
-                ×
-              </button>
-              <div className="flex items-start gap-2">
-                <span className="text-lg leading-none">📁</span>
-                <div className="space-y-0.5">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-gray-700 handwritten">
-                    Recruiter quick path
-                  </p>
-                  <p className="handwritten text-[10px] text-gray-600 leading-tight">
-                    Straight links: case studies, work reels, resume. Prefer browsing? Hit the bottom nav.
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-1.5">
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Link
-                    href="/case-studies"
-                    onClick={() => handleProjectSpotlightNavigate('case-studies')}
-                    className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-indigo-300 bg-indigo-50 text-[10px] font-semibold text-indigo-700 handwritten transition-colors hover:bg-indigo-500 hover:text-white"
-                  >
-                    <span>View case studies</span>
-                    <span className="text-sm leading-none">↗</span>
-                  </Link>
-                </motion.div>
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Link
-                    href="/work"
-                    onClick={() => handleProjectSpotlightNavigate('work')}
-                    className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-gray-300 bg-white text-[10px] font-semibold text-gray-700 handwritten transition-colors hover:bg-gray-900 hover:text-white"
-                  >
-                    <span>See work highlights</span>
-                    <span className="text-sm leading-none">↗</span>
-                  </Link>
-                </motion.div>
-              </div>
-            </div>
           </motion.aside>
         )}
       </AnimatePresence>
@@ -1791,7 +1562,7 @@ export const InteractivePortfolioSection: React.FC<{
         >
           <div className="flex flex-col gap-3 pointer-events-auto pr-1">
             <motion.div
-              className="bg-white/95 backdrop-blur-md border-2 border-black rounded-2xl p-3 sketch-border shadow-[3px_4px_0px_rgba(0,0,0,0.14)]"
+              className="bg-[var(--bg-card)]/95 backdrop-blur-md border border-[var(--border-color)] rounded-none p-3 sketch-border shadow-none"
               style={{ width: '100%' }}
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -1799,11 +1570,11 @@ export const InteractivePortfolioSection: React.FC<{
             >
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-700 handwritten">Kiruk Desk Board</h3>
-                  <p className="text-[11px] text-gray-600 handwritten leading-snug mt-1">
+                  <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-main)] handwritten">Kiruk Desk Board</h3>
+                  <p className="text-[11px] text-[var(--text-secondary)] handwritten leading-snug mt-1">
                     Kiruk is Tamil for scribble. This desk is just my paper notebook brought on screen.
                   </p>
-                  <p className="text-[11px] text-gray-600 handwritten leading-snug mt-1">
+                  <p className="text-[11px] text-[var(--text-secondary)] handwritten leading-snug mt-1">
                     {nextJourneyStep
                       ? `Tap a story badge to unlock "${nextJourneyStep.title}".`
                       : 'Everything is unlocked — remix the desk!'}
@@ -1818,13 +1589,13 @@ export const InteractivePortfolioSection: React.FC<{
                 </motion.span>
               </div>
               <div className="mt-2">
-                <div className="flex items-center justify-between text-[10px] text-gray-500 handwritten">
+                <div className="flex items-center justify-between text-[10px] text-[var(--text-muted)] handwritten">
                   <span>Progress</span>
                   <span>{Math.round(journeyProgress * 100)}%</span>
                 </div>
-                <div className="mt-1 h-1.5 rounded-full bg-gray-200 border border-gray-300 overflow-hidden">
+                <div className="mt-1 h-1.5 rounded-none bg-[var(--bg-secondary)] border border-[var(--border-color)] overflow-hidden">
                   <motion.div
-                    className="h-full bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400"
+                    className="h-full bg-[var(--text-main)]"
                     initial={{ width: 0 }}
                     animate={{ width: `${journeyProgressWidth}%` }}
                     transition={{ duration: 0.6, ease: 'easeOut' }}
@@ -1845,21 +1616,21 @@ export const InteractivePortfolioSection: React.FC<{
                       whileHover={{ scale: 1.04 }}
                       whileTap={{ scale: 0.95 }}
                       aria-pressed={isComplete}
-                      className={`relative flex flex-col items-center justify-center gap-1 px-2 py-2 rounded-lg border-2 text-center transition-all duration-200 shadow-sm ${
+                      className={`relative flex flex-col items-center justify-center gap-1 px-2 py-2 rounded-none border text-center transition-all duration-200 shadow-sm ${
                         isComplete
-                          ? 'bg-green-50 border-green-300'
+                          ? 'bg-[var(--bg-secondary)] border-[var(--border-color)]'
                           : isNextUp
-                          ? 'bg-indigo-50/70 border-indigo-300 shadow-[0_4px_12px_rgba(79,70,229,0.25)]'
-                          : 'bg-white/80 border-gray-300 hover:border-indigo-300 hover:bg-indigo-50'
+                          ? 'bg-[var(--bg-secondary)]/70 border-[var(--border-color)] shadow-none'
+                          : 'bg-[var(--bg-card)]/80 border-[var(--border-color)] hover:border-[var(--text-main)] hover:bg-[var(--bg-secondary)]'
                       }`}
                     >
                       <motion.div
-                        className={`relative flex items-center justify-center w-9 h-9 rounded-full border-2 ${
+                        className={`relative flex items-center justify-center w-9 h-9 rounded-none border ${
                           isComplete
-                            ? 'border-green-300 bg-green-50'
+                            ? 'border-[var(--border-color)] bg-[var(--bg-secondary)]'
                             : isNextUp
-                            ? 'border-indigo-300 bg-white shadow-[0_0_0_2px_rgba(99,102,241,0.15)]'
-                            : 'border-gray-300 bg-white'
+                            ? 'border-[var(--border-color)] bg-[var(--bg-card)] shadow-none'
+                            : 'border-[var(--border-color)] bg-[var(--bg-card)]'
                         }`}
                         animate={
                           isComplete
@@ -1875,14 +1646,14 @@ export const InteractivePortfolioSection: React.FC<{
                           <motion.span
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
-                            className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-green-500 text-[10px] font-semibold text-white"
+                            className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-none bg-[var(--text-main)] text-[10px] font-semibold text-[var(--bg-main)]"
                           >
                             ✓
                           </motion.span>
                         )}
                         {isNextUp && (
                           <motion.span
-                            className="absolute -top-2 left-1/2 -translate-x-1/2 text-sm text-indigo-500"
+                            className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-sm text-[var(--text-main)]"
                             initial={{ opacity: 0, y: -4 }}
                             animate={{ opacity: [0, 1, 0.6, 1], y: [-4, -8, -6, -8] }}
                             transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
@@ -1891,7 +1662,7 @@ export const InteractivePortfolioSection: React.FC<{
                           </motion.span>
                         )}
                       </motion.div>
-                      <span className="text-[11px] text-gray-700 handwritten leading-tight">
+                      <span className="text-[11px] text-[var(--text-main)] handwritten leading-tight">
                         {step.title}
                       </span>
                     </motion.button>
@@ -1906,10 +1677,10 @@ export const InteractivePortfolioSection: React.FC<{
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -6 }}
                     transition={{ duration: 0.3 }}
-                    className="flex items-start gap-2 rounded-lg border border-dashed border-gray-300 bg-white/80 px-2.5 py-2 shadow-inner"
+                    className="flex items-start gap-2 rounded-none border border-dashed border-[var(--border-color)] bg-[var(--bg-card)]/80 px-2.5.5 py-2 shadow-inner"
                   >
                     <span className="text-xl">{boardMood}</span>
-                    <p className="text-[11px] text-gray-600 handwritten leading-snug">{boardNote}</p>
+                    <p className="text-[11px] text-[var(--text-secondary)] handwritten leading-snug">{boardNote}</p>
                   </motion.div>
                 </AnimatePresence>
               </div>
@@ -1918,11 +1689,11 @@ export const InteractivePortfolioSection: React.FC<{
                   onClick={toggleAchievements}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="flex-1 px-2 py-1.5 rounded-lg border border-gray-300 bg-white text-[10px] text-gray-700 handwritten hover:border-indigo-300 hover:text-indigo-600 transition-colors"
+                  className="flex-1 px-2 py-1.5 rounded-none border border-[var(--border-color)] bg-[var(--bg-card)] text-[10px] text-[var(--text-main)] handwritten hover:border-[var(--text-main)] hover:text-[var(--text-main)] transition-colors"
                 >
                   Goals
                   {achievementsUnlockedCount > 0 && (
-                    <span className="ml-1 inline-flex items-center justify-center rounded-full bg-indigo-500 text-white text-[9px] px-1">
+                    <span className="ml-1 inline-flex items-center justify-center rounded-none bg-[var(--text-main)] text-[var(--bg-main)] text-[9px] px-1">
                       {achievementsUnlockedCount}
                     </span>
                   )}
@@ -1931,7 +1702,7 @@ export const InteractivePortfolioSection: React.FC<{
                   onClick={clearWorkspace}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="px-2 py-1.5 rounded-lg border border-gray-300 bg-gray-900 text-white text-[10px] handwritten hover:bg-gray-800 transition-colors flex items-center gap-1"
+                  className="px-2 py-1.5 rounded-none border border-[var(--border-color)] bg-[var(--text-main)] text-[var(--bg-main)] text-[10px] handwritten hover:bg-[var(--text-main)] transition-colors flex items-center gap-1"
                 >
                   <span role="img" aria-label="Reset desk">🧹</span>
                   Reset
@@ -1947,18 +1718,18 @@ export const InteractivePortfolioSection: React.FC<{
       {/* Desktop - Top Right Gamified Toolbar */}
       {!isMobile && (
         <motion.div
-          className="fixed top-6 right-6 z-40 flex flex-col items-end gap-2 pointer-events-auto"
+          className="fixed top-4 right-4 z-40 flex flex-col items-end gap-2 pointer-events-auto"
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.5 }}
         >
           {/* The Gamified Bar */}
-          <div className="relative flex items-center gap-1 p-2 bg-white/95 backdrop-blur-md border-2 border-black rounded-full shadow-[4px_4px_0px_rgba(0,0,0,0.15)] sketch-border">
+          <div className="relative flex items-center gap-1 p-2 bg-[var(--bg-card)] border border-[var(--border-color)] shadow-none">
             
             {/* Progress Line Background */}
-            <div className="absolute left-4 right-4 top-1/2 -translate-y-1/2 h-1.5 bg-gray-100 rounded-full overflow-hidden z-0">
+            <div className="absolute left-4 right-4 top-1/2 -translate-y-1/2 h-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] z-0">
                <motion.div 
-                 className="h-full bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300"
+                 className="h-full bg-[var(--text-main)]"
                  initial={{ width: 0 }}
                  animate={{ width: `${journeyProgressWidth}%` }}
                  transition={{ duration: 0.6 }}
@@ -1978,34 +1749,27 @@ export const InteractivePortfolioSection: React.FC<{
                     }}
                     whileHover={{ scale: 1.15 }}
                     whileTap={{ scale: 0.9 }}
-                    className={`relative flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all duration-300 ${
-                      isComplete
-                        ? 'bg-green-50 border-green-500 text-green-600 shadow-sm'
-                        : isNextUp
-                        ? 'bg-white border-indigo-500 text-indigo-600 shadow-[0_0_15px_rgba(99,102,241,0.4)]'
-                        : 'bg-white border-gray-300 text-gray-400 hover:border-gray-400'
+                    className={`relative flex items-center justify-center w-8 h-8 transition-all duration-300 ${toolbarBadgeClass} ${
+                      isComplete ? toolbarActiveBadgeClass : ''
+                    } ${isNextUp ? 'ring-2 ring-[var(--text-main)]' : ''} ${
+                      !isComplete && !isNextUp ? 'opacity-70' : ''
                     }`}
                   >
-                    <span className="text-lg relative z-10">{step.icon}</span>
-                    {isComplete && (
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="absolute inset-0 bg-green-100 rounded-full -z-0"
-                      />
-                    )}
+                    <span className={`text-lg relative z-10 grayscale group-hover:grayscale-0 ${toolbarIconClass}`}>
+                      {step.icon}
+                    </span>
                   </motion.button>
                   
                   {/* Tooltip */}
-                  <div className="absolute top-full right-0 mt-3 w-48 p-2 bg-gray-900 text-white text-xs rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 text-right">
-                    <div className="font-bold text-indigo-300">{step.title}</div>
-                    <div className="text-[10px] text-gray-300 leading-tight">{step.description}</div>
+                  <div className="absolute top-full right-0 mt-3 w-48 p-2 bg-[var(--text-main)] text-[var(--bg-main)] text-xs font-mono uppercase tracking-wide opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 text-right border border-[var(--bg-main)] shadow-none">
+                    <div className="font-bold text-[var(--bg-main)]">{step.title}</div>
+                    <div className="text-[10px] text-[var(--bg-secondary)] leading-tight">{step.description}</div>
                   </div>
                 </div>
               );
             })}
 
-            <div className="w-px h-6 bg-gray-200 mx-1" />
+            <div className="w-px h-6 bg-[var(--bg-secondary)] mx-1" />
 
             {/* Extra Actions */}
             <div className="flex items-center gap-1 pl-1 relative z-10">
@@ -2013,12 +1777,12 @@ export const InteractivePortfolioSection: React.FC<{
                 onClick={toggleAchievements}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                className="w-9 h-9 flex items-center justify-center rounded-full bg-yellow-50 border-2 border-yellow-200 text-yellow-600 hover:border-yellow-400 transition-colors"
+                className="w-9 h-9 flex items-center justify-center rounded-none bg-[var(--notepad-bg)] border border-[var(--notepad-border)] text-[var(--notepad-text)] hover:border-[var(--notepad-border)] transition-colors"
                 title="Achievements"
               >
                 🏆
                 {achievementsUnlockedCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white border border-white">
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-none bg-[var(--text-main)] text-[9px] font-bold text-[var(--bg-main)] border border-[var(--bg-main)]">
                     {achievementsUnlockedCount}
                   </span>
                 )}
@@ -2028,7 +1792,7 @@ export const InteractivePortfolioSection: React.FC<{
                 onClick={clearWorkspace}
                 whileHover={{ scale: 1.1, rotate: 15 }}
                 whileTap={{ scale: 0.9 }}
-                className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 border-2 border-gray-300 text-gray-500 hover:bg-red-50 hover:border-red-300 hover:text-red-500 transition-colors"
+                className="w-9 h-9 flex items-center justify-center rounded-none bg-[var(--bg-secondary)] border border-[var(--border-color)] text-[var(--text-muted)] hover:bg-[var(--bg-secondary)] hover:border-[var(--border-color)] hover:text-[var(--text-main)] transition-colors"
                 title="Reset Desk"
               >
                 🧹
@@ -2043,10 +1807,10 @@ export const InteractivePortfolioSection: React.FC<{
               initial={{ opacity: 0, x: 20, scale: 0.9 }}
               animate={{ opacity: 1, x: 0, scale: 1 }}
               exit={{ opacity: 0, x: 10, scale: 0.9 }}
-              className="bg-white/90 backdrop-blur-sm border border-gray-200 rounded-xl px-3 py-2 shadow-sm max-w-xs text-right"
+              className="bg-[var(--bg-card)]/90 backdrop-blur-sm border border-[var(--border-color)] rounded-none px-3 py-2 shadow-sm max-w-xs text-right"
             >
               <div className="flex items-center justify-end gap-2">
-                <p className="text-[11px] text-gray-600 handwritten leading-snug">{boardNote}</p>
+                <p className="text-[11px] text-[var(--text-secondary)] handwritten leading-snug">{boardNote}</p>
                 <span className="text-lg">{boardMood}</span>
               </div>
             </motion.div>
@@ -2120,7 +1884,7 @@ export const InteractivePortfolioSection: React.FC<{
                 <AnimatePresence>
                   {isHighlighted && (
                     <motion.span
-                      className="absolute -inset-2 rounded-3xl pointer-events-none shadow-[0_10px_18px_rgba(15,23,42,0.12)]"
+                      className="absolute -inset-2.5 rounded-none pointer-events-none shadow-none"
                       initial={{ opacity: 0, scale: 0.98 }}
                       animate={{ opacity: 0.35, scale: 1 }}
                       exit={{ opacity: 0, scale: 1.02 }}
@@ -2137,30 +1901,30 @@ export const InteractivePortfolioSection: React.FC<{
                     whileDrag={{ opacity: 1 }}
                     style={{ zIndex: 10 }}
                   >
-                    <div className="bg-white/90 rounded-full p-2 border-2 border-dashed border-indigo-400">
-                      <ScribbledMoveIcon size={20} className="text-indigo-600" />
+                    <div className="bg-[var(--bg-card)]/90 rounded-none p-2 border border-dashed border-[var(--border-color)]">
+                      <ScribbledMoveIcon size={20} className="text-[var(--text-main)]" />
                     </div>
                   </motion.div>
                 )}
                 
                 {item.type === 'sticky-note' ? (
-                  <div className={`relative p-3 rounded-lg shadow-lg border-2 border-gray-300 ${
+                  <div className={`relative ${stickyNoteBaseClass} ${
                     isMobile ? 'min-w-[120px] min-h-[80px] text-sm' : 'min-w-[150px] min-h-[100px]'
                   } ${getStickyNoteColorClass(item.color)}`}>
                     {!isMobile && (
                       <div className="absolute -top-1 -right-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        <ScribbledDragIcon size={12} className="text-gray-500" />
+                        <ScribbledDragIcon size={12} className="text-[var(--text-muted)]" />
                       </div>
                     )}
                     {item.content}
                   </div>
                 ) : (
-                  <div className={`relative p-4 bg-white rounded-lg shadow-lg border-2 border-black sketch-border ${
+                  <div className={`relative ${cardContainerClass} ${
                     isMobile ? 'min-w-[160px] min-h-[120px] text-sm' : 'min-w-[200px] min-h-[150px]'
                   }`}>
                     {!isMobile && (
                       <div className="absolute -top-1 -right-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        <ScribbledDragIcon size={14} className="text-gray-600" />
+                        <ScribbledDragIcon size={14} className="text-[var(--text-secondary)]" />
                       </div>
                     )}
                     {item.content}
@@ -2188,7 +1952,7 @@ export const InteractivePortfolioSection: React.FC<{
             onClick={handleCloseAchievements}
           >
             <motion.div
-              className={`bg-white border-2 border-black rounded-lg p-6 sketch-border ${
+              className={`bg-[var(--bg-card)] border border-[var(--border-color)] rounded-none p-4 sketch-border ${
                 isMobile ? 'max-w-xs w-full mx-2 max-h-96' : 'max-w-md w-full mx-4'
               }`}
               onClick={handleStopPropagation}
@@ -2201,7 +1965,7 @@ export const InteractivePortfolioSection: React.FC<{
               </div>
               <button
                 onClick={handleCloseAchievements}
-                className={`w-full mt-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition-colors ${
+                className={`w-full mt-4 px-4 py-2 bg-[var(--text-main)] text-[var(--bg-main)] rounded-none hover:bg-[var(--text-main)] transition-colors ${
                   isMobile ? 'text-sm' : ''
                 }`}
               >
@@ -2211,12 +1975,6 @@ export const InteractivePortfolioSection: React.FC<{
           </motion.div>        )}
       </AnimatePresence>
 
-      {/* Scribble Pad Modal */}
-      <ScribblePad
-        isOpen={showScribblePad}
-        onClose={() => setShowScribblePad(false)}
-        onInsert={handleScribbleInsert}
-      />
     </section>
   );
 };

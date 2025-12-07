@@ -3,42 +3,680 @@
 
 /* Custom font declarations */
 @font-face {
-  font-family: 'Bridges Not Walls';
-  src: url('../assets/fonts/Bridges not walls.otf') format('opentype');
-  font-weight: normal;
+  font-family: 'StackSansHeadline';
+  src: url('../assets/fonts/StackSansHeadline[wght].ttf') format('truetype');
+  font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Left Hand';
-  src: url('../assets/fonts/Left Hand.otf') format('opentype');
-  font-weight: normal;
+  font-family: 'StackSansNotch';
+  src: url('../assets/fonts/StackSansNotch[wght].ttf') format('truetype');
+  font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Magnetic Drawing';
-  src: url('../assets/fonts/MagneticDrawing.ttf') format('truetype');
-  font-weight: normal;
+  font-family: 'StackSansText';
+  src: url('../assets/fonts/StackSansText[wght].ttf') format('truetype');
+  font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
 
-/* Enable vertical scrolling with hidden scrollbars */
-html, body {
+/* =========================================
+   DESIGN ERA VARIABLES
+   ========================================= */
+
+:root {
+  /* Default to 2025 (Wireframe) */
+  --bg-main: #ffffff;
+  --bg-card: #ffffff;
+  --text-main: #000000;
+  --text-muted: #666666;
+  --border-color: #000000;
+  --border-width: 1px;
+  --border-radius: 0px;
+  --shadow-color: transparent;
+  --shadow-offset-x: 0px;
+  --shadow-offset-y: 0px;
+  --shadow-blur: 0px;
+  --font-main: 'StackSansText', monospace;
+  --font-heading: 'StackSansHeadline', monospace;
+  --accent-color: #000000;
+  --btn-hover-transform: translate(-2px, -2px);
+  --grid-opacity: 1;
+  --surface-pattern: linear-gradient(to right, color-mix(in srgb, var(--border-color), transparent 90%) 1px, transparent 1px), linear-gradient(to bottom, color-mix(in srgb, var(--border-color), transparent 90%) 1px, transparent 1px);
+  --surface-pattern-size: 20px 20px;
+  --surface-pattern-position: center center;
+  --surface-pattern-repeat: repeat;
+  --surface-pattern-opacity: 1;
+  --card-border-style: dashed;
+  --card-tilt: -0.5deg;
+  --card-background: var(--bg-card);
+  --card-shadow: var(--shadow-offset-x) var(--shadow-offset-y) var(--shadow-blur) var(--shadow-color);
+
+  /* Notepad Defaults */
+  --notepad-bg: #fffbeb;
+  --notepad-border: #fde047;
+  --notepad-text: #a16207;
+  --notepad-inner-bg: #ffffff;
+}
+
+/* 1970: Terminal & ASCII */
+body[data-era='1970'] {
+  --bg-main: #000000;
+  --bg-card: #000000;
+  --text-main: #00ff00;
+  --text-muted: #008800;
+  --border-color: #00ff00;
+  --border-width: 1px;
+  --border-radius: 0px;
+  --shadow-color: transparent;
+  --shadow-offset-x: 0px;
+  --shadow-offset-y: 0px;
+  --shadow-blur: 0px;
+  --font-main: 'Courier New', Courier, monospace;
+  --font-heading: 'Courier New', Courier, monospace;
+  --accent-color: #00ff00;
+  --btn-hover-transform: none;
+  --grid-opacity: 0;
+
+  /* Notepad specific */
+  --notepad-bg: #000000;
+  --notepad-border: #00ff00;
+  --notepad-text: #00ff00;
+  --notepad-inner-bg: #111111;
+}
+
+/* 1981: Xerox Alto GUI */
+body[data-era='1981'] {
+  --bg-main: #dcdcdc;
+  --bg-card: #f2f2f2;
+  --text-main: #1a1a1a;
+  --text-muted: #5c5c5c;
+  --border-color: #808080;
+  --border-width: 2px;
+  --border-radius: 0px;
+  --shadow-color: #ffffff;
+  --shadow-offset-x: 2px;
+  --shadow-offset-y: 2px;
+  --shadow-blur: 0px;
+  --font-main: 'Helvetica', 'Arial', sans-serif;
+  --font-heading: 'Helvetica', 'Arial', sans-serif;
+  --accent-color: #0066cc;
+  --btn-hover-transform: translate(1px, 1px);
+  --grid-opacity: 0;
+
+  --notepad-bg: #ffffff;
+  --notepad-border: #9e9e9e;
+  --notepad-text: #1a1a1a;
+  --notepad-inner-bg: #f7f7f7;
+}
+
+/* 1991: HTML 1.0 */
+body[data-era='1991'] {
+  --bg-main: #ffffff;
+  --bg-card: #fafafa;
+  --text-main: #111111;
+  --text-muted: #555555;
+  --border-color: #b3b3ff;
+  --border-width: 1px;
+  --border-radius: 0px;
+  --shadow-color: rgba(0, 0, 0, 0);
+  --shadow-offset-x: 0px;
+  --shadow-offset-y: 0px;
+  --shadow-blur: 0px;
+  --font-main: 'Times New Roman', serif;
+  --font-heading: 'Times New Roman', serif;
+  --accent-color: #0000ff;
+  --btn-hover-transform: none;
+  --grid-opacity: 0;
+
+  --notepad-bg: #ffffff;
+  --notepad-border: #b3b3ff;
+  --notepad-text: #111111;
+  --notepad-inner-bg: #ffffff;
+}
+
+/* 1993: Mosaic & Netscape */
+body[data-era='1993'] {
+  --bg-main: #fff8ff;
+  --bg-card: #fff0ff;
+  --text-main: #111111;
+  --text-muted: #6b2c82;
+  --border-color: #ff00ff;
+  --border-width: 3px;
+  --border-radius: 0px;
+  --shadow-color: rgba(255, 0, 255, 0.3);
+  --shadow-offset-x: 0px;
+  --shadow-offset-y: 6px;
+  --shadow-blur: 16px;
+  --font-main: 'Comic Sans MS', 'Arial', cursive;
+  --font-heading: 'Arial Black', 'Arial', sans-serif;
+  --accent-color: #ff00ff;
+  --btn-hover-transform: translate(-1px, -1px);
+  --grid-opacity: 0;
+
+  --notepad-bg: #ffe6ff;
+  --notepad-border: #ff00ff;
+  --notepad-text: #6b2c82;
+  --notepad-inner-bg: #fffafc;
+}
+
+/* 1995: GeoCities Wild Web */
+body[data-era='1995'] {
+  --bg-main: #0b0025;
+  --bg-card: #1a004a;
+  --text-main: #fdfd96;
+  --text-muted: #ff9bd7;
+  --border-color: #ff00ff;
+  --border-width: 2px;
+  --border-radius: 0px;
+  --shadow-color: rgba(255, 0, 255, 0.6);
+  --shadow-offset-x: 0px;
+  --shadow-offset-y: 10px;
+  --shadow-blur: 30px;
+  --font-main: 'Arial Black', 'Comic Sans MS', sans-serif;
+  --font-heading: 'Arial Black', 'Courier New', sans-serif;
+  --accent-color: #ffff00;
+  --btn-hover-transform: scale(1.02);
+  --grid-opacity: 0;
+
+  --notepad-bg: #2b006a;
+  --notepad-border: #ff00ff;
+  --notepad-text: #fdfd96;
+  --notepad-inner-bg: #140034;
+}
+
+/* 1997: Tabled Corporate Web */
+body[data-era='1997'] {
+  --bg-main: #002347;
+  --bg-card: #003a6b;
+  --text-main: #f4f4f4;
+  --text-muted: #ffcc00;
+  --border-color: #ffcc00;
+  --border-width: 2px;
+  --border-radius: 0px;
+  --shadow-color: rgba(0, 0, 0, 0.4);
+  --shadow-offset-x: 0px;
+  --shadow-offset-y: 8px;
+  --shadow-blur: 20px;
+  --font-main: 'Verdana', 'Arial', sans-serif;
+  --font-heading: 'Verdana', 'Arial', sans-serif;
+  --accent-color: #ff6600;
+  --btn-hover-transform: translateY(-1px);
+  --grid-opacity: 0;
+
+  --notepad-bg: #00325b;
+  --notepad-border: #ffcc00;
+  --notepad-text: #f4f4f4;
+  --notepad-inner-bg: #00223b;
+}
+
+/* 2000: CSS Awakening */
+body[data-era='2000'] {
+  --bg-main: #eef2f5;
+  --bg-card: #ffffff;
+  --text-main: #1f2933;
+  --text-muted: #52606d;
+  --border-color: #b0c4de;
+  --border-width: 1px;
+  --border-radius: 0px;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --shadow-offset-x: 0px;
+  --shadow-offset-y: 4px;
+  --shadow-blur: 8px;
+  --font-main: 'Trebuchet MS', 'Verdana', sans-serif;
+  --font-heading: 'Trebuchet MS', 'Verdana', sans-serif;
+  --accent-color: #0066cc;
+  --btn-hover-transform: translateY(-1px);
+  --grid-opacity: 0;
+
+  --notepad-bg: #ffffcc;
+  --notepad-border: #e6e600;
+  --notepad-text: #666600;
+  --notepad-inner-bg: #ffffff;
+}
+
+/* 2003: Web 2.0 Gloss */
+body[data-era='2003'] {
+  --bg-main: #f3f1ff;
+  --bg-card: #ffffff;
+  --text-main: #1f1b24;
+  --text-muted: #6b6478;
+  --border-color: #ffd6de;
+  --border-width: 1px;
+  --border-radius: 0px;
+  --shadow-color: rgba(51, 102, 153, 0.25);
+  --shadow-offset-x: 0px;
+  --shadow-offset-y: 8px;
+  --shadow-blur: 20px;
+  --font-main: 'Lucida Grande', 'Arial', sans-serif;
+  --font-heading: 'Lucida Grande', 'Arial', sans-serif;
+  --accent-color: #ff6b6b;
+  --btn-hover-transform: translateY(-2px);
+  --grid-opacity: 0;
+
+  --notepad-bg: #ffffff;
+  --notepad-border: #ffd6de;
+  --notepad-text: #1f1b24;
+  --notepad-inner-bg: #fdfaff;
+}
+
+/* 2006: Refined Web 2.0 */
+body[data-era='2006'] {
+  --bg-main: #f5f5f5;
+  --bg-card: #ffffff;
+  --text-main: #1a1a1a;
+  --text-muted: #757575;
+  --border-color: #e0e0e0;
+  --border-width: 1px;
+  --border-radius: 0px;
+  --shadow-color: rgba(0, 0, 0, 0.12);
+  --shadow-offset-x: 0px;
+  --shadow-offset-y: 6px;
+  --shadow-blur: 16px;
+  --font-main: 'Helvetica', 'Arial', sans-serif;
+  --font-heading: 'Helvetica', 'Arial', sans-serif;
+  --accent-color: #0088cc;
+  --btn-hover-transform: translateY(-1px);
+  --grid-opacity: 0;
+
+  --notepad-bg: #ffffff;
+  --notepad-border: #ff8800;
+  --notepad-text: #ff8800;
+  --notepad-inner-bg: #fafafa;
+}
+
+/* 2009: Early Responsive */
+body[data-era='2009'] {
+  --bg-main: #fafafa;
+  --bg-card: #ffffff;
+  --text-main: #1f1f1f;
+  --text-muted: #5f6b76;
+  --border-color: #d0d7e2;
+  --border-width: 1px;
+  --border-radius: 0px;
+  --shadow-color: rgba(0, 0, 0, 0.08);
+  --shadow-offset-x: 0px;
+  --shadow-offset-y: 6px;
+  --shadow-blur: 14px;
+  --font-main: 'Helvetica Neue', 'Arial', sans-serif;
+  --font-heading: 'Helvetica Neue', 'Arial', sans-serif;
+  --accent-color: #00c7be;
+  --btn-hover-transform: translateY(-1px);
+  --grid-opacity: 0;
+
+  --notepad-bg: #ffffff;
+  --notepad-border: #00c7be;
+  --notepad-text: #1f1f1f;
+  --notepad-inner-bg: #f5f7fb;
+}
+
+/* 2010: Flat Precursor */
+body[data-era='2010'] {
+  --bg-main: #fafafa;
+  --bg-card: #ffffff;
+  --text-main: #1e1e1e;
+  --text-muted: #6d6d6d;
+  --border-color: #e0e0e0;
+  --border-width: 1px;
+  --border-radius: 0px;
+  --shadow-color: rgba(0, 0, 0, 0.18);
+  --shadow-offset-x: 0px;
+  --shadow-offset-y: 3px;
+  --shadow-blur: 8px;
+  --font-main: 'San Francisco', 'Helvetica Neue', sans-serif;
+  --font-heading: 'San Francisco', 'Helvetica Neue', sans-serif;
+  --accent-color: #0099cc;
+  --btn-hover-transform: translateY(-1px);
+  --grid-opacity: 0;
+
+  --notepad-bg: #fff9c4;
+  --notepad-border: #fbc02d;
+  --notepad-text: #f57f17;
+  --notepad-inner-bg: #ffffff;
+}
+
+/* 2013: Flat Revolution */
+body[data-era='2013'] {
+  --bg-main: #f2f2f7;
+  --bg-card: #ffffff;
+  --text-main: #16181f;
+  --text-muted: #767b91;
+  --border-color: #d9dbe2;
+  --border-width: 1px;
+  --border-radius: 0px;
+  --shadow-color: rgba(0, 0, 0, 0.08);
+  --shadow-offset-x: 0px;
+  --shadow-offset-y: 4px;
+  --shadow-blur: 10px;
+  --font-main: 'Helvetica Neue', 'Open Sans', sans-serif;
+  --font-heading: 'Helvetica Neue', 'Open Sans', sans-serif;
+  --accent-color: #007aff;
+  --btn-hover-transform: translateY(-1px);
+  --grid-opacity: 0;
+
+  --notepad-bg: #ffffff;
+  --notepad-border: #ff3b30;
+  --notepad-text: #16181f;
+  --notepad-inner-bg: #f9f9fb;
+}
+
+/* 2014: Material Design */
+body[data-era='2014'] {
+  --bg-main: #fafafa;
+  --bg-card: #ffffff;
+  --text-main: #1f1f1f;
+  --text-muted: #5c5c5c;
+  --border-color: #e0e0e0;
+  --border-width: 1px;
+  --border-radius: 0px;
+  --shadow-color: rgba(0, 0, 0, 0.2);
+  --shadow-offset-x: 0px;
+  --shadow-offset-y: 6px;
+  --shadow-blur: 18px;
+  --font-main: 'Roboto', 'Open Sans', sans-serif;
+  --font-heading: 'Roboto', 'Open Sans', sans-serif;
+  --accent-color: #2196f3;
+  --btn-hover-transform: translateY(-1px);
+  --grid-opacity: 0;
+
+  --notepad-bg: #ffffff;
+  --notepad-border: #ff5722;
+  --notepad-text: #1f1f1f;
+  --notepad-inner-bg: #f6f6f6;
+}
+
+/* 2015: Flat Maturity */
+body[data-era='2015'] {
+  --bg-main: #ffffff;
+  --bg-card: #f7f7f7;
+  --text-main: #121212;
+  --text-muted: #5a5a5a;
+  --border-color: #e5e5e5;
+  --border-width: 1px;
+  --border-radius: 0px;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --shadow-offset-x: 0px;
+  --shadow-offset-y: 8px;
+  --shadow-blur: 20px;
+  --font-main: 'San Francisco', 'system-ui', sans-serif;
+  --font-heading: 'San Francisco', 'system-ui', sans-serif;
+  --accent-color: #2196f3;
+  --btn-hover-transform: translateY(-1px);
+  --grid-opacity: 0;
+
+  --notepad-bg: #ffffff;
+  --notepad-border: #4caf50;
+  --notepad-text: #121212;
+  --notepad-inner-bg: #f5f5f5;
+}
+
+/* 2016: Design Systems Rise */
+body[data-era='2016'] {
+  --bg-main: #0b0b0b;
+  --bg-card: #151515;
+  --text-main: #f5f5f5;
+  --text-muted: #ffb4d6;
+  --border-color: #ff4081;
+  --border-width: 2px;
+  --border-radius: 0px;
+  --shadow-color: rgba(0, 0, 0, 0.65);
+  --shadow-offset-x: 0px;
+  --shadow-offset-y: 12px;
+  --shadow-blur: 24px;
+  --font-main: 'Google Sans', 'system-ui', sans-serif;
+  --font-heading: 'Google Sans', 'system-ui', sans-serif;
+  --accent-color: #00e676;
+  --btn-hover-transform: translateY(-2px);
+  --grid-opacity: 0;
+
+  --notepad-bg: #151515;
+  --notepad-border: #ff4081;
+  --notepad-text: #f5f5f5;
+  --notepad-inner-bg: #0f0f0f;
+}
+
+/* 2018: Accessibility & Dark Prep */
+body[data-era='2018'] {
+  --bg-main: #ffffff;
+  --bg-card: #f5f5f5;
+  --text-main: #111111;
+  --text-muted: #3d3d3d;
+  --border-color: #1976d2;
+  --border-width: 2px;
+  --border-radius: 0px;
+  --shadow-color: rgba(0, 0, 0, 0.15);
+  --shadow-offset-x: 0px;
+  --shadow-offset-y: 8px;
+  --shadow-blur: 20px;
+  --font-main: 'system-ui', '-apple-system', sans-serif;
+  --font-heading: 'system-ui', '-apple-system', sans-serif;
+  --accent-color: #dc3545;
+  --btn-hover-transform: translateY(-1px);
+  --grid-opacity: 0;
+
+  --notepad-bg: #ffffff;
+  --notepad-border: #1976d2;
+  --notepad-text: #111111;
+  --notepad-inner-bg: #f2f6ff;
+}
+
+/* 2020: Dark Mode & Neumorphism */
+body[data-era='2020'] {
+  --bg-main: #121212;
+  --bg-card: #1f1f1f;
+  --text-main: #f1f1f1;
+  --text-muted: #a5a5a5;
+  --border-color: #2a2a2a;
+  --border-width: 1px;
+  --border-radius: 0px;
+  --shadow-color: rgba(255, 255, 255, 0.1);
+  --shadow-offset-x: -6px;
+  --shadow-offset-y: -6px;
+  --shadow-blur: 18px;
+  --font-main: 'Inter', 'system-ui', sans-serif;
+  --font-heading: 'Inter', 'system-ui', sans-serif;
+  --accent-color: #bb86fc;
+  --btn-hover-transform: translateY(-1px);
+  --grid-opacity: 0;
+
+  --notepad-bg: #1f1f1f;
+  --notepad-border: #2a2a2a;
+  --notepad-text: #f1f1f1;
+  --notepad-inner-bg: #161616;
+}
+
+/* 2021: Material You */
+body[data-era='2021'] {
+  --bg-main: #f9f5ff;
+  --bg-card: #ffffff;
+  --text-main: #1d1d1f;
+  --text-muted: #5c5c74;
+  --border-color: #dac9ff;
+  --border-width: 2px;
+  --border-radius: 0px;
+  --shadow-color: rgba(124, 77, 255, 0.25);
+  --shadow-offset-x: 0px;
+  --shadow-offset-y: 8px;
+  --shadow-blur: 22px;
+  --font-main: 'system-ui', '-apple-system', sans-serif;
+  --font-heading: 'San Francisco', 'system-ui', sans-serif;
+  --accent-color: #7c4dff;
+  --btn-hover-transform: translateY(-1px);
+  --grid-opacity: 0.1;
+
+  --notepad-bg: #ffffff;
+  --notepad-border: #ffb74d;
+  --notepad-text: #1d1d1f;
+  --notepad-inner-bg: #f8f1ff;
+}
+
+/* 2022: Glass vs Neo-Brutalism */
+body[data-era='2022'] {
+  --bg-main: #0f172a;
+  --bg-card: #111827;
+  --text-main: #e2e8f0;
+  --text-muted: #93c5fd;
+  --border-color: #93c5fd;
+  --border-width: 3px;
+  --border-radius: 0px;
+  --shadow-color: rgba(15, 23, 42, 0.6);
+  --shadow-offset-x: 0px;
+  --shadow-offset-y: 14px;
+  --shadow-blur: 28px;
+  --font-main: 'Space Grotesk', 'Courier New', sans-serif;
+  --font-heading: 'Space Grotesk', 'Courier New', sans-serif;
+  --accent-color: #06b6d4;
+  --btn-hover-transform: translate(-2px, -2px);
+  --grid-opacity: 0.4;
+
+  --notepad-bg: #111827;
+  --notepad-border: #93c5fd;
+  --notepad-text: #e2e8f0;
+  --notepad-inner-bg: #0b1222;
+}
+
+/* 2023: AI Glass Playgrounds */
+body[data-era='2023'] {
+  --bg-main: #1e1b4b;
+  --bg-card: #2b1b63;
+  --text-main: #f8fafc;
+  --text-muted: #e879f9;
+  --border-color: #a855f7;
+  --border-width: 3px;
+  --border-radius: 0px;
+  --shadow-color: rgba(168, 85, 247, 0.45);
+  --shadow-offset-x: 0px;
+  --shadow-offset-y: 16px;
+  --shadow-blur: 30px;
+  --font-main: 'Clash Display', 'Space Grotesk', sans-serif;
+  --font-heading: 'Clash Display', 'Space Grotesk', sans-serif;
+  --accent-color: #06b6d4;
+  --btn-hover-transform: translate(-3px, -3px);
+  --grid-opacity: 0.5;
+
+  --notepad-bg: #2b1b63;
+  --notepad-border: #f472b6;
+  --notepad-text: #f8fafc;
+  --notepad-inner-bg: #1a103c;
+}
+
+/* 2024: Maximalism Renaissance */
+body[data-era='2024'] {
+  --bg-main: #0b021a;
+  --bg-card: #16042f;
+  --text-main: #f5f3ff;
+  --text-muted: #f472b6;
+  --border-color: #ec4899;
+  --border-width: 3px;
+  --border-radius: 0px;
+  --shadow-color: rgba(236, 72, 153, 0.45);
+  --shadow-offset-x: 0px;
+  --shadow-offset-y: 18px;
+  --shadow-blur: 34px;
+  --font-main: 'Whyte', 'Space Grotesk', sans-serif;
+  --font-heading: 'Whyte', 'Space Grotesk', sans-serif;
+  --accent-color: #06b6d4;
+  --btn-hover-transform: translate(-3px, -3px);
+  --grid-opacity: 0.6;
+
+  --notepad-bg: #16042f;
+  --notepad-border: #ec4899;
+  --notepad-text: #f5f3ff;
+  --notepad-inner-bg: #0c021c;
+}
+
+/* 2025: Spatial Wireframe */
+body[data-era='2025'] {
+  --bg-main: #ffffff;
+  --bg-card: #ffffff;
+  --text-main: #000000;
+  --text-muted: #666666;
+  --border-color: #000000;
+  --border-width: 1px;
+  --border-radius: 0px;
+  --shadow-color: transparent;
+  --shadow-offset-x: 0px;
+  --shadow-offset-y: 0px;
+  --shadow-blur: 0px;
+  --font-main: 'StackSansText', monospace;
+  --font-heading: 'StackSansHeadline', monospace;
+  --accent-color: #14b8a6;
+  --btn-hover-transform: translate(-2px, -2px);
+  --grid-opacity: 1;
+
+  --notepad-bg: #fffbeb;
+  --notepad-border: #fde047;
+  --notepad-text: #a16207;
+  --notepad-inner-bg: #ffffff;
+}
+
+/* =========================================
+   STYLE-LEVEL OVERRIDES
+   ========================================= */
+
+body[data-style='sketch'] {
+  --surface-pattern: none;
+  --surface-pattern-size: 0 0;
+  --surface-pattern-position: center center;
+  --surface-pattern-repeat: no-repeat;
+  --surface-pattern-opacity: 0;
+  --card-border-style: solid;
+  --card-tilt: 0deg;
+  --card-shadow: none;
+  --card-background: var(--bg-card);
+}
+
+body[data-style='minimal'] {
+  --surface-pattern: none;
+  --surface-pattern-size: 0 0;
+  --surface-pattern-position: center center;
+  --surface-pattern-repeat: no-repeat;
+  --surface-pattern-opacity: 1;
+  --card-border-style: solid;
+  --card-tilt: 0deg;
+  --card-shadow: none;
+  --card-background: var(--bg-card);
+}
+
+body[data-style='absurd'] {
+  --surface-pattern: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.08) 0%, transparent 45%),
+    radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.06) 0%, transparent 40%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.06) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.06) 50%, rgba(255, 255, 255, 0.06) 75%, transparent 75%, transparent);
+  --surface-pattern-size: 100% 100%, 100% 100%, 42px 42px;
+  --surface-pattern-position: center center, center center, center center;
+  --surface-pattern-repeat: no-repeat;
+  --surface-pattern-opacity: 1;
+  --card-border-style: solid;
+  --card-tilt: 0deg;
+  --card-background: linear-gradient(135deg, var(--accent-color), var(--text-muted));
+  --card-shadow: none;
+}
+
+/* =========================================
+   GLOBAL STYLES
+   ========================================= */
+
+html,
+body {
   width: 100%;
   height: auto;
-  overflow-x: hidden; /* Prevent horizontal scroll */
-  overflow-y: auto; /* Allow vertical scroll */
-  background: #ffffff;
-  color: #000000;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: var(--bg-main);
+  color: var(--text-main);
+  font-family: var(--font-main);
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
 }
 
 #__next {
   width: 100%;
-  overflow-x: hidden; /* Prevent horizontal scroll */
+  overflow-x: hidden;
 }
 
 /* Accessibility utilities */
@@ -67,15 +705,14 @@ html, body {
 
 /* Hide scrollbars but allow scrolling */
 * {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 *::-webkit-scrollbar {
-  display: none; /* WebKit browsers */
+  display: none;
 }
 
-/* Ensure smooth scrolling */
 html {
   scroll-behavior: smooth;
 }
@@ -84,622 +721,267 @@ input::selection,
 textarea::selection,
 input::-moz-selection,
 textarea::-moz-selection {
-  background: #fde68a !important;
-  color: #111827 !important;
+  background: var(--accent-color) !important;
+  color: var(--bg-main) !important;
 }
 
-/* Custom scrollable container class */
-.scrollable-content {
-  width: 100%;
-  height: auto;
-  overflow-y: auto;
-  overflow-x: hidden;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
+/* =========================================
+   COMPONENT CLASSES MAPPED TO VARIABLES
+   ========================================= */
 
-.scrollable-content::-webkit-scrollbar {
-  display: none;
-}
-
-:root {
-  --background: #ffffff;
-  --foreground: #000000;
-  --muted: #f5f5f5;
-  --muted-foreground: #666666;
-  --border: #e5e5e5;
-  --accent: #f9f9f9;
-  --accent-foreground: #000000;
-  --secondary: #f5f5f5;
-  --secondary-foreground: #000000;
-  
-  /* Legacy variables for compatibility - all in black/white/gray */
-  --notebook-blue: #e5e5e5;
-  --sketch-red: #000000;
-  --pencil-gray: #666666;
-  --paper-cream: #ffffff;
-  --ink-blue: #000000;
-  --margin-red: #000000;
-  --sketch-yellow: #f5f5f5;
-  --sketch-orange: #e5e5e5;
-  --sketch-green: #999999;
-}
-
-/* Sketch-style animations */
-@keyframes draw {
-  0% {
-    stroke-dasharray: 0 1000;
-  }
-  100% {
-    stroke-dasharray: 1000 0;
-  }
-}
-
-@keyframes wiggle {
-  0%, 100% { transform: rotate(0deg); }
-  25% { transform: rotate(0.5deg); }
-  75% { transform: rotate(-0.5deg); }
-}
-
-/* Paper texture overlay */
-.paper-texture::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: 
-    radial-gradient(circle at 20% 50%, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
-    radial-gradient(circle at 40% 20%, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
-    radial-gradient(circle at 70% 80%, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
-  background-size: 50px 50px, 30px 30px, 40px 40px;
-  pointer-events: none;
-}
-
-/* Handwritten text styles */
+/* Handwritten text styles - Now dynamic */
 .handwritten {
-  font-family: 'Left Hand', cursive;
+  font-family: var(--font-main);
   font-weight: normal;
-  font-size: 1.125em; /* 18px if base is 16px - makes it 12.5% larger */
-  line-height: 1.4; /* Better line spacing for readability */
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-main);
+}
+
+/* 1980s specific override for handwritten to look like terminal text */
+body[data-era='1980'] .handwritten {
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+body[data-style='minimal'] .handwritten {
+  text-transform: none;
+  letter-spacing: 0.01em;
+  font-weight: 500;
+}
+
+body[data-style='absurd'] .handwritten {
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--accent-color);
 }
 
 .sketch-font {
-  font-family: 'Magnetic Drawing', cursive;
+  font-family: var(--font-heading);
+  font-weight: bold;
+  text-transform: uppercase;
+  color: var(--text-main);
 }
 
 .architect-font {
-  font-family: 'Bridges Not Walls', cursive;
+  font-family: var(--font-heading);
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-main);
 }
 
-/* Notebook hole punches */
-.notebook-holes::before {
-  content: '';
-  position: absolute;
-  left: 20px;
-  top: 0;
-  bottom: 0;
-  width: 20px;
-  background-image: repeating-linear-gradient(
-    transparent,
-    transparent 10px,
-    #e5e5e5 15px,
-    #e5e5e5 20px
-  );
-  background-size: 20px 30px;
+/* Wireframe/Sketch Borders */
+.wireframe-border,
+.sketch-border,
+.sketch-border-thick,
+.torn-paper,
+.sticky-note,
+.timeline-card,
+.sketch-btn-3d,
+.wireframe-btn,
+.wireframe-btn-secondary,
+.wireframe-input {
+  border: var(--border-width) var(--card-border-style, solid) var(--border-color);
+  background: var(--card-background, var(--bg-card));
+  box-shadow: var(--card-shadow, var(--shadow-offset-x) var(--shadow-offset-y) var(--shadow-blur) var(--shadow-color));
+  border-radius: var(--border-radius);
+  color: var(--text-main);
+  transition: all 0.2s ease;
+  rotate: var(--card-tilt, 0deg);
 }
 
-/* Sketch-style borders and elements */
-.sketch-border {
-  position: relative;
-  border: 2px solid #000000;
-  border-radius: 8px;
-  background: #ffffff;
+/* Button Hover States */
+.wireframe-btn:hover,
+.wireframe-btn-secondary:hover,
+.sketch-btn-3d:hover,
+.sketch-button:hover {
+  transform: var(--btn-hover-transform);
+  box-shadow: calc(var(--shadow-offset-x) * 1.5) calc(var(--shadow-offset-y) * 1.5) var(--shadow-blur) var(--shadow-color);
 }
 
-.sketch-border::before {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  border: 2px solid #e5e5e5;
-  border-radius: 8px;
-  transform: rotate(0.5deg);
-  z-index: -1;
+/* Specific Button Styles */
+.wireframe-btn {
+  background: var(--text-main);
+  color: var(--bg-main);
 }
 
-/* Enhanced sketch borders with more variation */
-.sketch-border-thick {
-  border: 3px solid #000000;
-  border-radius: 8px;
-  position: relative;
+.wireframe-btn:hover {
+  background: var(--bg-main);
+  color: var(--text-main);
 }
 
-.sketch-border-thick::before {
-  content: '';
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  border: 2px dashed #e5e5e5;
-  border-radius: 10px;
-  opacity: 0.4;
-  transform: rotate(-0.5deg);
+/* 1980s Button Override */
+body[data-era='1980'] .wireframe-btn {
+  background: #000;
+  border: 1px solid #00ff00;
+  color: #00ff00;
 }
 
-/* Notebook background - black and white theme */
-.notebook-bg {
-  background-color: #ffffff;
-  background-image: 
-    /* Horizontal lines */
-    linear-gradient(transparent 24px, #f5f5f5 25px, #f5f5f5 26px, transparent 27px),
-    /* Left margin line */
-    linear-gradient(90deg, transparent 79px, #e5e5e5 80px, #e5e5e5 81px, transparent 82px),
-    /* Hole punches */
-    radial-gradient(circle at 40px 50px, #e5e5e5 2px, transparent 3px);
-  background-size: 100% 30px, 100% 30px, 80px 30px;
-  background-position: 0 0, 0 0, 0 0;
-  background-repeat: repeat;
-  background-attachment: scroll;
+body[data-era='1980'] .wireframe-btn:hover {
+  background: #00ff00;
+  color: #000;
 }
 
-/* Map background - latitude and longitude lines */
-.map-bg {
-  background-color: #f7f4ee;
-  background-image: 
-    linear-gradient(rgba(15, 15, 15, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(15, 15, 15, 0.08) 1px, transparent 1px);
-  background-size: 100px 100px;
-  position: relative;
+/* 1990s Button Override (Windows 95 style) */
+body[data-era='1990'] .wireframe-btn {
+  background: #c0c0c0;
+  color: #000;
+  border-top-color: #fff;
+  border-left-color: #fff;
+  border-right-color: #404040;
+  border-bottom-color: #404040;
+  box-shadow: none;
 }
 
-.map-bg::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: 
-    linear-gradient(rgba(15, 15, 15, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(15, 15, 15, 0.03) 1px, transparent 1px);
-  background-size: 20px 20px;
-  pointer-events: none;
+body[data-era='1990'] .wireframe-btn:active {
+  border-top-color: #404040;
+  border-left-color: #404040;
+  border-right-color: #fff;
+  border-bottom-color: #fff;
+  transform: translate(1px, 1px);
 }
 
-/* Wireframe background - graph paper style */
+body[data-style='minimal'] .wireframe-btn,
+body[data-style='minimal'] .wireframe-btn-secondary {
+  border-radius: 0px;
+  border-width: 1px;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  box-shadow: none;
+}
+
+body[data-style='absurd'] .wireframe-btn,
+body[data-style='absurd'] .wireframe-btn-secondary {
+  border-radius: 0px;
+  background: linear-gradient(120deg, var(--accent-color), var(--text-muted));
+  color: #ffffff;
+  border-color: var(--accent-color);
+  box-shadow: none;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+/* Backgrounds */
+.notebook-bg,
+.map-bg,
 .wireframe-bg {
-  background-color: #fdfdfd;
-  background-image: 
-    linear-gradient(#e5e5e5 1px, transparent 1px),
-    linear-gradient(90deg, #e5e5e5 1px, transparent 1px);
-  background-size: 40px 40px;
-  background-position: center top;
+  background-color: var(--bg-main);
+  background-image: var(--surface-pattern);
+  background-size: var(--surface-pattern-size, 20px 20px);
+  background-position: var(--surface-pattern-position, center center);
+  background-repeat: var(--surface-pattern-repeat, repeat);
+}
+
+/* Hide grid for non-wireframe eras via opacity on the gradient or just override */
+body[data-era='1980'] .notebook-bg,
+body[data-era='1990'] .notebook-bg,
+body[data-era='2000'] .notebook-bg,
+body[data-era='2010'] .notebook-bg {
+  background-image: none;
 }
 
 /* Ruler border effect */
 .ruler-border {
-  border: 2px dashed #cbd5e1;
+  border: var(--border-width) solid var(--border-color);
   position: relative;
-  background-color: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(4px);
+  background-color: var(--bg-card);
 }
 
-.ruler-border::before {
-  content: '';
-  position: absolute;
-  top: -4px; left: -4px; right: -4px; bottom: -4px;
-  border: 1px solid #94a3b8;
-  pointer-events: none;
-  border-radius: 4px;
-}
-
-/* Black and white theme utilities */
-.bg-primary {
-  background-color: #ffffff;
-}
-
-.bg-secondary {
-  background-color: #f5f5f5;
-}
-
-.bg-accent {
-  background-color: #000000;
-}
-
+/* Text Colors */
 .text-primary {
-  color: #000000;
+  color: var(--text-main);
 }
 
 .text-secondary {
-  color: #666666;
+  color: var(--text-muted);
 }
 
 .text-muted {
-  color: #999999;
+  color: var(--text-muted);
 }
 
 .text-inverse {
-  color: #ffffff;
+  color: var(--bg-main);
 }
 
 .border-primary {
-  border-color: #000000;
+  border-color: var(--border-color);
 }
 
 .border-secondary {
-  border-color: #e5e5e5;
+  border-color: var(--text-muted);
 }
 
-.border-muted {
-  border-color: #f5f5f5;
+/* Pseudo-elements cleanup */
+.notebook-holes::before,
+.sketch-border::before,
+.sketch-border-thick::before,
+.map-bg::before,
+.ruler-border::before,
+.notebook-spiral::before,
+.sketch-button::before,
+.torn-paper::before,
+.scribbled-text::after,
+.messy-handwriting::before,
+.paper-clip::after,
+.page-curl::after,
+.sketch-btn-3d::before {
+  display: none;
 }
 
-/* Notebook spiral binding effect */
-.notebook-spiral {
-  position: relative;
-}
-
-.notebook-spiral::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 30px;
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    transparent 45%, 
-    #e5e5e5 45%, 
-    #e5e5e5 55%, 
-    transparent 55%, 
-    transparent 100%
-  );
-  background-size: 6px 20px;
-}
-
-/* Creative effects without shadows */
-.sketch-shadow {
-  transform: rotate(-1deg);
-  transition: all 0.3s ease;
-}
-
-.sketch-shadow:hover {
-  transform: rotate(0deg) scale(1.02);
-}
-
-/* Hand-drawn button styles */
-.sketch-button {
-  position: relative;
-  background: #ffffff;
-  border: 2px solid #000000;
-  color: #000000;
-  border-radius: 15px;
-  transform: rotate(-0.5deg);
-  transition: all 0.3s ease;
-}
-
-.sketch-button:hover {
-  background: #f5f5f5;
-}
-
-.sketch-button::before {
-  content: '';
-  position: absolute;
-  inset: 2px;
-  border: 1px dashed #e5e5e5;
-  border-radius: 12px;
-  opacity: 0.5;
-}
-
-/* Torn paper effect */
-.torn-paper {
-  position: relative;
-  background: #ffffff;
-}
-
-.torn-paper::before {
-  content: '';
-  position: absolute;
-  top: -5px;
-  left: 0;
-  right: 0;
-  height: 10px;
-  background: repeating-linear-gradient(
-    45deg,
-    transparent,
-    transparent 2px,
-    #ffffff 2px,
-    #ffffff 4px
-  );
-}
-
-/* Scribbled text effect */
-.scribbled-text {
-  position: relative;
-  display: inline-block;
-}
-
-.scribbled-text::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 100%;
-  height: 2px;
-  background: #000000;
-  transform: rotate(-1deg) scaleX(1.1);
-  opacity: 0.6;
-}
-
-/* KIRUK Title with custom font */
-.kiruk-title {
-  font-family: 'Bridges Not Walls', cursive;
-  text-transform: uppercase;
-  font-weight: normal;
-  letter-spacing: 0.1em;
-  animation: kirukGlow 3s ease-in-out infinite alternate;
-}
-
-@keyframes kirukGlow {
-  0% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0.8;
-  }
-}
-
-/* Enhanced scribbled font classes */
-@keyframes jitter {
-  0% { transform: translate(0px, 0px) rotate(0deg); }
-  10% { transform: translate(-1px, -1px) rotate(-0.5deg); }
-  20% { transform: translate(-2px, 0px) rotate(0.5deg); }
-  30% { transform: translate(2px, 1px) rotate(0deg); }
-  40% { transform: translate(1px, -1px) rotate(0.5deg); }
-  50% { transform: translate(-1px, 1px) rotate(-0.5deg); }
-  60% { transform: translate(-2px, 0px) rotate(0deg); }
-  70% { transform: translate(2px, 0px) rotate(-0.5deg); }
-  80% { transform: translate(-1px, -1px) rotate(0.5deg); }
-  90% { transform: translate(1px, 1px) rotate(0deg); }
-  100% { transform: translate(0px, 0px) rotate(0deg); }
-}
-
-@keyframes textWobble {
-  0%, 100% { transform: translateY(0px); }
-  25% { transform: translateY(-1px); }
-  50% { transform: translateY(1px); }
-  75% { transform: translateY(-0.5px); }
-}
-
-.scribbled-title {
-  font-family: 'Magnetic Drawing', cursive;
-  font-weight: 700;
-  transform: rotate(-0.5deg);
-  animation: jitter 4s ease-in-out infinite;
-}
-
-.scribbled-code {
-  font-family: 'Left Hand', cursive;
-  font-weight: 400;
-  animation: textWobble 3s ease-in-out infinite;
-}
-
-.scribbled-note {
-  font-family: 'Left Hand', cursive;
-  font-weight: 600;
-  transform: rotate(0.5deg);
-}
-
-.scribbled-comment {
-  font-family: 'Left Hand', cursive;
-  font-weight: 300;
-  font-style: italic;
-  opacity: 0.8;
-  transform: rotate(-0.3deg);
-}
-
-.super-scribbled {
-  font-family: 'Magnetic Drawing', cursive;
-  font-weight: 700;
-  animation: jitter 2s ease-in-out infinite;
-  transform: rotate(-1deg);
-}
-
-.jittery-text {
-  animation: jitter 3s ease-in-out infinite;
-  display: inline-block;
-}
-
-.wobbly-text {
-  animation: textWobble 2s ease-in-out infinite;
-  display: inline-block;
-}
-
-.messy-handwriting {
-  font-family: 'Left Hand', cursive;
-  font-weight: 400;
-  transform: rotate(0.3deg);
-  position: relative;
-}
-
-.messy-handwriting::before {
-  content: attr(data-text);
-  position: absolute;
-  top: 0;
-  left: 0;
-  color: rgba(0, 0, 0, 0.1);
-  transform: translate(1px, 1px) rotate(-0.2deg);
-  z-index: -1;
-}
-
-/* Coffee stain effect */
-.coffee-stain {
-  position: relative;
-}
-
+/* Coffee Stain */
 .coffee-stain::before {
-  content: '';
-  position: absolute;
-  top: 10px;
-  right: 20px;
-  width: 30px;
-  height: 30px;
-  background: radial-gradient(circle, 
-    rgba(0, 0, 0, 0.1) 0%, 
-    rgba(0, 0, 0, 0.05) 50%, 
-    transparent 70%
-  );
-  border-radius: 50%;
-  transform: rotate(45deg);
+  border-color: var(--border-color);
+  display: none;
+  /* Hidden by default unless we want it back */
 }
 
-/* Doodle margins */
+body[data-era='2025'] .coffee-stain::before {
+  display: block;
+}
+
+body[data-style='minimal'] .coffee-stain::before,
+body[data-style='absurd'] .coffee-stain::before {
+  display: none;
+}
+
+/* Doodle Margin */
 .doodle-margin {
-  border-left: 3px solid #000000;
+  border-left: 4px solid var(--border-color);
   margin-left: 40px;
   padding-left: 20px;
   position: relative;
 }
 
 .doodle-margin::before {
-  content: '📝';
-  position: absolute;
-  left: -35px;
-  top: 50%;
-  transform: translateY(-50%) rotate(-15deg);
-  font-size: 1.2rem;
-  opacity: 0.7;
+  color: var(--text-main);
 }
 
-/* Sticky note tape effect removed - using the enhanced version below */
-
-/* Paper clip effect */
-.paper-clip {
-  position: relative;
-}
-
-.paper-clip::after {
-  content: '📎';
-  position: absolute;
-  top: -10px;
-  right: 10px;
-  font-size: 1.5rem;
-  transform: rotate(15deg);
-  opacity: 0.7;
-}
-
-/* Handwritten checkbox */
+/* Checkbox */
 .handwritten-checkbox {
   appearance: none;
   width: 20px;
   height: 20px;
-  border: 2px solid #e5e5e5;
-  border-radius: 3px;
-  transform: rotate(-2deg);
-  position: relative;
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--border-radius);
   cursor: pointer;
+  background: var(--bg-card);
 }
 
-.handwritten-checkbox:checked::before {
-  content: '✓';
-  position: absolute;
-  top: -2px;
-  left: 2px;
-  color: #000000;
-  font-weight: bold;
-  transform: rotate(10deg);
+.handwritten-checkbox:checked {
+  background-color: var(--text-main);
 }
 
-/* Sketch button enhancements */
-.sketch-btn-3d {
-  position: relative;
-  transform: translateZ(0);
-  transition: all 0.3s ease;
-}
-
-.sketch-btn-3d::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: inherit;
-  transform: translateX(3px) translateY(3px);
-  z-index: -1;
-  opacity: 0.5;
-  border-radius: inherit;
-}
-
-.sketch-btn-3d:hover {
-  transform: translateX(1px) translateY(1px);
-}
-
-.sketch-btn-3d:hover::before {
-  transform: translateX(2px) translateY(2px);
-}
-
-/* Notebook page curl effect */
-.page-curl {
-  position: relative;
-  background: #ffffff;
-}
-
-.page-curl::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 20px;
-  height: 20px;
-  background: linear-gradient(-45deg, 
-    transparent 45%, 
-    #f5f5f5 50%, 
-    #f5f5f5 55%, 
-    transparent 60%
-  );
-  transform: rotate(45deg);
-}
-
-/* Creative bullet points */
-.creative-bullets li {
-  list-style: none;
-  position: relative;
-  padding-left: 30px;
-  margin: 10px 0;
-}
-
-.creative-bullets li::before {
-  content: attr(data-bullet);
-  position: absolute;
-  left: 0;
-  top: 0;
-  font-size: 1.2rem;
-  transform: rotate(-15deg);
-  opacity: 0.8;
-}
-
-/* Default bullets if no data-bullet */
-.creative-bullets li:nth-child(odd)::before {
-  content: '✏️';
-}
-
-.creative-bullets li:nth-child(even)::before {
-  content: '🎨';
-}
-
-/* Sketch progress bar */
+/* Progress Bar */
 .sketch-progress {
   width: 100%;
-  height: 8px;
-  background: #ffffff;
-  border: 2px solid #e5e5e5;
-  border-radius: 10px;
+  height: 12px;
+  background: var(--bg-card);
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--border-radius);
   overflow: hidden;
   position: relative;
-  transform: rotate(-0.5deg);
 }
 
 .sketch-progress::before {
@@ -708,99 +990,46 @@ textarea::-moz-selection {
   top: 0;
   left: 0;
   height: 100%;
-  background: linear-gradient(90deg, 
-    #e5e5e5 0%, 
-    #f5f5f5 50%, 
-    #e5e5e5 100%
-  );
+  background: var(--text-main);
   width: var(--progress, 0%);
   transition: width 0.3s ease;
-  border-radius: 6px;
 }
 
-/* Horizontal scrolling timeline styles for about page */
-.horizontal-timeline {
-  scrollbar-width: thin;
-  scrollbar-color: #d1d5db #f3f4f6;
+/* Sticky Note Special Handling */
+.sticky-note {
+  transform: none !important;
 }
 
-.horizontal-timeline::-webkit-scrollbar {
-  height: 8px;
+.sticky-note:hover {
+  transform: var(--btn-hover-transform) !important;
 }
 
-.horizontal-timeline::-webkit-scrollbar-track {
-  background: #f3f4f6;
-  border-radius: 4px;
+/* Sticky Tape */
+.sticky-tape {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  background-image: linear-gradient(45deg, var(--text-main) 25%, transparent 25%, transparent 50%, var(--text-main) 50%, var(--text-main) 75%, transparent 75%, transparent);
+  background-size: 4px 4px;
+  opacity: var(--grid-opacity);
 }
 
-.horizontal-timeline::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-  border-radius: 4px;
-}
-
-.horizontal-timeline::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
-}
-
-/* Smooth scribble line animation */
-.scribble-path {
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-  will-change: stroke-dashoffset;
-}
-
-/* Timeline card hover effects */
-.timeline-card {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.timeline-card:hover {
-  transform: translateY(-8px) rotate(0deg) !important;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
-
-/* Mobile responsive adjustments for timeline */
-@media (max-width: 768px) {
-  .horizontal-timeline {
-    padding-top: 6rem;
-  }
-  
-  .timeline-event {
-    width: 280px !important;
-    margin-left: 30px !important;
-  }
-  
-  .timeline-card {
-    height: 320px !important;
-  }
-}
-
-/* Responsive notebook adjustments */
+/* Mobile Responsive */
 @media (max-width: 768px) {
   .notebook-bg {
-    background-size: 100% 25px, 100% 25px, 60px 25px;
+    background-size: var(--surface-pattern-size, 20px 20px);
   }
-  
-  .notebook-holes::before {
-    left: 8px;
-    background-size: 4px 15px;
-  }
-    .handwritten {
-    font-size: 1rem; /* Slightly larger on mobile too - was 0.9rem */
+
+  .handwritten {
+    font-size: 1rem;
   }
 }
 
-/* Touch interaction enhancements */
+/* Touch */
 .touch-none {
   touch-action: none;
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
 }
 
-/* Line clamp utilities for text truncation */
+/* Line Clamp */
 .line-clamp-1 {
   display: -webkit-box;
   -webkit-line-clamp: 1;
@@ -823,82 +1052,4 @@ textarea::-moz-selection {
   line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
-}
-
-/* Enhanced touch targets for mobile */
-@media (max-width: 768px) {
-  .cursor-crosshair {
-    cursor: crosshair;
-  }
-  
-  /* Prevent text selection during touch scribbling */
-  .scribble-area {
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    -webkit-touch-callout: none;
-    -webkit-tap-highlight-color: transparent;
-  }
-  
-  /* Smooth touch scrolling for overall page */
-  body {
-    -webkit-overflow-scrolling: touch;
-  }
-}
-
-/* Mobile navigation enhancements */
-@media (max-width: 768px) {
-  /* Prevent body scroll when mobile menu is open */
-  .mobile-menu-open {
-    overflow: hidden;
-  }
-  
-  /* Better touch targets for mobile navigation */
-  .mobile-nav-item {
-    min-height: 48px;
-    display: flex;
-    align-items: center;
-  }
-  
-  /* Smooth animations for mobile menu */
-  .mobile-menu {
-    -webkit-overflow-scrolling: touch;
-  }
-}
-
-.sticky-note {
-  background: #fefcbf;
-  border: 2px solid #fde68a;
-  border-radius: 18px;
-  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.12), 0 1.5px 0 #fcd34d inset;
-  padding: 0.5rem 0.5rem 1.2rem 0.5rem;
-  transition: box-shadow 0.2s, transform 0.2s;
-  z-index: 30;
-  filter: drop-shadow(0 2px 8px #fcd34d66);
-}
-.sticky-note:hover {
-  box-shadow: 0 12px 40px 0 rgba(0,0,0,0.18), 0 2px 0 #fcd34d inset;
-  transform: rotate(0.5deg) scale(1.03);
-}
-.sticky-tape {
-  display: block;
-  margin: 0 auto;
-  background: repeating-linear-gradient(135deg, #fde68a 0 6px, #fcd34d 6px 12px);
-  border-radius: 0 0 12px 12px;
-  box-shadow: 0 2px 8px 0 #fcd34d44;
-  opacity: 0.85;
-  position: relative;
-  top: 0;
-}
-@media (max-width: 700px) {
-  .sticky-note {
-    right: 0.5rem !important;
-    left: auto !important;
-    top: 70px !important;
-    width: 90vw !important;
-    min-width: 0 !important;
-    max-width: 98vw !important;
-    padding: 0.5rem 0.5rem 1.2rem 0.5rem;
-  }
 }

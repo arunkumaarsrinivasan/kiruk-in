@@ -25,14 +25,14 @@ export const InteractiveToggle: React.FC<InteractiveToggleProps> = ({
       {!isActive && (
         <motion.button
           onClick={onToggle}
-          className="fixed bottom-6 right-6 z-50 bg-white border-2 border-black rounded-full p-3 shadow-lg hover:shadow-xl transition-all sketch-border"
-          whileHover={{ scale: 1.05, rotate: 5 }}
+          className="fixed bottom-4 right-4 z-50 bg-[var(--bg-card)] border border-[var(--border-color)] p-3 shadow-none hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] transition-all"
+          whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           initial={{ opacity: 0, scale: 0 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 1, duration: 0.5, type: "spring" }}
         >
-          <div className="handwritten text-sm font-bold">🎨 Interactive</div>
+          <div className="font-mono uppercase text-sm font-bold text-[var(--text-main)] hover:text-[var(--bg-main)]">🎨 Interactive</div>
         </motion.button>
       )}
 
@@ -59,11 +59,11 @@ export const InteractiveToggle: React.FC<InteractiveToggleProps> = ({
             {/* Exit button */}
             <motion.button
               onClick={onToggle}
-              className="fixed top-4 right-4 z-50 bg-red-100 border-2 border-red-300 rounded-full p-2 shadow-lg hover:shadow-xl transition-all"
+              className="fixed top-4 right-4 z-50 bg-[var(--bg-card)] text-[var(--text-main)] border border-[var(--border-color)] p-2 shadow-none hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] transition-all"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <div className="handwritten text-sm">✕ Exit</div>
+              <div className="font-mono uppercase text-sm font-bold">✕ Exit</div>
             </motion.button>
           </motion.div>
         )}

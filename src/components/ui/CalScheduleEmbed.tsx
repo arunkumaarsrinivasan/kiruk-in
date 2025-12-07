@@ -34,7 +34,7 @@ export default function CalScheduleEmbed({ events, primaryColor, theme = 'light'
   const slugConfigured = !/(your|sample)-cal-handle/gi.test(activeEvent.slug);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="flex flex-wrap gap-2">
         {events.map((event) => {
           const isActive = event.id === activeEvent.id;
@@ -43,7 +43,7 @@ export default function CalScheduleEmbed({ events, primaryColor, theme = 'light'
               key={event.id}
               type="button"
               onClick={() => setActiveEvent(event)}
-              className={`px-3 py-1.5 border-2 rounded-xl handwritten text-xs transition focus:outline-none ${
+              className={`px-3 py-1.5 border rounded-none handwritten text-xs transition focus:outline-none ${
                 isActive
                   ? "bg-yellow-100 border-yellow-400 text-yellow-900"
                   : "bg-white border-gray-300 text-gray-700 hover:border-gray-500"
@@ -60,7 +60,7 @@ export default function CalScheduleEmbed({ events, primaryColor, theme = 'light'
           );
         })}
       </div>
-      <div className="rounded-2xl border-2 border-dashed border-gray-300 bg-white/70 overflow-hidden min-h-[420px]">
+      <div className="rounded-none border border-dashed border-gray-300 bg-white/70 overflow-hidden min-h-[420px]">
         {slugConfigured ? (
           <iframe
             key={activeEvent.id}

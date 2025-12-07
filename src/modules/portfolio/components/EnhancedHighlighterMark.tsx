@@ -1,6 +1,5 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { motion, PanInfo } from 'framer-motion';
-import seedrandom from 'seedrandom';
 
 interface EnhancedHighlighterMarkProps {
   id: string;
@@ -14,17 +13,11 @@ interface EnhancedHighlighterMarkProps {
 export const EnhancedHighlighterMark: React.FC<EnhancedHighlighterMarkProps> = ({
   id,
   initialPosition,
-  color = '#fbbf24',
+  color = '#000000',
   width = 100,
   onPositionChange,
   className = '',
 }) => {
-  // Create deterministic rotation based on id using useMemo to ensure consistency
-  const rotation = useMemo(() => {
-    const rng = seedrandom(id);
-    return (rng() - 0.5) * 6; // -3 to +3 degrees
-  }, [id]);
-
   const handleDragEnd = (event: any, info: PanInfo) => {
     onPositionChange?.(id, {
       x: initialPosition.x + info.offset.x,
@@ -37,26 +30,18 @@ export const EnhancedHighlighterMark: React.FC<EnhancedHighlighterMarkProps> = (
       className={`absolute cursor-move select-none ${className}`}
       initial={initialPosition}
       drag
-      dragElastic={0.1}
+      dragElastic={0}
       onDragEnd={handleDragEnd}
       whileHover={{ scale: 1.02 }}
       whileDrag={{ scale: 1.05, zIndex: 100 }}
     >
       <div 
-        className="h-4 opacity-60 rounded"
+        className="h-6 border border-[var(--border-color)] bg-transparent"
         style={{
           width: `${width}px`,
-          background: `
-            linear-gradient(90deg, 
-              transparent 0%, 
-              ${color}88 10%, 
-              ${color}aa 50%, 
-              ${color}88 90%, 
-              transparent 100%
-            )
-          `,
-          transform: `rotate(${rotation}deg)`,
-          filter: 'blur(0.5px)'
+          backgroundImage: 'linear-gradient(45deg, var(--text-main) 25%, transparent 25%, transparent 50%, var(--text-main) 50%, var(--text-main) 75%, transparent 75%, transparent)',
+          backgroundSize: '4px 4px',
+          boxShadow: '4px 4px 0 var(--border-color)'
         }}
       />
     </motion.div>

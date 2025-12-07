@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 // Type definitions
 type Size = 'sm' | 'md' | 'lg';
 
-// Sketch-style heading component
+// Wireframe-style heading component
 export const SketchHeading = ({ 
   children, 
   className = '',
@@ -29,18 +29,18 @@ export const SketchHeading = ({
   
   const Tag = headingElements[level] as any;
   return (
-    <Tag className={`sketch-font ${underline ? 'sketch-underline' : ''} ${className}`}>{children}</Tag>
+    <Tag className={`font-bold uppercase tracking-widest text-[var(--text-main)] ${underline ? 'border-b-[var(--border-width)] border-[var(--border-color)] pb-2' : ''} ${className}`}>{children}</Tag>
   );
 };
 
-// Sketch-style border component
+// Wireframe-style border component
 export const SketchBorder = ({ className = '' }: { className?: string }) => {
   return (
-    <div className={`absolute inset-0 w-full h-full border-2 border-dashed border-black rounded-2xl ${className}`} />
+    <div className={`absolute inset-0 w-full h-full border-[var(--border-width)] border-[var(--border-color)] ${className}`} />
   );
 };
 
-// Sketch-style card component
+// Wireframe-style card component
 export const SketchCard = ({ 
   children, 
   className = '',
@@ -50,33 +50,17 @@ export const SketchCard = ({
   className?: string;
   tilt?: 'left' | 'right' | 'none';
 }) => {
-  const tiltClass = {
-    left: '-rotate-1',
-    right: 'rotate-1',
-    none: 'rotate-0'
-  };
-
-  // Helper function to get hover rotation value
-  const getHoverRotation = (tilt: 'left' | 'right' | 'none') => {
-    if (tilt === 'left') return -0.5;
-    if (tilt === 'right') return 0.5;
-    return 0;
-  };
-
+  // Tilt is ignored in wireframe mode for a rigid look
   return (
     <motion.div
       className={`
-        relative p-6 bg-white paper-texture
-        border-2 border-gray-300 rounded-lg
-        ${tiltClass[tilt]}
+        relative p-4 bg-[var(--bg-card)]
+        border-[var(--border-width)] border-[var(--border-color)]
+        shadow-none
         transition-all duration-300 ease-out
-        hover:scale-105
+        hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-none
         ${className}
       `}
-      whileHover={{
-        rotate: getHoverRotation(tilt),
-        y: -5
-      }}
       tabIndex={0}
     >
       {children}
@@ -84,7 +68,7 @@ export const SketchCard = ({
   );
 };
 
-// Sketch-style button
+// Wireframe-style button
 export const SketchButton = ({ 
   children, 
   onClick,
@@ -104,31 +88,28 @@ export const SketchButton = ({
   className?: string;
   disabled?: boolean;
 }) => {  const baseClasses = `
-    relative font-bold sketch-font
-    border-2 rounded-xl
+    relative font-bold uppercase tracking-wider
+    border-[var(--border-width)] border-[var(--border-color)]
     transition-all duration-200 ease-out
-    transform hover:scale-105 active:scale-95
-    focus:outline-none focus:ring-2 focus:ring-offset-2
+    transform active:translate-y-[2px] active:translate-x-[2px] active:shadow-none
+    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--border-color)]
     disabled:opacity-50 disabled:cursor-not-allowed
     inline-block text-center no-underline
+    shadow-none
   `;  const variants = {
-    primary: 'bg-white border-black text-black hover:bg-gray-100 focus:ring-black btn-primary-text',
-    secondary: 'bg-gray-100 border-gray-600 text-black hover:bg-gray-200 focus:ring-gray-500 btn-secondary-text',
-    outline: 'bg-white border-gray-600 text-gray-800 hover:bg-gray-50 focus:ring-gray-500 btn-secondary-text'
+    primary: 'bg-[var(--text-main)] text-[var(--bg-main)] hover:bg-[var(--text-muted)]',
+    secondary: 'bg-[var(--bg-card)] text-[var(--text-main)] hover:bg-[var(--bg-main)]',
+    outline: 'bg-transparent text-[var(--text-main)] hover:bg-[var(--bg-card)]'
   };
 
   const sizes = {
     sm: 'px-4 py-2 text-sm',
-    md: 'px-6 py-3 text-base',
+    md: 'px-4 py-3 text-base',
     lg: 'px-8 py-4 text-lg'
   };
 
   const content = (
-    <>      {/* Hand-drawn inner border */}
-      <div className="absolute inset-2 border border-dashed border-current opacity-30 rounded-lg" />
-      
-      <span className="relative z-10">{children}</span>
-    </>
+    <span className="relative z-10">{children}</span>
   );
 
   if (href) {
@@ -136,8 +117,8 @@ export const SketchButton = ({
       <motion.a
         href={href}
         className={`${baseClasses} ${variants[variant]} ${sizes[size]} ${className}`}
-        whileHover={{ rotate: Math.random() > 0.5 ? 0.5 : -0.5 }}
-        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
       >
         {content}
       </motion.a>
@@ -150,35 +131,24 @@ export const SketchButton = ({
       className={`${baseClasses} ${variants[variant]} ${sizes[size]} ${className}`}
       onClick={onClick}
       disabled={disabled}
-      whileHover={{ rotate: Math.random() > 0.5 ? 0.5 : -0.5 }}
-      whileTap={{ scale: 0.95 }}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
     >
       {content}
     </motion.button>
   );
 };
 
-// Sketch-style divider
+// Wireframe-style divider
 export const SketchDivider = ({ className = '' }: { className?: string }) => {
   return (
     <div className={`relative my-8 ${className}`}>
-      <motion.div
-        className="h-0.5 bg-gray-400"
-        initial={{ width: 0, rotate: 0 }}
-        animate={{ width: '100%', rotate: 0.5 }}
-        transition={{ duration: 1 }}
-      />
-      <motion.div
-        className="absolute top-1 h-0.5 bg-gray-300 opacity-50"
-        initial={{ width: 0, rotate: 0 }}
-        animate={{ width: '98%', rotate: -0.3 }}
-        transition={{ duration: 0.8, delay: 0.3 }}
-      />
+      <div className="h-[var(--border-width)] bg-[var(--border-color)] w-full" />
     </div>
   );
 };
 
-// Sketch-style highlight box
+// Wireframe-style highlight box
 export const SketchHighlight = ({ 
   children, 
   color = 'gray',
@@ -188,31 +158,30 @@ export const SketchHighlight = ({
   color?: 'gray' | 'light' | 'dark' | 'muted';
   className?: string;
 }) => {
+  // Colors are now handled by CSS variables mostly, but we can keep some variation if needed
+  // For now, map all to standard card bg to enforce theme
   const colors = {
-    gray: 'bg-gray-200 border-gray-400',
-    light: 'bg-gray-100 border-gray-300',
-    dark: 'bg-gray-300 border-gray-500',
-    muted: 'bg-gray-50 border-gray-200'
+    gray: 'bg-[var(--bg-card)]',
+    light: 'bg-[var(--bg-card)]',
+    dark: 'bg-[var(--bg-card)]',
+    muted: 'bg-[var(--bg-card)]'
   };
   return (
-    <motion.span
+    <span
       className={`
-        relative inline-block px-2 py-1 border-2 border-dashed rounded-lg
+        relative inline-block px-2 py-1 border-[var(--border-width)] border-[var(--border-color)]
         ${colors[color]}
-        transform -rotate-0.5
+        shadow-none
+        font-mono text-sm text-[var(--text-main)]
         ${className}
       `}
-      whileHover={{ rotate: 0.5, scale: 1.02 }}
     >
-      <span className="sketch-font">{children}</span>
-      
-      {/* Highlight marker effect */}
-      <span className="absolute inset-0 bg-current opacity-10 rounded-lg transform rotate-0.5" />
-    </motion.span>
+      {children}
+    </span>
   );
 };
 
-// Sticky note component
+// Sticky note component - Now a rigid info card
 export const StickyNote = ({ 
   children, 
   color = 'light',
@@ -225,10 +194,10 @@ export const StickyNote = ({
   className?: string;
 }) => {
   const colors = {
-    light: 'bg-gray-50 border-gray-200',
-    medium: 'bg-gray-100 border-gray-300',
-    dark: 'bg-gray-200 border-gray-400',
-    white: 'bg-white border-gray-300'
+    light: 'bg-[var(--bg-card)]',
+    medium: 'bg-[var(--bg-card)]',
+    dark: 'bg-[var(--bg-card)]',
+    white: 'bg-[var(--bg-card)]'
   };
 
   const sizes = {
@@ -237,32 +206,22 @@ export const StickyNote = ({
     lg: 'w-48 h-48 text-base'
   };
 
-  return (    <motion.div
+  return (    <div
       className={`
-        relative p-4 border rounded-lg
+        relative p-4 border-[var(--border-width)] border-[var(--border-color)]
         ${colors[color]} ${sizes[size]}
-        transform rotate-2
+        shadow-none
         ${className}
       `}
-      whileHover={{ 
-        rotate: -1, 
-        scale: 1.05,
-        y: -5
-      }}
-      drag
-      dragConstraints={{ left: -50, right: 50, top: -50, bottom: 50 }}
     >
-      {/* Tape effect at top */}
-      <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-8 h-4 bg-gray-200 opacity-70 rounded-sm rotate-12" />
-      
-      <div className="handwritten text-gray-800 h-full overflow-hidden">
+      <div className="font-mono text-[var(--text-main)] h-full overflow-hidden">
         {children}
       </div>
-    </motion.div>
+    </div>
   );
 };
 
-// Hand-drawn arrow
+// Wireframe Arrow (Straight lines)
 export const SketchArrow = ({ 
   direction = 'right',
   size = 'md',
@@ -286,32 +245,21 @@ export const SketchArrow = ({
   };
 
   return (
-    <motion.div
+    <div
       className={`${sizes[size]} ${rotations[direction]} ${className}`}
-      animate={{ 
-        rotate: [0, 5, -5, 0],
-        scale: [1, 1.1, 1] 
-      }}
-      transition={{ 
-        duration: 2, 
-        repeat: Infinity, 
-        repeatType: 'reverse' 
-      }}
     >
       <svg viewBox="0 0 100 100" className="w-full h-full">
-        <motion.path
-          d="M 10 50 Q 50 30 80 50 Q 50 70 80 50 M 70 40 L 80 50 L 70 60"
+        <path
+          d="M 0 50 L 80 50 M 60 30 L 80 50 L 60 70"
           stroke="currentColor"
-          strokeWidth="3"
+          strokeWidth="4"
           fill="none"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          initial={{ pathLength: 0 }}
-          animate={{ pathLength: 1 }}
-          transition={{ duration: 1.5, ease: "easeInOut" }}
+          strokeLinecap="square"
+          strokeLinejoin="miter"
+          className="text-[var(--text-main)]"
         />
       </svg>
-    </motion.div>
+    </div>
   );
 };
 
@@ -328,22 +276,22 @@ export const WireframeCard = ({
   return (
     <div className={`relative mb-12 ${className}`}>
       {/* Long Horizontal Lines - extending far beyond */}
-      <div className="absolute top-0 left-[-100vw] right-[-100vw] h-px bg-gray-300" />
-      <div className="absolute bottom-0 left-[-100vw] right-[-100vw] h-px bg-gray-300" />
+      <div className="absolute top-0 left-[-100vw] right-[-100vw] h-px bg-[var(--border-color)] opacity-20" />
+      <div className="absolute bottom-0 left-[-100vw] right-[-100vw] h-px bg-[var(--border-color)] opacity-20" />
       
       {/* Long Vertical Lines - extending far beyond */}
-      <div className="absolute top-[-100vh] bottom-[-100vh] left-0 w-px bg-gray-300" />
-      <div className="absolute top-[-100vh] bottom-[-100vh] right-0 w-px bg-gray-300" />
+      <div className="absolute top-[-100vh] bottom-[-100vh] left-0 w-px bg-[var(--border-color)] opacity-20" />
+      <div className="absolute top-[-100vh] bottom-[-100vh] right-0 w-px bg-[var(--border-color)] opacity-20" />
 
       {/* Measurement Label */}
       {measurement && (
-        <div className="absolute -top-3 left-4 text-xs text-black bg-white px-2 handwritten border border-black z-20">
+        <div className="absolute -top-3 left-4 text-xs text-[var(--text-main)] bg-[var(--bg-card)] px-2 font-mono border-[var(--border-width)] border-[var(--border-color)] z-20">
           DURATION: {measurement}
         </div>
       )}
 
       {/* Content Container */}
-      <div className="relative z-10 bg-white border-2 border-black">
+      <div className="relative z-10 bg-[var(--bg-card)] border-[var(--border-width)] border-[var(--border-color)] shadow-none">
         {children}
       </div>
     </div>
@@ -353,8 +301,8 @@ export const WireframeCard = ({
 // Internal grid separator for wireframe layout
 export const WireframeSeparator = ({ vertical = false }: { vertical?: boolean }) => {
   if (vertical) {
-    return <div className="absolute top-[-100vh] bottom-[-100vh] w-px bg-gray-300" />;
+    return <div className="absolute top-[-100vh] bottom-[-100vh] w-px bg-[var(--border-color)] opacity-20" />;
   }
-  return <div className="absolute left-[-100vw] right-[-100vw] h-px bg-gray-300" />;
+  return <div className="absolute left-[-100vw] right-[-100vw] h-px bg-[var(--border-color)] opacity-20" />;
 };
 

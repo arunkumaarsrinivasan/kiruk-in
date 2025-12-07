@@ -6,6 +6,10 @@ import CustomCursor from "@/components/ui/CustomCursor";
 import { CursorProvider } from "@/components/ui/CursorContext";
 import AnalyticsTracker from "@/components/analytics/AnalyticsTracker";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { ThemeProvider } from "@/contexts/ThemeContext";
+import { DesignEraProvider } from "@/contexts/DesignEraContext";
+import TimeTravelSlider from "@/components/ui/TimeTravelSlider";
+import ThemeLayout from "@/components/layout/ThemeLayout";
 
 export const metadata: Metadata = {
   title: "Kiruk | AI + UX Designer Portfolio",
@@ -33,13 +37,20 @@ export default function RootLayout({
     <html lang="en">
       <body className="antialiased">
         {/* Simplified layout - prioritizing magnetic font usage */}
-        <CursorProvider>
-          <CustomCursor />
-          <AnalyticsTracker />
-          <LayoutClientShell>
-            {children}
-          </LayoutClientShell>
-        </CursorProvider>
+        <ThemeProvider>
+          <DesignEraProvider>
+            <ThemeLayout>
+              <CursorProvider>
+                <CustomCursor />
+                <AnalyticsTracker />
+                <LayoutClientShell>
+                  {children}
+                </LayoutClientShell>
+              </CursorProvider>
+            </ThemeLayout>
+            <TimeTravelSlider />
+          </DesignEraProvider>
+        </ThemeProvider>
         <SpeedInsights />
       </body>
     </html>

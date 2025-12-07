@@ -113,7 +113,7 @@ function ChartCard({ title, description, accentColor, children, footer, classNam
         className="absolute -top-5 left-1/2 h-8 w-28 -translate-x-1/2 rotate-[-4deg] bg-white/70"
         style={{ borderRadius: '10px', border: '1px dashed rgba(148,163,184,0.35)' }}
       />
-      <div className={`px-8 pt-12 pb-4 ${accentColor}`} style={{ borderRadius: '18px 18px 0 0' }}>
+      <div className={`px-10 pt-12 pb-4 ${accentColor}`} style={{ borderRadius: '18px 18px 0 0' }}>
         <h2 className="handwritten text-3xl uppercase tracking-[0.35em] text-gray-900">{title}</h2>
         <p className="handwritten text-gray-600 mt-3 text-base max-w-2xl">{description}</p>
       </div>
@@ -273,9 +273,9 @@ function BarChart({ data, color, onHover, activeIndex, onSelect }: BarChartProps
             onPointerLeave={() => onHover?.(null, null)}
             onClick={() => onSelect?.(point, index)}
           >
-            <div className="relative w-full bg-gray-100/60 border border-dashed border-gray-300 rounded-sm pt-2">
-              <div className="absolute inset-x-1 bottom-1 rounded-sm" style={{ height: `${heightPercent}%`, backgroundColor: color, opacity: activeIndex === index ? 0.95 : 0.75 }} />
-              <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-gray-600 handwritten opacity-0 group-hover:opacity-100 transition">
+            <div className="relative w-full bg-gray-100/60 border border-dashed border-gray-300 rounded-none pt-2">
+              <div className="absolute inset-x-1 bottom-1 rounded-none" style={{ height: `${heightPercent}%`, backgroundColor: color, opacity: activeIndex === index ? 0.95 : 0.75 }} />
+              <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-xs text-gray-600 handwritten opacity-0 group-hover:opacity-100 transition">
                 {point.value}%
               </span>
             </div>
@@ -695,8 +695,8 @@ export default function UnifiedProgress() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={graphPaperStyle}>
-        <div className="px-8 py-6 border border-gray-300 bg-white/80 shadow-lg rounded-xl">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-800 mx-auto mb-4" />
+        <div className="px-8 py-4 border border-gray-300 bg-white/80 shadow-lg rounded-none">
+          <div className="animate-spin rounded-none h-8 w-8 border-b border-gray-800 mx-auto mb-4" />
           <p className="handwritten text-gray-700 text-sm">Syncing progress trackers…</p>
         </div>
       </div>
@@ -704,8 +704,8 @@ export default function UnifiedProgress() {
   }
 
   return (
-    <main className="min-h-screen py-24" style={graphPaperStyle}>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <main className="min-h-screen py-25" style={graphPaperStyle}>
+      <div className="max-w-6xl mx-auto px-4 sm:px-4 lg:px-8">
         <motion.header
           className="text-center"
           initial={{ opacity: 0, y: -20 }}
@@ -719,12 +719,12 @@ export default function UnifiedProgress() {
             A live board of my product experiments, life goals, and dream adventures—all plotted onto graph paper so we can see patterns at a glance.
           </p>
           {errorMessage ? (
-            <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50/80 px-4 py-2 text-xs uppercase tracking-[0.3em] text-red-500 handwritten">
+            <div className="mt-6 inline-flex items-center gap-2 rounded-none border border-red-200 bg-red-50/80 px-4 py-2 text-xs uppercase tracking-[0.3em] text-red-500 handwritten">
               {errorMessage}
             </div>
           ) : (
             <div className="mt-6 flex justify-center">
-              <span className="handwritten text-xs uppercase tracking-[0.35em] text-gray-500 rounded-full border border-dashed border-gray-300 px-4 py-1 bg-white/60">
+              <span className="handwritten text-xs uppercase tracking-[0.35em] text-gray-500 rounded-none border border-dashed border-gray-300 px-4 py-1 bg-white/60">
                 Synced from Notion{lastSyncedAt ? ` · ${new Date(lastSyncedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}` : ''}
               </span>
             </div>
@@ -742,7 +742,7 @@ export default function UnifiedProgress() {
                 <button
                   type="button"
                   onClick={() => setTimelineView('dev')}
-                  className={`handwritten text-xs uppercase tracking-[0.3em] px-4 py-2 border border-gray-300 rounded-full transition ${
+                  className={`handwritten text-xs uppercase tracking-[0.3em] px-4 py-2 border border-gray-300 rounded-none transition ${
                     timelineView === 'dev' ? 'bg-blue-500 text-white' : 'bg-white/80 text-gray-700 hover:bg-blue-100/60'
                   }`}
                 >
@@ -751,7 +751,7 @@ export default function UnifiedProgress() {
                 <button
                   type="button"
                   onClick={() => setTimelineView('monthly')}
-                  className={`handwritten text-xs uppercase tracking-[0.3em] px-4 py-2 border border-gray-300 rounded-full transition ${
+                  className={`handwritten text-xs uppercase tracking-[0.3em] px-4 py-2 border border-gray-300 rounded-none transition ${
                     timelineView === 'monthly' ? 'bg-purple-500 text-white' : 'bg-white/80 text-gray-700 hover:bg-purple-100/60'
                   }`}
                 >
@@ -771,7 +771,7 @@ export default function UnifiedProgress() {
                 max={24}
                 value={timelineSpan}
                 onChange={(event) => setTimelineSpan(Number(event.target.value))}
-                className="h-1 w-40 cursor-pointer appearance-none rounded-full bg-gray-200 accent-blue-500"
+                className="h-1 w-40 cursor-pointer appearance-none rounded-none bg-gray-200 accent-blue-500"
               />
             </div>
             <LineChart
@@ -785,7 +785,7 @@ export default function UnifiedProgress() {
             <AnimatePresence>
               {activePoint && (
                 <motion.div
-                  className="mt-6 rounded-lg border border-gray-200 bg-white/90 px-5 py-4 flex items-center justify-between gap-4"
+                  className="mt-6 rounded-none border border-gray-200 bg-white/90 px-4 py-4 flex items-center justify-between gap-4"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 8 }}
@@ -818,7 +818,7 @@ export default function UnifiedProgress() {
                 {devCommits.slice(0, 12).map((commit, index) => (
                   <motion.div
                     key={commit.sha}
-                    className="min-w-[220px] flex-shrink-0 border border-gray-200 bg-white/90 px-4 py-4 rounded-xl"
+                    className="min-w-[220px] flex-shrink-0 border border-gray-200 bg-white/90 px-4 py-4 rounded-none"
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.04 }}
@@ -833,7 +833,7 @@ export default function UnifiedProgress() {
               </div>
             </div>
           ) : (
-            <div className="text-center py-10 text-sm text-gray-500 handwritten">
+            <div className="text-center py-8 text-sm text-gray-500 handwritten">
               No commits to display yet.
             </div>
           )}
@@ -855,7 +855,7 @@ export default function UnifiedProgress() {
                 key={tab.key}
                 type="button"
                 onClick={() => setActiveNotebook(tab.key as typeof activeNotebook)}
-                className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs uppercase tracking-[0.3em] transition handwritten ${
+                className={`inline-flex items-center gap-2 rounded-none border px-4 py-2 text-xs uppercase tracking-[0.3em] transition handwritten ${
                   activeNotebook === tab.key
                     ? 'border-sky-500 bg-sky-500 text-white shadow-sm'
                     : 'border-sky-200 bg-white/80 text-gray-700 hover:bg-sky-100/70'
@@ -880,20 +880,20 @@ export default function UnifiedProgress() {
                     {lifeGoalsCatalog.slice(0, 6).map((goal) => (
                       <li
                         key={goal._id}
-                        className="flex flex-col gap-3 rounded-xl border border-emerald-200 bg-white/90 px-4 py-4 shadow-sm md:flex-row md:items-center md:justify-between"
+                        className="flex flex-col gap-3 rounded-none border border-emerald-200 bg-white/90 px-4 py-4 shadow-sm md:flex-row md:items-center md:justify-between"
                       >
-                        <div className="space-y-2">
+                        <div className="space-y-2.5">
                           <p className="handwritten text-lg text-gray-900">{goal.title}</p>
                           {goal.description && (
                             <p className="handwritten text-sm text-gray-600 max-w-xl">{goal.description}</p>
                           )}
                           <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-gray-500 handwritten">
-                            <span className="rounded-full bg-emerald-100 px-2 py-1 text-emerald-700">{goal.status.replace('_', ' ')}</span>
+                            <span className="rounded-none bg-emerald-100 px-2 py-1 text-emerald-700">{goal.status.replace('_', ' ')}</span>
                             {goal.priority && (
-                              <span className="rounded-full bg-emerald-50 px-2 py-1 text-emerald-600">Priority · {goal.priority}</span>
+                              <span className="rounded-none bg-emerald-50 px-2 py-1 text-emerald-600">Priority · {goal.priority}</span>
                             )}
                             {goal.tags?.slice(0, 3).map((tag) => (
-                              <span key={tag} className="rounded-full border border-emerald-200 px-2 py-1 text-emerald-500">
+                              <span key={tag} className="rounded-none border border-emerald-200 px-2 py-1 text-emerald-500">
                                 #{tag.toLowerCase()}
                               </span>
                             ))}
@@ -925,7 +925,7 @@ export default function UnifiedProgress() {
                     {bucketListCatalog.slice(0, 6).map((item) => (
                       <li
                         key={item._id}
-                        className="flex h-full flex-col gap-3 rounded-xl border border-orange-200 bg-white/90 px-4 py-4 shadow-sm"
+                        className="flex h-full flex-col gap-3 rounded-none border border-orange-200 bg-white/90 px-4 py-4 shadow-sm"
                       >
                         <div className="flex items-center justify-between">
                           <p className="handwritten text-lg text-gray-900">{item.title}</p>
@@ -944,21 +944,21 @@ export default function UnifiedProgress() {
                         )}
                         <div className="flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.25em] text-gray-500 handwritten">
                           {item.location && (
-                            <span className="rounded-full border border-orange-200 bg-orange-50 px-2 py-1 text-orange-600">📍 {item.location}</span>
+                            <span className="rounded-none border border-orange-200 bg-orange-50 px-2 py-1 text-orange-600">📍 {item.location}</span>
                           )}
                           {typeof item.estimatedCost === 'number' && (
-                            <span className="rounded-full border border-orange-200 bg-orange-50 px-2 py-1 text-orange-600">
+                            <span className="rounded-none border border-orange-200 bg-orange-50 px-2 py-1 text-orange-600">
                               Budget · {item.estimatedCost.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })}
                             </span>
                           )}
                           {item.targetDate && (
-                            <span className="rounded-full border border-orange-200 bg-orange-50 px-2 py-1 text-orange-600">Due {formatDate(item.targetDate)}</span>
+                            <span className="rounded-none border border-orange-200 bg-orange-50 px-2 py-1 text-orange-600">Due {formatDate(item.targetDate)}</span>
                           )}
                         </div>
                         {item.tags && item.tags.length > 0 && (
                           <div className="flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.2em] text-orange-400 handwritten">
                             {item.tags.slice(0, 4).map((tag) => (
-                              <span key={tag} className="rounded-full border border-orange-100 px-2 py-1">
+                              <span key={tag} className="rounded-none border border-orange-100 px-2 py-1">
                                 #{tag.toLowerCase()}
                               </span>
                             ))}
@@ -982,7 +982,7 @@ export default function UnifiedProgress() {
                       return (
                         <li
                           key={entry._id}
-                          className="rounded-xl border border-purple-200 bg-white/90 px-4 py-4 shadow-sm"
+                          className="rounded-none border border-purple-200 bg-white/90 px-4 py-4 shadow-sm"
                         >
                           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                             <div>
@@ -997,7 +997,7 @@ export default function UnifiedProgress() {
                             </div>
                           </div>
                           <div className="mt-3 grid gap-3 md:grid-cols-2">
-                            <div className="rounded-lg border border-purple-100 bg-purple-50/70 px-3 py-3">
+                            <div className="rounded-none border border-purple-100 bg-purple-50/70 px-3 py-3">
                               <p className="handwritten text-xs uppercase tracking-[0.3em] text-purple-500">Goals checklist</p>
                               <ul className="mt-2 space-y-1 text-xs handwritten text-gray-700">
                                 {entry.goals.slice(0, 4).map((goal, index) => (
@@ -1011,7 +1011,7 @@ export default function UnifiedProgress() {
                                 )}
                               </ul>
                             </div>
-                            <div className="rounded-lg border border-purple-100 bg-white px-3 py-3">
+                            <div className="rounded-none border border-purple-100 bg-white px-3 py-3">
                               <p className="handwritten text-xs uppercase tracking-[0.3em] text-purple-500">Wins</p>
                               {entry.achievements.length > 0 ? (
                                 <ul className="mt-2 space-y-1 text-xs handwritten text-gray-700">
@@ -1055,9 +1055,9 @@ export default function UnifiedProgress() {
                         <span>{category.category}</span>
                         <span>{category.average}% · {category.count} goals</span>
                       </div>
-                      <div className="mt-2 h-2 rounded-full bg-violet-100">
+                      <div className="mt-2 h-2 rounded-none bg-violet-100">
                         <div
-                          className="h-full rounded-full bg-violet-500"
+                          className="h-full rounded-none bg-violet-500"
                           style={{ width: `${category.average}%` }}
                         />
                       </div>
@@ -1073,13 +1073,13 @@ export default function UnifiedProgress() {
               {priorityDeck.length > 0 ? (
                 <ul className="mt-4 space-y-3">
                   {priorityDeck.map((goal) => (
-                    <li key={goal._id} className="flex items-center justify-between gap-3 rounded-xl border border-violet-200 bg-white/90 px-4 py-3 shadow-sm">
+                    <li key={goal._id} className="flex items-center justify-between gap-3 rounded-none border border-violet-200 bg-white/90 px-4 py-3 shadow-sm">
                       <div>
                         <p className="handwritten text-sm text-gray-900">{goal.title}</p>
                         <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-gray-500 handwritten mt-1">
-                          {goal.priority && <span className="rounded-full border border-violet-200 bg-violet-50 px-2 py-1 text-violet-600">{goal.priority}</span>}
-                          <span className="rounded-full border border-violet-200 bg-white px-2 py-1 text-violet-600">{goal.status?.split('_').join(' ') ?? 'unspecified'}</span>
-                          {goal.targetDate && <span className="rounded-full border border-violet-200 bg-white px-2 py-1 text-violet-600">Due {formatDate(goal.targetDate)}</span>}
+                          {goal.priority && <span className="rounded-none border border-violet-200 bg-violet-50 px-2 py-1 text-violet-600">{goal.priority}</span>}
+                          <span className="rounded-none border border-violet-200 bg-white px-2 py-1 text-violet-600">{goal.status?.split('_').join(' ') ?? 'unspecified'}</span>
+                          {goal.targetDate && <span className="rounded-none border border-violet-200 bg-white px-2 py-1 text-violet-600">Due {formatDate(goal.targetDate)}</span>}
                         </div>
                       </div>
                       <span className="handwritten text-lg text-violet-600">{goal.progress ?? 0}%</span>
@@ -1096,7 +1096,7 @@ export default function UnifiedProgress() {
               <p className="handwritten text-xs uppercase tracking-[0.3em] text-violet-500">Recurring themes</p>
               <div className="mt-3 flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.2em] handwritten">
                 {tagHighlights.map((tag) => (
-                  <span key={tag.tag} className="rounded-full border border-violet-200 bg-white px-3 py-1 text-violet-600">
+                  <span key={tag.tag} className="rounded-none border border-violet-200 bg-white px-3 py-1 text-violet-600">
                     #{tag.tag.toLowerCase()} · {tag.count}
                   </span>
                 ))}
@@ -1111,9 +1111,9 @@ export default function UnifiedProgress() {
           accentColor="bg-orange-50"
         >
           {adventureSchedule.length > 0 ? (
-            <ul className="space-y-4">
+            <ul className="space-y-5">
               {adventureSchedule.map((item, index) => (
-                <li key={item._id} className="relative flex flex-col gap-2 rounded-xl border border-orange-200 bg-white/90 px-4 py-4 shadow-sm md:flex-row md:items-center md:justify-between">
+                <li key={item._id} className="relative flex flex-col gap-2 rounded-none border border-orange-200 bg-white/90 px-4 py-4 shadow-sm md:flex-row md:items-center md:justify-between">
                   <div className="flex items-center gap-3">
                     <span className="handwritten text-lg text-orange-500">{String(index + 1).padStart(2, '0')}</span>
                     <div>
@@ -1124,7 +1124,7 @@ export default function UnifiedProgress() {
                   </div>
                   <div className="flex items-center gap-4">
                     {item.tags?.slice(0, 3).map((tag) => (
-                      <span key={tag} className="handwritten text-xs uppercase tracking-[0.3em] text-orange-500 border border-orange-200 bg-orange-50 px-3 py-1 rounded-full">
+                      <span key={tag} className="handwritten text-xs uppercase tracking-[0.3em] text-orange-500 border border-orange-200 bg-orange-50 px-3 py-1 rounded-none">
                         #{tag.toLowerCase()}
                       </span>
                     ))}
@@ -1151,7 +1151,7 @@ export default function UnifiedProgress() {
           {monthlyHighlights.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-3">
               {monthlyHighlights.map((highlight) => (
-                <div key={highlight.id} className="rounded-xl border border-purple-200 bg-white/90 px-4 py-4 shadow-sm">
+                <div key={highlight.id} className="rounded-none border border-purple-200 bg-white/90 px-4 py-4 shadow-sm">
                   <p className="handwritten text-xs uppercase tracking-[0.3em] text-purple-400">Snapshot</p>
                   <p className="handwritten text-lg text-gray-900 mt-1">{highlight.title}</p>
                   <div className="mt-3">
@@ -1159,8 +1159,8 @@ export default function UnifiedProgress() {
                       <span>Completion</span>
                       <span>{highlight.completion}%</span>
                     </div>
-                    <div className="mt-2 h-2 rounded-full bg-purple-100">
-                      <div className="h-full rounded-full bg-purple-500" style={{ width: `${highlight.completion}%` }} />
+                    <div className="mt-2 h-2 rounded-none bg-purple-100">
+                      <div className="h-full rounded-none bg-purple-500" style={{ width: `${highlight.completion}%` }} />
                     </div>
                   </div>
                   <div className="mt-4">

@@ -474,7 +474,7 @@ ${templateText}` : templateText;
             info: { point: { x: number; y: number } }
           ) => moveStickyNote(note.id, info.point.x, info.point.y)}
         >
-          <StickyNote color={note.color} className="w-32 h-20 flex items-center justify-center text-xs handwritten relative group">
+          <StickyNote color={note.color} className="w-32 h-16 flex items-center justify-center text-xs handwritten relative group">
             {note.tip}
             <button
               className="absolute top-1 right-1 text-xs opacity-40 group-hover:opacity-100 transition hover:text-red-500"
@@ -504,7 +504,7 @@ ${templateText}` : templateText;
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1.2 }}
             exit={{ opacity: 0, scale: 0.5 }}
-            className="fixed top-24 right-24 z-50 pointer-events-none text-5xl"
+            className="fixed top-25 right-25 z-50 pointer-events-none text-5xl"
             style={{ filter: 'drop-shadow(0 0 8px #ffd700)' }}
           >
             ✨
@@ -523,10 +523,10 @@ ${templateText}` : templateText;
             ease: "easeInOut" 
           }}
         >
-          <StickyNote color="medium" className="w-28 h-20">
+          <StickyNote color="medium" className="w-28 h-16">
             <div className="handwritten text-xs flex items-center gap-2">
               {/* Hand-drawn Contact icon */}
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ filter: 'url(#roughen)' }}>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ filter: 'url(#roughen)' }}>
                 <defs>
                   <filter id="roughen">
                     <feTurbulence baseFrequency="0.04" numOctaves="3" result="noise" seed="1" />
@@ -541,7 +541,7 @@ ${templateText}` : templateText;
             </div>
           </StickyNote>
         </motion.div>        
-        <div className="relative flex flex-col justify-center max-w-5xl mx-auto px-4 sm:px-6 z-10 py-8 pb-24 min-h-screen w-full">
+        <div className="relative flex flex-col justify-center max-w-5xl mx-auto px-4 sm:px-4 z-10 py-8 pb-24 min-h-screen w-full">
           {/* Compact Header */}
           <motion.div 
             className="text-center mb-6"
@@ -563,7 +563,7 @@ ${templateText}` : templateText;
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="grid md:grid-cols-2 gap-6 flex-1"
+            className="grid md:grid-cols-2 gap-4 flex-1"
           >
             {/* Contact Form */}
             <motion.div
@@ -575,7 +575,7 @@ ${templateText}` : templateText;
                 <SketchHeading level={2} className="heading-secondary-enhanced text-lg mb-3">
                   Send a Message
                 </SketchHeading>
-                <form className="space-y-2" onSubmit={handleSubmit} noValidate>
+                <form className="space-y-2.5" onSubmit={handleSubmit} noValidate>
                   <div>
                     <label htmlFor="contact-name" className="form-label-enhanced">
                       Name <span className="text-red-500" aria-label="required">*</span>
@@ -584,7 +584,7 @@ ${templateText}` : templateText;
                       id="contact-name"
                       name="name"
                       type="text"
-                      className="w-full p-2 border-2 border-gray-300 rounded-lg form-input-enhanced text-focus-enhanced sketch-focus focus:border-gray-600 outline-none"
+                      className="w-full p-2 border border-gray-300 rounded-none form-input-enhanced text-focus-enhanced sketch-focus focus:border-gray-600 outline-none"
                       placeholder="Your name"
                       value={form.name}
                       onChange={handleChange}
@@ -610,7 +610,7 @@ ${templateText}` : templateText;
                       id="contact-email"
                       name="email"
                       type="email"
-                      className="w-full p-2 border-2 border-gray-300 rounded-lg form-input-enhanced text-focus-enhanced sketch-focus focus:border-black outline-none"
+                      className="w-full p-2 border border-gray-300 rounded-none form-input-enhanced text-focus-enhanced sketch-focus focus:border-black outline-none"
                       placeholder="your@email.com"
                       value={form.email}
                       onChange={handleChange}
@@ -628,14 +628,14 @@ ${templateText}` : templateText;
                       </div>
                     )}
                   </div>
-                  <div className="border-2 border-dashed border-gray-300 rounded-xl bg-white/60 p-3 mt-1">
+                  <div className="border border-dashed border-gray-300 rounded-none bg-white/60 p-3 mt-1">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <span className="handwritten text-xs text-gray-600">Conversation Starter</span>
                       <div className="flex items-center gap-2">
                         <motion.button
                           type="button"
                           onClick={handleApplyTemplate}
-                          className="px-2 py-1 border border-gray-300 rounded-lg text-[11px] handwritten bg-white hover:bg-yellow-100 transition"
+                          className="px-2 py-1 border border-gray-300 rounded-none text-[11px] handwritten bg-white hover:bg-yellow-100 transition"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.96 }}
                         >
@@ -644,7 +644,7 @@ ${templateText}` : templateText;
                         <motion.button
                           type="button"
                           onClick={() => setShowConversationStarter(prev => !prev)}
-                          className="px-2 py-1 border border-gray-300 rounded-lg text-[11px] handwritten bg-white hover:bg-gray-100 transition"
+                          className="px-2 py-1 border border-gray-300 rounded-none text-[11px] handwritten bg-white hover:bg-gray-100 transition"
                           whileHover={{ scale: 1.04 }}
                           whileTap={{ scale: 0.95 }}
                           aria-expanded={showConversationStarter}
@@ -659,7 +659,7 @@ ${templateText}` : templateText;
                         <motion.button
                           type="button"
                           onClick={handlePastePreview}
-                          className="px-2 py-0.5 border border-gray-300 rounded-lg text-[10px] bg-white hover:bg-yellow-100 transition"
+                          className="px-2 py-0.5 border border-gray-300 rounded-none text-[10px] bg-white hover:bg-yellow-100 transition"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                         >
@@ -688,7 +688,7 @@ ${templateText}` : templateText;
                                       key={option.id}
                                       type="button"
                                       onClick={() => handleProjectTypeSelect(option)}
-                                      className={`px-2.5 py-1.5 rounded-lg border-2 text-xs handwritten transition ${
+                                      className={`px-2.5.5 py-1.5 rounded-none border text-xs handwritten transition ${
                                         active ? 'bg-indigo-100 border-indigo-400 text-indigo-800' : 'bg-white border-gray-200 hover:border-gray-400 text-gray-700'
                                       }`}
                                       whileTap={{ scale: 0.95 }}
@@ -711,7 +711,7 @@ ${templateText}` : templateText;
                                       key={option.id}
                                       type="button"
                                       onClick={() => handleTimelineSelect(option)}
-                                      className={`px-2.5 py-1.5 rounded-lg border-2 text-xs handwritten transition ${
+                                      className={`px-2.5.5 py-1.5 rounded-none border text-xs handwritten transition ${
                                         active ? 'bg-green-100 border-green-400 text-green-800' : 'bg-white border-gray-200 hover:border-gray-400 text-gray-700'
                                       }`}
                                       whileTap={{ scale: 0.95 }}
@@ -734,7 +734,7 @@ ${templateText}` : templateText;
                                       key={option.id}
                                       type="button"
                                       onClick={() => handleCollabSelect(option)}
-                                      className={`px-2.5 py-1.5 rounded-lg border-2 text-xs handwritten transition ${
+                                      className={`px-2.5.5 py-1.5 rounded-none border text-xs handwritten transition ${
                                         active ? 'bg-purple-100 border-purple-400 text-purple-800' : 'bg-white border-gray-200 hover:border-gray-400 text-gray-700'
                                       }`}
                                       whileTap={{ scale: 0.95 }}
@@ -747,13 +747,13 @@ ${templateText}` : templateText;
                                 })}
                               </div>
                             </div>
-                            <div className="bg-gray-50/80 border border-dashed border-gray-300 rounded-lg p-3 text-xs handwritten text-gray-600 leading-snug">
+                            <div className="bg-gray-50/80 border border-dashed border-gray-300 rounded-none p-3 text-xs handwritten text-gray-600 leading-snug">
                               <div className="flex items-center justify-between gap-2 mb-2 text-[11px] uppercase tracking-[0.12em] text-gray-500">
                                 <span className="text-[10px]">Generated brief</span>
                                 <motion.button
                                   type="button"
                                   onClick={handlePastePreview}
-                                  className="px-2 py-0.5 border border-gray-300 rounded-lg text-[10px] bg-white hover:bg-yellow-100 transition"
+                                  className="px-2 py-0.5 border border-gray-300 rounded-none text-[10px] bg-white hover:bg-yellow-100 transition"
                                   whileHover={{ scale: 1.05 }}
                                   whileTap={{ scale: 0.95 }}
                                 >
@@ -779,7 +779,7 @@ ${templateText}` : templateText;
                       id="contact-message"
                       name="message"
                       rows={3}
-                      className="w-full p-2 border-2 border-gray-300 rounded-lg form-input-enhanced text-focus-enhanced sketch-focus focus:border-gray-600 outline-none resize-none"
+                      className="w-full p-2 border border-gray-300 rounded-none form-input-enhanced text-focus-enhanced sketch-focus focus:border-gray-600 outline-none resize-none"
                       placeholder={activeMood.placeholder}
                       value={form.message}
                       ref={messageRef}
@@ -802,7 +802,7 @@ ${templateText}` : templateText;
                         <span>{wordsCount} words · {messageLength} chars</span>
                         <span>{guidanceMessage}</span>
                       </div>
-                      <div className="mt-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                      <div className="mt-1 h-1.5 bg-gray-200 rounded-none overflow-hidden">
                         <motion.div
                           className="h-full bg-indigo-400"
                           initial={false}
@@ -815,7 +815,7 @@ ${templateText}` : templateText;
                   {/* Magic Eraser button */}
                   <motion.button
                     type="button"
-                    className="absolute top-2 right-2 text-xs px-2 py-1 bg-white border rounded-full shadow handwritten flex items-center gap-1 hover:bg-pink-100 transition"
+                    className="absolute top-2 right-2 text-xs px-2 py-1 bg-white border rounded-none shadow handwritten flex items-center gap-1 hover:bg-pink-100 transition"
                     whileHover={{ scale: 1.1, rotate: -10 }}
                     onClick={handleErase}
                     aria-label="Clear form"
@@ -860,7 +860,7 @@ ${templateText}` : templateText;
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: 10 }}
-                          className="absolute left-1/2 -top-10 -translate-x-1/2 bg-yellow-100 border border-yellow-300 px-3 py-1 rounded-lg shadow handwritten text-xs z-30"
+                          className="absolute left-1/2 -top-10 -translate-x-1/2 bg-yellow-100 border border-yellow-300 px-3 py-1 rounded-none shadow handwritten text-xs z-30"
                         >
                           🚀 Let's go!
                         </motion.div>
@@ -876,7 +876,7 @@ ${templateText}` : templateText;
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 12 }}
                       transition={{ duration: 0.25 }}
-                      className="mt-4 border-2 border-dashed border-gray-300 rounded-xl bg-white/70 p-4 space-y-3"
+                      className="mt-4 border border-dashed border-gray-300 rounded-none bg-white/70 p-4 space-y-3"
                       ref={mailOptionsRef}
                     >
                       <div className="flex items-center justify-between">
@@ -884,7 +884,7 @@ ${templateText}` : templateText;
                         <motion.button
                           type="button"
                           onClick={() => { setShowMailOptions(false); setMailDraft(null); }}
-                          className="px-3 py-1 border border-gray-300 rounded-lg text-[11px] handwritten bg-white hover:bg-gray-100 transition"
+                          className="px-3 py-1 border border-gray-300 rounded-none text-[11px] handwritten bg-white hover:bg-gray-100 transition"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                         >
@@ -895,7 +895,7 @@ ${templateText}` : templateText;
                         <motion.button
                           type="button"
                           onClick={() => openMailProvider('gmail')}
-                          className="px-3 py-2 border-2 border-amber-300 rounded-xl bg-amber-50 handwritten text-sm text-gray-800 hover:bg-amber-100 transition text-left"
+                          className="px-3 py-2 border border-amber-300 rounded-none bg-amber-50 handwritten text-sm text-gray-800 hover:bg-amber-100 transition text-left"
                           whileHover={{ scale: 1.03 }}
                           whileTap={{ scale: 0.96 }}
                         >
@@ -904,7 +904,7 @@ ${templateText}` : templateText;
                         <motion.button
                           type="button"
                           onClick={() => openMailProvider('outlook')}
-                          className="px-3 py-2 border-2 border-sky-300 rounded-xl bg-sky-50 handwritten text-sm text-gray-800 hover:bg-sky-100 transition text-left"
+                          className="px-3 py-2 border border-sky-300 rounded-none bg-sky-50 handwritten text-sm text-gray-800 hover:bg-sky-100 transition text-left"
                           whileHover={{ scale: 1.03 }}
                           whileTap={{ scale: 0.96 }}
                         >
@@ -913,14 +913,14 @@ ${templateText}` : templateText;
                         <motion.button
                           type="button"
                           onClick={() => openMailProvider('other')}
-                          className="px-3 py-2 border-2 border-gray-300 rounded-xl bg-white handwritten text-sm text-gray-800 hover:bg-gray-100 transition text-left"
+                          className="px-3 py-2 border border-gray-300 rounded-none bg-white handwritten text-sm text-gray-800 hover:bg-gray-100 transition text-left"
                           whileHover={{ scale: 1.03 }}
                           whileTap={{ scale: 0.96 }}
                         >
                           ✉️ Other email apps
                         </motion.button>
                       </div>
-                      <div className="bg-white border border-dashed border-gray-200 rounded-lg p-3">
+                      <div className="bg-white border border-dashed border-gray-200 rounded-none p-3">
                         <div className="handwritten text-xs text-gray-600 leading-snug select-text">
                           {mailDraft.body.split('\n').map((line, idx) => (
                             <p key={idx}>{line || ' '}</p>
@@ -956,16 +956,16 @@ ${templateText}` : templateText;
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.7 }}
-              className="space-y-4 pb-16"
+              className="space-y-5 pb-16"
             >
               {/* Direct Contact */}
               <SketchCard tilt="right" className="p-4">
                 <SketchHeading level={3} className="heading-tertiary-enhanced text-base mb-3" underline={false}>
                   Direct Contact
                 </SketchHeading>
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   <motion.div
-                    className="flex items-center space-x-2 relative"
+                    className="flex items-center space-x-2.5 relative"
                     whileHover={{ scale: 1.05 }}
                     onMouseEnter={() => setShowTooltip(s => ({ ...s, email: true }))}
                     onMouseLeave={() => setShowTooltip(s => ({ ...s, email: false }))}
@@ -978,7 +978,7 @@ ${templateText}` : templateText;
                         <span>
                           <button
                             type="button"
-                            className="px-2 py-0.5 rounded bg-gray-100 border text-xs handwritten hover:bg-yellow-100 transition"
+                            className="px-2 py-0.5 rounded-none bg-gray-100 border text-xs handwritten hover:bg-yellow-100 transition"
                             onClick={handleCopyEmail}
                             aria-label="Copy email"
                           >
@@ -993,7 +993,7 @@ ${templateText}` : templateText;
                           initial={{ opacity: 0, x: 10 }}
                           animate={{ opacity: 1, x: 0 }}
                           exit={{ opacity: 0, x: 10 }}
-                          className="absolute left-full top-0 ml-2 bg-yellow-100 border border-yellow-300 px-2 py-1 rounded-lg shadow handwritten text-xs z-30"
+                          className="absolute left-full top-0 ml-2 bg-yellow-100 border border-yellow-300 px-2 py-1 rounded-none shadow handwritten text-xs z-30"
                         >
                           📋 Copy to clipboard!
                         </motion.div>
@@ -1001,7 +1001,7 @@ ${templateText}` : templateText;
                     </AnimatePresence>
                   </motion.div>
                   <motion.div
-                    className="flex items-center space-x-2 relative"
+                    className="flex items-center space-x-2.5 relative"
                     whileHover={{ scale: 1.05 }}
                     onMouseEnter={() => setShowTooltip(s => ({ ...s, phone: true }))}
                     onMouseLeave={() => setShowTooltip(s => ({ ...s, phone: false }))}
@@ -1014,7 +1014,7 @@ ${templateText}` : templateText;
                         <div className="flex gap-1">
                           <button
                             type="button"
-                            className="px-2 py-0.5 rounded bg-green-100 border text-xs handwritten hover:bg-green-200 transition"
+                            className="px-2 py-0.5 rounded-none bg-green-100 border text-xs handwritten hover:bg-green-200 transition"
                             onClick={() => {
                               trackInteraction('contact_phone_call_click');
                               window.location.href = 'tel:+919486582579';
@@ -1025,7 +1025,7 @@ ${templateText}` : templateText;
                           </button>
                           <button
                             type="button"
-                            className="px-2 py-0.5 rounded bg-emerald-100 border text-xs handwritten hover:bg-emerald-200 transition"
+                            className="px-2 py-0.5 rounded-none bg-emerald-100 border text-xs handwritten hover:bg-emerald-200 transition"
                             onClick={() => {
                               trackInteraction('contact_whatsapp_click');
                               window.open('https://wa.me/919486582579', '_blank');
@@ -1043,7 +1043,7 @@ ${templateText}` : templateText;
                           initial={{ opacity: 0, x: 10 }}
                           animate={{ opacity: 1, x: 0 }}
                           exit={{ opacity: 0, x: 10 }}
-                          className="absolute left-full top-0 ml-2 bg-green-100 border border-green-300 px-2 py-1 rounded-lg shadow handwritten text-xs z-30"
+                          className="absolute left-full top-0 ml-2 bg-green-100 border border-green-300 px-2 py-1 rounded-none shadow handwritten text-xs z-30"
                         >
                           📱 Call or ping me anytime!
                         </motion.div>
@@ -1051,7 +1051,7 @@ ${templateText}` : templateText;
                     </AnimatePresence>
                   </motion.div>
                   <motion.div
-                    className="flex items-center space-x-2 relative"
+                    className="flex items-center space-x-2.5 relative"
                     whileHover={{ scale: 1.05 }}
                     onMouseEnter={() => setShowTooltip(s => ({ ...s, linkedin: true }))}
                     onMouseLeave={() => setShowTooltip(s => ({ ...s, linkedin: false }))}
@@ -1063,7 +1063,7 @@ ${templateText}` : templateText;
                         <span>/in/arunkumaarsreenivasan/</span>
                         <button
                           type="button"
-                          className="ml-1 px-2 py-0.5 rounded bg-blue-100 border text-xs handwritten hover:bg-blue-200 transition"
+                          className="ml-1 px-2 py-0.5 rounded-none bg-blue-100 border text-xs handwritten hover:bg-blue-200 transition"
                           onClick={handleLinkedIn}
                           aria-label="Open LinkedIn"
                         >
@@ -1077,7 +1077,7 @@ ${templateText}` : templateText;
                           initial={{ opacity: 0, x: 10 }}
                           animate={{ opacity: 1, x: 0 }}
                           exit={{ opacity: 0, x: 10 }}
-                          className="absolute left-full top-0 ml-2 bg-blue-100 border border-blue-300 px-2 py-1 rounded-lg shadow handwritten text-xs z-30"
+                          className="absolute left-full top-0 ml-2 bg-blue-100 border border-blue-300 px-2 py-1 rounded-none shadow handwritten text-xs z-30"
                         >
                           👋 Connect on LinkedIn!
                         </motion.div>
@@ -1092,15 +1092,15 @@ ${templateText}` : templateText;
                   What to Expect
                 </SketchHeading>
                   <div className="space-y-1">
-                  <div className="flex items-start space-x-2">
+                  <div className="flex items-start space-x-2.5">
                     <span className="text-gray-800 text-sm">⚡</span>
                     <span className="handwritten text-xs text-gray-600">Quick response (24h)</span>
                   </div>
-                  <div className="flex items-start space-x-2">
+                  <div className="flex items-start space-x-2.5">
                     <span className="text-gray-700 text-sm">🎯</span>
                     <span className="handwritten text-xs text-gray-600">Focused discussion</span>
                   </div>
-                  <div className="flex items-start space-x-2">
+                  <div className="flex items-start space-x-2.5">
                     <span className="text-black text-sm">🚀</span>
                     <span className="handwritten text-xs text-gray-600">Clear next steps</span>
                   </div>
@@ -1120,7 +1120,7 @@ ${templateText}` : templateText;
                         key={mood.id}
                         type="button"
                         onClick={() => handleMoodSelect(mood)}
-                        className={`px-3 py-2 border-2 rounded-xl text-left handwritten text-xs flex flex-col gap-1 transition shadow-sm focus:outline-none ${
+                        className={`px-3 py-2 border rounded-none text-left handwritten text-xs flex flex-col gap-1 transition shadow-sm focus:outline-none ${
                           isActive ? 'bg-yellow-100 border-yellow-400' : 'bg-white border-gray-300 hover:border-gray-500'
                         }`}
                         whileHover={{ rotate: isActive ? 0 : 1, scale: isActive ? 1.02 : 1.04 }}
@@ -1150,7 +1150,7 @@ ${templateText}` : templateText;
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.4 }}
-                    className="bg-white/80 border border-dashed border-gray-300 rounded-xl p-3 handwritten text-xs text-gray-700 flex flex-col gap-2"
+                    className="bg-white/80 border border-dashed border-gray-300 rounded-none p-3 handwritten text-xs text-gray-700 flex flex-col gap-2"
                   >
                     <div className="flex items-center gap-2 text-sm text-gray-800 font-semibold">
                       <span>{currentSpark.icon}</span>
@@ -1163,7 +1163,7 @@ ${templateText}` : templateText;
                 <motion.button
                   type="button"
                   onClick={handleSparkRefresh}
-                  className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-purple-100 border border-purple-300 rounded-lg handwritten text-xs text-purple-700 hover:bg-purple-200 transition"
+                  className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-purple-100 border border-purple-300 rounded-none handwritten text-xs text-purple-700 hover:bg-purple-200 transition"
                   whileHover={{ scale: 1.05, rotate: -2 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -1195,7 +1195,7 @@ ${templateText}` : templateText;
                 <p className="handwritten text-xs text-gray-600 mb-3">
                   Toggle what you already have ready. I will tailor my reply around the gaps.
                 </p>
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   {CHECKLIST_ITEMS.map(item => {
                     const isChecked = checklistState[item.id];
                     return (
@@ -1203,7 +1203,7 @@ ${templateText}` : templateText;
                         key={item.id}
                         type="button"
                         onClick={() => toggleChecklistItem(item)}
-                        className={`w-full flex items-center justify-between px-3 py-2 border-2 rounded-xl text-left handwritten text-xs transition ${
+                        className={`w-full flex items-center justify-between px-3 py-2 border rounded-none text-left handwritten text-xs transition ${
                           isChecked ? 'bg-green-100 border-green-400 text-green-800' : 'bg-white border-gray-300 hover:border-gray-500 text-gray-700'
                         }`}
                         whileTap={{ scale: 0.97 }}

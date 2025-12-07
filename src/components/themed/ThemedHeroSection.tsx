@@ -19,7 +19,7 @@ const ThemedHeroSection: React.FC = () => {
           titleStyle: 'text-2xl handwritten transform rotate-1 mb-6',
           bioStyle: 'text-lg handwritten max-w-2xl mx-auto leading-relaxed',
           skillsContainer: 'flex flex-wrap gap-4 mt-8 justify-center',
-          skillBadge: 'px-4 py-2 bg-yellow-200 border-2 border-dashed border-black rounded-lg handwritten transform',
+          skillBadge: 'px-4 py-2 bg-yellow-200 border border-dashed border-black rounded-none handwritten transform',
         };
       case 'minimal':
         return {
@@ -28,7 +28,7 @@ const ThemedHeroSection: React.FC = () => {
           titleStyle: 'text-xl text-gray-600 mb-6 font-light',
           bioStyle: 'text-lg text-gray-700 max-w-2xl mx-auto leading-relaxed font-light',
           skillsContainer: 'flex flex-wrap gap-3 mt-8 justify-center',
-          skillBadge: 'px-3 py-1 bg-white border border-gray-200 rounded-md text-sm font-medium text-gray-700',
+          skillBadge: 'px-3 py-1 bg-white border border-gray-200 rounded-none text-sm font-medium text-gray-700',
         };
       case 'absurd':
         return {
@@ -37,7 +37,7 @@ const ThemedHeroSection: React.FC = () => {
           titleStyle: 'text-2xl font-bold text-green-400 transform -rotate-1 mb-6 uppercase tracking-wider',
           bioStyle: 'text-lg text-white max-w-2xl mx-auto leading-relaxed font-bold',
           skillsContainer: 'flex flex-wrap gap-4 mt-8 justify-center',
-          skillBadge: 'px-4 py-2 bg-gradient-to-r from-pink-500 to-violet-500 rounded-full text-white font-bold text-sm transform hover:scale-110 transition-transform',
+          skillBadge: 'px-4 py-2 bg-gradient-to-r from-pink-500 to-violet-500 rounded-none text-white font-bold text-sm transform hover:scale-110 transition-transform',
         };
       default:
         return {};
@@ -110,7 +110,7 @@ const ThemedHeroSection: React.FC = () => {
         {/* Theme-specific decorative elements */}
         {currentTheme.style === 'sketch' && (
           <motion.div 
-            className="absolute top-20 right-20 text-6xl opacity-20"
+            className="absolute top-16 right-16 text-6xl opacity-20"
             animate={{ rotate: 360 }}
             transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
           >
@@ -119,7 +119,7 @@ const ThemedHeroSection: React.FC = () => {
         )}
         
         {currentTheme.style === 'minimal' && (
-          <div className="absolute top-10 left-10 w-2 h-2 bg-blue-500 rounded-full"></div>
+          <div className="absolute top-8 left-8 w-2 h-2 bg-blue-500 rounded-none"></div>
         )}
         
         {currentTheme.style === 'absurd' && (
@@ -129,8 +129,8 @@ const ThemedHeroSection: React.FC = () => {
             animate={{ opacity: [0, 0.1, 0] }}
             transition={{ duration: 3, repeat: Infinity }}
           >
-            <div className="absolute top-1/4 left-1/4 w-20 h-20 bg-pink-500 rounded-full opacity-30 blur-xl"></div>
-            <div className="absolute bottom-1/4 right-1/4 w-16 h-16 bg-violet-500 rounded-full opacity-30 blur-xl"></div>
+            <div className="absolute top-1/4 left-1/4 w-16 h-16 bg-pink-500 rounded-none opacity-30 blur-xl"></div>
+            <div className="absolute bottom-1/4 right-1/4 w-16 h-16 bg-violet-500 rounded-none opacity-30 blur-xl"></div>
           </motion.div>
         )}
       </div>

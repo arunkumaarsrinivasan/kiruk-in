@@ -20,7 +20,7 @@ export default function LayoutClientShell({ children }: Readonly<LayoutClientShe
       </a>
       <a 
         href="#navigation" 
-        className="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-32 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:text-sm focus:no-underline"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-30 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:text-sm focus:no-underline"
         tabIndex={2}
       >
         Skip to navigation

@@ -90,7 +90,7 @@ const LoadingPage: React.FC<LoadingPageProps> = ({
       <div className="absolute inset-0 bg-white notebook-bg">
         {/* Floating sketch decorations */}
         <motion.div
-          className="absolute top-20 left-20"
+          className="absolute top-16 left-16"
           animate={{ 
             rotate: [0, 5, -5, 0],
             y: [0, -10, 10, 0] 
@@ -101,7 +101,7 @@ const LoadingPage: React.FC<LoadingPageProps> = ({
             ease: "easeInOut" 
           }}
         >
-          <div className="w-4 h-4 bg-blue-300 rounded-full opacity-60"></div>
+          <div className="w-4 h-4 bg-blue-300 rounded-none opacity-60"></div>
         </motion.div>
         
         <motion.div
@@ -117,7 +117,7 @@ const LoadingPage: React.FC<LoadingPageProps> = ({
             delay: 1 
           }}
         >
-          <div className="w-3 h-3 bg-yellow-300 rounded-full opacity-60"></div>
+          <div className="w-3 h-3 bg-yellow-300 rounded-none opacity-60"></div>
         </motion.div>
 
         <motion.div
@@ -133,7 +133,7 @@ const LoadingPage: React.FC<LoadingPageProps> = ({
             delay: 2 
           }}
         >
-          <div className="w-2 h-2 bg-green-300 rounded-full opacity-60"></div>
+          <div className="w-2 h-2 bg-green-300 rounded-none opacity-60"></div>
         </motion.div>
 
         <motion.div
@@ -149,7 +149,7 @@ const LoadingPage: React.FC<LoadingPageProps> = ({
             delay: 0.5 
           }}
         >
-          <div className="w-3 h-3 bg-pink-300 rounded-full opacity-60"></div>
+          <div className="w-3 h-3 bg-pink-300 rounded-none opacity-60"></div>
         </motion.div>
       </div>
 
@@ -195,36 +195,36 @@ const LoadingPage: React.FC<LoadingPageProps> = ({
         <div className="w-full max-w-md mx-auto">
           {/* Progress bar container with sketch styling */}
           <motion.div
-            className="relative bg-white border-4 border-dashed border-gray-400 rounded-2xl p-6 shadow-xl mb-8"
+            className="relative bg-white border-4 border-dashed border-gray-400 rounded-none p-4 shadow-xl mb-8"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.3, duration: 0.6 }}
           >
             {/* Sketch decorations */}
-            <div className="absolute -top-1 -left-1 w-3 h-3 bg-orange-300 rounded-full opacity-70"></div>
-            <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-purple-300 rounded-full opacity-70"></div>
+            <div className="absolute -top-1 -left-1 w-3 h-3 bg-orange-300 rounded-none opacity-70"></div>
+            <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-purple-300 rounded-none opacity-70"></div>
             
             {/* Progress bar */}
             <div className="relative mb-6">
-              <div className="h-4 bg-gray-200 rounded-full border-2 border-dashed border-gray-300 overflow-hidden">
+              <div className="h-4 bg-gray-200 rounded-none border border-dashed border-gray-300 overflow-hidden">
                 <motion.div
-                  className="h-full bg-gradient-to-r from-blue-400 via-purple-400 to-green-400 rounded-full relative"
+                  className="h-full bg-gradient-to-r from-blue-400 via-purple-400 to-green-400 rounded-none relative"
                   initial={{ width: "0%" }}
                   animate={{ width: `${progress}%` }}
                   transition={{ duration: 0.3, ease: "easeOut" }}
                 >
                   {/* Progress bar highlight */}
-                  <div className="absolute inset-0 bg-white/30 rounded-full animate-pulse"></div>
+                  <div className="absolute inset-0 bg-white/30 rounded-none animate-pulse"></div>
                 </motion.div>
               </div>
               
               {/* Progress percentage */}
               <motion.div
-                className="absolute -top-8 left-1/2 transform -translate-x-1/2"
+                className="absolute -top-10 left-1/2 transform -translate-x-1/2"
                 animate={{ scale: [1, 1.1, 1] }}
                 transition={{ duration: 1, repeat: Infinity }}
               >
-                <span className="handwritten text-sm font-bold text-gray-700 bg-white px-2 py-1 rounded-full border border-dashed border-gray-300">
+                <span className="handwritten text-sm font-bold text-gray-700 bg-white px-2 py-1 rounded-none border border-dashed border-gray-300">
                   {Math.round(progress)}%
                 </span>
               </motion.div>
@@ -263,7 +263,7 @@ const LoadingPage: React.FC<LoadingPageProps> = ({
 
           {/* Loading dots animation */}
           <motion.div
-            className="flex justify-center space-x-2"
+            className="flex justify-center space-x-2.5"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1 }}
@@ -271,7 +271,7 @@ const LoadingPage: React.FC<LoadingPageProps> = ({
             {[0, 1, 2].map((i) => (
               <motion.div
                 key={i}
-                className="w-3 h-3 bg-gray-400 rounded-full"
+                className="w-3 h-3 bg-gray-400 rounded-none"
                 animate={{
                   scale: [1, 1.5, 1],
                   opacity: [0.5, 1, 0.5]

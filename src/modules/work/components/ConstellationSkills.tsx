@@ -222,7 +222,7 @@ export const ConstellationSkills: React.FC = () => {
           {/* Toggle constellation names - wireframe button */}
           <motion.button
             onClick={() => setShowConstellationNames(!showConstellationNames)}
-            className={`px-4 py-2 bg-white border border-black text-black hover:bg-gray-50 transition-all handwritten`}
+            className={`px-5 py-2 bg-white border border-black text-black hover:bg-gray-50 transition-all handwritten`}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             style={{ fontFamily: 'Left Hand, cursive' }}
@@ -542,20 +542,20 @@ export const ConstellationSkills: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 2 }}
         >
-          <div className="flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-200 rounded-lg">
-            <div className="w-4 h-4 bg-red-400 rounded-full border-2 border-gray-700"></div>
+          <div className="flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-200 rounded-none">
+            <div className="w-4 h-4 bg-red-400 rounded-none border border-gray-700"></div>
             <span className={`text-sm handwritten`} style={{ fontFamily: 'Left Hand, cursive' }}>📌 Expert Level</span>
           </div>
-          <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="w-4 h-4 bg-blue-400 rounded-full border-2 border-gray-700"></div>
+          <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-none">
+            <div className="w-4 h-4 bg-blue-400 rounded-none border border-gray-700"></div>
             <span className={`text-sm handwritten`} style={{ fontFamily: 'Left Hand, cursive' }}>📌 Advanced</span>
           </div>
-          <div className="flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-lg">
-            <div className="w-4 h-4 bg-green-400 rounded-full border-2 border-gray-700"></div>
+          <div className="flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-none">
+            <div className="w-4 h-4 bg-green-400 rounded-none border border-gray-700"></div>
             <span className={`text-sm handwritten`} style={{ fontFamily: 'Left Hand, cursive' }}>📌 Proficient</span>
           </div>
-          <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg">
-            <div className="w-4 h-4 bg-gray-400 rounded-full border-2 border-gray-700"></div>
+          <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-none">
+            <div className="w-4 h-4 bg-gray-400 rounded-none border border-gray-700"></div>
             <span className={`text-sm handwritten`} style={{ fontFamily: 'Left Hand, cursive' }}>📌 Learning</span>
           </div>
         </motion.div>

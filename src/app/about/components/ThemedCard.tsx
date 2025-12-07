@@ -46,59 +46,60 @@ interface ThemedCardProps {
 }
 
 export function ThemedCard({ theme, children, className, onClick, isCollapsed }: ThemedCardProps) {
-  const baseClasses = "relative overflow-hidden transition-all duration-300 group";
+  // Global wireframe enforcement: sharp corners, black borders, hard shadows
+  const baseClasses = "relative overflow-hidden transition-all duration-300 group border-2 border-black shadow-[4px_4px_0px_#000] rounded-none hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_#000]";
   
   const themeStyles: Record<ThemeType, string> = {
-    xp: "rounded-t-lg rounded-b-none border-2 border-[#0055EA] bg-[#ECE9D8] shadow-[4px_4px_0px_rgba(0,0,0,0.2)] font-[Tahoma,sans-serif] [&_span.rounded-full]:!bg-white [&_span.rounded-full]:!border-[#003c74] [&_span.rounded-full]:!text-black [&_span.rounded-full]:!rounded-[2px] [&_span.rounded-full]:!shadow-none",
-    web2: "rounded-lg bg-gradient-to-b from-white via-[#f0f0f0] to-[#d0d0d0] border border-[#999] shadow-lg ring-1 ring-white/60 [&_span.rounded-full]:!bg-gradient-to-b [&_span.rounded-full]:!from-white [&_span.rounded-full]:!to-[#e0e0e0] [&_span.rounded-full]:!border-[#aaa] [&_span.rounded-full]:!shadow-[0_1px_2px_rgba(0,0,0,0.1)]",
-    skeuomorph: "rounded-lg bg-[#fdfbf7] border-2 border-[#d4c5b0] shadow-[inset_0_0_20px_rgba(0,0,0,0.05),0_4px_6px_rgba(0,0,0,0.1)] font-[Georgia,serif] bg-[url('https://www.transparenttextures.com/patterns/notebook.png')] [&_span.rounded-full]:!bg-[#f8f5e6] [&_span.rounded-full]:!border-[#d4c5b0] [&_span.rounded-full]:!border-dashed [&_span.rounded-full]:!text-[#5c4b37]",
-    flat: "rounded-none bg-[#2ecc71] border-none shadow-none font-[Helvetica,Arial,sans-serif] text-white [&_span.rounded-full]:!bg-[#27ae60] [&_span.rounded-full]:!text-white [&_span.rounded-full]:!border-none [&_span.rounded-full]:!rounded-sm [&_h3]:!text-white [&_p]:!text-white/90",
-    material: "rounded-sm bg-white shadow-[0_1px_3px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.24)] hover:shadow-[0_14px_28px_rgba(0,0,0,0.25),0_10px_10px_rgba(0,0,0,0.22)] transition-shadow border-t-4 border-[#6200ea] [&_span.rounded-full]:!bg-[#6200ea] [&_span.rounded-full]:!text-white [&_span.rounded-full]:!rounded-[2px] [&_span.rounded-full]:!shadow-md [&_span.rounded-full]:uppercase [&_span.rounded-full]:tracking-wider [&_span.rounded-full]:text-[10px] [&_span.rounded-full]:font-bold",
-    iphone: "rounded-[3rem] bg-white border-[8px] border-[#d1d1d6] shadow-xl ring-1 ring-gray-400 [&_span.rounded-full]:!bg-[#f2f2f7] [&_span.rounded-full]:!text-blue-500 [&_span.rounded-full]:!border-none [&_h3]:!text-black [&_p]:!text-gray-600",
-    neumorphism: "rounded-[2rem] bg-[#e0e5ec] shadow-[20px_20px_60px_#bebebe,-20px_-20px_60px_#ffffff] border-none text-[#4a4a4a] [&_span.rounded-full]:!bg-[#e0e5ec] [&_span.rounded-full]:!shadow-[5px_5px_10px_#bebebe,-5px_-5px_10px_#ffffff] [&_span.rounded-full]:!border-none [&_span.rounded-full]:!text-[#4a4a4a]",
-    widgets: "rounded-[2rem] bg-white shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] border border-gray-100 hover:scale-[1.02] transition-transform [&_span.rounded-full]:!bg-gray-100 [&_span.rounded-full]:!text-black [&_span.rounded-full]:!border-none",
-    claymorphism: "rounded-[2.5rem] bg-white shadow-[inset_-10px_-10px_20px_rgba(0,0,0,0.1),inset_10px_10px_20px_rgba(255,255,255,1),10px_10px_20px_rgba(0,0,0,0.1)] border border-white/50 backdrop-blur-sm [&_span.rounded-full]:!bg-[#f0f0f3] [&_span.rounded-full]:!shadow-[inset_-2px_-2px_5px_rgba(0,0,0,0.1),inset_2px_2px_5px_rgba(255,255,255,1)] [&_span.rounded-full]:!border-none [&_span.rounded-full]:!rounded-xl",
-    brutalism: "rounded-none border-2 border-black bg-[#FFDE59] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] font-mono [&_span.rounded-full]:!bg-white [&_span.rounded-full]:!border-2 [&_span.rounded-full]:!border-black [&_span.rounded-full]:!text-black [&_span.rounded-full]:!rounded-none [&_span.rounded-full]:!shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]",
-    aurora: "rounded-2xl bg-gradient-to-br from-[#2E3192] to-[#1BFFFF] shadow-lg text-white [&_span.rounded-full]:!bg-white/20 [&_span.rounded-full]:!backdrop-blur-md [&_span.rounded-full]:!border-white/30 [&_span.rounded-full]:!text-white [&_h3]:!text-white [&_p]:!text-white/90",
-    minimalism: "rounded-[2rem] bg-white border border-slate-200 shadow-[0_30px_70px_rgba(15,23,42,0.08)] text-slate-900 font-[Helvetica,Arial,sans-serif] [&_h3]:!text-slate-900 [&_p]:!text-slate-600 [&_span.rounded-full]:!bg-slate-100 [&_span.rounded-full]:!text-slate-800 [&_span.rounded-full]:!border-slate-200 [&_span.rounded-full]:!uppercase [&_span.rounded-full]:!tracking-[0.15em] [&_span.rounded-full]:!text-[10px] [&_span.rounded-full]:!font-semibold",
-    paper: "rounded-[2.5rem] bg-[#fffdf5] border border-[#e5dcc7] shadow-[0_22px_55px_rgba(15,23,42,0.12)] text-[#2f271a] font-['Patrick_Hand',cursive] [&_h3]:!text-[#1f1510] [&_p]:!text-[#4b4336] [&_span.rounded-full]:!bg-white [&_span.rounded-full]:!border-[#e5dcc7] [&_span.rounded-full]:!text-[#3b3227] [&_span.rounded-full]:!shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]",
-    glass: "rounded-3xl bg-white/30 backdrop-blur-xl border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.15)] [&_span.rounded-full]:!bg-white/40 [&_span.rounded-full]:!backdrop-blur-md [&_span.rounded-full]:!border-white/50 [&_span.rounded-full]:!text-gray-800 [&_span.rounded-full]:!shadow-sm [&_h3]:!text-gray-900 [&_p]:!text-gray-700 [&_span]:!text-gray-800",
+    xp: "bg-[#ECE9D8] font-[Tahoma,sans-serif] [&_span.rounded-none]:!bg-white [&_span.rounded-none]:!border-[#003c74] [&_span.rounded-none]:!text-black [&_span.rounded-none]:!rounded-none [&_span.rounded-none]:!shadow-none",
+    web2: "bg-gradient-to-b from-white via-[#f0f0f0] to-[#d0d0d0] [&_span.rounded-none]:!bg-gradient-to-b [&_span.rounded-none]:!from-white [&_span.rounded-none]:!to-[#e0e0e0] [&_span.rounded-none]:!border-black [&_span.rounded-none]:!shadow-none",
+    skeuomorph: "bg-[#fdfbf7] font-[Georgia,serif] bg-[url('https://www.transparenttextures.com/patterns/notebook.png')] [&_span.rounded-none]:!bg-[#f8f5e6] [&_span.rounded-none]:!border-black [&_span.rounded-none]:!border-dashed [&_span.rounded-none]:!text-[#5c4b37]",
+    flat: "bg-[#2ecc71] font-[Helvetica,Arial,sans-serif] text-white [&_span.rounded-none]:!bg-[#27ae60] [&_span.rounded-none]:!text-white [&_span.rounded-none]:!border-black [&_span.rounded-none]:!rounded-none [&_h3]:!text-white [&_p]:!text-white/90",
+    material: "bg-white border-t-4 border-t-[#6200ea] [&_span.rounded-none]:!bg-[#6200ea] [&_span.rounded-none]:!text-white [&_span.rounded-none]:!rounded-none [&_span.rounded-none]:!shadow-none [&_span.rounded-none]:uppercase [&_span.rounded-none]:tracking-wider [&_span.rounded-none]:text-[10px] [&_span.rounded-none]:font-bold",
+    iphone: "bg-white border-black [&_span.rounded-none]:!bg-[#f2f2f7] [&_span.rounded-none]:!text-blue-500 [&_span.rounded-none]:!border-black [&_h3]:!text-black [&_p]:!text-gray-600",
+    neumorphism: "bg-[#e0e5ec] text-[#4a4a4a] [&_span.rounded-none]:!bg-[#e0e5ec] [&_span.rounded-none]:!border-black [&_span.rounded-none]:!text-[#4a4a4a]",
+    widgets: "bg-white hover:scale-[1.02] transition-transform [&_span.rounded-none]:!bg-gray-100 [&_span.rounded-none]:!text-black [&_span.rounded-none]:!border-black",
+    claymorphism: "bg-white backdrop-blur-sm [&_span.rounded-none]:!bg-[#f0f0f3] [&_span.rounded-none]:!border-black [&_span.rounded-none]:!rounded-none",
+    brutalism: "bg-[#FFDE59] font-mono [&_span.rounded-none]:!bg-white [&_span.rounded-none]:!border-2 [&_span.rounded-none]:!border-black [&_span.rounded-none]:!text-black [&_span.rounded-none]:!rounded-none [&_span.rounded-none]:!shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]",
+    aurora: "bg-gradient-to-br from-[#2E3192] to-[#1BFFFF] text-white [&_span.rounded-none]:!bg-white/20 [&_span.rounded-none]:!backdrop-blur-md [&_span.rounded-none]:!border-black [&_span.rounded-none]:!text-white [&_h3]:!text-white [&_p]:!text-white/90",
+    minimalism: "bg-white text-slate-900 font-[Helvetica,Arial,sans-serif] [&_h3]:!text-slate-900 [&_p]:!text-slate-600 [&_span.rounded-none]:!bg-slate-100 [&_span.rounded-none]:!text-slate-800 [&_span.rounded-none]:!border-black [&_span.rounded-none]:!uppercase [&_span.rounded-none]:!tracking-[0.15em] [&_span.rounded-none]:!text-[10px] [&_span.rounded-none]:!font-semibold",
+    paper: "bg-[#fffdf5] text-[#2f271a] font-mono [&_h3]:!text-[#1f1510] [&_p]:!text-[#4b4336] [&_span.rounded-none]:!bg-white [&_span.rounded-none]:!border-black [&_span.rounded-none]:!text-[#3b3227]",
+    glass: "bg-white/30 backdrop-blur-xl border-black [&_span.rounded-none]:!bg-white/40 [&_span.rounded-none]:!backdrop-blur-md [&_span.rounded-none]:!border-black [&_span.rounded-none]:!text-gray-800 [&_span.rounded-none]:!shadow-none [&_h3]:!text-gray-900 [&_p]:!text-gray-700 [&_span]:!text-gray-800",
   };
 
   const contentWrapperStyles: Record<ThemeType, string> = {
-    xp: "p-6 bg-white m-1 border border-[#828790] shadow-[inset_1px_1px_0px_#000000,inset_-1px_-1px_0px_#dcdcdc]",
-    web2: "p-6",
+    xp: "p-4 bg-white m-1 border border-black",
+    web2: "p-4",
     skeuomorph: "p-8",
     flat: "p-8",
     material: "p-8",
-    iphone: "p-8 pt-14 bg-white h-full rounded-[2.5rem] overflow-hidden relative",
-    neumorphism: "p-10",
+    iphone: "p-8 pt-14 bg-white h-full overflow-hidden relative",
+    neumorphism: "p-8",
     widgets: "p-8",
-    claymorphism: "p-10",
-    brutalism: "p-6",
+    claymorphism: "p-8",
+    brutalism: "p-4",
     aurora: "p-8",
-    minimalism: "p-10",
+    minimalism: "p-8",
     paper: "p-8",
     glass: "p-8 relative z-10",
   };
 
   // XP Header
   const XPHeader = () => (
-    <div className="bg-gradient-to-r from-[#0058EE] via-[#3A93FF] to-[#0058EE] px-2 py-1 flex justify-between items-center shadow-sm border-b border-[#003c74] mx-[2px] mt-[2px] rounded-t-[3px]">
-      <span className="text-white font-bold text-xs drop-shadow-md font-[Tahoma] flex items-center gap-1">
+    <div className="bg-gradient-to-r from-[#0058EE] via-[#3A93FF] to-[#0058EE] px-2 py-1 flex justify-between items-center border-b border-black mx-[2px] mt-[2px]">
+      <span className="text-white font-bold text-xs font-[Tahoma] flex items-center gap-1">
         <img src="https://win98icons.alexmeub.com/icons/png/computer_explorer-0.png" className="w-3 h-3" alt="" />
         Kiruk.exe
       </span>
       <div className="flex gap-1">
-        <div className="w-5 h-5 bg-[#D7432D] rounded-[3px] border border-white/60 flex items-center justify-center text-white text-[12px] shadow-sm cursor-pointer hover:bg-[#ff5a42] active:border-inset">×</div>
+        <div className="w-4 h-4 bg-[#D7432D] border border-white/60 flex items-center justify-center text-white text-[12px] cursor-pointer hover:bg-[#ff5a42]">×</div>
       </div>
     </div>
   );
 
-  // iPhone Notch
+  // iPhone Notch - Wireframe style
   const IPhoneNotch = () => (
-    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-36 h-7 bg-black rounded-b-2xl z-30 flex justify-center items-center">
-        <div className="w-12 h-1 bg-gray-800 rounded-full opacity-50"></div>
+    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-36 h-7 bg-black z-30 flex justify-center items-center">
+        <div className="w-12 h-1 bg-gray-800 rounded-none opacity-50"></div>
     </div>
   );
 
@@ -113,7 +114,7 @@ export function ThemedCard({ theme, children, className, onClick, isCollapsed }:
       <div className={cn("h-full", contentWrapperStyles[theme])}>
         {/* iPhone Status Bar */}
         {theme === "iphone" && (
-            <div className="absolute top-2 left-6 right-6 flex justify-between text-[10px] text-black font-medium z-20 px-2">
+            <div className="absolute top-2 left-4 right-4 flex justify-between text-[10px] text-black font-medium z-20 px-2">
                 <span>9:41</span>
                 <div className="flex gap-1">
                     <span>5G</span>
@@ -133,20 +134,19 @@ export function ThemedCard({ theme, children, className, onClick, isCollapsed }:
         </>
       )}
       {theme === "skeuomorph" && (
-        <div className="absolute inset-2 border-2 border-dashed border-[#d4c5b0] rounded-lg pointer-events-none opacity-50" />
+        <div className="absolute inset-2 border-2 border-dashed border-black pointer-events-none opacity-20" />
       )}
       {theme === "paper" && (
         <>
           <div className="absolute inset-0 bg-[linear-gradient(#f1e6cf_1px,transparent_1px)] bg-[size:100%_28px] opacity-60 pointer-events-none" />
           <div className="absolute inset-0 bg-[linear-gradient(90deg,#f1e6cf_1px,transparent_1px)] bg-[size:28px_100%] opacity-20 pointer-events-none" />
-          <div className="absolute inset-0 bg-gradient-to-br from-white/80 via-transparent to-amber-100/30 pointer-events-none" />
         </>
       )}
       {theme === "glass" && (
         <>
             {/* Vivid background blobs for glass effect visibility */}
-            <div className="absolute -top-20 -right-20 w-64 h-64 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full blur-[80px] opacity-60 pointer-events-none" />
-            <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-gradient-to-tr from-blue-600 to-cyan-600 rounded-full blur-[80px] opacity-60 pointer-events-none" />
+            <div className="absolute -top-20 -right-20 w-64 h-64 bg-gradient-to-br from-purple-600 to-pink-600 blur-[80px] opacity-60 pointer-events-none" />
+            <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-gradient-to-tr from-blue-600 to-cyan-600 blur-[80px] opacity-60 pointer-events-none" />
             
             {/* Noise texture overlay */}
             <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
