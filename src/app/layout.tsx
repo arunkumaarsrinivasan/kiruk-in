@@ -8,7 +8,7 @@ import AnalyticsTracker from "@/components/analytics/AnalyticsTracker";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { DesignEraProvider } from "@/contexts/DesignEraContext";
-import TimeTravelSlider from "@/components/ui/TimeTravelSlider";
+import { GameModeProvider } from "@/contexts/GameModeContext";
 import ThemeLayout from "@/components/layout/ThemeLayout";
 
 export const metadata: Metadata = {
@@ -39,16 +39,17 @@ export default function RootLayout({
         {/* Simplified layout - prioritizing magnetic font usage */}
         <ThemeProvider>
           <DesignEraProvider>
-            <ThemeLayout>
-              <CursorProvider>
-                <CustomCursor />
-                <AnalyticsTracker />
-                <LayoutClientShell>
-                  {children}
-                </LayoutClientShell>
-              </CursorProvider>
-            </ThemeLayout>
-            <TimeTravelSlider />
+            <GameModeProvider>
+              <ThemeLayout>
+                <CursorProvider>
+                  <CustomCursor />
+                  <AnalyticsTracker />
+                  <LayoutClientShell>
+                    {children}
+                  </LayoutClientShell>
+                </CursorProvider>
+              </ThemeLayout>
+            </GameModeProvider>
           </DesignEraProvider>
         </ThemeProvider>
         <SpeedInsights />

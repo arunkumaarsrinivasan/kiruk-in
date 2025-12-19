@@ -7,11 +7,11 @@ export async function POST(request: NextRequest) {
     // Apply Arcjet form protection (skip if not configured)
     if (ajForm) {
       const decision = await ajForm.protect(request);
-      
+
       if (decision.isDenied()) {
         if (decision.reason.isRateLimit()) {
           return NextResponse.json(
-            { 
+            {
               error: 'Too many contact form submissions. Please try again later.',
               type: 'rate_limit'
             },
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
           );
         } else if (decision.reason.isBot()) {
           return NextResponse.json(
-            { 
+            {
               error: 'Bot traffic detected. Please verify you are human.',
               type: 'bot_detected'
             },
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
           );
         } else if (decision.reason.isShield()) {
           return NextResponse.json(
-            { 
+            {
               error: 'Suspicious activity detected. Please try again.',
               type: 'security'
             },
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
           );
         } else {
           return NextResponse.json(
-            { 
+            {
               error: 'Access denied.',
               type: 'access_denied'
             },
@@ -87,21 +87,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Log successful submission
-    console.log('Contact form submission saved to database:', {
-      id: data.id,
-      name: submissionData.name,
-      email: submissionData.email,
-      timestamp: data.created_at
-    });
+
 
     // TODO: In production, integrate with email service like:
     // - SendGrid
     // - Resend
     // - AWS SES
     // - Nodemailer
-    
-    // Simulate email sending delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+
+
 
     return NextResponse.json({
       success: true,

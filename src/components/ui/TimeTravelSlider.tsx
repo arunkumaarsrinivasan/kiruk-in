@@ -1,174 +1,319 @@
 'use client';
 
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useDesignEra } from '@/contexts/DesignEraContext';
+import { cn, GRID_SIZE } from '@/lib/utils';
+
+/**
+ * TimeTravelSlider - Grid-based Era Selector
+ * 
+ * Matches the site's Teenage Engineering-inspired grid system:
+ * - Uses GRID_SIZE (20px) for all measurements
+ * - Rectangular tiles with borders
+ * - Hover scale effects
+ * - Mono font throughout
+ * - Collapsible to save space
+ */
+
+const TE_TIMING = {
+  instant: 0.08,
+  quick: 0.15,
+};
 
 const TimeTravelSlider: React.FC = () => {
   const { eras, currentEra, currentEraId, setEra } = useDesignEra();
   const [sliderIndex, setSliderIndex] = useState(0);
   const [mounted, setMounted] = useState(false);
-  const [isPanelOpen, setIsPanelOpen] = useState(false);
-  const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  // Sync slider with era
   useEffect(() => {
-    if (!eras.length) {
-      return;
-    }
+    if (!eras.length) return;
     const activeIndex = Math.max(0, eras.findIndex((theme) => theme.id === currentEraId));
     setSliderIndex(activeIndex === -1 ? 0 : activeIndex);
   }, [eras, currentEraId]);
 
-  const clearHideTimer = useCallback(() => {
-    if (hideTimerRef.current) {
-      clearTimeout(hideTimerRef.current);
-      hideTimerRef.current = null;
-    }
-  }, []);
-
-  const scheduleAutoHide = useCallback(() => {
-    clearHideTimer();
-    hideTimerRef.current = setTimeout(() => {
-      setIsPanelOpen(false);
-    }, 2400);
-  }, [clearHideTimer]);
-
-  const handlePanelReveal = useCallback(() => {
-    clearHideTimer();
-    setIsPanelOpen(true);
-  }, [clearHideTimer]);
-
-  const handlePanelDock = useCallback(() => {
-    scheduleAutoHide();
-  }, [scheduleAutoHide]);
-
+  // Keyboard navigation when expanded
   useEffect(() => {
-    scheduleAutoHide();
-    return () => clearHideTimer();
-  }, [scheduleAutoHide, clearHideTimer]);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        navigateEra(-1);
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        navigateEra(1);
+      } else if (e.key === 'Escape' && isExpanded) {
+        setIsExpanded(false);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [sliderIndex, eras, isExpanded]);
+
+  const navigateEra = useCallback((direction: number) => {
+    const newIndex = Math.max(0, Math.min(eras.length - 1, sliderIndex + direction));
+    const nextEra = eras[newIndex];
+    if (nextEra && newIndex !== sliderIndex) {
+      setSliderIndex(newIndex);
+      setEra(nextEra.id);
+    }
+  }, [sliderIndex, eras, setEra]);
+
+  const handleTickClick = (index: number) => {
+    const nextEra = eras[index];
+    if (nextEra) {
+      setSliderIndex(index);
+      setEra(nextEra.id);
+    }
+  };
 
   if (!mounted || !eras.length) {
     return null;
   }
 
-  const handleSliderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const nextIndex = Number(event.target.value);
-    const nextEra = eras[nextIndex];
+  const eraName = currentEra.name?.split(': ')[1] ?? currentEra.name ?? 'Era';
 
-    if (nextEra) {
-      setSliderIndex(nextIndex);
-      setEra(nextEra.id);
-    }
-  };
-
-  const minYear = eras[0]?.id ?? '1970';
-  const maxYear = eras[eras.length - 1]?.id ?? '2025';
-  const eraCountLabel = `${String(sliderIndex + 1).padStart(2, '0')}/${String(eras.length).padStart(2, '0')}`;
-  const eraTraits = (currentEra.keyElements && currentEra.keyElements.length > 0
-    ? currentEra.keyElements
-    : currentEra.description.split(',')
-  )
-    .map((trait) => trait.trim())
-    .filter(Boolean);
-  const gridShift = sliderIndex * 4;
-  const gridStyle: React.CSSProperties = {
-    backgroundImage:
-      'linear-gradient(rgba(0,0,0,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.06) 1px, transparent 1px)',
-    backgroundSize: '20px 20px',
-    backgroundPosition: `${gridShift}px ${gridShift}px, ${gridShift}px ${gridShift}px`
-  };
+  // Grid-aligned dimensions
+  const BAR_HEIGHT = GRID_SIZE * 3; // 60px - matches header
+  const COLLAPSED_WIDTH = GRID_SIZE * 8; // 160px
+  const ERA_TILE_WIDTH = GRID_SIZE * 2.5; // 50px per era tile
+  const CONTROL_WIDTH = GRID_SIZE * 2; // 40px for nav buttons
 
   return (
     <div
-      className="fixed right-6 bottom-6 z-50 flex flex-col items-end"
-      onMouseEnter={handlePanelReveal}
-      onMouseLeave={handlePanelDock}
-      onFocusCapture={handlePanelReveal}
-      onBlurCapture={handlePanelDock}
+      className="fixed bottom-0 left-1/2 z-[9999] pointer-events-auto"
+      style={{ transform: 'translateX(-50%)' }}
     >
-      <div
-        className={`transition-all duration-300 origin-bottom-right ${
-          isPanelOpen
-            ? 'opacity-100 scale-100 translate-y-0 mb-4 pointer-events-auto'
-            : 'opacity-0 scale-95 translate-y-4 pointer-events-none h-0 overflow-hidden'
-        }`}
-      >
-        <aside
-          className="w-[280px] border border-[var(--border-color)] bg-[var(--bg-main)] p-3 shadow-none overflow-hidden"
-          style={gridStyle}
-          aria-label="Design era time slider"
-        >
-          <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-[0.2em] text-[var(--text-muted)]">
-            <span>Era Progress</span>
-            <span>Lv {eraCountLabel}</span>
-          </div>
-          <div className="mt-2 flex items-center justify-between gap-3">
-            <div className="flex-1">
-              <p className="text-[12px] font-semibold uppercase text-[var(--text-main)]">
-                {currentEra.name.split(': ')[1] ?? currentEra.name}
-              </p>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {eraTraits.slice(0, 4).map((trait) => (
-                  <span
-                    key={trait}
-                    className="px-2 py-0.5 border border-[var(--border-color)] bg-[var(--bg-card)]/80 text-[9px] font-mono uppercase tracking-[0.18em] text-[var(--text-muted)]"
-                  >
-                    {trait}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
+      <AnimatePresence mode="wait">
+        {!isExpanded ? (
+          /* Collapsed State - Single Tile */
+          <motion.div
+            key="collapsed"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            transition={{ duration: TE_TIMING.quick }}
+            className="flex"
+          >
+            {/* Previous Era Button */}
+            <motion.button
+              className={cn(
+                'flex items-center justify-center',
+                'bg-[var(--bg-card)] text-[var(--text-main)]',
+                'border border-[var(--border-color)]',
+                'cursor-pointer select-none',
+                'hover:bg-[var(--text-main)] hover:text-[var(--bg-main)]',
+                'transition-colors duration-100'
+              )}
+              style={{ width: CONTROL_WIDTH, height: BAR_HEIGHT }}
+              onClick={() => navigateEra(-1)}
+              disabled={sliderIndex === 0}
+              whileHover={{ scale: 0.95 }}
+              whileTap={{ scale: 0.9 }}
+              transition={{ duration: TE_TIMING.instant }}
+              aria-label="Previous era"
+            >
+              <span className="text-lg font-mono">◀</span>
+            </motion.button>
 
-          <div className="relative w-full pt-4">
-            <input
-              type="range"
-              min={0}
-              max={eras.length - 1}
-              value={sliderIndex}
-              step={1}
-              onChange={handleSliderChange}
-              className="block h-2 w-full cursor-ew-resize appearance-none rounded-none border border-[var(--border-color)] bg-[var(--bg-secondary)] accent-[var(--text-main)]"
-              aria-valuemin={Number(minYear)}
-              aria-valuemax={Number(maxYear)}
-              aria-valuenow={Number(currentEraId)}
-            />
-            <div className="mt-3 flex justify-between">
-              {eras.map((theme, index) => (
-                <button
-                  key={theme.id}
-                  type="button"
-                  className="flex-1"
-                  aria-label={`Jump to era ${theme.id}`}
-                  onClick={() => {
-                    setSliderIndex(index);
-                    setEra(theme.id);
-                  }}
+            {/* Main Era Display - Clickable to expand */}
+            <motion.button
+              className={cn(
+                'flex flex-col items-center justify-center',
+                'bg-[var(--text-main)] text-[var(--bg-main)]',
+                'border border-[var(--border-color)]',
+                'cursor-pointer select-none',
+                'hover:bg-[var(--accent-color)]',
+                'transition-colors duration-100'
+              )}
+              style={{ width: COLLAPSED_WIDTH, height: BAR_HEIGHT }}
+              onClick={() => setIsExpanded(true)}
+              whileHover={{ scale: 0.98 }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ duration: TE_TIMING.instant }}
+              aria-label="Expand timeline"
+              aria-expanded={isExpanded}
+            >
+              {/* Index indicator */}
+              <span className="absolute top-1 left-2 text-[7px] font-mono opacity-50">
+                {String(sliderIndex + 1).padStart(2, '0')}/{String(eras.length).padStart(2, '0')}
+              </span>
+              
+              {/* Era Year */}
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={currentEraId}
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 5 }}
+                  className="text-2xl font-mono font-bold"
                 >
-                  <span
-                    className={`mx-auto block h-3 w-px ${
-                      index === sliderIndex
-                        ? 'bg-[var(--text-main)]'
-                        : 'bg-[var(--border-color)] opacity-70 hover:opacity-100'
-                    }`}
-                  />
-                </button>
-              ))}
-            </div>
-          </div>
-        </aside>
-      </div>
+                  {currentEraId}
+                </motion.span>
+              </AnimatePresence>
+              
+              {/* Era Name */}
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={eraName}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="text-[8px] font-mono uppercase tracking-wider mt-0.5 opacity-70"
+                >
+                  {eraName.slice(0, 12)}
+                </motion.span>
+              </AnimatePresence>
 
-      <button
-        onClick={() => setIsPanelOpen(!isPanelOpen)}
-        className="group relative flex items-center justify-center border border-[var(--border-color)] bg-[var(--bg-main)] px-4 py-2 text-xl font-black text-[var(--text-main)] hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] transition-all"
-        aria-label="Toggle time travel slider"
-      >
-        {currentEraId}
-      </button>
+              {/* Expand hint */}
+              <span className="absolute bottom-1 text-[6px] font-mono opacity-40">
+                ▲ EXPAND
+              </span>
+            </motion.button>
+
+            {/* Next Era Button */}
+            <motion.button
+              className={cn(
+                'flex items-center justify-center',
+                'bg-[var(--bg-card)] text-[var(--text-main)]',
+                'border border-[var(--border-color)]',
+                'cursor-pointer select-none',
+                'hover:bg-[var(--text-main)] hover:text-[var(--bg-main)]',
+                'transition-colors duration-100'
+              )}
+              style={{ width: CONTROL_WIDTH, height: BAR_HEIGHT }}
+              onClick={() => navigateEra(1)}
+              disabled={sliderIndex === eras.length - 1}
+              whileHover={{ scale: 0.95 }}
+              whileTap={{ scale: 0.9 }}
+              transition={{ duration: TE_TIMING.instant }}
+              aria-label="Next era"
+            >
+              <span className="text-lg font-mono">▶</span>
+            </motion.button>
+          </motion.div>
+        ) : (
+          /* Expanded State - Full Timeline Grid */
+          <motion.div
+            key="expanded"
+            initial={{ opacity: 0, y: 20, scaleX: 0.8 }}
+            animate={{ opacity: 1, y: 0, scaleX: 1 }}
+            exit={{ opacity: 0, y: 10, scaleX: 0.8 }}
+            transition={{ duration: TE_TIMING.quick }}
+            className="flex"
+          >
+            {/* Collapse Button */}
+            <motion.button
+              className={cn(
+                'flex flex-col items-center justify-center',
+                'bg-[var(--bg-card)] text-[var(--text-main)]',
+                'border border-[var(--border-color)]',
+                'cursor-pointer select-none',
+                'hover:bg-[var(--text-main)] hover:text-[var(--bg-main)]',
+                'transition-colors duration-100'
+              )}
+              style={{ width: CONTROL_WIDTH, height: BAR_HEIGHT }}
+              onClick={() => setIsExpanded(false)}
+              whileHover={{ scale: 0.95 }}
+              whileTap={{ scale: 0.9 }}
+              transition={{ duration: TE_TIMING.instant }}
+              aria-label="Collapse timeline"
+            >
+              <span className="text-lg font-mono">▼</span>
+              <span className="text-[6px] font-mono mt-0.5 opacity-50">ESC</span>
+            </motion.button>
+
+            {/* Era Tiles */}
+            <div className="flex">
+              {eras.map((era, index) => {
+                const isActive = era.id === currentEraId;
+                const isPast = index < sliderIndex;
+                
+                return (
+                  <motion.button
+                    key={era.id}
+                    onClick={() => handleTickClick(index)}
+                    className={cn(
+                      'relative flex flex-col items-center justify-center',
+                      'border border-[var(--border-color)]',
+                      'cursor-pointer select-none',
+                      'transition-colors duration-100',
+                      isActive 
+                        ? 'bg-[var(--text-main)] text-[var(--bg-main)]' 
+                        : isPast
+                          ? 'bg-[var(--accent-color)]/20 text-[var(--text-main)] hover:bg-[var(--text-main)] hover:text-[var(--bg-main)]'
+                          : 'bg-[var(--bg-card)] text-[var(--text-muted)] hover:bg-[var(--text-main)] hover:text-[var(--bg-main)]'
+                    )}
+                    style={{ width: ERA_TILE_WIDTH, height: BAR_HEIGHT }}
+                    whileHover={{ scale: 0.95 }}
+                    whileTap={{ scale: 0.9 }}
+                    transition={{ duration: TE_TIMING.instant }}
+                    aria-label={`${era.id}: ${era.name}`}
+                    aria-current={isActive ? 'true' : undefined}
+                  >
+                    {/* Index */}
+                    <span className="absolute top-0.5 left-1 text-[6px] font-mono opacity-40">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    
+                    {/* Year */}
+                    <span 
+                      className="font-mono font-bold"
+                      style={{ fontSize: isActive ? 14 : 11 }}
+                    >
+                      {era.id}
+                    </span>
+                    
+                    {/* Progress dot */}
+                    {isPast && !isActive && (
+                      <span className="absolute bottom-1 text-[8px]">●</span>
+                    )}
+                    {isActive && (
+                      <motion.span 
+                        className="absolute bottom-1 text-[8px]"
+                        animate={{ scale: [1, 1.3, 1] }}
+                        transition={{ duration: 0.6, repeat: Infinity }}
+                      >
+                        ◆
+                      </motion.span>
+                    )}
+                  </motion.button>
+                );
+              })}
+            </div>
+
+            {/* Current Era Info Panel */}
+            <div 
+              className="flex flex-col justify-center bg-[var(--bg-card)] border border-[var(--border-color)] px-3"
+              style={{ width: GRID_SIZE * 6, height: BAR_HEIGHT }}
+            >
+              <span className="text-[7px] font-mono uppercase tracking-wider text-[var(--text-muted)]">
+                CURRENT ERA
+              </span>
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={eraName}
+                  initial={{ opacity: 0, x: -5 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 5 }}
+                  className="text-[10px] font-mono text-[var(--text-main)] leading-tight mt-0.5"
+                >
+                  {eraName}
+                </motion.span>
+              </AnimatePresence>
+              <span className="text-[7px] font-mono text-[var(--text-muted)] mt-1">
+                ← → to navigate
+              </span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

@@ -1,13 +1,67 @@
 "use client";
 
-import Navigation from "./navigation";
+import { useState, useCallback } from 'react';
+import { usePathname } from 'next/navigation';
+import SimpleGameNav from "./SimpleGameNav";
 import AppLoader from "@/components/ui/app-loader";
+import { GridArcade } from "@/components/ui/arcade";
+import { getRandomGameId, getDefaultGameId, getGameEntry } from "@/components/ui/arcade/game-registry";
+import TimeMachine from "@/components/ui/TimeMachine";
 
 interface LayoutClientShellProps {
   readonly children: React.ReactNode;
 }
 
 export default function LayoutClientShell({ children }: Readonly<LayoutClientShellProps>) {
+  const pathname = usePathname();
+  // Keep the global layout stable; only show the gamified header + grid on chosen pages.
+  const arcadeEnabled = pathname === '/';
+  
+  // Game state lifted up for coordination between nav and arcade
+  const [isGameActive, setIsGameActive] = useState(false);
+  const [gameId, setGameId] = useState(getDefaultGameId());
+  const [score, setScore] = useState(0);
+  
+  const gameEntry = getGameEntry(gameId);
+  const gameName = gameEntry?.label || 'Game';
+  
+  // Game icons based on game type
+  const gameIcons: Record<string, string> = {
+    'snake': '🐍',
+    'painter': '🎨',
+    'collector': '✨',
+    'avoider': '⚡',
+    'tetris': '🧱',
+    'pipe': '🔧',
+    'shooter': '🚀',
+    'minesweeper': '💣',
+    'flappy': '🐦',
+    'timeline': '📅',
+    'quiz': '❓',
+    'memory': '🧠',
+  };
+  const gameIcon = gameIcons[gameId] || '🎮';
+  
+  const handleToggleGame = useCallback(() => {
+    setIsGameActive(prev => !prev);
+    if (!isGameActive) {
+      setScore(0);
+    }
+  }, [isGameActive]);
+  
+  const handleRandomGame = useCallback(() => {
+    let newGameId = getRandomGameId();
+    while (newGameId === gameId) {
+      newGameId = getRandomGameId();
+    }
+    setGameId(newGameId);
+    setScore(0);
+  }, [gameId]);
+  
+  const handleScoreChange = useCallback((newScore: number) => {
+    setScore(newScore);
+  }, []);
+
   return (
     <AppLoader enableLoader={true} loadingDuration={3500}>
       {/* Skip Links for Accessibility */}
@@ -25,10 +79,31 @@ export default function LayoutClientShell({ children }: Readonly<LayoutClientShe
       >
         Skip to navigation
       </a>
-      <Navigation />
+      
+      {/* Simplified Game Navigation */}
+      <SimpleGameNav 
+        isGameActive={arcadeEnabled ? isGameActive : false}
+        currentGameId={gameId}
+        currentGameName={gameName}
+        currentGameIcon={gameIcon}
+        onToggleGame={arcadeEnabled ? handleToggleGame : undefined}
+      />
+      
       <main id="main-content" tabIndex={-1}>
         {children}
       </main>
+      
+      {/* Grid Arcade - only on home page */}
+      {arcadeEnabled && (
+        <GridArcade 
+          defaultGameId={gameId}
+        />
+      )}
+      
+      {/* Time Machine - Era Switcher */}
+      {arcadeEnabled && (
+        <TimeMachine />
+      )}
     </AppLoader>
   );
 }

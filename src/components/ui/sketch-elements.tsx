@@ -6,6 +6,56 @@ import { motion } from 'framer-motion';
 // Type definitions
 type Size = 'sm' | 'md' | 'lg';
 
+// Teenage Engineering inspired timing and easing values
+const TE_TIMING = {
+  instant: 0.08,   // 80ms
+  quick: 0.15,     // 150ms
+  standard: 0.25,  // 250ms
+};
+
+const TE_EASING = {
+  mechanical: [0.4, 0.0, 0.2, 1] as const,
+  spring: [0.34, 1.56, 0.64, 1] as const,
+  easeIn: [0.4, 0.0, 1, 1] as const,
+};
+
+// Motion variants for interactive elements
+const cardVariants = {
+  rest: {
+    scale: 1,
+    y: 0,
+    boxShadow: '0 0 0 0 rgba(0, 0, 0, 0)',
+  },
+  hover: {
+    scale: 1.02,
+    y: -2,
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+  },
+  tap: {
+    scale: 0.98,
+    y: 0,
+    boxShadow: '0 0 0 0 rgba(0, 0, 0, 0)',
+  },
+};
+
+const buttonVariants = {
+  rest: {
+    scale: 1,
+    y: 0,
+    boxShadow: '0 0 0 0 rgba(0, 0, 0, 0)',
+  },
+  hover: {
+    scale: 1.02,
+    y: -2,
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+  },
+  tap: {
+    scale: 0.98,
+    y: 0,
+    boxShadow: '0 0 0 0 rgba(0, 0, 0, 0)',
+  },
+};
+
 // Wireframe-style heading component
 export const SketchHeading = ({ 
   children, 
@@ -40,7 +90,7 @@ export const SketchBorder = ({ className = '' }: { className?: string }) => {
   );
 };
 
-// Wireframe-style card component
+// Wireframe-style card component with TE interactions
 export const SketchCard = ({ 
   children, 
   className = '',
@@ -50,25 +100,30 @@ export const SketchCard = ({
   className?: string;
   tilt?: 'left' | 'right' | 'none';
 }) => {
-  // Tilt is ignored in wireframe mode for a rigid look
   return (
     <motion.div
       className={`
-        relative p-4 bg-[var(--bg-card)]
+        te-card relative p-4 bg-[var(--bg-card)]
         border-[var(--border-width)] border-[var(--border-color)]
-        shadow-none
-        transition-all duration-300 ease-out
-        hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-none
+        shadow-none cursor-pointer
         ${className}
       `}
       tabIndex={0}
+      initial="rest"
+      whileHover="hover"
+      whileTap="tap"
+      variants={cardVariants}
+      transition={{
+        duration: TE_TIMING.quick,
+        ease: TE_EASING.spring,
+      }}
     >
       {children}
     </motion.div>
   );
 };
 
-// Wireframe-style button
+// Wireframe-style button with TE mechanical interactions
 export const SketchButton = ({ 
   children, 
   onClick,
@@ -87,16 +142,17 @@ export const SketchButton = ({
   size?: Size;
   className?: string;
   disabled?: boolean;
-}) => {  const baseClasses = `
-    relative font-bold uppercase tracking-wider
+}) => {
+  const baseClasses = `
+    te-button relative font-bold uppercase tracking-wider
     border-[var(--border-width)] border-[var(--border-color)]
-    transition-all duration-200 ease-out
-    transform active:translate-y-[2px] active:translate-x-[2px] active:shadow-none
     focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--border-color)]
     disabled:opacity-50 disabled:cursor-not-allowed
     inline-block text-center no-underline
-    shadow-none
-  `;  const variants = {
+    shadow-none cursor-pointer select-none
+  `;
+
+  const variants = {
     primary: 'bg-[var(--text-main)] text-[var(--bg-main)] hover:bg-[var(--text-muted)]',
     secondary: 'bg-[var(--bg-card)] text-[var(--text-main)] hover:bg-[var(--bg-main)]',
     outline: 'bg-transparent text-[var(--text-main)] hover:bg-[var(--bg-card)]'
@@ -117,8 +173,14 @@ export const SketchButton = ({
       <motion.a
         href={href}
         className={`${baseClasses} ${variants[variant]} ${sizes[size]} ${className}`}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
+        initial="rest"
+        whileHover="hover"
+        whileTap="tap"
+        variants={buttonVariants}
+        transition={{
+          duration: TE_TIMING.quick,
+          ease: TE_EASING.spring,
+        }}
       >
         {content}
       </motion.a>
@@ -131,8 +193,14 @@ export const SketchButton = ({
       className={`${baseClasses} ${variants[variant]} ${sizes[size]} ${className}`}
       onClick={onClick}
       disabled={disabled}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
+      initial="rest"
+      whileHover="hover"
+      whileTap="tap"
+      variants={buttonVariants}
+      transition={{
+        duration: TE_TIMING.quick,
+        ease: TE_EASING.spring,
+      }}
     >
       {content}
     </motion.button>
@@ -148,7 +216,7 @@ export const SketchDivider = ({ className = '' }: { className?: string }) => {
   );
 };
 
-// Wireframe-style highlight box
+// Wireframe-style highlight box with hover effect
 export const SketchHighlight = ({ 
   children, 
   color = 'gray',
@@ -158,30 +226,37 @@ export const SketchHighlight = ({
   color?: 'gray' | 'light' | 'dark' | 'muted';
   className?: string;
 }) => {
-  // Colors are now handled by CSS variables mostly, but we can keep some variation if needed
-  // For now, map all to standard card bg to enforce theme
   const colors = {
     gray: 'bg-[var(--bg-card)]',
     light: 'bg-[var(--bg-card)]',
     dark: 'bg-[var(--bg-card)]',
     muted: 'bg-[var(--bg-card)]'
   };
+
   return (
-    <span
+    <motion.span
       className={`
-        relative inline-block px-2 py-1 border-[var(--border-width)] border-[var(--border-color)]
+        te-interactive relative inline-block px-2 py-1 border-[var(--border-width)] border-[var(--border-color)]
         ${colors[color]}
         shadow-none
         font-mono text-sm text-[var(--text-main)]
         ${className}
       `}
+      whileHover={{
+        scale: 1.02,
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+      }}
+      transition={{
+        duration: TE_TIMING.quick,
+        ease: TE_EASING.mechanical,
+      }}
     >
       {children}
-    </span>
+    </motion.span>
   );
 };
 
-// Sticky note component - Now a rigid info card
+// Sticky note component with TE interactions
 export const StickyNote = ({ 
   children, 
   color = 'light',
@@ -206,22 +281,31 @@ export const StickyNote = ({
     lg: 'w-48 h-48 text-base'
   };
 
-  return (    <div
+  return (
+    <motion.div
       className={`
-        relative p-4 border-[var(--border-width)] border-[var(--border-color)]
+        te-card relative p-4 border-[var(--border-width)] border-[var(--border-color)]
         ${colors[color]} ${sizes[size]}
-        shadow-none
+        shadow-none cursor-pointer
         ${className}
       `}
+      initial="rest"
+      whileHover="hover"
+      whileTap="tap"
+      variants={cardVariants}
+      transition={{
+        duration: TE_TIMING.quick,
+        ease: TE_EASING.spring,
+      }}
     >
       <div className="font-mono text-[var(--text-main)] h-full overflow-hidden">
         {children}
       </div>
-    </div>
+    </motion.div>
   );
 };
 
-// Wireframe Arrow (Straight lines)
+// Wireframe Arrow (Straight lines) with hover animation
 export const SketchArrow = ({ 
   direction = 'right',
   size = 'md',
@@ -245,8 +329,13 @@ export const SketchArrow = ({
   };
 
   return (
-    <div
+    <motion.div
       className={`${sizes[size]} ${rotations[direction]} ${className}`}
+      whileHover={{ x: direction === 'right' ? 4 : direction === 'left' ? -4 : 0 }}
+      transition={{
+        duration: TE_TIMING.quick,
+        ease: TE_EASING.mechanical,
+      }}
     >
       <svg viewBox="0 0 100 100" className="w-full h-full">
         <path
@@ -259,7 +348,7 @@ export const SketchArrow = ({
           className="text-[var(--text-main)]"
         />
       </svg>
-    </div>
+    </motion.div>
   );
 };
 
@@ -285,15 +374,32 @@ export const WireframeCard = ({
 
       {/* Measurement Label */}
       {measurement && (
-        <div className="absolute -top-3 left-4 text-xs text-[var(--text-main)] bg-[var(--bg-card)] px-2 font-mono border-[var(--border-width)] border-[var(--border-color)] z-20">
+        <motion.div 
+          className="absolute -top-3 left-4 text-xs text-[var(--text-main)] bg-[var(--bg-card)] px-2 font-mono border-[var(--border-width)] border-[var(--border-color)] z-20"
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{
+            duration: TE_TIMING.standard,
+            ease: TE_EASING.mechanical,
+          }}
+        >
           DURATION: {measurement}
-        </div>
+        </motion.div>
       )}
 
-      {/* Content Container */}
-      <div className="relative z-10 bg-[var(--bg-card)] border-[var(--border-width)] border-[var(--border-color)] shadow-none">
+      {/* Content Container with TE hover */}
+      <motion.div 
+        className="te-card relative z-10 bg-[var(--bg-card)] border-[var(--border-width)] border-[var(--border-color)] shadow-none"
+        initial="rest"
+        whileHover="hover"
+        variants={cardVariants}
+        transition={{
+          duration: TE_TIMING.quick,
+          ease: TE_EASING.mechanical,
+        }}
+      >
         {children}
-      </div>
+      </motion.div>
     </div>
   );
 };

@@ -4,6 +4,20 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SketchHeading } from './sketch-elements';
 
+// Teenage Engineering inspired timing and easing values
+const TE_TIMING = {
+  instant: 0.08,   // 80ms
+  quick: 0.15,     // 150ms
+  standard: 0.25,  // 250ms
+  smooth: 0.4,     // 400ms
+};
+
+const TE_EASING = {
+  mechanical: [0.4, 0.0, 0.2, 1] as const,
+  spring: [0.34, 1.56, 0.64, 1] as const,
+  organic: [0.65, 0.0, 0.35, 1] as const,
+};
+
 interface LoadingPageProps {
   onComplete?: () => void;
   duration?: number;
@@ -18,15 +32,15 @@ const LoadingPage: React.FC<LoadingPageProps> = ({
   const [isComplete, setIsComplete] = useState(false);
 
   const loadingSteps = [
-    { text: "Sketching the canvas", icon: "🎨", delay: 0 },
-    { text: "Loading creative tools", icon: "✏️", delay: 500 },
+    { text: "Initializing workspace", icon: "⚙️", delay: 0 },
+    { text: "Loading components", icon: "📦", delay: 500 },
     { text: "Preparing interactions", icon: "🎯", delay: 1000 },
-    { text: "Setting up workspace", icon: "💼", delay: 1500 },
-    { text: "Almost ready!", icon: "🚀", delay: 2000 }
+    { text: "Configuring systems", icon: "🔧", delay: 1500 },
+    { text: "Ready", icon: "✓", delay: 2000 }
   ];
 
   useEffect(() => {
-    // Progress animation
+    // Progress animation - linear, technical feel
     const progressInterval = setInterval(() => {
       setProgress(prev => {
         if (prev >= 100) {
@@ -53,7 +67,7 @@ const LoadingPage: React.FC<LoadingPageProps> = ({
       setIsComplete(true);
       setTimeout(() => {
         onComplete?.();
-      }, 800);
+      }, 400);
     }, duration);
 
     return () => {
@@ -66,91 +80,39 @@ const LoadingPage: React.FC<LoadingPageProps> = ({
   if (isComplete) {
     return (
       <motion.div
-        className="fixed inset-0 bg-white z-50 flex items-center justify-center"
+        className="fixed inset-0 bg-[var(--bg-main)] z-50 flex items-center justify-center"
         initial={{ opacity: 1 }}
         animate={{ opacity: 0 }}
-        transition={{ duration: 0.8 }}
+        transition={{ 
+          duration: TE_TIMING.smooth, 
+          ease: TE_EASING.mechanical 
+        }}
         style={{ pointerEvents: 'none' }}
       >
         <motion.div
-          initial={{ scale: 1 }}
-          animate={{ scale: 1.2, opacity: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-6xl"
+          initial={{ scale: 1, opacity: 1 }}
+          animate={{ scale: 1.05, opacity: 0 }}
+          transition={{ 
+            duration: TE_TIMING.smooth, 
+            ease: TE_EASING.mechanical 
+          }}
+          className="text-4xl font-mono text-[var(--text-main)]"
         >
-          ✨
+          ✓
         </motion.div>
       </motion.div>
     );
   }
 
   return (
-    <div className="fixed inset-0 bg-white z-50 overflow-hidden">
-      {/* Background sketch elements */}
-      <div className="absolute inset-0 bg-white notebook-bg">
-        {/* Floating sketch decorations */}
-        <motion.div
-          className="absolute top-16 left-16"
-          animate={{ 
-            rotate: [0, 5, -5, 0],
-            y: [0, -10, 10, 0] 
-          }}
-          transition={{ 
-            duration: 4, 
-            repeat: Infinity, 
-            ease: "easeInOut" 
-          }}
-        >
-          <div className="w-4 h-4 bg-blue-300 rounded-none opacity-60"></div>
-        </motion.div>
-        
-        <motion.div
-          className="absolute top-1/3 right-16"
-          animate={{ 
-            rotate: [0, -3, 3, 0],
-            x: [0, 5, -5, 0] 
-          }}
-          transition={{ 
-            duration: 5, 
-            repeat: Infinity, 
-            ease: "easeInOut",
-            delay: 1 
-          }}
-        >
-          <div className="w-3 h-3 bg-yellow-300 rounded-none opacity-60"></div>
-        </motion.div>
-
-        <motion.div
-          className="absolute bottom-1/4 left-1/4"
-          animate={{ 
-            scale: [1, 1.2, 1],
-            rotate: [0, 10, -10, 0] 
-          }}
-          transition={{ 
-            duration: 3, 
-            repeat: Infinity, 
-            ease: "easeInOut",
-            delay: 2 
-          }}
-        >
-          <div className="w-2 h-2 bg-green-300 rounded-none opacity-60"></div>
-        </motion.div>
-
-        <motion.div
-          className="absolute top-3/4 right-1/3"
-          animate={{ 
-            y: [0, -15, 15, 0],
-            rotate: [0, 8, -8, 0] 
-          }}
-          transition={{ 
-            duration: 6, 
-            repeat: Infinity, 
-            ease: "easeInOut",
-            delay: 0.5 
-          }}
-        >
-          <div className="w-3 h-3 bg-pink-300 rounded-none opacity-60"></div>
-        </motion.div>
+    <div className="fixed inset-0 bg-[var(--bg-main)] z-50 overflow-hidden">
+      {/* Background with subtle grid */}
+      <div className="absolute inset-0 notebook-bg">
+        {/* Geometric corner markers */}
+        <div className="absolute top-8 left-8 w-4 h-4 border-l-2 border-t-2 border-[var(--border-color)]" />
+        <div className="absolute top-8 right-8 w-4 h-4 border-r-2 border-t-2 border-[var(--border-color)]" />
+        <div className="absolute bottom-8 left-8 w-4 h-4 border-l-2 border-b-2 border-[var(--border-color)]" />
+        <div className="absolute bottom-8 right-8 w-4 h-4 border-r-2 border-b-2 border-[var(--border-color)]" />
       </div>
 
       {/* Main loading content */}
@@ -158,167 +120,127 @@ const LoadingPage: React.FC<LoadingPageProps> = ({
         {/* Logo/Brand area */}
         <motion.div
           className="mb-12"
-          initial={{ opacity: 0, y: -30 }}
+          initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={{ 
+            duration: TE_TIMING.smooth, 
+            ease: TE_EASING.organic 
+          }}
         >
-          <motion.div
-            className="text-center"
-            animate={{ 
-              rotate: [0, 1, -1, 0] 
-            }}
-            transition={{ 
-              duration: 4, 
-              repeat: Infinity, 
-              ease: "easeInOut" 
-            }}
-          >
+          <div className="text-center">
             <SketchHeading 
               level={1} 
-              className="text-4xl md:text-6xl text-gray-800 mb-4 transform -rotate-1"
+              className="text-4xl md:text-6xl text-[var(--text-main)] mb-4"
               underline={false}
             >
-              Arun's Portfolio
+              KIRUK
             </SketchHeading>
             <motion.p 
-              className="handwritten text-lg text-gray-600 transform rotate-1"
+              className="handwritten text-lg text-[var(--text-muted)]"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
+              transition={{ 
+                delay: 0.3,
+                duration: TE_TIMING.standard,
+                ease: TE_EASING.mechanical
+              }}
             >
-              SDE 1 @ HP Inc | Designer & Developer
+              Portfolio Loading
             </motion.p>
-          </motion.div>
+          </div>
         </motion.div>
 
         {/* Loading progress container */}
         <div className="w-full max-w-md mx-auto">
-          {/* Progress bar container with sketch styling */}
+          {/* Progress bar container with geometric styling */}
           <motion.div
-            className="relative bg-white border-4 border-dashed border-gray-400 rounded-none p-4 shadow-xl mb-8"
-            initial={{ opacity: 0, scale: 0.9 }}
+            className="relative bg-[var(--bg-card)] border border-[var(--border-color)] p-4 shadow-none mb-8"
+            initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
+            transition={{ 
+              delay: 0.2, 
+              duration: TE_TIMING.standard,
+              ease: TE_EASING.mechanical
+            }}
           >
-            {/* Sketch decorations */}
-            <div className="absolute -top-1 -left-1 w-3 h-3 bg-orange-300 rounded-none opacity-70"></div>
-            <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-purple-300 rounded-none opacity-70"></div>
-            
-            {/* Progress bar */}
+            {/* Progress bar - linear, technical */}
             <div className="relative mb-6">
-              <div className="h-4 bg-gray-200 rounded-none border border-dashed border-gray-300 overflow-hidden">
+              <div className="h-2 bg-[var(--bg-card)] border border-[var(--border-color)] overflow-hidden">
                 <motion.div
-                  className="h-full bg-gradient-to-r from-blue-400 via-purple-400 to-green-400 rounded-none relative"
+                  className="te-progress-fill h-full bg-[var(--text-main)]"
                   initial={{ width: "0%" }}
                   animate={{ width: `${progress}%` }}
-                  transition={{ duration: 0.3, ease: "easeOut" }}
-                >
-                  {/* Progress bar highlight */}
-                  <div className="absolute inset-0 bg-white/30 rounded-none animate-pulse"></div>
-                </motion.div>
+                  transition={{ 
+                    duration: 0.1, 
+                    ease: "linear" 
+                  }}
+                />
               </div>
               
-              {/* Progress percentage */}
-              <motion.div
-                className="absolute -top-10 left-1/2 transform -translate-x-1/2"
-                animate={{ scale: [1, 1.1, 1] }}
-                transition={{ duration: 1, repeat: Infinity }}
-              >
-                <span className="handwritten text-sm font-bold text-gray-700 bg-white px-2 py-1 rounded-none border border-dashed border-gray-300">
+              {/* Progress percentage - positioned right */}
+              <div className="absolute -top-8 right-0">
+                <span className="font-mono text-sm font-bold text-[var(--text-main)]">
                   {Math.round(progress)}%
                 </span>
-              </motion.div>
+              </div>
             </div>
 
-            {/* Current loading step */}
+            {/* Current loading step - mechanical crossfade */}
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentStep}
                 className="text-center"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.4 }}
+                initial={{ opacity: 0, x: 8 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -8 }}
+                transition={{ 
+                  duration: TE_TIMING.standard,
+                  ease: TE_EASING.mechanical
+                }}
               >
-                <motion.div
-                  className="text-3xl mb-2"
-                  animate={{ 
-                    rotate: [0, 10, -10, 0],
-                    scale: [1, 1.2, 1] 
-                  }}
-                  transition={{ 
-                    duration: 2, 
-                    repeat: Infinity, 
-                    ease: "easeInOut" 
-                  }}
-                >
-                  {loadingSteps[currentStep]?.icon}
-                </motion.div>
-                <p className="handwritten text-lg font-bold text-gray-700">
-                  {loadingSteps[currentStep]?.text}
-                </p>
+                <div className="flex items-center justify-center gap-3">
+                  <span className="text-xl grayscale">
+                    {loadingSteps[currentStep]?.icon}
+                  </span>
+                  <p className="font-mono text-sm uppercase tracking-widest text-[var(--text-main)]">
+                    {loadingSteps[currentStep]?.text}
+                  </p>
+                </div>
               </motion.div>
             </AnimatePresence>
           </motion.div>
 
-          {/* Loading dots animation */}
+          {/* Loading indicator - technical pulse */}
           <motion.div
-            className="flex justify-center space-x-2.5"
+            className="flex justify-center gap-2"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 1 }}
+            transition={{ delay: 0.5 }}
           >
             {[0, 1, 2].map((i) => (
               <motion.div
                 key={i}
-                className="w-3 h-3 bg-gray-400 rounded-none"
-                animate={{
-                  scale: [1, 1.5, 1],
-                  opacity: [0.5, 1, 0.5]
-                }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
-                  delay: i * 0.2,
-                  ease: "easeInOut"
+                className="te-progress-pulse w-2 h-2 bg-[var(--text-muted)]"
+                style={{
+                  animationDelay: `${i * 0.2}s`
                 }}
               />
             ))}
           </motion.div>
         </div>
 
-        {/* Fun fact or quote */}
+        {/* Status text */}
         <motion.div
           className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 2 }}
+          transition={{ delay: 1 }}
         >
-          <motion.p
-            className="handwritten text-sm text-gray-500 text-center max-w-md transform rotate-1"
-            animate={{ 
-              y: [0, -5, 5, 0] 
-            }}
-            transition={{ 
-              duration: 4, 
-              repeat: Infinity, 
-              ease: "easeInOut" 
-            }}
-          >
-            "Perfect blend of technical expertise and design thinking" ✨
-          </motion.p>
+          <p className="font-mono text-xs text-[var(--text-muted)] text-center uppercase tracking-widest">
+            Initializing interactive experience
+          </p>
         </motion.div>
       </div>
-
-      {/* CSS for notebook background */}
-      <style jsx>{`
-        .notebook-bg {
-          background-image: 
-            linear-gradient(90deg, #f8fafc 0%, #f1f5f9 50%, #f8fafc 100%),
-            radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
-            radial-gradient(circle at 80% 70%, rgba(168, 85, 247, 0.1) 0%, transparent 50%);
-        }
-      `}</style>
     </div>
   );
 };

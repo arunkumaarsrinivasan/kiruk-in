@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "../styles/typography-enhancements.css";
+@import "../styles/teenage-engineering-interactions.css";
 
 /* Custom font declarations */
 @font-face {
@@ -50,7 +51,7 @@
   --grid-opacity: 1;
   --surface-pattern: linear-gradient(to right, color-mix(in srgb, var(--border-color), transparent 90%) 1px, transparent 1px), linear-gradient(to bottom, color-mix(in srgb, var(--border-color), transparent 90%) 1px, transparent 1px);
   --surface-pattern-size: 20px 20px;
-  --surface-pattern-position: center center;
+  --surface-pattern-position: 0 0;
   --surface-pattern-repeat: repeat;
   --surface-pattern-opacity: 1;
   --card-border-style: dashed;
@@ -621,11 +622,11 @@ body[data-era='2025'] {
    ========================================= */
 
 body[data-style='sketch'] {
-  --surface-pattern: none;
-  --surface-pattern-size: 0 0;
-  --surface-pattern-position: center center;
-  --surface-pattern-repeat: no-repeat;
-  --surface-pattern-opacity: 0;
+  --surface-pattern: linear-gradient(to right, color-mix(in srgb, var(--border-color), transparent 85%) 1px, transparent 1px), linear-gradient(to bottom, color-mix(in srgb, var(--border-color), transparent 85%) 1px, transparent 1px);
+  --surface-pattern-size: 20px 20px;
+  --surface-pattern-position: 0 0;
+  --surface-pattern-repeat: repeat;
+  --surface-pattern-opacity: 1;
   --card-border-style: solid;
   --card-tilt: 0deg;
   --card-shadow: none;
@@ -633,10 +634,10 @@ body[data-style='sketch'] {
 }
 
 body[data-style='minimal'] {
-  --surface-pattern: none;
-  --surface-pattern-size: 0 0;
-  --surface-pattern-position: center center;
-  --surface-pattern-repeat: no-repeat;
+  --surface-pattern: linear-gradient(to right, color-mix(in srgb, var(--border-color), transparent 90%) 1px, transparent 1px), linear-gradient(to bottom, color-mix(in srgb, var(--border-color), transparent 90%) 1px, transparent 1px);
+  --surface-pattern-size: 20px 20px;
+  --surface-pattern-position: 0 0;
+  --surface-pattern-repeat: repeat;
   --surface-pattern-opacity: 1;
   --card-border-style: solid;
   --card-tilt: 0deg;
@@ -785,30 +786,74 @@ body[data-style='absurd'] .handwritten {
   border: var(--border-width) var(--card-border-style, solid) var(--border-color);
   background: var(--card-background, var(--bg-card));
   box-shadow: var(--card-shadow, var(--shadow-offset-x) var(--shadow-offset-y) var(--shadow-blur) var(--shadow-color));
-  border-radius: var(--border-radius);
+  border-radius: var(--te-radius-minimal, 2px);
   color: var(--text-main);
-  transition: all 0.2s ease;
+  /* TE mechanical timing */
+  transition: 
+    transform var(--te-quick, 150ms) var(--te-ease-mechanical, cubic-bezier(0.4, 0.0, 0.2, 1)),
+    box-shadow var(--te-quick, 150ms) var(--te-ease-mechanical, cubic-bezier(0.4, 0.0, 0.2, 1)),
+    background-color var(--te-quick, 150ms) var(--te-ease-mechanical, cubic-bezier(0.4, 0.0, 0.2, 1)),
+    color var(--te-quick, 150ms) var(--te-ease-mechanical, cubic-bezier(0.4, 0.0, 0.2, 1)),
+    border-color var(--te-quick, 150ms) var(--te-ease-mechanical, cubic-bezier(0.4, 0.0, 0.2, 1));
   rotate: var(--card-tilt, 0deg);
+  transform: translateZ(0);
+  will-change: transform, box-shadow;
 }
 
-/* Button Hover States */
+/* Button Hover States - TE mechanical feedback */
 .wireframe-btn:hover,
 .wireframe-btn-secondary:hover,
 .sketch-btn-3d:hover,
 .sketch-button:hover {
-  transform: var(--btn-hover-transform);
-  box-shadow: calc(var(--shadow-offset-x) * 1.5) calc(var(--shadow-offset-y) * 1.5) var(--shadow-blur) var(--shadow-color);
+  transform: scale(var(--te-scale-hover, 1.02)) translateY(var(--te-lift-hover, -2px));
+  box-shadow: var(--te-shadow-hover, 0 2px 8px rgba(0, 0, 0, 0.08));
+}
+
+/* Button Active States - TE instant press */
+.wireframe-btn:active,
+.wireframe-btn-secondary:active,
+.sketch-btn-3d:active,
+.sketch-button:active {
+  transform: scale(var(--te-scale-active, 0.98));
+  box-shadow: var(--te-shadow-active, 0 0 0 0 rgba(0, 0, 0, 0));
+  transition: 
+    transform var(--te-instant, 80ms) var(--te-ease-in, cubic-bezier(0.4, 0.0, 1, 1)),
+    box-shadow var(--te-instant, 80ms) var(--te-ease-in, cubic-bezier(0.4, 0.0, 1, 1));
+}
+
+/* Button Release - TE spring-back */
+.wireframe-btn:not(:active):not(:hover),
+.wireframe-btn-secondary:not(:active):not(:hover),
+.sketch-btn-3d:not(:active):not(:hover),
+.sketch-button:not(:active):not(:hover) {
+  transition: 
+    transform var(--te-quick, 150ms) var(--te-ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1)),
+    box-shadow var(--te-quick, 150ms) var(--te-ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1));
 }
 
 /* Specific Button Styles */
 .wireframe-btn {
   background: var(--text-main);
   color: var(--bg-main);
+  cursor: pointer;
+  padding: 0.5rem 1rem;
 }
 
 .wireframe-btn:hover {
   background: var(--bg-main);
   color: var(--text-main);
+}
+
+.wireframe-btn-secondary {
+  background: var(--bg-card);
+  color: var(--text-main);
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+}
+
+.wireframe-btn-secondary:hover {
+  background: var(--text-main);
+  color: var(--bg-main);
 }
 
 /* 1980s Button Override */
@@ -869,17 +914,19 @@ body[data-style='absurd'] .wireframe-btn-secondary {
   background-color: var(--bg-main);
   background-image: var(--surface-pattern);
   background-size: var(--surface-pattern-size, 20px 20px);
-  background-position: var(--surface-pattern-position, center center);
+  background-position: var(--surface-pattern-position, 0 0);
   background-repeat: var(--surface-pattern-repeat, repeat);
 }
 
 /* Hide grid for non-wireframe eras via opacity on the gradient or just override */
+/* DISABLED: Grid now shows in all eras for gamified portfolio experience
 body[data-era='1980'] .notebook-bg,
 body[data-era='1990'] .notebook-bg,
 body[data-era='2000'] .notebook-bg,
 body[data-era='2010'] .notebook-bg {
   background-image: none;
 }
+*/
 
 /* Ruler border effect */
 .ruler-border {

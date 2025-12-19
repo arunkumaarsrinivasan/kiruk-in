@@ -82,9 +82,9 @@ export class PersonalJourneyContent {
   static updatePost(id: string, updates: Partial<PersonalPost>): PersonalPost | null {
     const posts = this.getPersonalPosts();
     const postIndex = posts.findIndex(p => p.id === id);
-    
+
     if (postIndex === -1) return null;
-    
+
     return {
       ...posts[postIndex],
       ...updates
@@ -129,10 +129,10 @@ export class PersonalJourneyProvider {
     switch (preferredMethod) {
       case 'manual':
         return PersonalJourneyContent.getPersonalPosts();
-      
+
       case 'json':
         return await PersonalContentManager.loadFromJSON();
-      
+
       default:
         return PersonalJourneyContent.getPersonalPosts();
     }
@@ -142,7 +142,7 @@ export class PersonalJourneyProvider {
   static async integrateWithInstagram(accountHandle: string = '@arunum.avan.seyalum'): Promise<PersonalPost[]> {
     // This could be expanded later to include actual Instagram integration
     // For now, returns manual content
-    console.log(`Future integration with ${accountHandle}`);
+
     return PersonalJourneyContent.getPersonalPosts();
   }
 }

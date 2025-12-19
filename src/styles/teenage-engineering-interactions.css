@@ -1,0 +1,579 @@
+/* =========================================
+   TEENAGE ENGINEERING INTERACTION SYSTEM
+   ========================================= 
+   Mechanical, intentional micro-interactions inspired by 
+   Teenage Engineering's hardware design philosophy.
+   
+   Core Philosophy:
+   - Instant physical feedback (< 80ms response time)
+   - Mechanical switch-like behavior with precise responses
+   - Spring-back on button release only
+   - Geometric precision and sharp shapes
+   - No bouncy/elastic animations except release cycles
+*/
+
+:root {
+  /* =========================================
+     TIMING VALUES
+     ========================================= */
+  --te-instant: 80ms;      /* Instant actions - button press */
+  --te-quick: 150ms;       /* Quick responses - hover states */
+  --te-standard: 250ms;    /* Standard transitions - content changes */
+  --te-smooth: 400ms;      /* Complex/smooth animations - era transitions */
+  --te-stagger: 60ms;      /* Card entry stagger delay */
+  --te-stagger-fast: 40ms; /* Dropdown item stagger */
+
+  /* =========================================
+     EASING CURVES
+     ========================================= */
+  /* Mechanical precision - linear-ish, predictable */
+  --te-ease-mechanical: cubic-bezier(0.4, 0.0, 0.2, 1);
+  
+  /* Button release spring-back - satisfying bounce */
+  --te-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  
+  /* Organic flowing motion - smooth, natural */
+  --te-ease-organic: cubic-bezier(0.65, 0.0, 0.35, 1);
+  
+  /* Quick out for hover exits */
+  --te-ease-out: cubic-bezier(0.0, 0.0, 0.2, 1);
+  
+  /* Quick in for active states */
+  --te-ease-in: cubic-bezier(0.4, 0.0, 1, 1);
+
+  /* =========================================
+     GEOMETRIC CONSTANTS
+     ========================================= */
+  --te-radius-minimal: 2px;
+  --te-radius-small: 4px;
+  --te-radius-circle: 50%;
+  --te-stroke-weight: 2px;
+  
+  /* =========================================
+     SHADOW DEPTHS (for tactile feedback)
+     ========================================= */
+  --te-shadow-rest: 0 0 0 0 rgba(0, 0, 0, 0);
+  --te-shadow-hover: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --te-shadow-active: 0 0 0 0 rgba(0, 0, 0, 0);
+  --te-shadow-focus: 0 0 0 2px var(--border-color);
+
+  /* =========================================
+     TRANSFORM VALUES
+     ========================================= */
+  --te-scale-hover: 1.02;
+  --te-scale-active: 0.98;
+  --te-scale-rest: 1;
+  --te-lift-hover: -2px;
+  --te-shift-transition: 8px;
+}
+
+/* =========================================
+   GPU ACCELERATION UTILITIES
+   ========================================= */
+.te-gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+/* =========================================
+   BASE INTERACTIVE ELEMENT CLASS
+   ========================================= */
+.te-interactive {
+  position: relative;
+  cursor: pointer;
+  transform: translateZ(0);
+  will-change: transform, box-shadow;
+  transition: 
+    transform var(--te-quick) var(--te-ease-out),
+    box-shadow var(--te-quick) var(--te-ease-out),
+    background-color var(--te-quick) var(--te-ease-mechanical);
+}
+
+.te-interactive:hover {
+  transform: scale(var(--te-scale-hover)) translateY(var(--te-lift-hover));
+  box-shadow: var(--te-shadow-hover);
+  transition: 
+    transform var(--te-quick) var(--te-ease-out),
+    box-shadow var(--te-quick) var(--te-ease-out);
+}
+
+.te-interactive:active {
+  transform: scale(var(--te-scale-active));
+  box-shadow: var(--te-shadow-active);
+  transition: 
+    transform var(--te-instant) var(--te-ease-in),
+    box-shadow var(--te-instant) var(--te-ease-in);
+}
+
+/* Spring-back on release - applied via JS or pseudo-states */
+.te-interactive:not(:active):not(:hover) {
+  transition: 
+    transform var(--te-quick) var(--te-ease-spring),
+    box-shadow var(--te-quick) var(--te-ease-spring);
+}
+
+/* =========================================
+   BUTTON VARIANTS
+   ========================================= */
+.te-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: var(--te-radius-minimal);
+  transform: translateZ(0);
+  will-change: transform, box-shadow;
+  transition: 
+    transform var(--te-quick) var(--te-ease-out),
+    box-shadow var(--te-quick) var(--te-ease-out),
+    background-color var(--te-quick) var(--te-ease-mechanical),
+    border-color var(--te-quick) var(--te-ease-mechanical);
+}
+
+.te-button:hover {
+  transform: scale(var(--te-scale-hover)) translateY(var(--te-lift-hover));
+  box-shadow: var(--te-shadow-hover);
+}
+
+.te-button:active {
+  transform: scale(var(--te-scale-active));
+  box-shadow: var(--te-shadow-active);
+  transition: 
+    transform var(--te-instant) var(--te-ease-in),
+    box-shadow var(--te-instant) var(--te-ease-in);
+}
+
+.te-button:focus-visible {
+  outline: none;
+  box-shadow: var(--te-shadow-focus);
+}
+
+/* Spring-back release */
+.te-button:not(:active):not(:hover) {
+  transition: 
+    transform var(--te-quick) var(--te-ease-spring),
+    box-shadow var(--te-quick) var(--te-ease-spring);
+}
+
+/* =========================================
+   CARD COMPONENTS
+   ========================================= */
+.te-card {
+  border-radius: var(--te-radius-small);
+  transform: translateZ(0);
+  will-change: transform, box-shadow;
+  transition: 
+    transform var(--te-standard) var(--te-ease-mechanical),
+    box-shadow var(--te-standard) var(--te-ease-mechanical),
+    opacity var(--te-standard) var(--te-ease-mechanical);
+}
+
+.te-card:hover {
+  transform: scale(var(--te-scale-hover)) translateY(var(--te-lift-hover));
+  box-shadow: var(--te-shadow-hover);
+  transition: 
+    transform var(--te-quick) var(--te-ease-out),
+    box-shadow var(--te-quick) var(--te-ease-out);
+}
+
+/* Card entry animation */
+.te-card-enter {
+  animation: te-card-fade-in var(--te-standard) var(--te-ease-mechanical) forwards;
+}
+
+@keyframes te-card-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Staggered card entries - use animation-delay with JS */
+.te-stagger-1 { animation-delay: calc(var(--te-stagger) * 1); }
+.te-stagger-2 { animation-delay: calc(var(--te-stagger) * 2); }
+.te-stagger-3 { animation-delay: calc(var(--te-stagger) * 3); }
+.te-stagger-4 { animation-delay: calc(var(--te-stagger) * 4); }
+.te-stagger-5 { animation-delay: calc(var(--te-stagger) * 5); }
+.te-stagger-6 { animation-delay: calc(var(--te-stagger) * 6); }
+
+/* =========================================
+   TOGGLE SWITCHES
+   ========================================= */
+.te-toggle {
+  position: relative;
+  cursor: pointer;
+  border-radius: var(--te-radius-circle);
+  transform: translateZ(0);
+  will-change: background-color;
+  transition: background-color var(--te-quick) var(--te-ease-mechanical);
+}
+
+.te-toggle-handle {
+  position: absolute;
+  border-radius: var(--te-radius-circle);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transform: translateZ(0);
+  will-change: transform;
+  transition: transform var(--te-quick) var(--te-ease-mechanical);
+}
+
+.te-toggle[aria-checked="true"] .te-toggle-handle {
+  transform: translateX(100%);
+}
+
+.te-toggle:active .te-toggle-handle {
+  transform: scale(1.1);
+  transition: transform var(--te-instant) var(--te-ease-in);
+}
+
+/* =========================================
+   CHECKBOX ANIMATION
+   ========================================= */
+.te-checkbox {
+  position: relative;
+  border-radius: var(--te-radius-minimal);
+  transform: translateZ(0);
+  will-change: background-color, border-color;
+  transition: 
+    background-color var(--te-quick) var(--te-ease-mechanical),
+    border-color var(--te-quick) var(--te-ease-mechanical);
+}
+
+.te-checkbox-check {
+  stroke-dasharray: 20;
+  stroke-dashoffset: 20;
+  transition: stroke-dashoffset 200ms var(--te-ease-mechanical);
+}
+
+.te-checkbox[aria-checked="true"] .te-checkbox-check {
+  stroke-dashoffset: 0;
+}
+
+/* =========================================
+   DROPDOWN / MENU
+   ========================================= */
+.te-dropdown {
+  transform-origin: top center;
+  transform: translateZ(0) scaleY(0);
+  opacity: 0;
+  will-change: transform, opacity;
+  transition: 
+    transform var(--te-standard) var(--te-ease-mechanical),
+    opacity var(--te-standard) var(--te-ease-mechanical);
+}
+
+.te-dropdown[data-open="true"] {
+  transform: translateZ(0) scaleY(1);
+  opacity: 1;
+}
+
+.te-dropdown-item {
+  opacity: 0;
+  transform: translateY(-8px);
+  will-change: transform, opacity;
+  transition: 
+    opacity var(--te-quick) var(--te-ease-mechanical),
+    transform var(--te-quick) var(--te-ease-mechanical);
+}
+
+.te-dropdown[data-open="true"] .te-dropdown-item {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Dropdown item stagger */
+.te-dropdown[data-open="true"] .te-dropdown-item:nth-child(1) { transition-delay: calc(var(--te-stagger-fast) * 1); }
+.te-dropdown[data-open="true"] .te-dropdown-item:nth-child(2) { transition-delay: calc(var(--te-stagger-fast) * 2); }
+.te-dropdown[data-open="true"] .te-dropdown-item:nth-child(3) { transition-delay: calc(var(--te-stagger-fast) * 3); }
+.te-dropdown[data-open="true"] .te-dropdown-item:nth-child(4) { transition-delay: calc(var(--te-stagger-fast) * 4); }
+.te-dropdown[data-open="true"] .te-dropdown-item:nth-child(5) { transition-delay: calc(var(--te-stagger-fast) * 5); }
+
+/* =========================================
+   TOOLTIPS
+   ========================================= */
+.te-tooltip {
+  position: absolute;
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  will-change: transform, opacity;
+  transition: 
+    opacity var(--te-quick) var(--te-ease-mechanical),
+    transform var(--te-quick) var(--te-ease-mechanical);
+}
+
+.te-tooltip[data-visible="true"],
+*:hover > .te-tooltip,
+*:focus > .te-tooltip {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* =========================================
+   SLIDER / TIMELINE RAIL
+   ========================================= */
+.te-slider-rail {
+  position: relative;
+  border-radius: var(--te-radius-minimal);
+  cursor: grab;
+}
+
+.te-slider-rail:active {
+  cursor: grabbing;
+}
+
+/* Tick marks for ruler-like appearance */
+.te-slider-tick {
+  position: absolute;
+  width: 1px;
+  background-color: var(--border-color);
+  opacity: 0.5;
+  transition: opacity var(--te-quick) var(--te-ease-mechanical);
+}
+
+.te-slider-tick:hover,
+.te-slider-tick[data-active="true"] {
+  opacity: 1;
+}
+
+/* Slider thumb */
+.te-slider-thumb {
+  position: absolute;
+  border-radius: var(--te-radius-circle);
+  cursor: grab;
+  transform: translateZ(0);
+  will-change: transform, box-shadow;
+  transition: 
+    transform var(--te-quick) var(--te-ease-organic),
+    box-shadow var(--te-quick) var(--te-ease-mechanical);
+}
+
+.te-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.te-slider-thumb:active,
+.te-slider-thumb[data-dragging="true"] {
+  cursor: grabbing;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: 
+    transform var(--te-instant) var(--te-ease-in),
+    box-shadow var(--te-instant) var(--te-ease-in);
+}
+
+/* Magnetic snap effect - applied via JS */
+.te-slider-snap {
+  transition: 
+    left var(--te-quick) var(--te-ease-spring),
+    transform var(--te-quick) var(--te-ease-spring);
+}
+
+/* =========================================
+   ERA / CONTENT TRANSITIONS
+   ========================================= */
+.te-content-transition {
+  will-change: transform, opacity;
+  transition: 
+    opacity var(--te-smooth) var(--te-ease-mechanical),
+    transform var(--te-smooth) var(--te-ease-mechanical);
+}
+
+.te-content-enter {
+  animation: te-content-fade-in var(--te-smooth) var(--te-ease-mechanical) forwards;
+}
+
+.te-content-exit {
+  animation: te-content-fade-out var(--te-smooth) var(--te-ease-mechanical) forwards;
+}
+
+@keyframes te-content-fade-in {
+  from {
+    opacity: 0;
+    transform: translateX(var(--te-shift-transition)) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes te-content-fade-out {
+  from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(calc(var(--te-shift-transition) * -1)) scale(0.98);
+  }
+}
+
+/* Reverse direction for backward navigation */
+.te-content-enter-reverse {
+  animation: te-content-fade-in-reverse var(--te-smooth) var(--te-ease-mechanical) forwards;
+}
+
+.te-content-exit-reverse {
+  animation: te-content-fade-out-reverse var(--te-smooth) var(--te-ease-mechanical) forwards;
+}
+
+@keyframes te-content-fade-in-reverse {
+  from {
+    opacity: 0;
+    transform: translateX(calc(var(--te-shift-transition) * -1)) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes te-content-fade-out-reverse {
+  from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(var(--te-shift-transition)) scale(0.98);
+  }
+}
+
+/* =========================================
+   LOADING / PROGRESS INDICATORS
+   ========================================= */
+.te-progress-bar {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--te-radius-minimal);
+}
+
+.te-progress-fill {
+  will-change: width;
+  transition: width var(--te-standard) linear;
+}
+
+/* Technical linear progress pulse */
+.te-progress-pulse {
+  animation: te-progress-pulse 1.5s linear infinite;
+}
+
+@keyframes te-progress-pulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* =========================================
+   FOCUS STATES
+   ========================================= */
+.te-focus-ring:focus-visible {
+  outline: none;
+  box-shadow: var(--te-shadow-focus);
+  border-color: var(--text-main);
+  transition: 
+    box-shadow var(--te-instant) var(--te-ease-mechanical),
+    border-color var(--te-instant) var(--te-ease-mechanical);
+}
+
+/* Border thickness increase on focus */
+.te-focus-border:focus-visible {
+  outline: none;
+  border-width: 2px;
+  transition: border-width var(--te-instant) var(--te-ease-mechanical);
+}
+
+/* =========================================
+   HOVER HIGHLIGHT / GLOW
+   ========================================= */
+.te-hover-highlight {
+  position: relative;
+  overflow: hidden;
+}
+
+.te-hover-highlight::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1px solid transparent;
+  border-radius: inherit;
+  pointer-events: none;
+  transition: border-color 200ms var(--te-ease-mechanical);
+}
+
+.te-hover-highlight:hover::after {
+  border-color: var(--border-color);
+  animation: te-border-pulse 200ms var(--te-ease-mechanical);
+}
+
+@keyframes te-border-pulse {
+  0% {
+    border-color: transparent;
+  }
+  50% {
+    border-color: var(--text-main);
+  }
+  100% {
+    border-color: var(--border-color);
+  }
+}
+
+/* =========================================
+   DRAGGABLE ELEMENTS
+   ========================================= */
+.te-draggable {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.te-draggable:active,
+.te-draggable[data-dragging="true"] {
+  cursor: grabbing;
+}
+
+/* Resistance at boundaries */
+.te-boundary-resist {
+  transition: transform var(--te-quick) var(--te-ease-out);
+}
+
+/* =========================================
+   ICON STYLING (Line-based, 2px stroke)
+   ========================================= */
+.te-icon {
+  stroke-width: var(--te-stroke-weight);
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+  fill: none;
+}
+
+.te-icon-filled {
+  stroke-width: var(--te-stroke-weight);
+  fill: currentColor;
+}
+
+/* =========================================
+   REDUCED MOTION SUPPORT
+   ========================================= */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
