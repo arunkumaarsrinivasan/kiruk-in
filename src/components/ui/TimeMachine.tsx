@@ -149,9 +149,9 @@ const ReactorSwitch = ({
       <div className="absolute bottom-1 left-1 w-2 h-2 border-b-2 border-l-2 border-[var(--border-color)]" />
       <div className="absolute bottom-1 right-1 w-2 h-2 border-b-2 border-r-2 border-[var(--border-color)]" />
 
-      {/* Label */}
-      <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap">
-        <span className="text-[8px] font-mono text-[var(--text-muted)] uppercase">
+      {/* Label - positioned inside button when at top */}
+      <div className="absolute bottom-1 left-1/2 -translate-x-1/2 whitespace-nowrap">
+        <span className="text-[6px] font-mono text-[var(--text-muted)] uppercase">
           {isOn ? 'ACTIVE' : 'STANDBY'}
         </span>
       </div>
@@ -521,7 +521,7 @@ const HorizontalEraStrip = ({
       style={{ transformOrigin: 'left center' }}
     >
       <div 
-        className="flex items-stretch bg-[var(--bg-card)] border-2 border-l-0 border-[var(--border-color)] shadow-2xl"
+        className="flex items-stretch bg-[var(--bg-card)] border-2 border-l-0 border-t-0 border-[var(--border-color)] shadow-2xl"
         style={{ height: GRID_SIZE * 6, width: 'calc(100vw - var(--tm-lever-w, 60px))' }}
       >
         {/* Scrollable era list - Responsive Width */}
@@ -870,41 +870,45 @@ export const TimeMachine = () => {
 
   return (
     <>
-      {/* Time Machine - Fixed left middle */}
+      {/* Time Machine - Fixed top left */}
       <div 
-        className="fixed left-0 z-40 flex items-center"
+        className="fixed left-0 top-0 z-40"
         style={
           {
-            top: '50%',
-            transform: 'translateY(-50%)',
-            // Responsive lever sizing (shared with strip width via CSS var)
-            ['--tm-lever-w']: 'clamp(64px, 9vw, 92px)',
+            // Responsive lever sizing - match header height (GRID_SIZE * 3 = 60px)
+            ['--tm-lever-w']: '60px',
             ['--tm-lever-h']: 'clamp(160px, 24vh, 260px)',
           } as React.CSSProperties
         }
       >
-        {/* Reactor Switch */}
-        <ReactorSwitch isOn={isExpanded || showCustomPanel} onToggle={handleToggle} />
+        {/* Reactor Switch - aligned to header */}
+        <div className="flex items-center" style={{ height: '60px' }}>
+          <ReactorSwitch isOn={isExpanded || showCustomPanel} onToggle={handleToggle} />
+        </div>
 
-        {/* Horizontal Era Strip OR Custom Panel */}
+        {/* Horizontal Era Strip OR Custom Panel - appears below header */}
         <AnimatePresence mode="wait">
           {isExpanded && !showCustomPanel && (
-            <HorizontalEraStrip
-              key="era-strip"
-              onSelectEra={handleSelectEra}
-              onOpenCustom={handleOpenCustom}
-              currentEraId={currentEraId}
-            />
+            <div style={{ marginTop: '60px' }}>
+              <HorizontalEraStrip
+                key="era-strip"
+                onSelectEra={handleSelectEra}
+                onOpenCustom={handleOpenCustom}
+                currentEraId={currentEraId}
+              />
+            </div>
           )}
           
           {showCustomPanel && (
-            <GameCustomizationPanel
-              key="custom-panel"
-              customEra={customEra}
-              onUpdate={setCustomEra}
-              onApply={handleApplyCustomEra}
-              onClose={() => setShowCustomPanel(false)}
-            />
+            <div style={{ marginTop: '60px' }}>
+              <GameCustomizationPanel
+                key="custom-panel"
+                customEra={customEra}
+                onUpdate={setCustomEra}
+                onApply={handleApplyCustomEra}
+                onClose={() => setShowCustomPanel(false)}
+              />
+            </div>
           )}
         </AnimatePresence>
       </div>

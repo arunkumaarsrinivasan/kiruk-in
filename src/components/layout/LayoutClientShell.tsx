@@ -100,10 +100,8 @@ export default function LayoutClientShell({ children }: Readonly<LayoutClientShe
         />
       )}
       
-      {/* Time Machine - Era Switcher */}
-      {arcadeEnabled && (
-        <TimeMachine />
-      )}
+      {/* Time Machine - Era Switcher - Available on all pages */}
+      <TimeMachine />
     </AppLoader>
   );
 }

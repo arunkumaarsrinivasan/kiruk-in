@@ -1,66 +1,17 @@
 'use client';
 
-import { SketchHeading, SketchCard, WireframeCard, WireframeSeparator } from '@/components/ui/sketch-elements';
-import { motion } from 'framer-motion';
-import { ConstellationSkills, InvolvementSection } from '@/modules/work';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useCallback } from 'react';
+import { useShootingGame, WorkTarget } from './components/useShootingGame';
+import { PixelTarget } from './components/PixelTarget';
+import { SniperScope } from './components/SniperScope';
+import { GameStats } from './components/GameStats';
+import { SkillsVisualization } from './components/SkillsVisualization';
+import { LevelBackground } from './components/LevelBackground';
+import { VisualShowcase } from './components/VisualShowcase';
 
 // Shared handwritten font token
 const handwrittenFont = 'handwritten';
-
-// Horizontal bar chart used inside job cards
-const BarChart = ({ data }: { data: { label: string; value: number; color: string }[] }) => (
-  <div className="w-full flex flex-col gap-3 mt-4">
-    {data.map((item, index) => (
-      <div key={item.label} className="flex items-center gap-3">
-        <span className={`text-[10px] uppercase tracking-wider w-24 text-[var(--text-muted)] ${handwrittenFont}`}>{item.label}</span>
-        <div className="flex-1 h-2 bg-[var(--border-color)] opacity-20 relative overflow-hidden border border-[var(--border-color)]">
-          <motion.div
-            className="h-full absolute left-0 top-0 bg-[var(--text-main)]"
-            style={{ width: `${item.value}%` }}
-            initial={{ width: 0 }}
-            animate={{ width: `${item.value}%` }}
-            transition={{ duration: 1.2, delay: 0.2 + index * 0.1 }}
-          />
-        </div>
-        <span className={`text-[10px] ${handwrittenFont} ml-2 text-[var(--text-muted)]`}>{item.value}%</span>
-      </div>
-    ))}
-  </div>
-);
-
-// Donut chart that spotlights impact metrics
-const DonutChart = ({ value, color, label }: { value: number; color: string; label?: string }) => {
-  const radius = 24;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (value / 100) * circumference;
-
-  return (
-    <div className="flex flex-col items-center gap-2">
-      <div className="relative w-[60px] h-[60px]">
-        <svg width="60" height="60" className="transform -rotate-90">
-          <circle cx="30" cy="30" r={radius} stroke="var(--border-color)" strokeOpacity="0.2" strokeWidth="4" fill="none" />
-          <motion.circle
-            cx="30"
-            cy="30"
-            r={radius}
-            stroke="var(--text-main)"
-            strokeWidth="4"
-            fill="none"
-            strokeDasharray={circumference}
-            strokeDashoffset={circumference}
-            animate={{ strokeDashoffset: offset }}
-            transition={{ duration: 1.2 }}
-            strokeLinecap="square"
-          />
-        </svg>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className={`text-sm font-bold ${handwrittenFont} text-[var(--text-main)]`}>{value}%</span>
-        </div>
-      </div>
-      {label && <span className={`text-[10px] uppercase tracking-widest text-[var(--text-muted)] ${handwrittenFont} text-center max-w-[100px]`}>{label}</span>}
-    </div>
-  );
-};
 
 const involvementEnhanced = [
   {
@@ -277,301 +228,296 @@ const workExperience = [
 ];
 
 export default function Work() {
+  const [showIntro, setShowIntro] = useState(true);
+  const [selectedTarget, setSelectedTarget] = useState<WorkTarget | null>(null);
+  const [revealIndex, setRevealIndex] = useState(0);
+
+  const { gameState, startGame, togglePause } = useShootingGame({
+    workExperiences: workExperience,
+    onTargetHit: (target) => {
+      // Progressive reveal - update target and reveal index
+      setSelectedTarget(target);
+      setRevealIndex(target.hitCount - 1); // Show current reveal based on hit count
+    },
+    onLevelComplete: () => {
+      setSelectedTarget(null);
+      setRevealIndex(0);
+    },
+    gameDuration: 300, // 5 minutes for all levels
+  });
+
+  const handleStartGame = useCallback(() => {
+    setShowIntro(false);
+    startGame();
+  }, [startGame]);
+
+
   return (
-    <main className="min-h-screen pt-16 bg-[var(--bg-main)] overflow-x-hidden">
-      {/* Resume Download Section - Minimal Wireframe */}
-      <motion.div
-        className="fixed top-25 right-8 z-30 flex flex-col items-center"
-        style={{ width: '220px' }}
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 1.5 }}
-      >
-        <a
-          href="/ArunkumaarSResume.pdf"
-          download="Arun_Kumaar_Resume.pdf"
-          className={`${handwrittenFont} text-sm px-4 py-3 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-none text-center no-underline hover:bg-[var(--bg-main)] transition-all w-full block hover:shadow-none text-[var(--text-main)]`}
-        >
-          <span className="block text-xs text-[var(--text-muted)] mb-1 uppercase tracking-widest">Document</span>
-          📎 Download Resume
-        </a>
-      </motion.div>
-
-      {/* Header Section */}
-      <motion.div
-        className="relative z-10 flex flex-col items-center mb-8"
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-      >
-        <SketchHeading level={1} className="text-4xl md:text-5xl mb-6 text-center">
-          <span>My Professional Journey</span>
-        </SketchHeading>
-        <div className="max-w-4xl mx-auto mb-8">
-          <WireframeCard className="p-0 mb-0">
-            {/* Wireframe accents */}
-            <div className="absolute -top-1 -left-1 w-2 h-2 border-t border-l border-[var(--border-color)]" />
-            <div className="absolute -top-1 -right-1 w-2 h-2 border-t border-r border-[var(--border-color)]" />
-            <div className="absolute -bottom-1 -left-1 w-2 h-2 border-b border-l border-[var(--border-color)]" />
-            <div className="absolute -bottom-1 -right-1 w-2 h-2 border-b border-r border-[var(--border-color)]" />
-
-            <div className="text-center space-y-5 p-4">
-            <p className={`${handwrittenFont} text-lg text-[var(--text-main)] leading-relaxed`}>
-              I craft products end to end—research to release—keeping teams shipped, measured, and in sync.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <button
-                onClick={() => document.getElementById('experience-track')?.scrollIntoView({ behavior: 'smooth' })}
-                className="group flex flex-col items-center gap-1 border border-[var(--border-color)] bg-[var(--bg-card)] px-4 py-3 hover:border-[var(--text-main)] transition-all"
-                type="button"
-              >
-                <span className="text-xl text-[var(--text-muted)] group-hover:text-[var(--text-main)]">🛠️</span>
-                <span className={`${handwrittenFont} text-sm font-semibold text-[var(--text-muted)] group-hover:text-[var(--text-main)]`}>
-                  Build + Ship
+    <main className="min-h-screen overflow-hidden" style={{ backgroundColor: "var(--bg-main)" }}>
+      {/* Game Header */}
+      <div className="fixed top-0 left-0 right-0 z-30 border-b-4 border-black p-3" style={{ backgroundColor: "var(--bg-card)" }}>
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <h1 className="text-xl font-mono" style={{ color: "var(--text-main)" }}>
+              🎯 WORK EXPERIENCE ARCHERY
+            </h1>
+            {!showIntro && (
+              <div className="flex items-center gap-2 font-mono text-sm">
+                <span className="px-2 py-1 border-2 border-black" style={{ backgroundColor: "var(--bg-card)", color: "var(--accent-color)" }}>
+                  LEVEL {gameState.currentLevel}
                 </span>
-                <span className={`${handwrittenFont} text-[11px] text-[var(--text-muted)]`}>HP Print AI · Squarebridge</span>
-              </button>
+              </div>
+            )}
+          </div>
+          {!showIntro && (
+            <div className="flex items-center gap-2">
               <button
-                onClick={() => document.getElementById('impact-dash')?.scrollIntoView({ behavior: 'smooth' })}
-                className="group flex flex-col items-center gap-1 border border-[var(--border-color)] bg-[var(--bg-card)] px-4 py-3 hover:border-[var(--text-main)] transition-all"
-                type="button"
+                onClick={togglePause}
+                className="px-3 py-1 font-mono text-sm border-2 border-black transition-colors hover:opacity-80"
+                style={{ backgroundColor: "var(--bg-card)", color: "var(--text-main)" }}
               >
-                <span className="text-xl text-[var(--text-muted)] group-hover:text-[var(--text-main)]">📈</span>
-                <span className={`${handwrittenFont} text-sm font-semibold text-[var(--text-muted)] group-hover:text-[var(--text-main)]`}>
-                  Measure impact
-                </span>
-                <span className={`${handwrittenFont} text-[11px] text-[var(--text-muted)]`}>80% faster print setup</span>
-              </button>
-              <button
-                onClick={() => document.getElementById('community-notes')?.scrollIntoView({ behavior: 'smooth' })}
-                className="group flex flex-col items-center gap-1 border border-[var(--border-color)] bg-[var(--bg-card)] px-4 py-3 hover:border-[var(--text-main)] transition-all"
-                type="button"
-              >
-                <span className="text-xl text-[var(--text-muted)] group-hover:text-[var(--text-main)]">🤝</span>
-                <span className={`${handwrittenFont} text-sm font-semibold text-[var(--text-muted)] group-hover:text-[var(--text-main)]`}>
-                  Coach + collaborate
-                </span>
-                <span className={`${handwrittenFont} text-[11px] text-[var(--text-muted)]`}>60+ folks trained</span>
+                {gameState.isPaused ? "▶ RESUME" : "⏸ PAUSE"}
               </button>
             </div>
-          </div>
-          </WireframeCard>
+          )}
         </div>
-      </motion.div>
+      </div>
 
-      {/* Work Experience Section */}
-      <section id="experience-track" className="relative z-10 max-w-6xl mx-auto px-4 mb-12">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-          <SketchHeading level={2} className="text-2xl md:text-3xl mb-8 text-center">
-            Professional Experience
-          </SketchHeading>
-          <div className="grid gap-4">
-            {workExperience.map((job, index) => (
-              <motion.div
-                key={job.id}
-                initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
+      {/* Intro Screen */}
+      <AnimatePresence>
+        {showIntro && (
+          <motion.div
+            className="fixed inset-0 z-20 flex items-center justify-center"
+            style={{ backgroundColor: "var(--bg-main)" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            {/* Grid background */}
+            <div
+              className="absolute inset-0 opacity-30"
+              style={{
+                backgroundImage: `
+                  linear-gradient(var(--border-color) 1px, transparent 1px),
+                  linear-gradient(90deg, var(--border-color) 1px, transparent 1px)
+                `,
+                backgroundSize: "20px 20px",
+              }}
+            />
+
+            <div className="text-center max-w-2xl px-4 relative z-10">
+              <motion.h1
+                className="text-4xl md:text-6xl font-mono mb-4"
+                style={{ color: "var(--text-main)" }}
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.2 }}
               >
-                <WireframeCard className="" measurement={job.duration}>
-                  <div className="grid md:grid-cols-3 relative">
-                    {/* Vertical separator between columns */}
-                    <div className="hidden md:block absolute top-[-24px] bottom-[-24px] left-[66.666%] w-px bg-[var(--border-color)] opacity-20" />
-                    
-                    {/* Left Column: Main Content */}
-                    <div className="md:col-span-2 pr-0 md:pr-8 p-4">
-                      {/* Header Row */}
-                      <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-6 pb-6 border-b border-[var(--border-color)] opacity-20 relative">
-                        <div className="absolute bottom-0 left-[-100vw] right-0 h-px bg-[var(--border-color)] opacity-20" />
-                        <div>
-                          <h3 className={`text-xl font-bold text-[var(--text-main)] mb-1 ${handwrittenFont} tracking-tight`}>{job.title}</h3>
-                          <div className={`text-sm text-[var(--text-muted)] ${handwrittenFont} uppercase tracking-wider`}>
-                            {job.company} · {job.location}
-                          </div>
-                        </div>
-                        <div className={`text-xs text-[var(--text-muted)] mt-2 md:mt-0 ${handwrittenFont} border border-[var(--border-color)] px-2 py-1`}>
-                          {job.period}
-                        </div>
-                      </div>
+                🎯 WORK EXPERIENCE ARCHERY
+              </motion.h1>
 
-                      {/* Summary */}
-                      <div className="mb-8">
-                        <p className={`text-[var(--text-main)] leading-relaxed font-light text-sm md:text-base ${handwrittenFont}`}>{job.summary}</p>
-                      </div>
+              <motion.p
+                className="text-lg font-mono mb-8"
+                style={{ color: "var(--text-muted)" }}
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.4 }}
+              >
+                Shoot targets to discover my professional journey!
+                <br />
+                Each target represents a company I&apos;ve worked with.
+                <br />
+                <span style={{ color: "var(--accent-color)" }}>Aim and shoot</span> to learn about my experience.
+              </motion.p>
 
-                      {/* Metrics Grid */}
-                      {job.metrics && (
-                        <div className="grid grid-cols-3 gap-px bg-[var(--border-color)] border border-[var(--border-color)] mb-8">
-                          {job.metrics.map((metric) => (
-                            <div key={metric.label} className="bg-[var(--bg-card)] p-4 text-center">
-                              <p className={`text-lg font-bold text-[var(--text-main)] ${handwrittenFont}`}>{metric.value}</p>
-                              <p className={`text-[9px] uppercase tracking-widest text-[var(--text-muted)] mt-1 ${handwrittenFont}`}>
-                                {metric.label}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+              <motion.div
+                className="flex flex-col items-center gap-4"
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.6 }}
+              >
+                <button
+                  onClick={handleStartGame}
+                  className="px-8 py-4 font-mono text-2xl border-4 border-black transition-all hover:opacity-80 shadow-[4px_4px_0_#000]"
+                  style={{
+                    backgroundColor: "var(--bg-card)",
+                    color: "var(--accent-color)",
+                  }}
+                >
+                  ▶ START GAME
+                </button>
 
-                      {/* Projects Grid */}
-                      {job.projects && (
-                        <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          {job.projects.map((project, i) => (
-                            <div key={i} className="border border-[var(--border-color)] p-3 bg-[var(--bg-card)] relative">
-                              <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-[var(--border-color)]" />
-                              <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-[var(--border-color)]" />
-                              <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-[var(--border-color)]" />
-                              <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-[var(--border-color)]" />
-                              
-                              <h4 className={`font-bold text-sm text-[var(--text-main)] mb-1 ${handwrittenFont}`}>{project.title}</h4>
-                              <p className={`text-[10px] text-[var(--text-muted)] mb-2 uppercase tracking-wider ${handwrittenFont}`}>{project.role}</p>
-                              <p className={`text-xs text-[var(--text-main)] mb-3 leading-relaxed ${handwrittenFont}`}>{project.desc}</p>
-                              <div className="flex flex-wrap gap-1">
-                                {project.tech.map(t => (
-                                  <span key={t} className={`text-[9px] px-1.5 py-0.5 border border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-muted)] ${handwrittenFont}`}>
-                                    {t}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                <div className="text-sm font-mono" style={{ color: "var(--text-muted)" }}>
+                  Move mouse to aim | Click/Hold to charge | Release to shoot
+                </div>
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-                      {/* Spotlight Section */}
-                      {job.spotlight && (
-                        <div className="mt-auto pt-6 border-t border-[var(--border-color)] opacity-20 relative">
-                          <div className="absolute top-0 left-[-100vw] right-0 h-px bg-[var(--border-color)] opacity-20" />
-                          <div className="flex items-baseline gap-2 mb-2">
-                            <span className={`text-[10px] uppercase tracking-widest text-[var(--text-muted)] ${handwrittenFont}`}>Spotlight</span>
-                            <h4 className={`font-bold text-[var(--text-main)] text-sm ${handwrittenFont}`}>{job.spotlight.title}</h4>
-                          </div>
-                          <p className={`text-xs text-[var(--text-muted)] leading-relaxed ${handwrittenFont}`}>
-                            {job.spotlight.summary}
-                          </p>
-                        </div>
-                      )}
-                    </div>
+      {/* Game Area */}
+      {!showIntro && gameState.targets.length > 0 && (
+        <LevelBackground
+          company={`Level ${gameState.currentLevel}`}
+          location={`${gameState.targets.length} Targets`}
+          level={gameState.currentLevel}
+        >
+          <div 
+            className="fixed inset-0 pt-16" 
+            style={{ 
+              backgroundColor: "var(--bg-main)",
+              cursor: "none" // Hide default cursor
+            }}
+          >
+            {/* Targets - Multiple squares per level */}
+            {gameState.targets.map((target) => (
+              <PixelTarget key={target.id} target={target} />
+            ))}
 
-                    {/* Right Column: Visuals */}
-                    <div className="md:col-span-1 pl-0 md:pl-8 pt-8 md:pt-0 border-t md:border-t-0 border-[var(--border-color)] opacity-20 relative p-4">
-                      <div className="md:hidden absolute top-0 left-[-24px] right-[-24px] h-px bg-[var(--border-color)] opacity-20" />
-                      
-                      {/* Skills Chart */}
-                      {job.chartData && (
-                        <div className="mb-8">
-                          <h4 className={`text-[10px] uppercase tracking-widest text-[var(--text-muted)] mb-4 ${handwrittenFont}`}>Skill Proficiency</h4>
-                          <BarChart data={job.chartData} />
-                        </div>
-                      )}
+            {/* Sniper Scope with sway */}
+            <SniperScope
+              x={gameState.crosshairX}
+              y={gameState.crosshairY}
+              power={gameState.power}
+              isCharging={gameState.isCharging}
+              isAiming={gameState.isAiming}
+            />
+            
+            {/* Bullet trails */}
+            {gameState.bullets.map((bullet) => (
+              <motion.div
+                key={bullet.id}
+                className="absolute pointer-events-none"
+                style={{
+                  left: `${bullet.x}%`,
+                  top: `${bullet.y}%`,
+                  transform: "translate(-50%, -50%)",
+                  width: 4,
+                  height: 4,
+                  backgroundColor: "var(--text-main)",
+                  borderRadius: "50%",
+                  opacity: bullet.life / 0.3,
+                }}
+                animate={{
+                  scale: [1, 0.5, 0],
+                  opacity: [1, 0.5, 0],
+                }}
+                transition={{ duration: bullet.life }}
+              />
+            ))}
 
-                      {/* Impact Chart */}
-                      {job.impactChart && (
-                        <div className="mb-8">
-                          <h4 className={`text-[10px] uppercase tracking-widest text-[var(--text-muted)] mb-4 ${handwrittenFont} text-center`}>Impact Focus</h4>
-                          <DonutChart value={job.impactChart.value} color="#000" label={job.impactChart.label} />
-                        </div>
-                      )}
+            {/* Game Stats */}
+            <GameStats gameState={gameState} />
 
-                      {/* Skills Tags */}
-                      <div className="mt-auto">
-                        <h4 className={`text-[10px] uppercase tracking-widest text-[var(--text-muted)] mb-3 ${handwrittenFont}`}>Tech Stack</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {job.skills.map((skill) => (
-                            <span key={skill} className={`text-[10px] px-2 py-1 bg-[var(--bg-card)] text-[var(--text-muted)] border border-[var(--border-color)] ${handwrittenFont}`}>
-                              {skill}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
+            {/* Visual Showcase - Visual representations instead of text */}
+            {selectedTarget && selectedTarget.hitCount > 0 && (
+              <VisualShowcase 
+                target={selectedTarget} 
+                revealIndex={revealIndex}
+                level={gameState.currentLevel} 
+              />
+            )}
+
+            {/* Level Complete Message */}
+            {gameState.isLevelComplete && (
+              <motion.div
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+              >
+                <div className="text-center border-4 border-black bg-white p-8 shadow-[8px_8px_0_#000]">
+                  <h2 className="font-mono text-4xl font-bold text-black mb-4">
+                    🎯 LEVEL {gameState.currentLevel} COMPLETE!
+                  </h2>
+                  <p className="font-mono text-lg text-gray-600 mb-4">
+                    {gameState.currentLevel < gameState.maxLevel 
+                      ? "Loading next level..." 
+                      : "All levels completed! 🎉"}
+                  </p>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Pause Overlay */}
+            <AnimatePresence>
+              {gameState.isPaused && (
+                <motion.div
+                  className="absolute inset-0 z-40 flex items-center justify-center"
+                  style={{ backgroundColor: "rgba(0,0,0,0.9)" }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  <div className="text-center border-4 border-black bg-white p-8 shadow-[8px_8px_0_#000]">
+                    <h2 className="text-4xl font-mono mb-4 text-black">
+                      ⏸ PAUSED
+                    </h2>
+                    <button
+                      onClick={togglePause}
+                      className="px-6 py-3 font-mono text-xl border-4 border-black bg-green-500 text-white hover:bg-green-600 transition-colors"
+                    >
+                      ▶ RESUME
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Game Over Overlay */}
+            <AnimatePresence>
+              {gameState.isGameOver && (
+                <motion.div
+                  className="absolute inset-0 z-40 flex items-center justify-center"
+                  style={{ backgroundColor: "rgba(0,0,0,0.9)" }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  <div className="text-center border-4 border-black bg-white p-8 shadow-[8px_8px_0_#000] max-w-lg">
+                    <motion.h2
+                      className="text-6xl font-mono mb-4 text-black"
+                      animate={{ scale: [1, 1.1, 1] }}
+                      transition={{ duration: 0.5, repeat: Infinity }}
+                    >
+                      🎉 GAME OVER
+                    </motion.h2>
+                    <p className="font-mono text-xl mb-2 text-black">
+                      Final Score: {gameState.score.toLocaleString()}
+                    </p>
+                    <p className="font-mono text-sm mb-6 text-gray-600">
+                      Accuracy: {gameState.accuracy.toFixed(1)}% | Hits: {gameState.hits}/{gameState.shots} | Levels: {gameState.currentLevel - 1}/{gameState.maxLevel}
+                    </p>
+                    <div className="flex gap-4 justify-center">
+                      <button
+                        onClick={() => {
+                          setShowIntro(true);
+                          setSelectedTarget(null);
+                          setRevealIndex(0);
+                        }}
+                        className="px-6 py-3 font-mono text-xl border-4 border-black bg-yellow-400 text-black hover:bg-yellow-500 transition-colors"
+                      >
+                        🔄 MENU
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedTarget(null);
+                          setRevealIndex(0);
+                          startGame();
+                        }}
+                        className="px-6 py-3 font-mono text-xl border-4 border-black bg-green-500 text-white hover:bg-green-600 transition-colors"
+                      >
+                        ▶ PLAY AGAIN
+                      </button>
                     </div>
                   </div>
-                </WireframeCard>
-              </motion.div>
-            ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-        </motion.div>
+        </LevelBackground>
+      )}
 
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.4 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="relative z-10 max-w-6xl mx-auto px-4 mb-16"
-        >
-          <span className={`flex justify-center text-xs uppercase tracking-[0.28em] text-[var(--text-muted)] ${handwrittenFont} mb-6`}>
-            Personal Notes
-          </span>
-          
-          <WireframeCard className="">
-            <div className="p-4">
-              <h3 className={`text-lg text-[var(--text-main)] mb-3 ${handwrittenFont}`}>Key angles</h3>
-              <p className={`text-sm text-[var(--text-muted)] leading-relaxed mb-4 ${handwrittenFont}`}>
-                Use these quick reminders to underline Arun&apos;s mix of AI product thinking, UX craft, and cloud delivery.
-              </p>
-              <ul className={`space-y-2.5 text-sm text-[var(--text-muted)] ${handwrittenFont}`}>
-                <li className="flex items-start gap-2">
-                  <span className="text-[var(--text-main)] mt-0.5">✧</span>
-                  <span>Say he ships AI-powered journeys like HP Print AI and still owns the UX loop end to end.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-[var(--text-main)] mt-0.5">✧</span>
-                  <span>Mention his cloud fluency—tying Spring Boot, Node, and Next.js to ship live flows.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-[var(--text-main)] mt-0.5">✧</span>
-                  <span>Frame him as a creative developer who prototypes, instruments, and ships without losing polish.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-[var(--text-main)] mt-0.5">✧</span>
-                  <span>Underline the generalist streak—he jumps from stakeholder maps to analytics readouts to keep momentum.</span>
-                </li>
-              </ul>
-              <div className={`mt-6 grid grid-cols-1 gap-2 text-[11px] text-[var(--text-main)] uppercase tracking-[0.18em] ${handwrittenFont}`}>
-                <div className="flex justify-between border border-[var(--border-color)] bg-[var(--bg-card)] px-3 py-2">
-                  <span>Core focus</span>
-                  <span className="text-[var(--text-main)]">AI × UX × Cloud</span>
-                </div>
-                <div className="flex justify-between border border-[var(--border-color)] bg-[var(--bg-card)] px-3 py-2">
-                  <span>Role cue</span>
-                  <span className="text-[var(--text-main)]">Creative generalist</span>
-                </div>
-              </div>
-            </div>
-          </WireframeCard>
-        </motion.div>
-      </section>
-
-      {/* Constellation Skills */}
-      <motion.div
-        id="impact-dash"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="text-center mb-12 overflow-visible mt-16 max-w-7xl mx-auto px-4"
-      >
-        <SketchHeading level={2} className="text-2xl md:text-3xl mb-6">
-          Stargazing Through My Expertise
-        </SketchHeading>
-        <motion.p
-          className={`text-lg text-[var(--text-muted)] mb-8 ${handwrittenFont}`}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-        >
-          Explore the celestial map of my skills, where each constellation tells a story of expertise and growth
-        </motion.p>
-        <div className="overflow-visible text-left">
-          <WireframeCard className="">
-            <ConstellationSkills />
-          </WireframeCard>
-        </div>
-      </motion.div>
-
-      {/* Involvement Section */}
-      <div id="community-notes">
-        <InvolvementSection involvementData={involvementEnhanced} />
-      </div>
     </main>
   );
 }

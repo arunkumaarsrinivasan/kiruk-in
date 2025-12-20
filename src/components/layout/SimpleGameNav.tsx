@@ -400,7 +400,10 @@ const SimpleGameNav: React.FC<SimpleGameNavProps> = ({
       <header
         id="navigation"
         className="fixed top-0 left-0 right-0 z-50 flex items-stretch"
-        style={{ height: BAR_HEIGHT }}
+        style={{ 
+          height: BAR_HEIGHT,
+          paddingLeft: 'var(--tm-lever-w, 60px)', // Dynamic padding for Time Machine
+        }}
         role="banner"
       >
         {/* LEFT: Menu Button */}
