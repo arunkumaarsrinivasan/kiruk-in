@@ -450,6 +450,51 @@ export const PAGE_GAMES: PageGame[] = [
       },
     ],
   },
+  {
+    id: 'lab',
+    path: '/lab',
+    title: 'LAB',
+    subtitle: 'The Arcade',
+    description: 'Interactive games and experiments. Play, explore, experiment.',
+    icon: 'grid',
+    gameType: 'arcade',
+    primaryColor: '#9B59B6',
+    order: 8,
+    shortcut: '8',
+    levels: [
+      {
+        id: 'lab-enter',
+        name: 'Lab Access',
+        description: 'Enter the lab',
+        xpReward: 10,
+        completionType: 'view',
+      },
+      {
+        id: 'lab-play',
+        name: 'First Experiment',
+        description: 'Play a game',
+        xpReward: 20,
+        completionType: 'interact',
+        completionTarget: 1,
+      },
+      {
+        id: 'lab-explore',
+        name: 'Lab Explorer',
+        description: 'Try 3 different games',
+        xpReward: 40,
+        completionType: 'interact',
+        completionTarget: 3,
+      },
+      {
+        id: 'lab-master',
+        name: 'Lab Master',
+        description: 'Play all available games',
+        xpReward: 100,
+        completionType: 'interact',
+        completionTarget: 5,
+      },
+    ],
+  },
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════════

@@ -30,7 +30,7 @@ const getTileSize = () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // W: Wall, .: Floor, P: Player Start
-// 1-7: Doors to games (Home, About, Work, Case Studies, Progress, Map, Contact)
+// 1-8: Doors to games (Home, About, Work, Case Studies, Progress, Map, Contact, Lab)
 const MAP_LAYOUT = [
   "WWWWWWWWWWWWWWWWWWWWWWWWW",
   "W..1.......W.......2....W",
@@ -44,17 +44,18 @@ const MAP_LAYOUT = [
   "W..5........W........6..W",
   "W..W..WWWW..W..WWWW..W..W",
   "W.....W.....7.....W.....W",
+  "W.....W.....8.....W.....W",
   "WWWWWWWWWWWWWWWWWWWWWWWWW",
 ];
 
-// Precompute door tile positions from the map (1-7)
+// Precompute door tile positions from the map (1-8)
 const DOOR_POSITIONS = (() => {
   const positions: Array<{ x: number; y: number; gameIndex: number }> = [];
   for (let y = 0; y < MAP_LAYOUT.length; y++) {
     const row = MAP_LAYOUT[y];
     for (let x = 0; x < row.length; x++) {
       const ch = row[x];
-      if (/[1-7]/.test(ch)) {
+      if (/[1-8]/.test(ch)) {
         positions.push({ x, y, gameIndex: parseInt(ch, 10) - 1 });
       }
     }

@@ -15,7 +15,7 @@ interface LayoutClientShellProps {
 export default function LayoutClientShell({ children }: Readonly<LayoutClientShellProps>) {
   const pathname = usePathname();
   // Keep the global layout stable; only show the gamified header + grid on chosen pages.
-  const arcadeEnabled = pathname === '/';
+  const arcadeEnabled = pathname === '/' || pathname === '/lab';
   
   // Game state lifted up for coordination between nav and arcade
   const [isGameActive, setIsGameActive] = useState(false);
@@ -93,15 +93,15 @@ export default function LayoutClientShell({ children }: Readonly<LayoutClientShe
         {children}
       </main>
       
-      {/* Grid Arcade - only on home page */}
-      {arcadeEnabled && (
+      {/* Grid Arcade - only on home and lab pages */}
+      {arcadeEnabled && pathname === '/lab' && (
         <GridArcade 
           defaultGameId={gameId}
         />
       )}
       
-      {/* Time Machine - Era Switcher - Available on all pages */}
-      <TimeMachine />
+      {/* Time Machine - Era Switcher - Available on all pages except home */}
+      {pathname !== '/' && <TimeMachine />}
     </AppLoader>
   );
 }

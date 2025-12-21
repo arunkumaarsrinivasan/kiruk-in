@@ -1533,11 +1533,6 @@ export const InteractivePortfolioSection: React.FC<{
                     <p className="text-[11px] text-[var(--text-secondary)] handwritten leading-snug mt-1">
                       Kiruk is Tamil for scribble. This desk is just my paper notebook brought on screen.
                     </p>
-                    <p className="text-[11px] text-[var(--text-secondary)] handwritten leading-snug mt-1">
-                      {nextJourneyStep
-                        ? `Tap a story badge to unlock "${nextJourneyStep.title}".`
-                        : 'Everything is unlocked — remix the desk!'}
-                    </p>
                   </div>
                   <motion.span
                     className="text-2xl"
@@ -1560,86 +1555,6 @@ export const InteractivePortfolioSection: React.FC<{
                       transition={{ duration: 0.6, ease: 'easeOut' }}
                     />
                   </div>
-                </div>
-                <div className="mt-2 grid grid-cols-3 gap-1.5">
-                  {journeySteps.map((step) => {
-                    const isComplete = journeyStepsCompleted.includes(step.id);
-                    const isNextUp = !isComplete && nextJourneyStep?.id === step.id;
-                    return (
-                      <motion.button
-                        key={step.id}
-                        onClick={() => {
-                          step.action();
-                          trackInteraction('portfolio_journey_step', { stepId: step.id });
-                        }}
-                        whileHover={{ scale: 1.04 }}
-                        whileTap={{ scale: 0.95 }}
-                        aria-pressed={isComplete}
-                        className={`relative flex flex-col items-center justify-center gap-1 px-2 py-2 rounded-none border text-center transition-all duration-200 shadow-sm ${isComplete
-                            ? 'bg-[var(--bg-secondary)] border-[var(--border-color)]'
-                            : isNextUp
-                              ? 'bg-[var(--bg-secondary)]/70 border-[var(--border-color)] shadow-none'
-                              : 'bg-[var(--bg-card)]/80 border-[var(--border-color)] hover:border-[var(--text-main)] hover:bg-[var(--bg-secondary)]'
-                          }`}
-                      >
-                        <motion.div
-                          className={`relative flex items-center justify-center w-9 h-9 rounded-none border ${isComplete
-                              ? 'border-[var(--border-color)] bg-[var(--bg-secondary)]'
-                              : isNextUp
-                                ? 'border-[var(--border-color)] bg-[var(--bg-card)] shadow-none'
-                                : 'border-[var(--border-color)] bg-[var(--bg-card)]'
-                            }`}
-                          animate={
-                            isComplete
-                              ? { scale: 1 }
-                              : isNextUp
-                                ? { scale: [1, 1.12, 1], rotate: [0, 2, -2, 0] }
-                                : { scale: [1, 1.04, 1], rotate: [0, 1.2, -1.2, 0] }
-                          }
-                          transition={{ duration: 2.4, repeat: isComplete ? 0 : Infinity, ease: 'easeInOut' }}
-                        >
-                          <span className="text-lg">{step.icon}</span>
-                          {isComplete && (
-                            <motion.span
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-none bg-[var(--text-main)] text-[10px] font-semibold text-[var(--bg-main)]"
-                            >
-                              ✓
-                            </motion.span>
-                          )}
-                          {isNextUp && (
-                            <motion.span
-                              className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-sm text-[var(--text-main)]"
-                              initial={{ opacity: 0, y: -4 }}
-                              animate={{ opacity: [0, 1, 0.6, 1], y: [-4, -8, -6, -8] }}
-                              transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
-                            >
-                              ✨
-                            </motion.span>
-                          )}
-                        </motion.div>
-                        <span className="text-[11px] text-[var(--text-main)] handwritten leading-tight">
-                          {step.title}
-                        </span>
-                      </motion.button>
-                    );
-                  })}
-                </div>
-                <div className="mt-2">
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={boardNote}
-                      initial={{ opacity: 0, y: 6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -6 }}
-                      transition={{ duration: 0.3 }}
-                      className="flex items-start gap-2 rounded-none border border-dashed border-[var(--border-color)] bg-[var(--bg-card)]/80 px-2.5.5 py-2 shadow-inner"
-                    >
-                      <span className="text-xl">{boardMood}</span>
-                      <p className="text-[11px] text-[var(--text-secondary)] handwritten leading-snug">{boardNote}</p>
-                    </motion.div>
-                  </AnimatePresence>
                 </div>
                 <div className="mt-2 flex items-center justify-between gap-2">
                   <motion.button
@@ -1670,108 +1585,6 @@ export const InteractivePortfolioSection: React.FC<{
           </div>
         )}
 
-
-
-        {/* Desktop - Top Right Gamified Toolbar - HIDDEN for gamified-only mode */}
-        {!isMobile && (
-          <motion.div
-            className="fixed top-4 right-4 z-40 flex flex-col items-end gap-2 pointer-events-auto"
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.5 }}
-          >
-            {/* The Gamified Bar */}
-            <div className="relative flex items-center gap-1 p-2 bg-[var(--bg-card)] border border-[var(--border-color)] shadow-none">
-
-              {/* Progress Line Background */}
-              <div className="absolute left-4 right-4 top-1/2 -translate-y-1/2 h-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] z-0">
-                <motion.div
-                  className="h-full bg-[var(--text-main)]"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${journeyProgressWidth}%` }}
-                  transition={{ duration: 0.6 }}
-                />
-              </div>
-
-              {journeySteps.map((step, index) => {
-                const isComplete = journeyStepsCompleted.includes(step.id);
-                const isNextUp = !isComplete && nextJourneyStep?.id === step.id;
-
-                return (
-                  <div key={step.id} className="relative z-10 group">
-                    <motion.button
-                      onClick={() => {
-                        step.action();
-                        trackInteraction('portfolio_journey_step', { stepId: step.id });
-                      }}
-                      whileHover={{ scale: 1.15 }}
-                      whileTap={{ scale: 0.9 }}
-                      className={`relative flex items-center justify-center w-8 h-8 transition-all duration-300 ${toolbarBadgeClass} ${isComplete ? toolbarActiveBadgeClass : ''
-                        } ${isNextUp ? 'ring-2 ring-[var(--text-main)]' : ''} ${!isComplete && !isNextUp ? 'opacity-70' : ''
-                        }`}
-                    >
-                      <span className={`text-lg relative z-10 grayscale group-hover:grayscale-0 ${toolbarIconClass}`}>
-                        {step.icon}
-                      </span>
-                    </motion.button>
-
-                    {/* Tooltip */}
-                    <div className="absolute top-full right-0 mt-3 w-48 p-2 bg-[var(--text-main)] text-[var(--bg-main)] text-xs font-mono uppercase tracking-wide opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 text-right border border-[var(--bg-main)] shadow-none">
-                      <div className="font-bold text-[var(--bg-main)]">{step.title}</div>
-                      <div className="text-[10px] text-[var(--bg-secondary)] leading-tight">{step.description}</div>
-                    </div>
-                  </div>
-                );
-              })}
-
-              <div className="w-px h-6 bg-[var(--bg-secondary)] mx-1" />
-
-              {/* Extra Actions */}
-              <div className="flex items-center gap-1 pl-1 relative z-10">
-                <motion.button
-                  onClick={toggleAchievements}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="w-9 h-9 flex items-center justify-center rounded-none bg-[var(--notepad-bg)] border border-[var(--notepad-border)] text-[var(--notepad-text)] hover:border-[var(--notepad-border)] transition-colors"
-                  title="Achievements"
-                >
-                  🏆
-                  {achievementsUnlockedCount > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-none bg-[var(--text-main)] text-[9px] font-bold text-[var(--bg-main)] border border-[var(--bg-main)]">
-                      {achievementsUnlockedCount}
-                    </span>
-                  )}
-                </motion.button>
-
-                <motion.button
-                  onClick={clearWorkspace}
-                  whileHover={{ scale: 1.1, rotate: 15 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="w-9 h-9 flex items-center justify-center rounded-none bg-[var(--bg-secondary)] border border-[var(--border-color)] text-[var(--text-muted)] hover:bg-[var(--bg-secondary)] hover:border-[var(--border-color)] hover:text-[var(--text-main)] transition-colors"
-                  title="Reset Desk"
-                >
-                  🧹
-                </motion.button>
-              </div>
-            </div>
-
-            {/* Mood/Note Bubble */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={boardNote}
-                initial={{ opacity: 0, x: 20, scale: 0.9 }}
-                animate={{ opacity: 1, x: 0, scale: 1 }}
-                exit={{ opacity: 0, x: 10, scale: 0.9 }}
-                className="bg-[var(--bg-card)]/90 backdrop-blur-sm border border-[var(--border-color)] rounded-none px-3 py-2 shadow-sm max-w-xs text-right"
-              >
-                <div className="flex items-center justify-end gap-2">
-                  <p className="text-[11px] text-[var(--text-secondary)] handwritten leading-snug">{boardNote}</p>
-                  <span className="text-lg">{boardMood}</span>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-          </motion.div>
-        )}
 
         {/* Interactive workspace - HIDDEN for gamified-only mode */}
         {true && (
