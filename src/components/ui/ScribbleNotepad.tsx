@@ -32,11 +32,11 @@ const ScribbleNotepad: React.FC<ScribbleNotepadProps> = ({
   const [note, setNote] = useState('');
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
+    if (typeof globalThis === 'undefined') {
       return;
     }
     try {
-      const saved = window.localStorage.getItem(storageKey);
+      const saved = globalThis.localStorage.getItem(storageKey);
       if (saved) {
         setNote(saved);
       }
@@ -46,14 +46,14 @@ const ScribbleNotepad: React.FC<ScribbleNotepadProps> = ({
   }, [storageKey]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
+    if (typeof globalThis === 'undefined') {
       return;
     }
     try {
       if (note.trim().length === 0) {
-        window.localStorage.removeItem(storageKey);
+        globalThis.localStorage.removeItem(storageKey);
       } else {
-        window.localStorage.setItem(storageKey, note);
+        globalThis.localStorage.setItem(storageKey, note);
       }
     } catch (error) {
       console.error('Unable to persist notebook draft', error);

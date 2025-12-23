@@ -6,7 +6,6 @@ import { useShootingGame, WorkTarget } from './components/useShootingGame';
 import { PixelTarget } from './components/PixelTarget';
 import { SniperScope } from './components/SniperScope';
 import { GameStats } from './components/GameStats';
-import { SkillsVisualization } from './components/SkillsVisualization';
 import { LevelBackground } from './components/LevelBackground';
 import { VisualShowcase } from './components/VisualShowcase';
 

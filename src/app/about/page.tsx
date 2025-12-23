@@ -311,7 +311,7 @@ export default function About() {
 			if (gameState.isPlaying && !gameState.isPaused) {
 				// Get touch position relative to screen
 				const touchX = e.touches[0].clientX;
-				const screenWidth = window.innerWidth;
+				const screenWidth = globalThis.innerWidth;
 				
 				// Left side of screen = move left, right side = move right, center = jump
 				if (touchX < screenWidth * 0.3) {
@@ -336,11 +336,11 @@ export default function About() {
 			}
 		};
 		
-		window.addEventListener("touchstart", handleTouch);
-		window.addEventListener("touchend", handleTouchEnd);
+		globalThis.addEventListener("touchstart", handleTouch);
+		globalThis.addEventListener("touchend", handleTouchEnd);
 		return () => {
-			window.removeEventListener("touchstart", handleTouch);
-			window.removeEventListener("touchend", handleTouchEnd);
+			globalThis.removeEventListener("touchstart", handleTouch);
+			globalThis.removeEventListener("touchend", handleTouchEnd);
 		};
 	}, [gameState.isPlaying, gameState.isPaused, gameState.isLevelComplete, gameState.isGameOver, showIntro, showEventModal, jump, setMoving, handleContinue, restartLevel, handleStartGame]);
 

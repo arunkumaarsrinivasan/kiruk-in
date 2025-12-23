@@ -171,8 +171,8 @@ export const PlayerArchetypeSelector: React.FC<PlayerArchetypeSelectorProps> = (
         }
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    globalThis.addEventListener('keydown', handleKeyDown);
+    return () => globalThis.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, handleSelect]);
 
   const currentInfo = selectedArchetype ? ARCHETYPES[selectedArchetype] : null;
@@ -385,8 +385,8 @@ export const usePlayerArchetype = () => {
         setArchetype(e.newValue as PlayerArchetype);
       }
     };
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
+    globalThis.addEventListener('storage', handleStorage);
+    return () => globalThis.removeEventListener('storage', handleStorage);
   }, []);
 
   return { archetype, info: archetype ? ARCHETYPES[archetype] : null };

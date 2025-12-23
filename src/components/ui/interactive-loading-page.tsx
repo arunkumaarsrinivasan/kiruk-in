@@ -26,11 +26,11 @@ const InteractiveLoadingPage: React.FC<InteractiveLoadingPageProps> = ({
     if (!ctx) return;
 
     // Handle high DPI displays
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = globalThis.devicePixelRatio || 1;
     
     const updateSize = () => {
-      const width = window.innerWidth;
-      const height = window.innerHeight;
+      const width = globalThis.innerWidth;
+      const height = globalThis.innerHeight;
       canvas.width = width * dpr;
       canvas.height = height * dpr;
       canvas.style.width = `${width}px`;
@@ -39,12 +39,12 @@ const InteractiveLoadingPage: React.FC<InteractiveLoadingPageProps> = ({
     };
     
     updateSize();
-    window.addEventListener('resize', updateSize);
+    globalThis.addEventListener('resize', updateSize);
 
     const gridSize = 20; // Match CSS variable --surface-pattern-size
     // Calculate logical columns and rows based on CSS pixels
-    const cols = Math.ceil(window.innerWidth / gridSize);
-    const rows = Math.ceil(window.innerHeight / gridSize);
+    const cols = Math.ceil(globalThis.innerWidth / gridSize);
+    const rows = Math.ceil(globalThis.innerHeight / gridSize);
     const totalCells = cols * rows;
     
     const cells = Array.from({ length: totalCells }, (_, i) => ({
@@ -89,7 +89,7 @@ const InteractiveLoadingPage: React.FC<InteractiveLoadingPageProps> = ({
     animationFrameId = requestAnimationFrame(draw);
 
     return () => {
-      window.removeEventListener('resize', updateSize);
+      globalThis.removeEventListener('resize', updateSize);
       cancelAnimationFrame(animationFrameId);
     };
   }, [duration]);

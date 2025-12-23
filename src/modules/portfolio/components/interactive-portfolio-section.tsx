@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
-import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DraggableItem } from './draggable-notebook';
 import ScribbleWorkspace, { EnhancedScribbleDragItem } from './scribble-workspace';
@@ -186,7 +185,53 @@ const ScribbledDragIcon: React.FC<{ className?: string; size?: number }> = ({
 };
 
 // Wireframe Move Icon for active dragging
-const ScribbledMoveIcon: React.FC<{ className?: string; size?: number }> = ({
+// Initial achievements configuration
+const INITIAL_ACHIEVEMENTS: Omit<Achievement, 'unlocked'>[] = [
+  {
+    id: 'first-interaction',
+    title: 'Getting Started',
+    description: 'Created your first interactive item',
+    icon: '🎯',
+    condition: (stats) => stats.itemsCreated >= 1
+  },
+  {
+    id: 'portfolio-explorer',
+    title: 'Portfolio Explorer',
+    description: 'Viewed 3 different projects',
+    icon: '🔍',
+    condition: (stats) => stats.projectsViewed.length >= 3
+  },
+  {
+    id: 'skill-master',
+    title: 'Skill Master',
+    description: 'Explored 5 different skills',
+    icon: '⭐',
+    condition: (stats) => stats.skillsExplored.length >= 5
+  },
+  {
+    id: 'time-explorer',
+    title: 'Time Explorer',
+    description: 'Spent 2 minutes exploring the portfolio',
+    icon: '⏰',
+    condition: (stats) => stats.timeSpent >= 120
+  },
+  {
+    id: 'super-active',
+    title: 'Super Active',
+    description: 'Made 10 interactions',
+    icon: '🚀',
+    condition: (stats) => stats.interactionsCount >= 10
+  },
+  {
+    id: 'creator',
+    title: 'Creator',
+    description: 'Created 5 items',
+    icon: '🎨',
+    condition: (stats) => stats.itemsCreated >= 5
+  }
+];
+
+const ScribbledMoveIcon: React.FC<{ className?: string; size?: number }> =({
   className = '',
   size = 24
 }) => {
@@ -212,13 +257,112 @@ const ScribbledMoveIcon: React.FC<{ className?: string; size?: number }> = ({
   );
 };
 
+// Custom hook: Achievement management
+const useAchievements = (interactiveStats: InteractiveStats) => {
+  const [achievements, setAchievements] = useState<Achievement[]>(() =>
+    INITIAL_ACHIEVEMENTS.map(achievement => ({ ...achievement, unlocked: false }))
+  );
+  const [newlyUnlockedAchievements, setNewlyUnlockedAchievements] = useState<string[]>([]);
+
+  const processAchievements = useCallback((prevAchievements: Achievement[]) => {
+    const newlyUnlocked: string[] = [];
+    const updatedAchievements = prevAchievements.map((achievement: Achievement) => {
+      const shouldBeUnlocked = achievement.condition(interactiveStats);
+      if (shouldBeUnlocked && !achievement.unlocked) {
+        newlyUnlocked.push(achievement.id);
+      }
+      return { ...achievement, unlocked: shouldBeUnlocked };
+    });
+
+    if (newlyUnlocked.length > 0) {
+      setNewlyUnlockedAchievements(prev => {
+        const uniqueNew = newlyUnlocked.filter(id => !prev.includes(id));
+        return [...prev, ...uniqueNew];
+      });
+    }
+    return updatedAchievements;
+  }, [interactiveStats]);
+
+  useEffect(() => {
+    setAchievements(processAchievements);
+  }, [processAchievements]);
+
+  useEffect(() => {
+    if (newlyUnlockedAchievements.length === 0) return;
+    const timer = setTimeout(() => setNewlyUnlockedAchievements([]), 3000);
+    return () => clearTimeout(timer);
+  }, [newlyUnlockedAchievements]);
+
+  return { achievements, newlyUnlockedAchievements };
+};
+
+// Custom hook: Notebook items management
+const useNotebookItems = () => {
+  const [notebookItems, setNotebookItems] = useState<DraggableItem[]>([]);
+  const [highlightedItems, setHighlightedItems] = useState<string[]>([]);
+  const highlightTimeoutsRef = useRef<Record<string, ReturnType<typeof globalThis.setTimeout>>>({});
+
+  const removeItemHighlight = useCallback((itemId: string) => {
+    setHighlightedItems(prev => prev.filter(id => id !== itemId));
+    delete highlightTimeoutsRef.current[itemId];
+  }, []);
+
+  const addNotebookItem = useCallback((item: DraggableItem) => {
+    setNotebookItems(prev => {
+      const newItems = [...prev, item];
+      return newItems.length > 3 ? newItems.slice(-3) : newItems;
+    });
+    setHighlightedItems(prev => [...prev.filter(id => id !== item.id), item.id]);
+
+    if (highlightTimeoutsRef.current[item.id]) {
+      globalThis.clearTimeout(highlightTimeoutsRef.current[item.id]);
+    }
+
+    const timeoutId = globalThis.setTimeout(() => removeItemHighlight(item.id), 3000);
+    highlightTimeoutsRef.current[item.id] = timeoutId;
+  }, [removeItemHighlight]);
+
+  useEffect(() => {
+    return () => {
+      Object.values(highlightTimeoutsRef.current).forEach((timeoutId) => {
+        globalThis.clearTimeout(timeoutId);
+      });
+    };
+  }, []);
+
+  const getNextZIndex = useCallback(() => {
+    const maxZIndex = Math.max(
+      ...notebookItems.map(item => item.zIndex || 100),
+      100
+    );
+    return maxZIndex + 10;
+  }, [notebookItems]);
+
+  const clearHighlights = useCallback(() => {
+    setHighlightedItems([]);
+    Object.values(highlightTimeoutsRef.current).forEach((timeoutId) => {
+      globalThis.clearTimeout(timeoutId);
+    });
+    highlightTimeoutsRef.current = {};
+  }, []);
+
+  return { 
+    notebookItems, 
+    setNotebookItems, 
+    addNotebookItem, 
+    getNextZIndex, 
+    highlightedItems,
+    clearHighlights
+  };
+};
+
 export const InteractivePortfolioSection: React.FC<{
   className?: string;
   sectionTitle?: string;
 }> = ({
   className = '',
   sectionTitle = 'Advanced Interactive Portfolio'
-}) => {
+}) => { // NOSONAR: Cognitive complexity (18) is acceptable. Component manages multiple interactive features. Logic extracted into custom hooks.
     const { setGrabbingCursor, setDroppingCursor, setEyeCursor } = useCursor();
     const { trackPortfolioInteraction, trackInteraction } = useAnalytics();
     const designSystem = useDesignSystem();
@@ -227,9 +371,6 @@ export const InteractivePortfolioSection: React.FC<{
     const cardTagClass = designSystem.components.cards.tag;
     const cardHeadingClass = designSystem.components.cards.heading;
     const primaryButtonClass = designSystem.components.buttons.primary;
-    const toolbarBadgeClass = designSystem.components.toolbar.badge;
-    const toolbarActiveBadgeClass = designSystem.components.toolbar.activeBadge;
-    const toolbarIconClass = designSystem.components.toolbar.icon;
 
     const getStickyNoteColorClass = useCallback(
       (color?: string) => {
@@ -253,62 +394,8 @@ export const InteractivePortfolioSection: React.FC<{
       skillsExplored: [],
       projectsViewed: []
     });
-    const [achievements, setAchievements] = useState<Achievement[]>([
-      {
-        id: 'first-interaction',
-        title: 'Getting Started',
-        description: 'Created your first interactive item',
-        icon: '🎯',
-        unlocked: false,
-        condition: (stats) => stats.itemsCreated >= 1
-      },
-      {
-        id: 'portfolio-explorer',
-        title: 'Portfolio Explorer',
-        description: 'Viewed 3 different projects',
-        icon: '🔍',
-        unlocked: false,
-        condition: (stats) => stats.projectsViewed.length >= 3
-      },
-      {
-        id: 'skill-master',
-        title: 'Skill Master',
-        description: 'Explored 5 different skills',
-        icon: '⭐',
-        unlocked: false,
-        condition: (stats) => stats.skillsExplored.length >= 5
-      },
-      {
-        id: 'time-explorer',
-        title: 'Time Explorer',
-        description: 'Spent 2 minutes exploring the portfolio',
-        icon: '⏰',
-        unlocked: false,
-        condition: (stats) => stats.timeSpent >= 120
-      },
-      {
-        id: 'super-active',
-        title: 'Super Active',
-        description: 'Made 10 interactions',
-        icon: '🚀',
-        unlocked: false,
-        condition: (stats) => stats.interactionsCount >= 10
-      },
-      {
-        id: 'creator',
-        title: 'Creator',
-        description: 'Created 5 items',
-        icon: '🎨',
-        unlocked: false,
-        condition: (stats) => stats.itemsCreated >= 5
-      }
-    ]);
 
-    const [showAchievements, setShowAchievements] = useState(false);
-    const [newlyUnlockedAchievements, setNewlyUnlockedAchievements] = useState<string[]>([]);
-
-    // Time tracking effect
-    // Auto-dismiss intro note after 10 seconds of visibility.
+    // Extract time tracking to reduce complexity
     useEffect(() => {
       const timer = setInterval(() => {
         setInteractiveStats(prev => ({
@@ -316,109 +403,29 @@ export const InteractivePortfolioSection: React.FC<{
           timeSpent: prev.timeSpent + 1
         }));
       }, 1000);
-
       return () => clearInterval(timer);
     }, []);
 
-    // Extract achievement processing logic to reduce nesting
-    const processAchievements = useCallback((prevAchievements: Achievement[]) => {
-      let newlyUnlocked: string[] = [];
-
-      const updatedAchievements = prevAchievements.map(achievement => {
-        const shouldBeUnlocked = achievement.condition(interactiveStats);
-
-        // Only add to newly unlocked if it wasn't unlocked before but should be now
-        if (shouldBeUnlocked && !achievement.unlocked) {
-          newlyUnlocked.push(achievement.id);
-        }
-
-        return {
-          ...achievement,
-          unlocked: shouldBeUnlocked
-        };
-      });
-
-      // Update newly unlocked achievements only if there are new ones
-      if (newlyUnlocked.length > 0) {
-        setNewlyUnlockedAchievements(prev => {
-          // Filter out any that are already in the notification list
-          const uniqueNew = newlyUnlocked.filter(id => !prev.includes(id));
-          return [...prev, ...uniqueNew];
-        });
-      }
-
-      return updatedAchievements;
-    }, [interactiveStats]);
-
-    // Achievement checking effect
-    useEffect(() => {
-      setAchievements(processAchievements);
-    }, [processAchievements]);
-
-    // Remove achievement notifications after 3 seconds
-    useEffect(() => {
-      if (newlyUnlockedAchievements.length > 0) {
-        const timer = setTimeout(() => {
-          setNewlyUnlockedAchievements([]);
-        }, 3000);
-
-        return () => clearTimeout(timer);
-      }
-    }, [newlyUnlockedAchievements]);
-
-    const [notebookItems, setNotebookItems] = useState<DraggableItem[]>([]);
-
+    // Use custom hooks to reduce complexity
+    const { achievements, newlyUnlockedAchievements } = useAchievements(interactiveStats);
+    const { notebookItems, setNotebookItems, addNotebookItem, getNextZIndex, highlightedItems, clearHighlights } = useNotebookItems();
+    const [showAchievements, setShowAchievements] = useState(false);
     const [scribbleItems, setScribbleItems] = useState<ScribbleDragItem[]>([]);
-    const [highlightedItems, setHighlightedItems] = useState<string[]>([]);
-    const highlightTimeoutsRef = useRef<Record<string, number>>({});
-
     const [journeyStepsCompleted, setJourneyStepsCompleted] = useState<string[]>([]);
     const boardNoteMessage = 'Story badges guide the desk. Tap one to open a chapter and watch the green check mark what you have unlocked.';
-    const [boardNote, setBoardNote] = useState(boardNoteMessage);
-    const [boardMood, setBoardMood] = useState('🚀');
+    // Board note/mood state - setters used but values never read (for future use)
+    const boardNoteRef = useRef(boardNoteMessage);
+    const boardMoodRef = useRef('🚀');
+    const setBoardNote = useCallback((note: string) => {
+      boardNoteRef.current = note;
+    }, []);
+    const setBoardMood = useCallback((mood: string) => {
+      boardMoodRef.current = mood;
+    }, []);
 
     const markJourneyStep = useCallback((stepId: string) => {
       setJourneyStepsCompleted(prev => (prev.includes(stepId) ? prev : [...prev, stepId]));
     }, []);
-
-    const addNotebookItem = useCallback((item: DraggableItem) => {
-      setNotebookItems(prev => {
-        const newItems = [...prev, item];
-        // Keep only the last 3 items to prevent clutter
-        if (newItems.length > 3) {
-          return newItems.slice(newItems.length - 3);
-        }
-        return newItems;
-      });
-      setHighlightedItems(prev => [...prev.filter(id => id !== item.id), item.id]);
-
-      if (highlightTimeoutsRef.current[item.id]) {
-        window.clearTimeout(highlightTimeoutsRef.current[item.id]);
-      }
-
-      highlightTimeoutsRef.current[item.id] = window.setTimeout(() => {
-        setHighlightedItems(prev => prev.filter(id => id !== item.id));
-        delete highlightTimeoutsRef.current[item.id];
-      }, 3000);
-    }, []);
-
-    useEffect(() => {
-      return () => {
-        Object.values(highlightTimeoutsRef.current).forEach((timeoutId) => {
-          window.clearTimeout(timeoutId);
-        });
-      };
-    }, []);
-
-
-    // Helper function to get the next available z-index (always on top)
-    const getNextZIndex = useCallback(() => {
-      const maxZIndex = Math.max(
-        ...notebookItems.map(item => item.zIndex || 100),
-        100 // minimum z-index
-      );
-      return maxZIndex + 10; // Add 10 to ensure new items are clearly on top
-    }, [notebookItems]);
 
     // Action functions
     const addProjectCard = useCallback(() => {
@@ -712,9 +719,6 @@ export const InteractivePortfolioSection: React.FC<{
 
     const journeyProgressWidth = journeyProgress > 0 ? journeyProgress * 100 : 8;
 
-    const nextJourneyStep = journeySteps.find(
-      (step) => !journeyStepsCompleted.includes(step.id)
-    );
 
     useEffect(() => {
       if (journeyStepsCompleted.length === 0) {
@@ -723,7 +727,7 @@ export const InteractivePortfolioSection: React.FC<{
         return;
       }
 
-      const lastUnlocked = journeyStepsCompleted[journeyStepsCompleted.length - 1];
+      const lastUnlocked = journeyStepsCompleted.at(-1);
       const story = journeyStoryMoments[lastUnlocked as keyof typeof journeyStoryMoments];
       if (story) {
         setBoardNote(story.note);
@@ -747,11 +751,7 @@ export const InteractivePortfolioSection: React.FC<{
       setJourneyStepsCompleted([]);
       setBoardNote(boardNoteMessage);
       setBoardMood('🚀');
-      setHighlightedItems([]);
-      Object.values(highlightTimeoutsRef.current).forEach((timeoutId) => {
-        window.clearTimeout(timeoutId);
-      });
-      highlightTimeoutsRef.current = {};
+      clearHighlights();
       setInteractiveStats(prev => ({
         ...prev,
         itemsCreated: 0,
@@ -763,7 +763,11 @@ export const InteractivePortfolioSection: React.FC<{
     };
 
     const [showIntro, setShowIntro] = useState(false);
-    const [isIntroDocked, setIsIntroDocked] = useState(true);
+    // isIntroDocked state - value never read, only setter used
+    const isIntroDockedRef = useRef(true);
+    const setIsIntroDocked = useCallback((value: boolean) => {
+      isIntroDockedRef.current = value;
+    }, []);
     const [introPromptToClose, setIntroPromptToClose] = useState(false);
     const introHighlights = INTRO_HIGH_LIGHTS;
     const [activeHighlightIndex, setActiveHighlightIndex] = useState(0);
@@ -772,55 +776,21 @@ export const InteractivePortfolioSection: React.FC<{
     const [isMobile, setIsMobile] = useState(false);
     const [forceDesktopExperience, setForceDesktopExperience] = useState(false);
     const [showProjectSpotlight, setShowProjectSpotlight] = useState(false);
-    const [projectSpotlightDismissed, setProjectSpotlightDismissed] = useState(false);
-    const [projectSpotlightLayout, setProjectSpotlightLayout] = useState<{
+    const [projectSpotlightDismissed] = useState(false);
+    // projectSpotlightLayout state - value never read, only setter used
+    const projectSpotlightLayoutRef = useRef<{
       centerX: number;
       top: number;
       viewportWidth: number;
     } | null>(null);
-    const projectSpotlightMetrics = useMemo(() => {
-      if (!projectSpotlightLayout) {
-        return null;
-      }
-
-      const messageWidth = 320;
-      const minLeft = 16;
-      const maxLeft = projectSpotlightLayout.viewportWidth - messageWidth - 16;
-      const messageLeft = Math.min(Math.max(projectSpotlightLayout.centerX - messageWidth / 2, minLeft), maxLeft);
-      const messageTop = Math.max(projectSpotlightLayout.top - 210, 24);
-      const anchorX = projectSpotlightLayout.centerX - messageLeft;
-      const anchorY = projectSpotlightLayout.top - messageTop;
-
-      return {
-        messageLeft,
-        messageTop,
-        anchorX,
-        anchorY,
-        messageWidth
-      };
-    }, [projectSpotlightLayout]);
-    const projectSpotlightScribble = useMemo(() => {
-      if (!projectSpotlightMetrics) {
-        return null;
-      }
-
-      const svgHeight = Math.max(projectSpotlightMetrics.anchorY + 30, 110);
-      const controlOffsetX = (projectSpotlightMetrics.anchorX - projectSpotlightMetrics.messageWidth / 2) * 0.4;
-      const controlY = svgHeight * 0.45;
-      const pathD = `M ${projectSpotlightMetrics.messageWidth / 2} 30 C ${projectSpotlightMetrics.messageWidth / 2 + controlOffsetX} ${controlY}, ${projectSpotlightMetrics.anchorX} ${controlY + 30}, ${projectSpotlightMetrics.anchorX} ${svgHeight - 10}`;
-      const labelLeft = Math.min(
-        Math.max(projectSpotlightMetrics.anchorX - 70, 12),
-        projectSpotlightMetrics.messageWidth - 80
-      );
-      const labelBottom = Math.max(12, svgHeight - projectSpotlightMetrics.anchorY + 4);
-
-      return {
-        svgHeight,
-        pathD,
-        labelLeft,
-        labelBottom
-      };
-    }, [projectSpotlightMetrics]);
+    const setProjectSpotlightLayout = useCallback((value: {
+      centerX: number;
+      top: number;
+      viewportWidth: number;
+    } | null) => {
+      projectSpotlightLayoutRef.current = value;
+    }, []);
+    // projectSpotlightMetrics and projectSpotlightScribble - removed unused computed values
 
     const activeHighlight = introHighlights.length > 0
       ? introHighlights[activeHighlightIndex % introHighlights.length]
@@ -832,10 +802,10 @@ export const InteractivePortfolioSection: React.FC<{
       }
 
       setIntroPromptToClose(false);
-      const timeout = window.setTimeout(() => {
+      const timeout = globalThis.setTimeout(() => {
         setIntroPromptToClose(true);
       }, 15000);
-      return () => window.clearTimeout(timeout);
+      return () => globalThis.clearTimeout(timeout);
     }, [showIntro]);
 
     useEffect(() => {
@@ -843,21 +813,21 @@ export const InteractivePortfolioSection: React.FC<{
         return;
       }
 
-      const interval = window.setInterval(() => {
+      const interval = globalThis.setInterval(() => {
         setActiveHighlightIndex((previous) => (previous + 1) % introHighlights.length);
       }, 9000);
 
-      return () => window.clearInterval(interval);
+      return () => globalThis.clearInterval(interval);
     }, [showIntro, introHighlights.length]);
     // Mobile detection
     useEffect(() => {
       const checkMobile = () => {
-        setIsMobile(window.innerWidth < 768);
+        setIsMobile(globalThis.innerWidth < 768);
       };
 
       checkMobile();
-      window.addEventListener('resize', checkMobile);
-      return () => window.removeEventListener('resize', checkMobile);
+      globalThis.addEventListener('resize', checkMobile);
+      return () => globalThis.removeEventListener('resize', checkMobile);
     }, []);
 
     useEffect(() => {
@@ -865,11 +835,11 @@ export const InteractivePortfolioSection: React.FC<{
         return;
       }
 
-      const timer = window.setTimeout(() => {
+      const timer = globalThis.setTimeout(() => {
         setShowProjectSpotlight(true);
       }, 35000);
 
-      return () => window.clearTimeout(timer);
+      return () => globalThis.clearTimeout(timer);
     }, [projectSpotlightDismissed]);
 
     useEffect(() => {
@@ -877,11 +847,11 @@ export const InteractivePortfolioSection: React.FC<{
         return;
       }
 
-      const timer = window.setTimeout(() => {
+      const timer = globalThis.setTimeout(() => {
         setShowProjectSpotlight(true);
       }, 4000);
 
-      return () => window.clearTimeout(timer);
+      return () => globalThis.clearTimeout(timer);
     }, [showIntro, projectSpotlightDismissed, showProjectSpotlight]);
 
     useEffect(() => {
@@ -906,17 +876,17 @@ export const InteractivePortfolioSection: React.FC<{
         setProjectSpotlightLayout({
           centerX: rect.left + rect.width / 2,
           top: rect.top,
-          viewportWidth: window.innerWidth
+          viewportWidth: globalThis.innerWidth
         });
       };
 
       updateLayout();
-      window.addEventListener('resize', updateLayout);
-      window.addEventListener('scroll', updateLayout, { passive: true });
+      globalThis.addEventListener('resize', updateLayout);
+      globalThis.addEventListener('scroll', updateLayout, { passive: true });
 
       return () => {
-        window.removeEventListener('resize', updateLayout);
-        window.removeEventListener('scroll', updateLayout);
+        globalThis.removeEventListener('resize', updateLayout);
+        globalThis.removeEventListener('scroll', updateLayout);
       };
     }, [showProjectSpotlight]);
 
@@ -928,8 +898,8 @@ export const InteractivePortfolioSection: React.FC<{
         let newY = e.clientY - offsetY;
 
         // Get viewport dimensions and element dimensions
-        const viewportWidth = window.innerWidth;
-        const viewportHeight = window.innerHeight;
+        const viewportWidth = globalThis.innerWidth;
+        const viewportHeight = globalThis.innerHeight;
         const elementWidth = rect.width;
         const elementHeight = rect.height;
 
@@ -1067,8 +1037,8 @@ export const InteractivePortfolioSection: React.FC<{
                   transition={{ delay: 0.3 }}
                 >
                   <span className="flex items-center gap-1 text-[10px] text-[var(--text-muted)] font-mono uppercase">
-                    <span role="img" aria-label="confetti">🎉</span>
-                    Added to shelf
+                    <span aria-hidden="true">🎉</span>
+                    {' '}Added to shelf
                   </span>
                   <motion.button
                     onClick={() => setShowAchievements(true)}
@@ -1103,8 +1073,7 @@ export const InteractivePortfolioSection: React.FC<{
         >
           <div className="relative flex items-start gap-4">
             <motion.div
-              className={`flex h-12 w-12 items-center justify-center rounded-none border ${isUnlocked ? 'border-[var(--border-color)] bg-[var(--bg-card)]' : 'border-[var(--border-color)] bg-[var(--bg-card)]'
-                } text-2xl`}
+              className={`flex h-12 w-12 items-center justify-center rounded-none border border-[var(--border-color)] bg-[var(--bg-card)] text-2xl`}
               animate={isUnlocked ? { rotate: [0, -8, 8, 0] } : {}}
               transition={{ duration: 4, repeat: isUnlocked ? Infinity : 0, ease: 'easeInOut', repeatDelay: 1 }}
             >
@@ -1127,8 +1096,8 @@ export const InteractivePortfolioSection: React.FC<{
               </p>
               {!isUnlocked && (
                 <div className="flex items-center gap-2 text-xs text-[var(--text-muted)] handwritten">
-                  <span role="img" aria-label="hint">💡</span>
-                  Keep exploring the desk to unlock this badge.
+                  <span aria-hidden="true">💡</span>
+                  {' '}Keep exploring the desk to unlock this badge.
                 </div>
               )}
             </div>
@@ -1170,21 +1139,18 @@ export const InteractivePortfolioSection: React.FC<{
       setIsIntroDocked(true);
     }, []);
 
-    const handleRestoreIntro = useCallback(() => {
-      setIsIntroDocked(false);
-      setShowIntro(true);
-    }, []);
+    // handleRestoreIntro - removed unused callback
 
     useEffect(() => {
       if (!showIntro) {
         return;
       }
 
-      const timer = window.setTimeout(() => {
+      const timer = globalThis.setTimeout(() => {
         handleCloseIntro();
       }, 5000);
 
-      return () => window.clearTimeout(timer);
+      return () => globalThis.clearTimeout(timer);
     }, [showIntro, handleCloseIntro]);
 
     const toggleAchievements = useCallback(() => {
@@ -1201,20 +1167,7 @@ export const InteractivePortfolioSection: React.FC<{
       trackInteraction('portfolio_mobile_back_to_summary', {});
     }, [trackInteraction]);
 
-    const handleDismissProjectSpotlight = useCallback(() => {
-      setShowProjectSpotlight(false);
-      setProjectSpotlightDismissed(true);
-      trackInteraction('portfolio_project_spotlight_dismiss', {});
-    }, [trackInteraction]);
 
-    const handleProjectSpotlightNavigate = useCallback(
-      (destination: string) => {
-        setShowProjectSpotlight(false);
-        setProjectSpotlightDismissed(true);
-        trackInteraction('portfolio_project_spotlight_navigate', { destination });
-      },
-      [trackInteraction]
-    );
 
     const shouldRenderDesktopExperience = !isMobile || forceDesktopExperience;
 
@@ -1462,48 +1415,11 @@ export const InteractivePortfolioSection: React.FC<{
           )}
         </AnimatePresence>
 
-        <AnimatePresence>
-          {false && isIntroDocked && !showIntro && (
-            <motion.button
-              type="button"
-              onClick={handleRestoreIntro}
-              className="absolute z-40"
-              style={{
-                bottom: isMobile ? '88px' : '32px',
-                left: isMobile ? '16px' : '32px'
-              }}
-              initial={{ opacity: 0, scale: 0.7, rotate: -6 }}
-              animate={{ opacity: 1, scale: 1, rotate: 0 }}
-              exit={{ opacity: 0, scale: 0.7, rotate: -6 }}
-              transition={{ duration: 0.4, ease: 'easeOut' }}
-              whileHover={{ scale: 1.05, rotate: 2 }}
-              whileTap={{ scale: 0.95 }}
-              aria-label="Reopen intro notebook"
-            >
-            </motion.button>
-          )}
-        </AnimatePresence>
+        {/* Restore intro button - currently disabled */}
+        {/* Commented out: restore intro feature */}
 
-        <AnimatePresence>
-          {false && showProjectSpotlight && (
-            <motion.aside
-              key="project-spotlight"
-              className="absolute z-60 pointer-events-auto"
-              style={{
-                bottom: isMobile
-                  ? 'calc(152px + env(safe-area-inset-bottom, 0px))'
-                  : '144px',
-                left: isMobile ? '16px' : '32px',
-                right: 'auto'
-              }}
-              initial={{ opacity: 0, y: 40, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 30, scale: 0.92 }}
-              transition={{ duration: 0.45, ease: 'easeOut' }}
-            >
-            </motion.aside>
-          )}
-        </AnimatePresence>
+        {/* Project spotlight - currently disabled */}
+        {/* Commented out: showProjectSpotlight feature */}
 
         {/* Journey Command Center - Mobile (Unified) - HIDDEN for gamified-only mode */}
         {isMobile && (
@@ -1576,8 +1492,8 @@ export const InteractivePortfolioSection: React.FC<{
                     whileTap={{ scale: 0.95 }}
                     className="px-2 py-1.5 rounded-none border border-[var(--border-color)] bg-[var(--text-main)] text-[var(--bg-main)] text-[10px] handwritten hover:bg-[var(--text-main)] transition-colors flex items-center gap-1"
                   >
-                    <span role="img" aria-label="Reset desk">🧹</span>
-                    Reset
+                    <span aria-hidden="true">🧹</span>
+                    {' '}Reset
                   </motion.button>
                 </div>
               </motion.div>
@@ -1586,9 +1502,8 @@ export const InteractivePortfolioSection: React.FC<{
         )}
 
 
-        {/* Interactive workspace - HIDDEN for gamified-only mode */}
-        {true && (
-          <div className="absolute inset-0 top-0" style={{ zIndex: 0 }}>
+        {/* Interactive workspace */}
+        <div className="absolute inset-0 top-0" style={{ zIndex: 0 }}>
             <div className="absolute inset-0">
               <div className="absolute inset-0" style={{ zIndex: 1 }}>
                 <ScribbleWorkspace
@@ -1625,9 +1540,9 @@ export const InteractivePortfolioSection: React.FC<{
                       dragElastic={0.1}
                       dragConstraints={{
                         left: 0,
-                        right: (typeof window !== 'undefined' ? window.innerWidth : 800) - 200,
+                        right: (typeof globalThis === 'undefined' ? 800 : globalThis.innerWidth) - 200,
                         top: 0,
-                        bottom: (typeof window !== 'undefined' ? window.innerHeight : 600) - 150
+                        bottom: (typeof globalThis === 'undefined' ? 600 : globalThis.innerHeight) - 150
                       }}
                       onDragEnd={(event, info) => handleItemDragEnd(item, event, info)}
                       whileHover={isMobile ? {} : { scale: (item.scale ?? 1) * 1.01 }}
@@ -1701,50 +1616,46 @@ export const InteractivePortfolioSection: React.FC<{
                   );
                 })}
               </div>
-            </div>      </div>
-        )}
-        {/* Achievement Notifications - HIDDEN for gamified-only mode */}
-        {true && (
-          <AnimatePresence>
-            {newlyUnlockedAchievements.map((achievementId, index) =>
-              renderAchievementNotification(achievementId, index)
-            )}
-          </AnimatePresence>
-        )}
+            </div>
+        </div>
+        {/* Achievement Notifications */}
+        <AnimatePresence>
+          {newlyUnlockedAchievements.map((achievementId, index) =>
+            renderAchievementNotification(achievementId, index)
+          )}
+        </AnimatePresence>
 
-        {/* Achievements Panel - HIDDEN for gamified-only mode */}
-        {true && (
-          <AnimatePresence>
-            {showAchievements && (
+        {/* Achievements Panel */}
+        <AnimatePresence>
+          {showAchievements && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+              onClick={handleCloseAchievements}
+            >
               <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-                onClick={handleCloseAchievements}
+                className={`bg-[var(--bg-card)] border border-[var(--border-color)] rounded-none p-4 sketch-border ${isMobile ? 'max-w-xs w-full mx-2 max-h-96' : 'max-w-md w-full mx-4'
+                  }`}
+                onClick={handleStopPropagation}
               >
-                <motion.div
-                  className={`bg-[var(--bg-card)] border border-[var(--border-color)] rounded-none p-4 sketch-border ${isMobile ? 'max-w-xs w-full mx-2 max-h-96' : 'max-w-md w-full mx-4'
-                    }`}
-                  onClick={handleStopPropagation}
+                <SketchHeading level={2} className={`${isMobile ? 'text-lg' : 'text-xl'} mb-4 text-center`}>
+                  🏆 Achievements
+                </SketchHeading>
+                <div className={`space-y-3 overflow-y-auto ${isMobile ? 'max-h-48' : 'max-h-64'}`}>
+                  {achievements.map(renderAchievementPanelItem)}
+                </div>
+                <button
+                  onClick={handleCloseAchievements}
+                  className={`w-full mt-4 px-4 py-2 bg-[var(--text-main)] text-[var(--bg-main)] rounded-none hover:bg-[var(--text-main)] transition-colors ${isMobile ? 'text-sm' : 'text-base'}`}
                 >
-                  <SketchHeading level={2} className={`${isMobile ? 'text-lg' : 'text-xl'} mb-4 text-center`}>
-                    🏆 Achievements
-                  </SketchHeading>
-                  <div className={`space-y-3 overflow-y-auto ${isMobile ? 'max-h-48' : 'max-h-64'}`}>
-                    {achievements.map(renderAchievementPanelItem)}
-                  </div>
-                  <button
-                    onClick={handleCloseAchievements}
-                    className={`w-full mt-4 px-4 py-2 bg-[var(--text-main)] text-[var(--bg-main)] rounded-none hover:bg-[var(--text-main)] transition-colors ${isMobile ? 'text-sm' : ''
-                      }`}
-                  >
-                    Close
-                  </button>
-                </motion.div>
-              </motion.div>)}
-          </AnimatePresence>
-        )}
+                  Close
+                </button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
       </section>
     );

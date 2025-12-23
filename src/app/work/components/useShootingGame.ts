@@ -171,7 +171,7 @@ export function useShootingGame({
     
     const power = Math.min(1, chargeTime / 2); // Max charge at 2 seconds
     const shotRadiusPixels = 15 + power * 25; // Smaller, more precise for sniper
-    const shotRadius = typeof window !== 'undefined' ? (shotRadiusPixels / window.innerWidth) * 100 : 2;
+    const shotRadius = typeof globalThis !== 'undefined' ? (shotRadiusPixels / globalThis.innerWidth) * 100 : 2;
     
     // Create bullet with physics
     const bulletId = `bullet-${Date.now()}-${Math.random()}`;
@@ -198,7 +198,7 @@ export function useShootingGame({
         const distance = Math.sqrt(dx * dx + dy * dy);
         
         // Convert target radius from pixels to percentage
-        const screenWidth = typeof window !== 'undefined' ? window.innerWidth : 1920;
+        const screenWidth = typeof globalThis !== 'undefined' ? globalThis.innerWidth : 1920;
         const targetSizePx = 80; // gridSize (20) * pixelSize (4)
         const targetRadiusPercent = (targetSizePx / screenWidth) * 100;
         
@@ -209,7 +209,7 @@ export function useShootingGame({
           const isFullyHit = newHitCount >= target.maxHits;
           
           if (!hitTarget) {
-            hitTarget = target;
+            hitTarget = { ...target } as WorkTarget;
             newCombo += 1;
             newMultiplier = Math.min(3, 1 + newCombo * 0.1);
           }
@@ -232,9 +232,9 @@ export function useShootingGame({
       const newAccuracy = (newHits / newShots) * 100;
       
       // Calculate score
-      const basePoints = hitTarget ? hitTarget.points : 0;
-      const comboBonus = hitTarget ? (newCombo - 1) * 10 : 0;
-      const powerBonus = hitTarget ? Math.floor(power * 50) : 0;
+      const basePoints = hitTarget !== null ? (hitTarget as WorkTarget).points : 0;
+      const comboBonus = hitTarget !== null ? (newCombo - 1) * 10 : 0;
+      const powerBonus = hitTarget !== null ? Math.floor(power * 50) : 0;
       const newScore = prev.score + Math.floor((basePoints + comboBonus + powerBonus) * newMultiplier);
       
       // Check if all targets fully hit - level complete
@@ -378,8 +378,8 @@ export function useShootingGame({
     if (!gameState.isPlaying) return;
     
     const handleMouseMove = (e: MouseEvent) => {
-      let x = (e.clientX / window.innerWidth) * 100;
-      let y = (e.clientY / window.innerHeight) * 100;
+      let x = (e.clientX / globalThis.innerWidth) * 100;
+      let y = (e.clientY / globalThis.innerHeight) * 100;
       
       // Check if cursor is inside any target
       const target = gameState.targets.find(t => !t.hit);
@@ -389,7 +389,7 @@ export function useShootingGame({
         const distance = Math.sqrt(dx * dx + dy * dy);
         
         // If inside target radius, add very subtle random movement
-        const targetRadiusPercent = (target.radius / window.innerWidth) * 100;
+        const targetRadiusPercent = (target.radius / globalThis.innerWidth) * 100;
         if (distance < targetRadiusPercent) {
           // Very minor random offset: max 0.3% in any direction
           const randomOffsetX = (Math.random() - 0.5) * 0.3;
@@ -404,8 +404,8 @@ export function useShootingGame({
     
     const handleTouchMove = (e: TouchEvent) => {
       if (e.touches.length > 0) {
-        let x = (e.touches[0].clientX / window.innerWidth) * 100;
-        let y = (e.touches[0].clientY / window.innerHeight) * 100;
+        let x = (e.touches[0].clientX / globalThis.innerWidth) * 100;
+        let y = (e.touches[0].clientY / globalThis.innerHeight) * 100;
         
         // Check if cursor is inside any target
         const target = gameState.targets.find(t => !t.hit);
@@ -415,7 +415,7 @@ export function useShootingGame({
           const distance = Math.sqrt(dx * dx + dy * dy);
           
           // If inside target radius, add very subtle random movement
-          const targetRadiusPercent = (target.radius / window.innerWidth) * 100;
+          const targetRadiusPercent = (target.radius / globalThis.innerWidth) * 100;
           if (distance < targetRadiusPercent) {
             const randomOffsetX = (Math.random() - 0.5) * 0.3;
             const randomOffsetY = (Math.random() - 0.5) * 0.3;
@@ -446,20 +446,20 @@ export function useShootingGame({
       setGameState((prev) => ({ ...prev, isAiming: false }));
     };
     
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("touchmove", handleTouchMove);
-    window.addEventListener("mousedown", handleMouseDown);
-    window.addEventListener("mouseup", handleMouseUp);
-    window.addEventListener("touchstart", handleTouchStart);
-    window.addEventListener("touchend", handleTouchEnd);
+    globalThis.addEventListener("mousemove", handleMouseMove);
+    globalThis.addEventListener("touchmove", handleTouchMove);
+    globalThis.addEventListener("mousedown", handleMouseDown);
+    globalThis.addEventListener("mouseup", handleMouseUp);
+    globalThis.addEventListener("touchstart", handleTouchStart);
+    globalThis.addEventListener("touchend", handleTouchEnd);
     
     return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("touchmove", handleTouchMove);
-      window.removeEventListener("mousedown", handleMouseDown);
-      window.removeEventListener("mouseup", handleMouseUp);
-      window.removeEventListener("touchstart", handleTouchStart);
-      window.removeEventListener("touchend", handleTouchEnd);
+      globalThis.removeEventListener("mousemove", handleMouseMove);
+      globalThis.removeEventListener("touchmove", handleTouchMove);
+      globalThis.removeEventListener("mousedown", handleMouseDown);
+      globalThis.removeEventListener("mouseup", handleMouseUp);
+      globalThis.removeEventListener("touchstart", handleTouchStart);
+      globalThis.removeEventListener("touchend", handleTouchEnd);
     };
   }, [gameState.isPlaying, gameState.targets, updateCrosshair, startCharge, shoot]);
 
@@ -483,12 +483,12 @@ export function useShootingGame({
       }
     };
     
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("keyup", handleKeyUp);
+    globalThis.addEventListener("keydown", handleKeyDown);
+    globalThis.addEventListener("keyup", handleKeyUp);
     
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("keyup", handleKeyUp);
+      globalThis.removeEventListener("keydown", handleKeyDown);
+      globalThis.removeEventListener("keyup", handleKeyUp);
     };
   }, [gameState.isPlaying, startCharge, shoot, togglePause]);
 

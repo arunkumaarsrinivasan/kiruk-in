@@ -1,25 +1,36 @@
 'use client';
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 
-// Generate or get session ID
+// Generate or get session ID (client-side only)
 const getSessionId = () => {
   if (typeof window === 'undefined') return '';
+  if (!window.sessionStorage) return '';
   
-  let sessionId = sessionStorage.getItem('portfolio_session_id');
-  if (!sessionId) {
-    sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(2)}`;
-    sessionStorage.setItem('portfolio_session_id', sessionId);
+  try {
+    let sessionId = window.sessionStorage.getItem('portfolio_session_id');
+    if (!sessionId) {
+      sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(2)}`;
+      window.sessionStorage.setItem('portfolio_session_id', sessionId);
+    }
+    return sessionId;
+  } catch (error) {
+    console.warn('Failed to access sessionStorage:', error);
+    return '';
   }
-  return sessionId;
 };
 
 export const useAnalytics = () => {
-  const sessionId = getSessionId();
+  const [sessionId, setSessionId] = useState<string>('');
+
+  // Initialize session ID on client side only
+  useEffect(() => {
+    setSessionId(getSessionId());
+  }, []);
 
   // Track page view
   const trackPageView = useCallback((page: string) => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || !sessionId) return;
     
     // Track via API
     fetch('/api/analytics', {
@@ -32,7 +43,7 @@ export const useAnalytics = () => {
         data: { 
           page,
           url: window.location.href,
-          referrer: document.referrer || undefined
+          referrer: window.document.referrer || undefined
         },
         sessionId,
       }),
@@ -43,7 +54,7 @@ export const useAnalytics = () => {
 
   // Track interaction
   const trackInteraction = useCallback((action: string, data?: any) => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || !sessionId) return;
     
     fetch('/api/analytics', {
       method: 'POST',

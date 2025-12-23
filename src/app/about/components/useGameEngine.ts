@@ -648,11 +648,11 @@ export function useGameEngine({
       }
     };
     
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("keyup", handleKeyUp);
+    globalThis.addEventListener("keydown", handleKeyDown);
+    globalThis.addEventListener("keyup", handleKeyUp);
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("keyup", handleKeyUp);
+      globalThis.removeEventListener("keydown", handleKeyDown);
+      globalThis.removeEventListener("keyup", handleKeyUp);
     };
   }, [gameState.isPlaying, gameState.isPaused, gameState.isLevelComplete, gameState.isGameOver, jump, duck, setMoving, nextLevel, restartLevel, startGame, togglePause]);
   

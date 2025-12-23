@@ -7,6 +7,8 @@ import AppLoader from "@/components/ui/app-loader";
 import { GridArcade } from "@/components/ui/arcade";
 import { getRandomGameId, getDefaultGameId, getGameEntry } from "@/components/ui/arcade/game-registry";
 import TimeMachine from "@/components/ui/TimeMachine";
+import { MissionCompletionNotification } from "./MissionCompletionNotification";
+import { useMissionTracker } from "@/hooks/useMissionTracker";
 
 interface LayoutClientShellProps {
   readonly children: React.ReactNode;
@@ -21,6 +23,9 @@ export default function LayoutClientShell({ children }: Readonly<LayoutClientShe
   const [isGameActive, setIsGameActive] = useState(false);
   const [gameId, setGameId] = useState(getDefaultGameId());
   const [score, setScore] = useState(0);
+  
+  // Mission tracking
+  const { trackInteraction, trackScore } = useMissionTracker();
   
   const gameEntry = getGameEntry(gameId);
   const gameName = gameEntry?.label || 'Game';
@@ -47,7 +52,8 @@ export default function LayoutClientShell({ children }: Readonly<LayoutClientShe
     if (!isGameActive) {
       setScore(0);
     }
-  }, [isGameActive]);
+    trackInteraction();
+  }, [isGameActive, trackInteraction]);
   
   const handleRandomGame = useCallback(() => {
     let newGameId = getRandomGameId();
@@ -56,11 +62,13 @@ export default function LayoutClientShell({ children }: Readonly<LayoutClientShe
     }
     setGameId(newGameId);
     setScore(0);
-  }, [gameId]);
+    trackInteraction();
+  }, [gameId, trackInteraction]);
   
   const handleScoreChange = useCallback((newScore: number) => {
     setScore(newScore);
-  }, []);
+    trackScore(newScore);
+  }, [trackScore]);
 
   return (
     <AppLoader enableLoader={true} loadingDuration={3500}>
@@ -89,9 +97,16 @@ export default function LayoutClientShell({ children }: Readonly<LayoutClientShe
         onToggleGame={arcadeEnabled ? handleToggleGame : undefined}
       />
       
-      <main id="main-content" tabIndex={-1}>
+      <main 
+        id="main-content" 
+        tabIndex={-1}
+        style={{ paddingTop: '120px' }} // Account for taller header (BAR_HEIGHT * 2 = 60px * 2)
+      >
         {children}
       </main>
+      
+      {/* Mission Completion Notifications */}
+      <MissionCompletionNotification />
       
       {/* Grid Arcade - only on home and lab pages */}
       {arcadeEnabled && pathname === '/lab' && (

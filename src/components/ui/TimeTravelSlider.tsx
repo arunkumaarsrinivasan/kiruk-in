@@ -52,8 +52,8 @@ const TimeTravelSlider: React.FC = () => {
       }
     };
     
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    globalThis.addEventListener('keydown', handleKeyDown);
+    return () => globalThis.removeEventListener('keydown', handleKeyDown);
   }, [sliderIndex, eras, isExpanded]);
 
   const navigateEra = useCallback((direction: number) => {

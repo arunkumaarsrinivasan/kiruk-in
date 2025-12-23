@@ -395,18 +395,18 @@ export const DrawingCanvas: React.FC<{
 
   // Set canvas size on mount and window resize
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof globalThis === 'undefined') return;
     
     const updateCanvasSize = () => {
       setCanvasSize({
-        width: window.innerWidth,
-        height: window.innerHeight
+        width: globalThis.innerWidth,
+        height: globalThis.innerHeight
       });
     };
 
     updateCanvasSize();
-    window.addEventListener('resize', updateCanvasSize);
-    return () => window.removeEventListener('resize', updateCanvasSize);
+    globalThis.addEventListener('resize', updateCanvasSize);
+    return () => globalThis.removeEventListener('resize', updateCanvasSize);
   }, []);
   const startDrawing = (e: React.MouseEvent) => {
     // Starting drawing...
@@ -748,8 +748,8 @@ const ScribbleWorkspace: React.FC<{
       }
     };
 
-    window.addEventListener('keydown', handleKeydown);
-    return () => window.removeEventListener('keydown', handleKeydown);
+    globalThis.addEventListener('keydown', handleKeydown);
+    return () => globalThis.removeEventListener('keydown', handleKeydown);
   }, [enableGestures, selectedItems, items]);
 
   // Update items when props change without re-snapping identical data

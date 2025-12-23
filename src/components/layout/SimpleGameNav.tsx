@@ -16,9 +16,10 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { GRID_SIZE, cn } from '@/lib/utils';
 import { useDesignEra, DesignEra } from '@/contexts/DesignEraContext';
-import { useGameMode } from '@/contexts/GameModeContext';
+import { useGameMode, PAGE_GAMES, GAME_TYPE_EMOJIS } from '@/contexts/GameModeContext';
 import { AVAILABLE_THEMES, ThemeConfig } from '@/data/portfolio-data';
 import { GameMenuOverlay } from './GameMenuOverlay';
+import { getPageInfo, PAGE_INFO } from '@/data/page-info';
 
 const TE_TIMING = {
   instant: 0.08,
@@ -67,8 +68,8 @@ const PixelEye: React.FC<PixelEyeProps> = ({ size = 52, eraId, onClick, classNam
         y: Math.sin(angle) * moveAmount,
       });
     };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    globalThis.addEventListener('mousemove', handleMouseMove);
+    return () => globalThis.removeEventListener('mousemove', handleMouseMove);
   }, [pixelSize]);
 
   useEffect(() => {
@@ -176,7 +177,7 @@ interface EyeTimelineOverlayProps {
 }
 
 // Get era-specific pupil design
-const getEraPupilDesign = (eraId: string): string[][] => {
+const getEraPupilDesign = (eraId: string): number[][] => {
   const era = AVAILABLE_THEMES.find(t => t.id === eraId);
   if (!era) return [[1, 1], [1, 1]]; // Default 2x2 pupil
   
@@ -239,8 +240,8 @@ const FullScreenPixelEye: React.FC<{ eraId: string; size: number }> = ({ eraId, 
         y: Math.sin(angle) * moveAmount,
       });
     };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    globalThis.addEventListener('mousemove', handleMouseMove);
+    return () => globalThis.removeEventListener('mousemove', handleMouseMove);
   }, [pixelSize]);
 
   useEffect(() => {
@@ -411,7 +412,7 @@ const EyeTimelineOverlay: React.FC<EyeTimelineOverlayProps> = ({
           >
             {/* Full Screen Eye - Positioned to leave space for minimal timeline */}
             <div className="absolute inset-0 flex items-center justify-center" style={{ paddingBottom: '120px' }}>
-              <FullScreenPixelEye eraId={displayEraId} size={typeof window !== 'undefined' ? Math.min(window.innerWidth, window.innerHeight) * 0.8 : 600} />
+              <FullScreenPixelEye eraId={displayEraId} size={typeof globalThis !== 'undefined' ? Math.min(globalThis.innerWidth, globalThis.innerHeight) * 0.8 : 600} />
             </div>
 
             {/* Top Left: Stats */}
@@ -596,61 +597,199 @@ const SimpleGameNav: React.FC<SimpleGameNavProps> = ({
   onToggleGame,
 }) => {
   const { currentEraId, setEra } = useDesignEra();
-  const { toggleMenu } = useGameMode();
+  const { 
+    toggleMenu, 
+    progress, 
+    getGameProgress, 
+    isLevelCompleted,
+    totalPossibleXP,
+    currentXPPercentage,
+    completedGamesCount,
+    totalGamesCount
+  } = useGameMode();
+  const pathname = usePathname();
   const [isTimelineOpen, setIsTimelineOpen] = useState(false);
+  const [showMissionDetails, setShowMissionDetails] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   
   const BAR_HEIGHT = GRID_SIZE * 3;
+
+  // Check if mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const handleEraSelect = (eraId: string) => {
     setEra(eraId as DesignEra);
   };
 
+  // Get current page game/mission
+  const currentGame = PAGE_GAMES.find(game => game.path === pathname);
+  const pageInfo = getPageInfo(pathname);
+  const gameProgress = currentGame ? getGameProgress(currentGame.id) : 0;
+  const completedLevels = currentGame ? (progress.completedLevels[currentGame.id] || []) : [];
+  const totalLevels = currentGame ? currentGame.levels.length : 0;
+  const gameTypeEmoji = currentGame ? GAME_TYPE_EMOJIS[currentGame.gameType] : '🎮';
+
   return (
     <>
-      {/* Clean Minimal Header */}
+      {/* Enhanced Gaming Header */}
       <header
         id="navigation"
-        className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between"
+        className="fixed top-0 left-0 right-0 z-50 border-b-2 border-[var(--border-color)] bg-[var(--bg-card)]/95 backdrop-blur-md"
         style={{ 
-          height: BAR_HEIGHT,
-          paddingLeft: '20px',
-          paddingRight: '20px',
+          height: BAR_HEIGHT * 2,
         }}
         role="banner"
       >
-        {/* LEFT: Menu Button */}
-        <motion.button
-          onClick={toggleMenu}
-          className="flex items-center justify-center border border-[var(--border-color)] bg-[var(--bg-card)] hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] transition-colors duration-150"
-          style={{ 
-            height: BAR_HEIGHT,
-            width: BAR_HEIGHT,
-          }}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          aria-label="Toggle navigation menu"
-        >
-          <span className="text-lg font-mono">☰</span>
-        </motion.button>
+        {/* Top Row: Main Navigation */}
+        <div className="flex items-center justify-between h-full" style={{ height: BAR_HEIGHT }}>
+          {/* LEFT: Eye Logo */}
+          <motion.button
+            onClick={() => setIsTimelineOpen(true)}
+            className="flex items-center justify-center border-r border-b border-[var(--border-color)] bg-[var(--bg-card)] hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] transition-colors duration-150"
+            style={{ 
+              height: BAR_HEIGHT,
+              width: BAR_HEIGHT,
+              padding: '8px',
+            }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            aria-label="Open design era timeline"
+          >
+            <PixelEye size={36} eraId={currentEraId} />
+          </motion.button>
 
-        {/* CENTER: Eye Logo */}
-        <motion.button
-          onClick={() => setIsTimelineOpen(true)}
-          className="flex items-center justify-center border border-[var(--border-color)] bg-[var(--bg-card)] hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] transition-colors duration-150"
-          style={{ 
-            height: BAR_HEIGHT,
-            width: BAR_HEIGHT,
-            padding: '8px',
-          }}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          aria-label="Open design era timeline"
-        >
-          <PixelEye size={36} eraId={currentEraId} />
-        </motion.button>
+          {/* CENTER: Mission Info */}
+          <motion.div
+            className="flex-1 flex items-center justify-center gap-2 sm:gap-3 px-2 sm:px-4 min-w-0"
+            onHoverStart={() => setShowMissionDetails(true)}
+            onHoverEnd={() => setShowMissionDetails(false)}
+          >
+            {currentGame ? (
+              <>
+                <span className="text-xl sm:text-2xl flex-shrink-0">{gameTypeEmoji}</span>
+                <div className="flex flex-col items-center min-w-0">
+                  <div className="text-[10px] sm:text-xs font-mono text-[var(--text-muted)] uppercase tracking-wider truncate w-full text-center">
+                    MISSION: {currentGame.title}
+                  </div>
+                  <div className="text-[9px] sm:text-[10px] font-mono text-[var(--accent-color)] truncate w-full text-center">
+                    {currentGame.subtitle}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                  <div className="text-[10px] sm:text-xs font-mono text-[var(--text-main)]">
+                    {completedLevels.length}/{totalLevels}
+                  </div>
+                  <div className="w-12 sm:w-20 h-1.5 bg-[var(--bg-secondary)] border border-[var(--border-color)] relative overflow-hidden">
+                    <motion.div
+                      className="absolute inset-y-0 left-0 bg-[var(--accent-color)]"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${gameProgress}%` }}
+                      transition={{ duration: 0.5 }}
+                    />
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <span className="text-lg sm:text-xl flex-shrink-0">📍</span>
+                <div className="flex flex-col items-center min-w-0">
+                  <div className="text-[10px] sm:text-xs font-mono text-[var(--text-muted)] uppercase tracking-wider truncate w-full text-center">
+                    {pageInfo.title}
+                  </div>
+                  <div className="text-[9px] sm:text-[10px] font-mono text-[var(--text-muted)] truncate w-full text-center hidden sm:block">
+                    {pageInfo.description}
+                  </div>
+                </div>
+              </>
+            )}
+          </motion.div>
 
-        {/* RIGHT: Spacer for balance */}
-        <div style={{ width: BAR_HEIGHT }} />
+          {/* RIGHT: XP & Menu Button */}
+          <div className="flex items-center gap-1 sm:gap-2">
+            {/* XP Display - Hidden on very small screens */}
+            <div className="hidden sm:flex flex-col items-end px-2 border-r border-[var(--border-color)]">
+              <div className="text-[10px] font-mono text-[var(--text-muted)] uppercase">XP</div>
+              <div className="text-xs font-mono font-bold text-[var(--accent-color)]">
+                {progress.totalXP}/{totalPossibleXP}
+              </div>
+              <div className="w-16 h-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] relative overflow-hidden">
+                <motion.div
+                  className="absolute inset-y-0 left-0 bg-[var(--accent-color)]"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${currentXPPercentage}%` }}
+                  transition={{ duration: 0.5 }}
+                />
+              </div>
+            </div>
+            
+            {/* Menu Button */}
+            <motion.button
+              onClick={toggleMenu}
+              className="flex items-center justify-center border-l border-[var(--border-color)] bg-[var(--bg-card)] hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] transition-colors duration-150"
+              style={{ 
+                height: BAR_HEIGHT,
+                width: BAR_HEIGHT,
+              }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              aria-label="Toggle navigation menu"
+            >
+              <span className="text-lg font-mono">☰</span>
+            </motion.button>
+          </div>
+        </div>
+
+        {/* Bottom Row: Mission Checklist */}
+        {currentGame && (
+          <motion.div
+            className="flex items-center gap-1 sm:gap-2 px-1 sm:px-2 border-t border-[var(--border-color)] bg-[var(--bg-secondary)]/50"
+            style={{ height: BAR_HEIGHT }}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: showMissionDetails ? 1 : 0.7, y: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="text-[9px] sm:text-[10px] font-mono text-[var(--text-muted)] uppercase flex-shrink-0 hidden sm:block">
+              OBJECTIVES:
+            </div>
+            <div className="flex-1 flex items-center gap-1 sm:gap-1.5 overflow-x-auto scrollbar-hide">
+              {currentGame.levels.slice(0, isMobile ? 3 : 5).map((level, idx) => {
+                const isCompleted = isLevelCompleted(currentGame.id, level.id);
+                return (
+                  <motion.div
+                    key={level.id}
+                    className={cn(
+                      "flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 border text-[8px] sm:text-[9px] font-mono whitespace-nowrap flex-shrink-0",
+                      isCompleted
+                        ? "bg-[var(--accent-color)]/20 border-[var(--accent-color)] text-[var(--accent-color)]"
+                        : "bg-[var(--bg-card)] border-[var(--border-color)] text-[var(--text-muted)]"
+                    )}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: idx * 0.05 }}
+                  >
+                    <span>{isCompleted ? '✓' : '○'}</span>
+                    <span className="truncate max-w-[60px] sm:max-w-[80px]">{level.name}</span>
+                  </motion.div>
+                );
+              })}
+              {currentGame.levels.length > (isMobile ? 3 : 5) && (
+                <div className="text-[8px] sm:text-[9px] font-mono text-[var(--text-muted)] px-1 sm:px-2">
+                  +{currentGame.levels.length - (isMobile ? 3 : 5)} more
+                </div>
+              )}
+            </div>
+            <div className="text-[9px] sm:text-[10px] font-mono text-[var(--accent-color)] flex-shrink-0">
+              {gameProgress}%
+            </div>
+          </motion.div>
+        )}
       </header>
 
       {/* Game Menu Overlay - Gamified Navigation */}

@@ -44,8 +44,8 @@ const PixelEye = ({ size = 100 }: { size?: number }) => {
       });
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    globalThis.addEventListener('mousemove', handleMouseMove);
+    return () => globalThis.removeEventListener('mousemove', handleMouseMove);
   }, [pixelSize]);
 
   // Pixelated oval pattern (13x9 grid) - 1 = black pixel, 0 = transparent
@@ -169,8 +169,8 @@ export const HeroHeaderWidget = () => {
         y: Math.sin(angle) * moveAmount,
       });
     };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    globalThis.addEventListener('mousemove', handleMouseMove);
+    return () => globalThis.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
   const handleRedirectToAbout = () => {

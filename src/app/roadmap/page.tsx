@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 
 export default function RoadmapPage() {
   useEffect(() => {
-    window.location.href = '/progress'
+    globalThis.location.href = '/progress'
   }, [])
 
   return (

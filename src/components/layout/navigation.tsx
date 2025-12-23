@@ -96,8 +96,8 @@ const PixelEye = ({ size = 52 }: { size?: number }) => {
         y: Math.sin(angle) * moveAmount,
       });
     };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    globalThis.addEventListener('mousemove', handleMouseMove);
+    return () => globalThis.removeEventListener('mousemove', handleMouseMove);
   }, [pixelSize]);
 
   useEffect(() => {
@@ -694,8 +694,8 @@ const Navigation = () => {
         if (!isNavExpanded) setIsNavExpanded(true);
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    globalThis.addEventListener('keydown', handleKeyDown);
+    return () => globalThis.removeEventListener('keydown', handleKeyDown);
   }, [router, isTimelineExpanded, isNavExpanded]);
 
   const navItems = [

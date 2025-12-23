@@ -14,9 +14,9 @@ import PixelIcon from '@/components/ui/PixelIcon';
 
 // Responsive tile size based on viewport
 const getTileSize = () => {
-  if (typeof window === 'undefined') return GRID_SIZE;
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
+  if (typeof globalThis === 'undefined') return GRID_SIZE;
+  const vw = globalThis.innerWidth;
+  const vh = globalThis.innerHeight;
   // Scale tile to fit ~25 columns max on screen with padding
   const maxCols = 25;
   const maxRows = 15;
@@ -350,8 +350,8 @@ export const GameMenuOverlay = () => {
       setTileSize(getTileSize());
     };
     updateTileSize();
-    window.addEventListener('resize', updateTileSize);
-    return () => window.removeEventListener('resize', updateTileSize);
+    globalThis.addEventListener('resize', updateTileSize);
+    return () => globalThis.removeEventListener('resize', updateTileSize);
   }, []);
   
   // Initialize player position
@@ -464,8 +464,8 @@ export const GameMenuOverlay = () => {
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    globalThis.addEventListener('keydown', handleKeyDown);
+    return () => globalThis.removeEventListener('keydown', handleKeyDown);
   }, [isMenuOpen, movePlayer, closeMenu, pendingNav, router]);
 
   // Click/Touch Movement with BFS pathfinding

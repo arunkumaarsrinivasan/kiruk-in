@@ -42,14 +42,14 @@ export const FullPageGridArcade: React.FC<FullPageGridArcadeProps> = ({
   // Calculate grid dimensions based on viewport
   useEffect(() => {
     const updateDimensions = () => {
-      const cols = Math.floor(window.innerWidth / GRID_SIZE);
-      const rows = Math.floor(window.innerHeight / GRID_SIZE);
+      const cols = Math.floor(globalThis.innerWidth / GRID_SIZE);
+      const rows = Math.floor(globalThis.innerHeight / GRID_SIZE);
       setGridDimensions({ cols, rows });
     };
 
     updateDimensions();
-    window.addEventListener('resize', updateDimensions);
-    return () => window.removeEventListener('resize', updateDimensions);
+    globalThis.addEventListener('resize', updateDimensions);
+    return () => globalThis.removeEventListener('resize', updateDimensions);
   }, []);
 
   // Create game engine instance

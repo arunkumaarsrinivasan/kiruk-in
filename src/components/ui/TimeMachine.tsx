@@ -255,20 +255,20 @@ const PowerLeverConsole = ({
       setTravelPx(Math.max(80, height - 48 - 42));
     };
     measure();
-    window.addEventListener('resize', measure);
-    return () => window.removeEventListener('resize', measure);
+    globalThis.addEventListener('resize', measure);
+    return () => globalThis.removeEventListener('resize', measure);
   }, []);
 
   // Charge / decay loop to make the lever feel like a mini-game.
   useEffect(() => {
-    const id = window.setInterval(() => {
+    const id = globalThis.setInterval(() => {
       setCharge((prev) => {
         const delta = isPressing ? 3 + Math.random() * 0.7 : -0.9;
         const next = Math.min(100, Math.max(0, prev + delta));
         return next;
       });
     }, 55);
-    return () => window.clearInterval(id);
+    return () => globalThis.clearInterval(id);
   }, [isPressing]);
 
   // Fire the launch once we hit the threshold. Falling below 30% arms it again.
@@ -500,7 +500,7 @@ const HorizontalEraStrip = ({
   const { eras } = useDesignEra();
   const [hoveredEra, setHoveredEra] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const touchTimerRef = useRef<number | null>(null);
+  const touchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   useEffect(() => {
     if (scrollRef.current) {
@@ -548,9 +548,9 @@ const HorizontalEraStrip = ({
                   onTouchStart={() => {
                     setHoveredEra(era.id);
                     if (touchTimerRef.current) {
-                      window.clearTimeout(touchTimerRef.current);
+                      globalThis.clearTimeout(touchTimerRef.current);
                     }
-                    touchTimerRef.current = window.setTimeout(() => setHoveredEra(null), 900);
+                    touchTimerRef.current = globalThis.setTimeout(() => setHoveredEra(null), 900);
                   }}
                   className={cn(
                     'flex-shrink-0 flex flex-col items-center justify-center px-2 py-1',

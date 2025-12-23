@@ -261,8 +261,8 @@ export const ArcadePlayButton: React.FC<ArcadePlayButtonProps> = ({
         setIsExpanded(prev => !prev);
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    globalThis.addEventListener('keydown', handleKeyDown);
+    return () => globalThis.removeEventListener('keydown', handleKeyDown);
   }, [onToggle, onRandomGame]);
 
   const BAR_HEIGHT = GRID_SIZE * 3;

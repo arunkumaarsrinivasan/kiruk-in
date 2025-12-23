@@ -434,19 +434,19 @@ export const GridPortfolioOverlay: React.FC = () => {
   useEffect(() => {
     const updateDimensions = () => {
       setDimensions({
-        width: window.innerWidth,
-        height: window.innerHeight,
+        width: globalThis.innerWidth,
+        height: globalThis.innerHeight,
       });
     };
     
     updateDimensions();
-    window.addEventListener('resize', updateDimensions);
+    globalThis.addEventListener('resize', updateDimensions);
     
     // Delay visibility for smooth entrance
     const timer = setTimeout(() => setIsVisible(true), 100);
     
     return () => {
-      window.removeEventListener('resize', updateDimensions);
+      globalThis.removeEventListener('resize', updateDimensions);
       clearTimeout(timer);
     };
   }, []);
