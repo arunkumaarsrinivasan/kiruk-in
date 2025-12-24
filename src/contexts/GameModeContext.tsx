@@ -225,17 +225,11 @@ export function GameModeProvider({ children }: { children: ReactNode }) {
         closeMenu();
         return;
       }
-
-      // M toggles menu
-      if ((e.key === 'm' || e.key === 'M') && !e.metaKey && !e.ctrlKey) {
-        toggleMenu();
-        return;
-      }
     };
 
     globalThis.addEventListener('keydown', handleKeyDown);
     return () => globalThis.removeEventListener('keydown', handleKeyDown);
-  }, [isMenuOpen, closeMenu, toggleMenu]);
+  }, [isMenuOpen, closeMenu]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // CONTEXT VALUE

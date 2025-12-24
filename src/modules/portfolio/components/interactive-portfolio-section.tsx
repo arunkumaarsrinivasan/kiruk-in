@@ -8,6 +8,7 @@ import { SketchHeading } from '@/components/ui/sketch-elements';
 import { useCursor } from '@/components/ui/CursorContext';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { useDesignSystem } from '@/contexts/ThemeContext';
+import { AnimatedPortrait } from './AnimatedPortrait';
 
 // Type alias for compatibility
 type ScribbleDragItem = EnhancedScribbleDragItem;
@@ -412,7 +413,23 @@ export const InteractivePortfolioSection: React.FC<{
     const [showAchievements, setShowAchievements] = useState(false);
     const [scribbleItems, setScribbleItems] = useState<ScribbleDragItem[]>([]);
     const [journeyStepsCompleted, setJourneyStepsCompleted] = useState<string[]>([]);
+    const [showPortraitDialogue, setShowPortraitDialogue] = useState(true);
+    const [currentDialogueIndex, setCurrentDialogueIndex] = useState(0);
     const boardNoteMessage = 'Story badges guide the desk. Tap one to open a chapter and watch the green check mark what you have unlocked.';
+
+    // Dialogue script for the portrait
+    const portraitDialogue = [
+      "Hey there! 👋 I'm Arun.",
+      "Welcome to my game-based portfolio website.",
+      "You know what? You're probably spending hours scrolling through social media...",
+      "Watching irrelevant things for fucking hours...",
+      "But do you have 5 to 10 minutes for me?",
+      "To really know me, you need to spend some time here.",
+      "This isn't just a portfolio—it's a journey.",
+      "Every interaction tells a story about who I am.",
+      "So, are you ready to explore?",
+      "Let's begin this adventure together. 🎮"
+    ];
     // Board note/mood state - setters used but values never read (for future use)
     const boardNoteRef = useRef(boardNoteMessage);
     const boardMoodRef = useRef('🚀');
@@ -1343,6 +1360,116 @@ export const InteractivePortfolioSection: React.FC<{
           </div>
         )}
         <ScribeCanvas />
+
+        {/* Animated Portrait with Dialogue */}
+        <AnimatePresence>
+          {showPortraitDialogue && (
+            <motion.div
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.5 }}
+            >
+              <div className="wireframe-border p-8 bg-[var(--bg-card)] relative" style={{ imageRendering: 'pixelated' as any, minWidth: '500px', maxWidth: '600px' }}>
+                {/* Close button */}
+                <button
+                  onClick={() => setShowPortraitDialogue(false)}
+                  className="absolute -top-3 -right-3 w-8 h-8 wireframe-border flex items-center justify-center font-mono text-lg font-bold"
+                  style={{
+                    backgroundColor: 'var(--text-main)',
+                    color: 'var(--bg-main)',
+                    imageRendering: 'pixelated' as any,
+                  }}
+                >
+                  ×
+                </button>
+
+                {/* Portrait */}
+                <div className="flex items-start gap-6 mb-6">
+                  <div className="flex-shrink-0">
+                    <AnimatedPortrait
+                      dialogue={portraitDialogue}
+                      currentDialogueIndex={currentDialogueIndex}
+                      onDialogueComplete={() => {
+                        if (currentDialogueIndex < portraitDialogue.length - 1) {
+                          setCurrentDialogueIndex(currentDialogueIndex + 1);
+                        }
+                      }}
+                    />
+                  </div>
+                  
+                  {/* Dialogue Box */}
+                  <div className="flex-1 wireframe-border p-4 bg-[var(--bg-main)] relative" style={{ imageRendering: 'pixelated' as any, minHeight: '200px' }}>
+                    <AnimatePresence mode="wait">
+                      <motion.p
+                        key={currentDialogueIndex}
+                        className="font-mono text-sm leading-relaxed"
+                        style={{ color: 'var(--text-main)' }}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        {portraitDialogue[currentDialogueIndex]}
+                      </motion.p>
+                    </AnimatePresence>
+
+                    {/* Continue button */}
+                    {currentDialogueIndex < portraitDialogue.length - 1 && (
+                      <motion.button
+                        type="button"
+                        onClick={() => setCurrentDialogueIndex(currentDialogueIndex + 1)}
+                        className="absolute bottom-4 right-4 wireframe-border px-4 py-2 font-mono text-xs uppercase"
+                        style={{
+                          backgroundColor: 'var(--accent-color)',
+                          color: 'var(--bg-main)',
+                          imageRendering: 'pixelated' as any,
+                        }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        Continue →
+                      </motion.button>
+                    )}
+
+                    {/* Skip button */}
+                    {currentDialogueIndex === portraitDialogue.length - 1 && (
+                      <motion.button
+                        type="button"
+                        onClick={() => setShowPortraitDialogue(false)}
+                        className="absolute bottom-4 right-4 wireframe-border px-4 py-2 font-mono text-xs uppercase"
+                        style={{
+                          backgroundColor: 'var(--accent-color)',
+                          color: 'var(--bg-main)',
+                          imageRendering: 'pixelated' as any,
+                        }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        Start Exploring →
+                      </motion.button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Progress indicator */}
+                <div className="flex gap-1 justify-center">
+                  {portraitDialogue.map((_, index) => (
+                    <div
+                      key={index}
+                      className="w-2 h-2 wireframe-border"
+                      style={{
+                        backgroundColor: index <= currentDialogueIndex ? 'var(--accent-color)' : 'var(--bg-main)',
+                        imageRendering: 'pixelated' as any,
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Movable Personal Intro */}
         <AnimatePresence>

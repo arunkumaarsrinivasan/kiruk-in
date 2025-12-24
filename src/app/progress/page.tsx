@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, useId, type CSSProperties, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { GRID_SIZE } from '@/lib/utils'
 
 interface GitHubCommit {
   sha: string
@@ -85,10 +86,76 @@ type ChartPoint = {
   meta?: string
 }
 
-const graphPaperStyle: CSSProperties = {
-  backgroundImage: `linear-gradient(to right, rgba(148,163,184,0.2) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(148,163,184,0.2) 1px, transparent 1px)` ,
-  backgroundSize: '28px 28px'
+// Grid-based pixel style background matching timeline era design
+const gameBackgroundStyle: CSSProperties = {
+  backgroundColor: 'var(--bg-main)',
+  position: 'relative',
+  overflow: 'hidden',
+  imageRendering: 'pixelated' as any,
+}
+
+// Calculate player level and stats from progress data
+function calculatePlayerStats(
+  lifeGoals: LifeGoal[],
+  bucketList: BucketListItem[],
+  monthlyGoals: MonthlyGoal[],
+  devCommits: GitHubCommit[]
+) {
+  // Calculate XP from various sources
+  const completedGoals = lifeGoals.filter(g => g.status === 'completed').length
+  const inProgressGoals = lifeGoals.filter(g => g.status === 'in_progress').length
+  const totalProgress = lifeGoals.reduce((sum, g) => sum + (g.progress ?? 0), 0)
+  const completedBucketItems = bucketList.filter(b => b.status === 'completed').length
+  const monthlyCompletions = monthlyGoals.reduce((sum, m) => {
+    const completed = m.goals.filter(g => g.completed).length
+    return sum + completed
+  }, 0)
+  const commitCount = devCommits.length
+
+  // XP calculation
+  const xpFromGoals = completedGoals * 100 + inProgressGoals * 50 + totalProgress * 0.5
+  const xpFromBucket = completedBucketItems * 150
+  const xpFromMonthly = monthlyCompletions * 75
+  const xpFromCommits = commitCount * 10
+  const totalXP = Math.floor(xpFromGoals + xpFromBucket + xpFromMonthly + xpFromCommits)
+
+  // Level calculation (exponential growth)
+  const level = Math.floor(Math.sqrt(totalXP / 100)) + 1
+  const xpForCurrentLevel = Math.pow(level - 1, 2) * 100
+  const xpForNextLevel = Math.pow(level, 2) * 100
+  const xpInCurrentLevel = totalXP - xpForCurrentLevel
+  const xpNeededForNext = xpForNextLevel - xpForCurrentLevel
+  const levelProgress = (xpInCurrentLevel / xpNeededForNext) * 100
+
+  // Calculate stats
+  const stats = {
+    strength: Math.min(100, Math.floor((completedGoals + completedBucketItems) * 5)),
+    intelligence: Math.min(100, Math.floor((commitCount / 10) * 2 + (monthlyCompletions * 3))),
+    agility: Math.min(100, Math.floor((inProgressGoals * 8) + (monthlyGoals.length * 5))),
+    wisdom: Math.min(100, Math.floor((lifeGoals.length + bucketList.length) * 2)),
+    vitality: Math.min(100, Math.floor((totalProgress / lifeGoals.length) || 0))
+  }
+
+  // Player title based on level
+  const titles = [
+    'Novice', 'Apprentice', 'Adept', 'Expert', 'Master', 'Grandmaster',
+    'Legend', 'Mythic', 'Transcendent', 'Divine'
+  ]
+  const title = titles[Math.min(level - 1, titles.length - 1)] || 'Transcendent'
+
+  return {
+    level,
+    totalXP,
+    xpInCurrentLevel,
+    xpNeededForNext,
+    levelProgress: Math.min(100, Math.max(0, levelProgress)),
+    stats,
+    title,
+    completedGoals,
+    inProgressGoals,
+    completedBucketItems,
+    commitCount
+  }
 }
 
 type ChartCardProps = {
@@ -98,29 +165,685 @@ type ChartCardProps = {
   children: ReactNode
   footer?: ReactNode
   className?: string
+  variant?: 'default' | 'terminal' | 'notebook' | 'strategy' | 'map' | 'calendar'
 }
 
-function ChartCard({ title, description, accentColor, children, footer, className }: ChartCardProps) {
+// Calendar Component - Actual calendar grid
+function CalendarView({ monthlyHighlights }: { monthlyHighlights: Array<{ id: string; title: string; completion: number; wins: Array<{ label: string; detail?: string }> }> }) {
+  const currentDate = new Date()
+  const currentMonth = currentDate.getMonth()
+  const currentYear = currentDate.getFullYear()
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate()
+  const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay()
+  
+  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1)
+  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  
+  return (
+    <div className="wireframe-border p-4" style={{ imageRendering: "pixelated" as any }}>
+      <div className="grid grid-cols-7 gap-1 mb-2">
+        {weekDays.map((day) => (
+          <div key={day} className="font-mono text-xs text-center font-bold" style={{ color: "var(--text-muted)" }}>
+            {day}
+          </div>
+        ))}
+      </div>
+      <div className="grid grid-cols-7 gap-1">
+        {Array.from({ length: firstDayOfMonth }).map((_, i) => (
+          <div key={`empty-${i}`} className="aspect-square" />
+        ))}
+        {days.map((day) => {
+          const isToday = day === currentDate.getDate()
+          const hasData = monthlyHighlights.some(h => {
+            const highlightDate = new Date(h.title)
+            return highlightDate.getDate() === day
+          })
+          
+          return (
+            <motion.div
+              key={day}
+              className="wireframe-border aspect-square flex flex-col items-center justify-center p-1"
+              style={{ 
+                backgroundColor: isToday ? "var(--accent-color)" : hasData ? "var(--bg-card)" : "var(--bg-main)",
+                color: isToday ? "var(--bg-main)" : "var(--text-main)",
+                borderWidth: "1px",
+                imageRendering: "pixelated" as any,
+              }}
+              whileHover={{ scale: 1.1 }}
+            >
+              <span className="font-mono text-xs font-bold">{day}</span>
+              {hasData && !isToday && (
+                <div className="w-1 h-1 rounded-full mt-1" style={{ backgroundColor: "var(--accent-color)" }} />
+              )}
+            </motion.div>
+          )
+        })}
+      </div>
+      <div className="mt-4 space-y-2">
+        {monthlyHighlights.slice(0, 3).map((highlight) => (
+          <div key={highlight.id} className="wireframe-border p-2" style={{ borderWidth: "1px" }}>
+            <div className="flex items-center justify-between mb-1">
+              <span className="font-mono text-xs font-bold" style={{ color: "var(--text-main)" }}>{highlight.title}</span>
+              <span className="font-mono text-xs" style={{ color: "var(--accent-color)" }}>{highlight.completion}%</span>
+            </div>
+            <div className="h-1 wireframe-border" style={{ backgroundColor: "var(--bg-main)", borderWidth: "1px" }}>
+              <div className="h-full" style={{ backgroundColor: "var(--accent-color)", width: `${highlight.completion}%` }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+
+// Strategy Board Component - With pins and markers
+function StrategyBoard({ 
+  categoryProgress, 
+  priorityDeck, 
+  tagHighlights 
+}: { 
+  categoryProgress: Array<{ category: string; average: number; count: number }>
+  priorityDeck: LifeGoal[]
+  tagHighlights: Array<{ tag: string; count: number }>
+}) {
+  return (
+    <div className="space-y-6">
+      <div>
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-xl">📌</span>
+          <p className="font-mono text-xs uppercase tracking-wider" style={{ color: "var(--accent-color)" }}>Category Momentum</p>
+        </div>
+        {categoryProgress.length > 0 ? (
+          <div className="space-y-3">
+            {categoryProgress.slice(0, 5).map((category, index) => (
+              <motion.div
+                key={category.category}
+                className="relative wireframe-border p-3"
+                style={{ imageRendering: "pixelated" as any }}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                {/* Pin marker */}
+                <div className="absolute -top-2 -left-2 w-4 h-4 wireframe-border" style={{ 
+                  backgroundColor: "var(--accent-color)",
+                  borderWidth: "2px",
+                  transform: "rotate(45deg)",
+                }} />
+                <div className="flex items-center justify-between text-xs uppercase tracking-wider font-mono mb-2" style={{ color: "var(--text-muted)" }}>
+                  <span>{category.category}</span>
+                  <span>{category.average}% · {category.count} goals</span>
+                </div>
+                <div className="h-2 wireframe-border" style={{ 
+                  backgroundColor: "var(--bg-main)",
+                  borderWidth: "1px",
+                  imageRendering: "pixelated" as any,
+                }}>
+                  <motion.div
+                    className="h-full"
+                    style={{ backgroundColor: "var(--accent-color)" }}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${category.average}%` }}
+                    transition={{ duration: 1, delay: index * 0.1 }}
+                  />
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm font-mono" style={{ color: "var(--text-muted)" }}>Categorize life goals in Notion to see momentum here.</p>
+        )}
+      </div>
+      
+      <div>
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-xl">🎯</span>
+          <p className="font-mono text-xs uppercase tracking-wider" style={{ color: "var(--accent-color)" }}>Priority Deck</p>
+        </div>
+        {priorityDeck.length > 0 ? (
+          <div className="space-y-3">
+            {priorityDeck.map((goal, index) => (
+              <motion.div
+                key={goal._id}
+                className="relative wireframe-border p-3 flex items-center justify-between gap-3"
+                style={{ imageRendering: "pixelated" as any }}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                {/* String line from pin */}
+                <div className="absolute -left-4 top-1/2 w-4 h-px" style={{ backgroundColor: "var(--border-color)" }} />
+                <div className="absolute -left-6 top-1/2 w-2 h-2 wireframe-border" style={{ 
+                  backgroundColor: "var(--accent-color)",
+                  borderWidth: "2px",
+                  transform: "translateY(-50%)",
+                }} />
+                
+                <div className="flex-1">
+                  <p className="font-mono text-sm font-bold" style={{ color: "var(--text-main)" }}>{goal.title}</p>
+                  <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-wider font-mono mt-1" style={{ color: "var(--text-muted)" }}>
+                    {goal.priority && <span className="wireframe-border px-2 py-1" style={{ 
+                      backgroundColor: "var(--bg-card)",
+                      borderWidth: "1px",
+                      color: "var(--text-main)",
+                      imageRendering: "pixelated" as any,
+                    }}>{goal.priority}</span>}
+                    <span className="wireframe-border px-2 py-1" style={{ 
+                      backgroundColor: "var(--bg-card)",
+                      borderWidth: "1px",
+                      color: "var(--text-main)",
+                      imageRendering: "pixelated" as any,
+                    }}>{goal.status?.split('_').join(' ') ?? 'unspecified'}</span>
+                    {goal.targetDate && <span className="wireframe-border px-2 py-1" style={{ 
+                      backgroundColor: "var(--bg-card)",
+                      borderWidth: "1px",
+                      color: "var(--text-main)",
+                      imageRendering: "pixelated" as any,
+                    }}>Due {formatDate(goal.targetDate)}</span>}
+                  </div>
+                </div>
+                <span className="font-mono text-lg font-bold" style={{ color: "var(--accent-color)" }}>{goal.progress ?? 0}%</span>
+              </motion.div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm font-mono" style={{ color: "var(--text-muted)" }}>Flag priorities in Notion to auto-build this list.</p>
+        )}
+      </div>
+      
+      {tagHighlights.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-xl">🏷️</span>
+            <p className="font-mono text-xs uppercase tracking-wider" style={{ color: "var(--accent-color)" }}>Recurring Themes</p>
+          </div>
+          <div className="flex flex-wrap gap-2 text-[11px] uppercase tracking-wider font-mono">
+            {tagHighlights.map((tag) => (
+              <span 
+                key={tag.tag} 
+                className="wireframe-border px-3 py-1"
+                style={{ 
+                  backgroundColor: "var(--bg-card)",
+                  borderWidth: "1px",
+                  color: "var(--text-main)",
+                  imageRendering: "pixelated" as any,
+                }}
+              >
+                #{tag.tag.toLowerCase()} · {tag.count}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Map Component - Treasure map style
+function AdventureMap({ adventures }: { adventures: BucketListItem[] }) {
+  return (
+    <div className="relative" style={{ minHeight: "400px" }}>
+      {/* Map background with paths */}
+      <div className="absolute inset-0 opacity-20" style={{
+        backgroundImage: `
+          repeating-linear-gradient(45deg, transparent, transparent 10px, #8b4513 10px, #8b4513 11px),
+          repeating-linear-gradient(-45deg, transparent, transparent 10px, #8b4513 10px, #8b4513 11px)
+        `,
+      }} />
+      
+      {/* Adventure markers */}
+      <div className="relative space-y-4">
+        {adventures.slice(0, 5).map((item, index) => (
+          <motion.div
+            key={item._id}
+            className="relative wireframe-border p-4"
+            style={{ 
+              backgroundColor: "#f5f1e8",
+              borderColor: "#8b4513",
+              borderWidth: "2px",
+              imageRendering: "pixelated" as any,
+            }}
+            initial={{ opacity: 0, x: -30, rotate: -2 }}
+            animate={{ opacity: 1, x: 0, rotate: 0 }}
+            transition={{ delay: index * 0.15 }}
+            whileHover={{ rotate: 1, scale: 1.02 }}
+          >
+            {/* Map pin */}
+            <div className="absolute -left-3 top-4">
+              <div className="w-6 h-6 wireframe-border flex items-center justify-center" style={{ 
+                backgroundColor: "#8b4513",
+                borderWidth: "2px",
+                transform: "rotate(45deg)",
+              }}>
+                <span className="text-white text-xs font-bold" style={{ transform: "rotate(-45deg)" }}>
+                  {index + 1}
+                </span>
+              </div>
+            </div>
+            
+            {/* Connecting line */}
+            {index < adventures.length - 1 && (
+              <div className="absolute left-0 top-full w-0.5 h-4" style={{ 
+                backgroundColor: "#8b4513",
+                opacity: 0.3,
+                left: "9px",
+              }} />
+            )}
+            
+            <div className="ml-6">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1">
+                  <p className="font-mono text-base font-bold mb-1" style={{ color: "#654321" }}>{item.title}</p>
+                  {item.location && (
+                    <p className="font-mono text-xs uppercase tracking-wider mb-2" style={{ color: "#8b4513" }}>
+                      📍 {item.location}
+                    </p>
+                  )}
+                  {item.description && (
+                    <p className="font-mono text-sm" style={{ color: "#654321" }}>{item.description}</p>
+                  )}
+                </div>
+                {item.targetDate && (
+                  <div className="text-right flex-shrink-0">
+                    <p className="font-mono text-xs uppercase tracking-wider" style={{ color: "#8b4513" }}>Target</p>
+                    <p className="font-mono text-lg font-bold" style={{ color: "#654321" }}>{formatDate(item.targetDate)}</p>
+                  </div>
+                )}
+              </div>
+              {item.tags && item.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {item.tags.slice(0, 3).map((tag) => (
+                    <span 
+                      key={tag} 
+                      className="font-mono text-xs uppercase tracking-wider px-2 py-1 wireframe-border"
+                      style={{ 
+                        backgroundColor: "#fff",
+                        borderColor: "#8b4513",
+                        color: "#654321",
+                        borderWidth: "1px",
+                        imageRendering: "pixelated" as any,
+                      }}
+                    >
+                      #{tag.toLowerCase()}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// Terminal Component - Actual terminal output
+function TerminalOutput({ commits }: { commits: GitHubCommit[] }) {
+  return (
+    <div className="font-mono text-xs" style={{ color: "var(--accent-color)", fontFamily: "monospace" }}>
+      <div className="mb-2" style={{ color: "var(--text-muted)" }}>
+        <span style={{ color: "var(--accent-color)" }}>$</span> git log --oneline --graph -12
+      </div>
+      <div className="space-y-1" style={{ color: "var(--text-main)" }}>
+        {commits.slice(0, 12).map((commit, index) => (
+          <motion.div
+            key={commit.sha}
+            className="flex items-start gap-2"
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: index * 0.05 }}
+          >
+            <span style={{ color: "var(--accent-color)" }}>|</span>
+            <span style={{ color: "var(--text-muted)" }}>{commit.sha.slice(0, 7)}</span>
+            <span style={{ color: "var(--text-main)" }}>{commit.commit.message}</span>
+            <span className="ml-auto" style={{ color: "var(--text-muted)", fontSize: "10px" }}>
+              {formatDate(commit.commit.author.date)}
+            </span>
+          </motion.div>
+        ))}
+      </div>
+      <div className="mt-4 flex items-center gap-2">
+        <span style={{ color: "var(--accent-color)" }}>$</span>
+        <span className="animate-pulse" style={{ color: "var(--accent-color)" }}>█</span>
+      </div>
+    </div>
+  )
+}
+
+// Terminal-style card for Commit Stream
+function TerminalCard({ title, description, children, className }: ChartCardProps) {
   return (
     <motion.section
-      className={`relative border border-gray-300 bg-white/90 shadow-lg backdrop-blur-sm ${className ?? ''}`}
-      style={{ borderRadius: '18px' }}
-      initial={{ opacity: 0, y: 24 }}
+      className={`relative wireframe-border ${className ?? ''}`}
+      style={{ 
+        imageRendering: "pixelated" as any,
+        backgroundColor: "var(--bg-main)",
+        borderWidth: "2px",
+      }}
+      initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
+      transition={{ duration: 0.5 }}
     >
-      <span
-        className="absolute -top-5 left-1/2 h-8 w-28 -translate-x-1/2 rotate-[-4deg] bg-white/70"
-        style={{ borderRadius: '10px', border: '1px dashed rgba(148,163,184,0.35)' }}
-      />
-      <div className={`px-10 pt-12 pb-4 ${accentColor}`} style={{ borderRadius: '18px 18px 0 0' }}>
-        <h2 className="handwritten text-3xl uppercase tracking-[0.35em] text-gray-900">{title}</h2>
-        <p className="handwritten text-gray-600 mt-3 text-base max-w-2xl">{description}</p>
+      {/* Terminal header */}
+      <div className="wireframe-border px-4 py-2 flex items-center gap-2" style={{ 
+        borderBottomWidth: "2px",
+        borderTop: "none",
+        borderLeft: "none",
+        borderRight: "none",
+        backgroundColor: "var(--bg-card)",
+        imageRendering: "pixelated" as any,
+      }}>
+        <div className="flex gap-1">
+          <div className="w-3 h-3 wireframe-border" style={{ backgroundColor: "var(--accent-color)", borderWidth: "1px" }} />
+          <div className="w-3 h-3 wireframe-border" style={{ backgroundColor: "var(--text-muted)", borderWidth: "1px" }} />
+          <div className="w-3 h-3 wireframe-border" style={{ backgroundColor: "var(--text-muted)", borderWidth: "1px" }} />
+        </div>
+        <div className="flex-1 font-mono text-xs" style={{ color: "var(--text-muted)" }}>
+          <span style={{ color: "var(--accent-color)" }}>$</span> {title}
+        </div>
       </div>
-      <div className="px-8 pb-8 pt-6">{children}</div>
-      {footer && <div className="px-8 pb-8 -mt-4">{footer}</div>}
+      <div className="px-4 py-3" style={{ backgroundColor: "var(--bg-main)", minHeight: "200px" }}>
+        <p className="mb-4 font-mono text-xs" style={{ color: "var(--text-muted)" }}>
+          {'// '}{description}
+        </p>
+        {children}
+      </div>
     </motion.section>
   )
+}
+
+// Todo List Component
+function TodoList({ items, type }: { items: (LifeGoal | BucketListItem | MonthlyGoal)[], type: 'lifeGoals' | 'bucketList' | 'monthlyGoals' }) {
+  if (type === 'lifeGoals') {
+    const goals = items as LifeGoal[]
+    return (
+      <div className="space-y-2">
+        {goals.slice(0, 6).map((goal) => (
+          <motion.div
+            key={goal._id}
+            className="flex items-start gap-3 wireframe-border p-3"
+            style={{ imageRendering: "pixelated" as any }}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            <input
+              type="checkbox"
+              checked={goal.status === 'completed'}
+              readOnly
+              className="handwritten-checkbox mt-1 flex-shrink-0"
+              style={{ width: "20px", height: "20px" }}
+            />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-2">
+                <p className="font-mono text-sm font-bold" style={{ 
+                  color: goal.status === 'completed' ? "var(--text-muted)" : "var(--text-main)",
+                  textDecoration: goal.status === 'completed' ? "line-through" : "none"
+                }}>
+                  {goal.title}
+                </p>
+                <span className="font-mono text-xs font-bold flex-shrink-0" style={{ color: "var(--accent-color)" }}>
+                  {goal.progress ?? 0}%
+                </span>
+              </div>
+              {goal.description && (
+                <p className="font-mono text-xs mt-1" style={{ color: "var(--text-muted)" }}>
+                  {goal.description}
+                </p>
+              )}
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    )
+  }
+  
+  if (type === 'bucketList') {
+    const bucketItems = items as BucketListItem[]
+    return (
+      <div className="space-y-2">
+        {bucketItems.slice(0, 6).map((item) => (
+          <motion.div
+            key={item._id}
+            className="flex items-start gap-3 wireframe-border p-3"
+            style={{ imageRendering: "pixelated" as any }}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            <input
+              type="checkbox"
+              checked={item.status === 'completed'}
+              readOnly
+              className="handwritten-checkbox mt-1 flex-shrink-0"
+              style={{ width: "20px", height: "20px" }}
+            />
+            <div className="flex-1 min-w-0">
+              <p className="font-mono text-sm font-bold" style={{ 
+                color: item.status === 'completed' ? "var(--text-muted)" : "var(--text-main)",
+                textDecoration: item.status === 'completed' ? "line-through" : "none"
+              }}>
+                {item.title}
+              </p>
+              {item.location && (
+                <p className="font-mono text-xs mt-1" style={{ color: "var(--text-muted)" }}>
+                  📍 {item.location}
+                </p>
+              )}
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    )
+  }
+  
+  return <div>No items to display</div>
+}
+
+// Notebook-style card for Notion Boards
+function NotebookCard({ title, description, children, className }: ChartCardProps) {
+  return (
+    <motion.section
+      className={`relative ${className ?? ''}`}
+      style={{ 
+        imageRendering: "pixelated" as any,
+        backgroundColor: "var(--bg-card)",
+        borderLeft: "4px solid var(--accent-color)",
+        borderTop: "1px solid var(--border-color)",
+        borderRight: "1px solid var(--border-color)",
+        borderBottom: "1px solid var(--border-color)",
+        boxShadow: "4px 4px 0 var(--border-color)",
+      }}
+      initial={{ opacity: 0, rotate: -0.5 }}
+      animate={{ opacity: 1, rotate: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      {/* Notebook lines background */}
+      <div className="absolute inset-0 pointer-events-none opacity-10" style={{
+        backgroundImage: "repeating-linear-gradient(transparent, transparent 24px, var(--border-color) 24px, var(--border-color) 25px)",
+        backgroundSize: "100% 25px",
+      }} />
+      <div className="relative px-6 py-4">
+        <h2 className="font-mono text-xl uppercase tracking-wider font-bold mb-1" style={{ color: "var(--accent-color)" }}>{title}</h2>
+        <p className="font-mono text-sm mb-4" style={{ color: "var(--text-muted)" }}>{description}</p>
+        {children}
+      </div>
+    </motion.section>
+  )
+}
+
+// Strategy board-style card for Goal Strategy
+function StrategyCard({ title, description, children, className }: ChartCardProps) {
+  return (
+    <motion.section
+      className={`relative wireframe-border ${className ?? ''}`}
+      style={{ 
+        imageRendering: "pixelated" as any,
+        backgroundColor: "var(--bg-card)",
+        borderWidth: "3px",
+        position: "relative",
+      }}
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      {/* Strategy board grid overlay */}
+      <div className="absolute inset-0 pointer-events-none opacity-20" style={{
+        backgroundImage: `
+          linear-gradient(var(--border-color) 1px, transparent 1px),
+          linear-gradient(90deg, var(--border-color) 1px, transparent 1px)
+        `,
+        backgroundSize: `${GRID_SIZE * 2}px ${GRID_SIZE * 2}px`,
+      }} />
+      
+      {/* Corner pins */}
+      <div className="absolute -top-1 -left-1 w-3 h-3 wireframe-border" style={{ backgroundColor: "var(--accent-color)", borderWidth: "2px" }} />
+      <div className="absolute -top-1 -right-1 w-3 h-3 wireframe-border" style={{ backgroundColor: "var(--accent-color)", borderWidth: "2px" }} />
+      <div className="absolute -bottom-1 -left-1 w-3 h-3 wireframe-border" style={{ backgroundColor: "var(--accent-color)", borderWidth: "2px" }} />
+      <div className="absolute -bottom-1 -right-1 w-3 h-3 wireframe-border" style={{ backgroundColor: "var(--accent-color)", borderWidth: "2px" }} />
+      
+      <div className="relative px-6 py-4">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-2xl">{title.split(' ')[0]}</span>
+          <h2 className="font-mono text-xl uppercase tracking-wider font-bold" style={{ color: "var(--accent-color)" }}>
+            {title.split(' ').slice(1).join(' ')}
+          </h2>
+        </div>
+        <p className="font-mono text-sm mb-4" style={{ color: "var(--text-muted)" }}>{description}</p>
+        {children}
+      </div>
+    </motion.section>
+  )
+}
+
+// Map-style card for Adventure Timeline
+function MapCard({ title, description, children, className }: ChartCardProps) {
+  return (
+    <motion.section
+      className={`relative ${className ?? ''}`}
+      style={{ 
+        imageRendering: "pixelated" as any,
+        backgroundColor: "#f5f1e8",
+        border: "3px solid var(--border-color)",
+        boxShadow: "6px 6px 0 var(--border-color)",
+        position: "relative",
+      }}
+      initial={{ opacity: 0, rotate: 1 }}
+      animate={{ opacity: 1, rotate: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      {/* Paper texture and map lines */}
+      <div className="absolute inset-0 pointer-events-none opacity-30" style={{
+        backgroundImage: `
+          repeating-linear-gradient(0deg, transparent, transparent 2px, var(--border-color) 2px, var(--border-color) 4px),
+          repeating-linear-gradient(90deg, transparent, transparent 2px, var(--border-color) 2px, var(--border-color) 4px)
+        `,
+        backgroundSize: "40px 40px",
+      }} />
+      
+      {/* Compass rose decoration */}
+      <div className="absolute top-4 right-4 font-mono text-2xl opacity-20">🧭</div>
+      
+      <div className="relative px-6 py-4">
+        <div className="flex items-center gap-3 mb-2">
+          <span className="text-2xl">{title.split(' ')[0]}</span>
+          <h2 className="font-mono text-xl uppercase tracking-wider font-bold" style={{ color: "#8b4513" }}>
+            {title.split(' ').slice(1).join(' ')}
+          </h2>
+        </div>
+        <p className="font-mono text-sm mb-4" style={{ color: "#654321" }}>{description}</p>
+        {children}
+      </div>
+    </motion.section>
+  )
+}
+
+// Calendar-style card for Monthly Cadence
+function CalendarCard({ title, description, children, className }: ChartCardProps) {
+  return (
+    <motion.section
+      className={`relative wireframe-border ${className ?? ''}`}
+      style={{ 
+        imageRendering: "pixelated" as any,
+        backgroundColor: "var(--bg-card)",
+        borderWidth: "2px",
+        position: "relative",
+      }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      {/* Calendar grid pattern */}
+      <div className="absolute inset-0 pointer-events-none opacity-10" style={{
+        backgroundImage: `
+          linear-gradient(var(--border-color) 1px, transparent 1px),
+          linear-gradient(90deg, var(--border-color) 1px, transparent 1px)
+        `,
+        backgroundSize: `${GRID_SIZE}px ${GRID_SIZE}px`,
+      }} />
+      
+      {/* Calendar header style */}
+      <div className="relative px-6 py-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">{title.split(' ')[0]}</span>
+            <h2 className="font-mono text-xl uppercase tracking-wider font-bold" style={{ color: "var(--accent-color)" }}>
+              {title.split(' ').slice(1).join(' ')}
+            </h2>
+          </div>
+          <div className="font-mono text-xs" style={{ color: "var(--text-muted)" }}>
+            {new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+          </div>
+        </div>
+        <p className="font-mono text-sm mb-4" style={{ color: "var(--text-muted)" }}>{description}</p>
+        {children}
+      </div>
+    </motion.section>
+  )
+}
+
+// Default card
+function DefaultCard({ title, description, children, footer, className }: ChartCardProps) {
+  return (
+    <motion.section
+      className={`relative wireframe-border ${className ?? ''}`}
+      style={{ imageRendering: "pixelated" as any }}
+      initial={{ opacity: 0, y: 30, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <div className="wireframe-border px-6 py-4" style={{ 
+        borderTop: "none",
+        borderLeft: "none",
+        borderRight: "none",
+        borderBottomWidth: "var(--border-width)",
+        imageRendering: "pixelated" as any,
+      }}>
+        <h2 className="font-mono text-xl uppercase tracking-wider font-bold" style={{ color: "var(--accent-color)" }}>{title}</h2>
+        <p className="font-mono mt-2 text-sm max-w-2xl" style={{ color: "var(--text-muted)" }}>{description}</p>
+      </div>
+      <div className="px-6 pb-6 pt-4">{children}</div>
+      {footer && <div className="px-6 pb-6 -mt-2">{footer}</div>}
+    </motion.section>
+  )
+}
+
+function ChartCard({ title, description, accentColor, children, footer, className, variant = 'default' }: ChartCardProps) {
+  const props = { title, description, accentColor, children, footer, className }
+  
+  switch (variant) {
+    case 'terminal':
+      return <TerminalCard {...props} />
+    case 'notebook':
+      return <NotebookCard {...props} />
+    case 'strategy':
+      return <StrategyCard {...props} />
+    case 'map':
+      return <MapCard {...props} />
+    case 'calendar':
+      return <CalendarCard {...props} />
+    default:
+      return <DefaultCard {...props} />
+  }
 }
 
 type LineChartProps = {
@@ -161,7 +884,7 @@ function LineChart({ data, color, onHover, activeIndex }: LineChartProps) {
 
   if (data.length === 0) {
     return (
-      <div className="h-48 flex items-center justify-center text-sm text-gray-500 handwritten">
+      <div className="h-48 flex items-center justify-center text-sm font-mono" style={{ color: "var(--text-muted)" }}>
         No data available yet. Sync your trackers to populate the graph.
       </div>
     )
@@ -220,9 +943,9 @@ function LineChart({ data, color, onHover, activeIndex }: LineChartProps) {
               cx={point.x}
               cy={point.y}
               r={activeIndex === index ? 7 : 5}
-              fill="#fff"
-              stroke={pencilStroke}
-              strokeWidth={1.5}
+              fill={activeIndex === index ? "#06b6d4" : "#0891b2"}
+              stroke={activeIndex === index ? "#06b6d4" : "#0e7490"}
+              strokeWidth={activeIndex === index ? 2.5 : 1.5}
               onPointerEnter={() => onHover?.(data[index], index)}
               className="cursor-pointer transition-transform"
             />
@@ -230,7 +953,7 @@ function LineChart({ data, color, onHover, activeIndex }: LineChartProps) {
               x={point.x}
               y={height - 6}
               textAnchor="middle"
-              className="fill-gray-500 text-[10px]"
+              className="fill-cyan-400/70 text-[10px] font-mono"
             >
               {data[index].label}
             </text>
@@ -254,7 +977,7 @@ function BarChart({ data, color, onHover, activeIndex, onSelect }: BarChartProps
 
   if (data.length === 0) {
     return (
-      <div className="h-48 flex items-center justify-center text-sm text-gray-500 handwritten">
+      <div className="h-48 flex items-center justify-center text-sm font-mono" style={{ color: "var(--text-muted)" }}>
         Nothing tracked yet. Add goals to see them charted here.
       </div>
     )
@@ -273,13 +996,25 @@ function BarChart({ data, color, onHover, activeIndex, onSelect }: BarChartProps
             onPointerLeave={() => onHover?.(null, null)}
             onClick={() => onSelect?.(point, index)}
           >
-            <div className="relative w-full bg-gray-100/60 border border-dashed border-gray-300 rounded-none pt-2">
-              <div className="absolute inset-x-1 bottom-1 rounded-none" style={{ height: `${heightPercent}%`, backgroundColor: color, opacity: activeIndex === index ? 0.95 : 0.75 }} />
-              <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-xs text-gray-600 handwritten opacity-0 group-hover:opacity-100 transition">
+            <div className="relative w-full wireframe-border pt-2" style={{ 
+              backgroundColor: "var(--bg-main)",
+              imageRendering: "pixelated" as any,
+            }}>
+              <motion.div
+                className="absolute inset-x-1 bottom-1"
+                style={{ 
+                  backgroundColor: "var(--accent-color)",
+                  height: `${heightPercent}%`,
+                }}
+                initial={{ height: 0 }}
+                animate={{ height: `${heightPercent}%` }}
+                transition={{ delay: index * 0.1, duration: 0.8 }}
+              />
+              <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-xs font-mono opacity-0 group-hover:opacity-100 transition" style={{ color: "var(--accent-color)" }}>
                 {point.value}%
               </span>
             </div>
-            <span className="text-xs text-gray-700 handwritten uppercase tracking-[0.25em] text-center">
+            <span className="text-xs font-mono uppercase tracking-wider text-center" style={{ color: "var(--text-main)" }}>
               {point.label}
             </span>
           </button>
@@ -303,23 +1038,25 @@ function RadialChart({ value, label, accentColor }: RadialChartProps) {
   return (
     <div className="flex flex-col items-center">
       <svg viewBox="0 0 100 100" className="w-24 h-24">
-        <circle cx="50" cy="50" r="38" stroke="#e2e8f0" strokeWidth="8" fill="transparent" />
-        <circle
+        <circle cx="50" cy="50" r="38" stroke="var(--border-color)" strokeWidth="8" fill="transparent" opacity={0.2} />
+        <motion.circle
           cx="50"
           cy="50"
           r="38"
-          stroke={accentColor}
+          stroke="var(--accent-color)"
           strokeWidth="8"
           strokeLinecap="round"
           strokeDasharray={dashArray}
-          strokeDashoffset={dashOffset}
           fill="transparent"
+          initial={{ strokeDashoffset: dashArray }}
+          animate={{ strokeDashoffset: dashOffset }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
         />
-        <text x="50" y="54" textAnchor="middle" className="text-[18px] font-semibold fill-gray-800">
+        <text x="50" y="54" textAnchor="middle" className="text-[18px] font-bold fill-cyan-400 font-mono">
           {normalizedValue}%
         </text>
       </svg>
-      <span className="mt-2 text-xs uppercase tracking-[0.3em] text-gray-600 handwritten text-center">
+      <span className="mt-2 text-xs uppercase tracking-wider font-mono text-center" style={{ color: "var(--text-muted)" }}>
         {label}
       </span>
     </div>
@@ -692,48 +1429,247 @@ export default function UnifiedProgress() {
       })
   }, [monthlyGoals])
 
+  // Calculate player stats
+  const playerStats = useMemo(() => {
+    return calculatePlayerStats(lifeGoals, bucketList, monthlyGoals, devCommits)
+  }, [lifeGoals, bucketList, monthlyGoals, devCommits])
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={graphPaperStyle}>
-        <div className="px-8 py-4 border border-gray-300 bg-white/80 shadow-lg rounded-none">
-          <div className="animate-spin rounded-none h-8 w-8 border-b border-gray-800 mx-auto mb-4" />
-          <p className="handwritten text-gray-700 text-sm">Syncing progress trackers…</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center" style={gameBackgroundStyle}>
+        <motion.div
+          className="wireframe-border px-8 py-4"
+          style={{ imageRendering: "pixelated" as any }}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+        >
+          <div className="animate-spin rounded-none h-8 w-8 border-b-2 mx-auto mb-4" style={{ borderColor: "var(--accent-color)" }} />
+          <p className="font-mono text-sm" style={{ color: "var(--accent-color)" }}>Loading Player Data...</p>
+        </motion.div>
       </div>
     )
   }
 
   return (
-    <main className="min-h-screen py-25" style={graphPaperStyle}>
-      <div className="max-w-6xl mx-auto px-4 sm:px-4 lg:px-8">
-        <motion.header
-          className="text-center"
-          initial={{ opacity: 0, y: -20 }}
+    <main className="min-h-screen py-8 relative" style={gameBackgroundStyle}>
+      {/* Grid Background - Timeline Era Style */}
+      <div 
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage: `
+            linear-gradient(var(--border-color) 1px, transparent 1px),
+            linear-gradient(90deg, var(--border-color) 1px, transparent 1px)
+          `,
+          backgroundSize: `${GRID_SIZE}px ${GRID_SIZE}px`,
+          opacity: 0.3,
+          imageRendering: "pixelated" as any,
+        }}
+      />
+      
+      {/* Scanlines effect for retro pixel feel */}
+      <div 
+        className="absolute inset-0 pointer-events-none opacity-5"
+        style={{
+          backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px)",
+        }}
+      />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        {/* Game HUD Header - Player Stats */}
+        <motion.div
+          className="mt-8 mb-12"
+          initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
         >
+          {/* Main Player Card - Wireframe Style */}
+          <div className="wireframe-border p-6 mb-6" style={{ imageRendering: "pixelated" as any }}>
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+              {/* Left: Level & Title */}
+              <div className="flex items-center gap-6">
+                <motion.div
+                  className="relative"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
+                  style={{ imageRendering: "pixelated" as any }}
+                >
+                  <div className="wireframe-border w-24 h-24 flex items-center justify-center relative" style={{ 
+                    backgroundColor: "var(--bg-card)",
+                    imageRendering: "pixelated" as any,
+                  }}>
+                    <span className="text-4xl font-bold font-mono" style={{ color: "var(--accent-color)" }}>{playerStats.level}</span>
+                    <div className="absolute -top-2 -right-2 wireframe-border w-6 h-6 flex items-center justify-center" style={{ 
+                      backgroundColor: "var(--accent-color)",
+                      color: "var(--bg-main)",
+                      imageRendering: "pixelated" as any,
+                    }}>
+                      <span className="text-xs font-bold">LV</span>
+                    </div>
+                  </div>
+                </motion.div>
+                <div>
+                  <motion.h1
+                    className="text-3xl font-bold font-mono mb-2"
+                    style={{ color: "var(--accent-color)" }}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.4 }}
+                  >
+                    {playerStats.title}
+                  </motion.h1>
+                  <motion.p
+                    className="font-mono text-sm"
+                    style={{ color: "var(--text-muted)" }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5 }}
+                  >
+                    Solo Leveling Progress
+                  </motion.p>
+                </div>
+              </div>
 
-          <h1 className="mt-6 text-5xl magnetic-font tracking-tight text-gray-900">
-            Progress Observatory
-          </h1>
-          <p className="mt-4 text-base text-gray-600 handwritten max-w-3xl mx-auto">
-            A live board of my product experiments, life goals, and dream adventures—all plotted onto graph paper so we can see patterns at a glance.
-          </p>
-          {errorMessage ? (
-            <div className="mt-6 inline-flex items-center gap-2 rounded-none border border-red-200 bg-red-50/80 px-4 py-2 text-xs uppercase tracking-[0.3em] text-red-500 handwritten">
-              {errorMessage}
+              {/* Right: XP Bar */}
+              <div className="flex-1 max-w-md">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-mono text-xs uppercase" style={{ color: "var(--text-muted)" }}>Experience</span>
+                  <span className="font-mono text-xs" style={{ color: "var(--text-main)" }}>
+                    {playerStats.xpInCurrentLevel.toLocaleString()} / {playerStats.xpNeededForNext.toLocaleString()} XP
+                  </span>
+                </div>
+                <div className="h-6 wireframe-border relative overflow-hidden" style={{ 
+                  backgroundColor: "var(--bg-main)",
+                  imageRendering: "pixelated" as any,
+                }}>
+                  <motion.div
+                    className="h-full"
+                    style={{ 
+                      backgroundColor: "var(--accent-color)",
+                      width: `${playerStats.levelProgress}%`,
+                    }}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${playerStats.levelProgress}%` }}
+                    transition={{ delay: 0.6, duration: 1.5, ease: "easeOut" }}
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-xs font-bold font-mono" style={{ color: "var(--text-main)" }}>
+                      {playerStats.levelProgress.toFixed(1)}%
+                    </span>
+                  </div>
+                </div>
+                <div className="mt-2 flex items-center justify-between text-xs font-mono" style={{ color: "var(--text-muted)" }}>
+                  <span>Total XP: {playerStats.totalXP.toLocaleString()}</span>
+                  <span>Next Level: {playerStats.level + 1}</span>
+                </div>
+              </div>
             </div>
-          ) : (
-            <div className="mt-6 flex justify-center">
-              <span className="handwritten text-xs uppercase tracking-[0.35em] text-gray-500 rounded-none border border-dashed border-gray-300 px-4 py-1 bg-white/60">
-                Synced from Notion{lastSyncedAt ? ` · ${new Date(lastSyncedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}` : ''}
-              </span>
+          </div>
+
+          {/* Stat Cards Grid */}
+          <motion.div
+            className="grid grid-cols-2 md:grid-cols-5 gap-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7, staggerChildren: 0.1 }}
+          >
+            {Object.entries(playerStats.stats).map(([statName, value], index) => (
+              <motion.div
+                key={statName}
+                className="wireframe-border p-4"
+                style={{ imageRendering: "pixelated" as any }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8 + index * 0.1 }}
+                whileHover={{ scale: 1.05 }}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-mono text-xs uppercase" style={{ color: "var(--text-muted)" }}>
+                    {statName.charAt(0).toUpperCase() + statName.slice(1)}
+                  </span>
+                  <span className="font-mono font-bold text-lg" style={{ color: "var(--accent-color)" }}>{value}</span>
+                </div>
+                <div className="h-2 wireframe-border" style={{ 
+                  backgroundColor: "var(--bg-main)",
+                  borderWidth: "1px",
+                  imageRendering: "pixelated" as any,
+                }}>
+                  <motion.div
+                  className="h-full"
+                  style={{ backgroundColor: "var(--accent-color)" }}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${value}%` }}
+                  transition={{ delay: 1 + index * 0.1, duration: 1 }}
+                />
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* Quick Stats Row */}
+          <motion.div
+            className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.2 }}
+          >
+            <div className="wireframe-border p-3" style={{ imageRendering: "pixelated" as any }}>
+              <div className="font-mono text-xs uppercase mb-1" style={{ color: "var(--text-muted)" }}>Goals Completed</div>
+              <div className="font-mono text-2xl font-bold" style={{ color: "var(--accent-color)" }}>{playerStats.completedGoals}</div>
             </div>
+            <div className="wireframe-border p-3" style={{ imageRendering: "pixelated" as any }}>
+              <div className="font-mono text-xs uppercase mb-1" style={{ color: "var(--text-muted)" }}>In Progress</div>
+              <div className="font-mono text-2xl font-bold" style={{ color: "var(--accent-color)" }}>{playerStats.inProgressGoals}</div>
+            </div>
+            <div className="wireframe-border p-3" style={{ imageRendering: "pixelated" as any }}>
+              <div className="font-mono text-xs uppercase mb-1" style={{ color: "var(--text-muted)" }}>Adventures</div>
+              <div className="font-mono text-2xl font-bold" style={{ color: "var(--accent-color)" }}>{playerStats.completedBucketItems}</div>
+            </div>
+            <div className="wireframe-border p-3" style={{ imageRendering: "pixelated" as any }}>
+              <div className="font-mono text-xs uppercase mb-1" style={{ color: "var(--text-muted)" }}>Commits</div>
+              <div className="font-mono text-2xl font-bold" style={{ color: "var(--accent-color)" }}>{playerStats.commitCount}</div>
+            </div>
+          </motion.div>
+
+          {errorMessage && (
+            <motion.div
+              className="mt-6 inline-flex items-center gap-2 wireframe-border px-4 py-2 text-xs uppercase tracking-wider font-mono"
+              style={{ 
+                borderColor: "var(--accent-color)",
+                backgroundColor: "var(--bg-card)",
+                color: "var(--accent-color)",
+                imageRendering: "pixelated" as any,
+              }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              ⚠ {errorMessage}
+            </motion.div>
           )}
-        </motion.header>
+          {!errorMessage && lastSyncedAt && (
+            <motion.div
+              className="mt-6 flex justify-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.3 }}
+            >
+              <span className="wireframe-border font-mono text-xs uppercase tracking-wider px-4 py-1" style={{ 
+                color: "var(--text-muted)",
+                imageRendering: "pixelated" as any,
+              }}>
+                Synced from Notion · {new Date(lastSyncedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+              </span>
+            </motion.div>
+          )}
+        </motion.div>
 
-        <div className="mt-16">
+        <motion.div
+          className="mt-12 space-y-8"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.4 }}
+        >
           <ChartCard
-            title="Trajectory"
+            title="📈 Trajectory Analysis"
             description="Switch between build velocity and life cadence to inspect momentum over time. Hover any node for more detail."
             accentColor="bg-blue-50"
           >
@@ -742,26 +1678,32 @@ export default function UnifiedProgress() {
                 <button
                   type="button"
                   onClick={() => setTimelineView('dev')}
-                  className={`handwritten text-xs uppercase tracking-[0.3em] px-4 py-2 border border-gray-300 rounded-none transition ${
-                    timelineView === 'dev' ? 'bg-blue-500 text-white' : 'bg-white/80 text-gray-700 hover:bg-blue-100/60'
-                  }`}
+                  className={`wireframe-border font-mono text-xs uppercase tracking-wider px-4 py-2 transition`}
+                  style={{
+                    backgroundColor: timelineView === 'dev' ? "var(--accent-color)" : "var(--bg-card)",
+                    color: timelineView === 'dev' ? "var(--bg-main)" : "var(--text-main)",
+                    imageRendering: "pixelated" as any,
+                  }}
                 >
                   Dev Velocity
                 </button>
                 <button
                   type="button"
                   onClick={() => setTimelineView('monthly')}
-                  className={`handwritten text-xs uppercase tracking-[0.3em] px-4 py-2 border border-gray-300 rounded-none transition ${
-                    timelineView === 'monthly' ? 'bg-purple-500 text-white' : 'bg-white/80 text-gray-700 hover:bg-purple-100/60'
-                  }`}
+                  className={`wireframe-border font-mono text-xs uppercase tracking-wider px-4 py-2 transition`}
+                  style={{
+                    backgroundColor: timelineView === 'monthly' ? "var(--accent-color)" : "var(--bg-card)",
+                    color: timelineView === 'monthly' ? "var(--bg-main)" : "var(--text-main)",
+                    imageRendering: "pixelated" as any,
+                  }}
                 >
                   Monthly Cadence
                 </button>
               </div>
-              <span className="handwritten text-sm text-gray-600">{timelineHeadline}</span>
+              <span className="font-mono text-sm" style={{ color: "var(--text-main)" }}>{timelineHeadline}</span>
             </div>
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-gray-500 handwritten">
-              <label htmlFor="timeline-span" className="uppercase tracking-[0.25em]">
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs font-mono" style={{ color: "var(--text-muted)" }}>
+              <label htmlFor="timeline-span" className="uppercase tracking-wider">
                 Window · {Math.max(2, timelineSpan)} points
               </label>
               <input
@@ -771,7 +1713,11 @@ export default function UnifiedProgress() {
                 max={24}
                 value={timelineSpan}
                 onChange={(event) => setTimelineSpan(Number(event.target.value))}
-                className="h-1 w-40 cursor-pointer appearance-none rounded-none bg-gray-200 accent-blue-500"
+                className="h-1 w-40 cursor-pointer appearance-none wireframe-border"
+                style={{ 
+                  backgroundColor: "var(--bg-main)",
+                  accentColor: "var(--accent-color)",
+                }}
               />
             </div>
             <LineChart
@@ -785,87 +1731,70 @@ export default function UnifiedProgress() {
             <AnimatePresence>
               {activePoint && (
                 <motion.div
-                  className="mt-6 rounded-none border border-gray-200 bg-white/90 px-4 py-4 flex items-center justify-between gap-4"
+                  className="mt-6 wireframe-border px-4 py-4 flex items-center justify-between gap-4"
+                  style={{ imageRendering: "pixelated" as any }}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 8 }}
                 >
                   <div>
-                    <p className="handwritten text-xs uppercase tracking-[0.3em] text-gray-500">Focused node</p>
-                    <p className="handwritten text-lg text-gray-900 mt-1">{activePoint.label}</p>
+                    <p className="font-mono text-xs uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Focused Node</p>
+                    <p className="font-mono text-lg mt-1" style={{ color: "var(--text-main)" }}>{activePoint.label}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-semibold text-gray-900">{activePoint.value}</p>
+                    <p className="text-2xl font-bold font-mono" style={{ color: "var(--accent-color)" }}>{activePoint.value}</p>
                     {activePoint.detail && (
-                      <p className="handwritten text-xs text-gray-500 mt-1">{activePoint.detail}</p>
+                      <p className="font-mono text-xs mt-1" style={{ color: "var(--text-muted)" }}>{activePoint.detail}</p>
                     )}
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
           </ChartCard>
-        </div>
 
-        <ChartCard
-          title="Commit stream"
-          description="Newest commits waterfall. Scroll horizontally to skim the diff notes."
-          accentColor="bg-slate-50"
-          className="mt-12"
-        >
-          {devCommits.length > 0 ? (
-            <div className="overflow-x-auto">
-              <div className="flex min-w-full gap-4">
-                {devCommits.slice(0, 12).map((commit, index) => (
-                  <motion.div
-                    key={commit.sha}
-                    className="min-w-[220px] flex-shrink-0 border border-gray-200 bg-white/90 px-4 py-4 rounded-none"
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.04 }}
-                  >
-                    <p className="handwritten text-xs uppercase tracking-[0.3em] text-gray-500">{formatDate(commit.commit.author.date)}</p>
-                    <p className="mt-3 text-sm text-gray-900 handwritten leading-relaxed">{commit.commit.message}</p>
-                    <p className="mt-4 text-xs text-gray-500 handwritten">
-                      {commit.commit.author.name}
-                    </p>
-                  </motion.div>
-                ))}
+          <ChartCard
+            title="💻 Commit Stream"
+            description="Newest commits waterfall. Scroll horizontally to skim the diff notes."
+            accentColor="bg-slate-50"
+            variant="terminal"
+          >
+            {devCommits.length > 0 ? (
+              <TerminalOutput commits={devCommits} />
+            ) : (
+              <div className="text-center py-8 text-sm font-mono" style={{ color: "var(--text-muted)" }}>
+                <span style={{ color: "var(--accent-color)" }}>$</span> No commits to display yet.
               </div>
-            </div>
-          ) : (
-            <div className="text-center py-8 text-sm text-gray-500 handwritten">
-              No commits to display yet.
-            </div>
-          )}
-        </ChartCard>
+            )}
+          </ChartCard>
 
-        <ChartCard
-          title="Notion boards"
-          description="Glide through the original databases pulled straight from Notion. Each tab surfaces a different playbook."
-          accentColor="bg-sky-50"
-          className="mt-12"
-        >
-          <div className="flex flex-wrap items-center gap-3">
-            {[
-              { key: 'lifeGoals', label: 'Life goals', icon: '🎯' },
-              { key: 'bucketList', label: 'Bucket list', icon: '🗺️' },
-              { key: 'monthlyGoals', label: 'Monthly goals', icon: '🗓️' }
-            ].map((tab) => (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => setActiveNotebook(tab.key as typeof activeNotebook)}
-                className={`inline-flex items-center gap-2 rounded-none border px-4 py-2 text-xs uppercase tracking-[0.3em] transition handwritten ${
-                  activeNotebook === tab.key
-                    ? 'border-sky-500 bg-sky-500 text-white shadow-sm'
-                    : 'border-sky-200 bg-white/80 text-gray-700 hover:bg-sky-100/70'
-                }`}
-              >
-                <span aria-hidden>{tab.icon}</span>
-                {tab.label}
-              </button>
-            ))}
-          </div>
+          <ChartCard
+            title="📋 Notion Boards"
+            description="Glide through the original databases pulled straight from Notion. Each tab surfaces a different playbook."
+            accentColor="bg-sky-50"
+            variant="notebook"
+          >
+            <div className="flex flex-wrap items-center gap-3">
+              {[
+                { key: 'lifeGoals', label: 'Life goals', icon: '🎯' },
+                { key: 'bucketList', label: 'Bucket list', icon: '🗺️' },
+                { key: 'monthlyGoals', label: 'Monthly goals', icon: '🗓️' }
+              ].map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => setActiveNotebook(tab.key as typeof activeNotebook)}
+                  className={`inline-flex items-center gap-2 wireframe-border px-4 py-2 text-xs uppercase tracking-wider transition font-mono`}
+                  style={{
+                    backgroundColor: activeNotebook === tab.key ? "var(--accent-color)" : "var(--bg-card)",
+                    color: activeNotebook === tab.key ? "var(--bg-main)" : "var(--text-main)",
+                    imageRendering: "pixelated" as any,
+                  }}
+                >
+                  <span aria-hidden>{tab.icon}</span>
+                  {tab.label}
+                </button>
+              ))}
+            </div>
           <AnimatePresence mode="wait">
             <motion.div
               key={activeNotebook}
@@ -876,99 +1805,17 @@ export default function UnifiedProgress() {
             >
               {activeNotebook === 'lifeGoals' && (
                 lifeGoalsCatalog.length > 0 ? (
-                  <ul className="space-y-3">
-                    {lifeGoalsCatalog.slice(0, 6).map((goal) => (
-                      <li
-                        key={goal._id}
-                        className="flex flex-col gap-3 rounded-none border border-emerald-200 bg-white/90 px-4 py-4 shadow-sm md:flex-row md:items-center md:justify-between"
-                      >
-                        <div className="space-y-2.5">
-                          <p className="handwritten text-lg text-gray-900">{goal.title}</p>
-                          {goal.description && (
-                            <p className="handwritten text-sm text-gray-600 max-w-xl">{goal.description}</p>
-                          )}
-                          <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-gray-500 handwritten">
-                            <span className="rounded-none bg-emerald-100 px-2 py-1 text-emerald-700">{goal.status.replace('_', ' ')}</span>
-                            {goal.priority && (
-                              <span className="rounded-none bg-emerald-50 px-2 py-1 text-emerald-600">Priority · {goal.priority}</span>
-                            )}
-                            {goal.tags?.slice(0, 3).map((tag) => (
-                              <span key={tag} className="rounded-none border border-emerald-200 px-2 py-1 text-emerald-500">
-                                #{tag.toLowerCase()}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                        <div className="flex items-end gap-4 self-end md:self-auto">
-                          <div className="text-right">
-                            <p className="handwritten text-xs uppercase tracking-[0.3em] text-gray-500">Progress</p>
-                            <p className="handwritten text-xl text-emerald-600">{goal.progress ?? 0}%</p>
-                          </div>
-                          {goal.targetDate && (
-                            <div className="text-right">
-                              <p className="handwritten text-xs uppercase tracking-[0.3em] text-gray-500">Target</p>
-                              <p className="handwritten text-sm text-gray-700">{formatDate(goal.targetDate)}</p>
-                            </div>
-                          )}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
+                  <TodoList items={lifeGoalsCatalog} type="lifeGoals" />
                 ) : (
-                  <p className="handwritten text-sm text-gray-500">Log life goals in Notion to populate this stream.</p>
+                  <p className="font-mono text-sm" style={{ color: "var(--text-muted)" }}>Log life goals in Notion to populate this stream.</p>
                 )
               )}
 
               {activeNotebook === 'bucketList' && (
                 bucketListCatalog.length > 0 ? (
-                  <ul className="grid gap-3 md:grid-cols-2">
-                    {bucketListCatalog.slice(0, 6).map((item) => (
-                      <li
-                        key={item._id}
-                        className="flex h-full flex-col gap-3 rounded-none border border-orange-200 bg-white/90 px-4 py-4 shadow-sm"
-                      >
-                        <div className="flex items-center justify-between">
-                          <p className="handwritten text-lg text-gray-900">{item.title}</p>
-                          <span className={`handwritten text-xs uppercase tracking-[0.3em] ${
-                            item.status === 'completed'
-                              ? 'text-orange-700'
-                              : item.status === 'in_progress'
-                                ? 'text-orange-500'
-                                : 'text-orange-300'
-                          }`}>
-                            {item.status.replace('_', ' ')}
-                          </span>
-                        </div>
-                        {item.description && (
-                          <p className="handwritten text-sm text-gray-600 flex-1">{item.description}</p>
-                        )}
-                        <div className="flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.25em] text-gray-500 handwritten">
-                          {item.location && (
-                            <span className="rounded-none border border-orange-200 bg-orange-50 px-2 py-1 text-orange-600">📍 {item.location}</span>
-                          )}
-                          {typeof item.estimatedCost === 'number' && (
-                            <span className="rounded-none border border-orange-200 bg-orange-50 px-2 py-1 text-orange-600">
-                              Budget · {item.estimatedCost.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })}
-                            </span>
-                          )}
-                          {item.targetDate && (
-                            <span className="rounded-none border border-orange-200 bg-orange-50 px-2 py-1 text-orange-600">Due {formatDate(item.targetDate)}</span>
-                          )}
-                        </div>
-                        {item.tags && item.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.2em] text-orange-400 handwritten">
-                            {item.tags.slice(0, 4).map((tag) => (
-                              <span key={tag} className="rounded-none border border-orange-100 px-2 py-1">
-                                #{tag.toLowerCase()}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
+                  <TodoList items={bucketListCatalog} type="bucketList" />
                 ) : (
-                  <p className="handwritten text-sm text-gray-500">Dream up adventures inside your Notion bucket list to see them here.</p>
+                  <p className="font-mono text-sm" style={{ color: "var(--text-muted)" }}>Dream up adventures inside your Notion bucket list to see them here.</p>
                 )
               )}
 
@@ -980,26 +1827,33 @@ export default function UnifiedProgress() {
                       const done = entry.goals.filter((goal) => goal.completed).length
                       const percent = Math.round((done / total) * 100)
                       return (
-                        <li
+                        <motion.li
                           key={entry._id}
-                          className="rounded-none border border-purple-200 bg-white/90 px-4 py-4 shadow-sm"
+                          className="wireframe-border px-4 py-4"
+                          style={{ imageRendering: "pixelated" as any }}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
                         >
                           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                             <div>
-                              <p className="handwritten text-lg text-gray-900">{entry.title || `Month ${entry.month}/${entry.year}`}</p>
+                              <p className="font-mono text-lg font-bold" style={{ color: "var(--text-main)" }}>{entry.title || `Month ${entry.month}/${entry.year}`}</p>
                               {entry.description && (
-                                <p className="handwritten text-sm text-gray-600 max-w-xl">{entry.description}</p>
+                                <p className="font-mono text-sm max-w-xl" style={{ color: "var(--text-muted)" }}>{entry.description}</p>
                               )}
                             </div>
                             <div className="text-right">
-                              <p className="handwritten text-xs uppercase tracking-[0.3em] text-gray-500">Completion</p>
-                              <p className="handwritten text-xl text-purple-600">{percent}%</p>
+                              <p className="font-mono text-xs uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Completion</p>
+                              <p className="font-mono text-xl font-bold" style={{ color: "var(--accent-color)" }}>{percent}%</p>
                             </div>
                           </div>
                           <div className="mt-3 grid gap-3 md:grid-cols-2">
-                            <div className="rounded-none border border-purple-100 bg-purple-50/70 px-3 py-3">
-                              <p className="handwritten text-xs uppercase tracking-[0.3em] text-purple-500">Goals checklist</p>
-                              <ul className="mt-2 space-y-1 text-xs handwritten text-gray-700">
+                            <div className="wireframe-border px-3 py-3" style={{ 
+                              backgroundColor: "var(--bg-card)",
+                              borderWidth: "1px",
+                              imageRendering: "pixelated" as any,
+                            }}>
+                              <p className="font-mono text-xs uppercase tracking-wider" style={{ color: "var(--accent-color)" }}>Goals checklist</p>
+                              <ul className="mt-2 space-y-1 text-xs font-mono" style={{ color: "var(--text-main)" }}>
                                 {entry.goals.slice(0, 4).map((goal, index) => (
                                   <li key={`${entry._id}-goal-${index}`} className="flex items-center gap-2">
                                     <span aria-hidden>{goal.completed ? '✅' : '⬜️'}</span>
@@ -1007,185 +1861,81 @@ export default function UnifiedProgress() {
                                   </li>
                                 ))}
                                 {entry.goals.length > 4 && (
-                                  <li className="text-[11px] uppercase tracking-[0.25em] text-purple-400">+{entry.goals.length - 4} more</li>
+                                  <li className="text-[11px] uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>+{entry.goals.length - 4} more</li>
                                 )}
                               </ul>
                             </div>
-                            <div className="rounded-none border border-purple-100 bg-white px-3 py-3">
-                              <p className="handwritten text-xs uppercase tracking-[0.3em] text-purple-500">Wins</p>
+                            <div className="wireframe-border px-3 py-3" style={{ 
+                              backgroundColor: "var(--bg-card)",
+                              borderWidth: "1px",
+                              imageRendering: "pixelated" as any,
+                            }}>
+                              <p className="font-mono text-xs uppercase tracking-wider" style={{ color: "var(--accent-color)" }}>Wins</p>
                               {entry.achievements.length > 0 ? (
-                                <ul className="mt-2 space-y-1 text-xs handwritten text-gray-700">
+                                <ul className="mt-2 space-y-1 text-xs font-mono" style={{ color: "var(--text-main)" }}>
                                   {entry.achievements.slice(0, 3).map((achievement, index) => (
                                     <li key={`${entry._id}-win-${index}`}>{achievement.achievement}{achievement.note ? ` — ${achievement.note}` : ''}</li>
                                   ))}
                                   {entry.achievements.length > 3 && (
-                                    <li className="text-[11px] uppercase tracking-[0.25em] text-purple-400">+{entry.achievements.length - 3} more</li>
+                                    <li className="text-[11px] uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>+{entry.achievements.length - 3} more</li>
                                   )}
                                 </ul>
                               ) : (
-                                <p className="mt-2 text-xs text-gray-400 handwritten">Log wins in Notion to celebrate them here.</p>
+                                <p className="mt-2 text-xs font-mono" style={{ color: "var(--text-muted)" }}>Log wins in Notion to celebrate them here.</p>
                               )}
                             </div>
                           </div>
-                        </li>
+                        </motion.li>
                       )
                     })}
                   </ul>
                 ) : (
-                  <p className="handwritten text-sm text-gray-500">Your monthly cadence will appear once the Notion board has entries.</p>
+                  <p className="font-mono text-sm" style={{ color: "var(--text-muted)" }}>Your monthly cadence will appear once the Notion board has entries.</p>
                 )
               )}
             </motion.div>
           </AnimatePresence>
         </ChartCard>
 
-        <ChartCard
-          title="Goal strategy"
-          description="Where energy is flowing right now. Categories, priorities, and themes pulled from the Notion boards."
-          accentColor="bg-violet-50"
-        >
-          <div className="grid gap-8 lg:grid-cols-2">
-            <div>
-              <p className="handwritten text-xs uppercase tracking-[0.3em] text-violet-500">Category momentum</p>
-              {categoryProgress.length > 0 ? (
-                <ul className="mt-4 space-y-3">
-                  {categoryProgress.slice(0, 5).map((category) => (
-                    <li key={category.category}>
-                      <div className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-gray-500 handwritten">
-                        <span>{category.category}</span>
-                        <span>{category.average}% · {category.count} goals</span>
-                      </div>
-                      <div className="mt-2 h-2 rounded-none bg-violet-100">
-                        <div
-                          className="h-full rounded-none bg-violet-500"
-                          style={{ width: `${category.average}%` }}
-                        />
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="mt-4 text-sm text-gray-400 handwritten">Categorize life goals in Notion to see momentum here.</p>
-              )}
-            </div>
-            <div>
-              <p className="handwritten text-xs uppercase tracking-[0.3em] text-violet-500">Priority deck</p>
-              {priorityDeck.length > 0 ? (
-                <ul className="mt-4 space-y-3">
-                  {priorityDeck.map((goal) => (
-                    <li key={goal._id} className="flex items-center justify-between gap-3 rounded-none border border-violet-200 bg-white/90 px-4 py-3 shadow-sm">
-                      <div>
-                        <p className="handwritten text-sm text-gray-900">{goal.title}</p>
-                        <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-gray-500 handwritten mt-1">
-                          {goal.priority && <span className="rounded-none border border-violet-200 bg-violet-50 px-2 py-1 text-violet-600">{goal.priority}</span>}
-                          <span className="rounded-none border border-violet-200 bg-white px-2 py-1 text-violet-600">{goal.status?.split('_').join(' ') ?? 'unspecified'}</span>
-                          {goal.targetDate && <span className="rounded-none border border-violet-200 bg-white px-2 py-1 text-violet-600">Due {formatDate(goal.targetDate)}</span>}
-                        </div>
-                      </div>
-                      <span className="handwritten text-lg text-violet-600">{goal.progress ?? 0}%</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="mt-4 text-sm text-gray-400 handwritten">Flag priorities in Notion to auto-build this list.</p>
-              )}
-            </div>
-          </div>
-          {tagHighlights.length > 0 && (
-            <div className="mt-6">
-              <p className="handwritten text-xs uppercase tracking-[0.3em] text-violet-500">Recurring themes</p>
-              <div className="mt-3 flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.2em] handwritten">
-                {tagHighlights.map((tag) => (
-                  <span key={tag.tag} className="rounded-none border border-violet-200 bg-white px-3 py-1 text-violet-600">
-                    #{tag.tag.toLowerCase()} · {tag.count}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-        </ChartCard>
+          <ChartCard
+            title="⚔️ Goal Strategy"
+            description="Where energy is flowing right now. Categories, priorities, and themes pulled from the Notion boards."
+            accentColor="bg-violet-50"
+            variant="strategy"
+          >
+            <StrategyBoard 
+              categoryProgress={categoryProgress}
+              priorityDeck={priorityDeck}
+              tagHighlights={tagHighlights}
+            />
+          </ChartCard>
 
-        <ChartCard
-          title="Adventure timeline"
-          description="Upcoming experiences from the bucket list with the soonest dates surfaced first."
-          accentColor="bg-orange-50"
-        >
-          {adventureSchedule.length > 0 ? (
-            <ul className="space-y-5">
-              {adventureSchedule.map((item, index) => (
-                <li key={item._id} className="relative flex flex-col gap-2 rounded-none border border-orange-200 bg-white/90 px-4 py-4 shadow-sm md:flex-row md:items-center md:justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="handwritten text-lg text-orange-500">{String(index + 1).padStart(2, '0')}</span>
-                    <div>
-                      <p className="handwritten text-base text-gray-900">{item.title}</p>
-                      {item.location && <p className="handwritten text-xs uppercase tracking-[0.3em] text-orange-400 mt-1">{item.location}</p>}
-                      {item.description && <p className="handwritten text-sm text-gray-600 mt-1 max-w-xl">{item.description}</p>}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    {item.tags?.slice(0, 3).map((tag) => (
-                      <span key={tag} className="handwritten text-xs uppercase tracking-[0.3em] text-orange-500 border border-orange-200 bg-orange-50 px-3 py-1 rounded-none">
-                        #{tag.toLowerCase()}
-                      </span>
-                    ))}
-                    {item.targetDate && (
-                      <div className="text-right">
-                        <p className="handwritten text-xs uppercase tracking-[0.3em] text-gray-500">Target date</p>
-                        <p className="handwritten text-lg text-orange-600">{formatDate(item.targetDate)}</p>
-                      </div>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="handwritten text-sm text-gray-500">Add target dates to bucket list items in Notion to populate the timeline.</p>
-          )}
-        </ChartCard>
+          <ChartCard
+            title="🗺️ Adventure Timeline"
+            description="Upcoming experiences from the bucket list with the soonest dates surfaced first."
+            accentColor="bg-orange-50"
+            variant="map"
+          >
+            {adventureSchedule.length > 0 ? (
+              <AdventureMap adventures={adventureSchedule} />
+            ) : (
+              <p className="font-mono text-sm" style={{ color: "#654321" }}>Add target dates to bucket list items in Notion to populate the timeline.</p>
+            )}
+          </ChartCard>
 
-        <ChartCard
-          title="Monthly cadence"
-          description="Quick read on the latest Notion review cycles—completion percentage and headline wins."
-          accentColor="bg-purple-50"
-        >
-          {monthlyHighlights.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-3">
-              {monthlyHighlights.map((highlight) => (
-                <div key={highlight.id} className="rounded-none border border-purple-200 bg-white/90 px-4 py-4 shadow-sm">
-                  <p className="handwritten text-xs uppercase tracking-[0.3em] text-purple-400">Snapshot</p>
-                  <p className="handwritten text-lg text-gray-900 mt-1">{highlight.title}</p>
-                  <div className="mt-3">
-                    <div className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-gray-500 handwritten">
-                      <span>Completion</span>
-                      <span>{highlight.completion}%</span>
-                    </div>
-                    <div className="mt-2 h-2 rounded-none bg-purple-100">
-                      <div className="h-full rounded-none bg-purple-500" style={{ width: `${highlight.completion}%` }} />
-                    </div>
-                  </div>
-                  <div className="mt-4">
-                    <p className="handwritten text-xs uppercase tracking-[0.3em] text-purple-400">Wins</p>
-                    {highlight.wins.some((win) => win.label) ? (
-                      <ul className="mt-2 space-y-1 text-xs handwritten text-gray-700">
-                        {highlight.wins.map((win, index) => (
-                          <li key={`${highlight.id}-win-${index}`}>
-                            {win.label}
-                            {win.detail ? ` — ${win.detail}` : ''}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="mt-2 text-xs text-gray-400 handwritten">Log wins in Notion to spotlight them here.</p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="handwritten text-sm text-gray-500">Monthly goal reviews from Notion will appear once data is available.</p>
-          )}
-        </ChartCard>
-
+          <ChartCard
+            title="📅 Monthly Cadence"
+            description="Quick read on the latest Notion review cycles—completion percentage and headline wins."
+            accentColor="bg-purple-50"
+            variant="calendar"
+          >
+            {monthlyHighlights.length > 0 ? (
+              <CalendarView monthlyHighlights={monthlyHighlights} />
+            ) : (
+              <p className="font-mono text-sm" style={{ color: "var(--text-muted)" }}>Monthly goal reviews from Notion will appear once data is available.</p>
+            )}
+          </ChartCard>
+        </motion.div>
       </div>
     </main>
   )

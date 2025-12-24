@@ -144,7 +144,7 @@ const GridMenuButton = ({ onClick, isOpen }: { onClick: () => void; isOpen: bool
 
       {/* Tooltip */}
       <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-[var(--text-main)] text-[var(--bg-main)] text-[8px] font-mono opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
-        <div>Game Menu (M)</div>
+        <div>Game Menu</div>
         <div className="text-[var(--accent-color)]">{completedGamesCount}/{totalGamesCount} games • {progress.totalXP} XP</div>
       </div>
     </motion.button>
@@ -287,7 +287,7 @@ const Navigation = () => {
   const { isMenuOpen, toggleMenu, openMenu, closeMenu } = useGameMode();
   const BAR_HEIGHT = GRID_SIZE * 3;
 
-  // Keyboard shortcuts (M for menu is already handled in GameModeContext)
+  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.altKey || e.metaKey) return;

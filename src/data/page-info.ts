@@ -55,12 +55,12 @@ export const PAGE_INFO: Record<string, PageInfo> = {
     hint: 'View milestones',
     icon: 'chart',
   },
-  '/map': {
-    path: '/map',
-    title: 'MAP',
+  '/arcade': {
+    path: '/arcade',
+    title: 'MINI GAMES',
     subtitle: "What's this page",
-    description: 'Visual sitemap and navigation guide to explore all content.',
-    hint: 'Click nodes to navigate',
+    description: 'Play interactive grid games. Reach 50 points to complete each mini game.',
+    hint: 'Press PLAY to start',
     icon: 'globe',
   },
   '/contact': {

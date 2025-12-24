@@ -17,7 +17,7 @@ interface LayoutClientShellProps {
 export default function LayoutClientShell({ children }: Readonly<LayoutClientShellProps>) {
   const pathname = usePathname();
   // Keep the global layout stable; only show the gamified header + grid on chosen pages.
-  const arcadeEnabled = pathname === '/' || pathname === '/lab';
+  const arcadeEnabled = pathname === '/' || pathname === '/lab' || pathname === '/arcade';
   
   // Game state lifted up for coordination between nav and arcade
   const [isGameActive, setIsGameActive] = useState(false);

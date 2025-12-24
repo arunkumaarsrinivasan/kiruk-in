@@ -232,6 +232,14 @@ const GameInstructions: React.FC<GameInstructionsProps> = ({ gameId, isOpen, onS
           <p className="text-sm font-mono text-[var(--text-main)]">{instructions.goal}</p>
         </div>
         
+        {/* Objective to Complete */}
+        <div className="mb-4 p-3 bg-[var(--bg-secondary)] border border-[var(--border-color)]">
+          <h3 className="text-[10px] font-mono text-[var(--accent-color)] uppercase mb-1">✅ Complete the Game</h3>
+          <p className="text-xs font-mono text-[var(--text-main)] font-bold">
+            Reach <span className="text-[var(--accent-color)]">50 points</span> to complete this mini game and unlock achievements!
+          </p>
+        </div>
+        
         {/* How to Play */}
         <div className="mb-4">
           <h3 className="text-[10px] font-mono text-[var(--text-muted)] uppercase mb-2">📋 How to Play</h3>
@@ -338,10 +346,10 @@ const GameComplete: React.FC<GameCompleteProps> = ({
             🎉
           </motion.div>
           <h2 className="text-xl font-mono font-bold text-[var(--accent-color)] uppercase tracking-wider">
-            Game Complete!
+            Mini Game Complete!
           </h2>
           <p className="text-sm font-mono text-[var(--text-main)] mt-1">
-            {instructions.title} cleared
+            {instructions.title} cleared • Objective achieved!
           </p>
         </div>
         
