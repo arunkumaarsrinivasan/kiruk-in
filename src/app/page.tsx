@@ -1,11 +1,9 @@
-import HeroSection from '@/components/layout/hero-section';
-import { InteractivePortfolioSection } from '@/modules/portfolio';
+import NewspaperLayout from '@/components/layout/newspaper-layout';
 
 export default function Home() {
   return (
-    <main className="fixed inset-0 overflow-hidden">
-      <HeroSection />
-      <InteractivePortfolioSection className="absolute inset-0 top-0" />
+    <main className="min-h-screen overflow-y-auto">
+      <NewspaperLayout />
     </main>
   );
 }

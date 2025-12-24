@@ -5,6 +5,26 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+// Grid utilities shared across interactive components
+export const GRID_SIZE = 20;
+export type GridSnapMode = 'edge' | 'center';
+
+export function snapToGrid(value: number, gridSize: number = GRID_SIZE, mode: GridSnapMode = 'edge') {
+  const offset = mode === 'center' ? gridSize / 2 : 0;
+  return Math.round((value - offset) / gridSize) * gridSize + offset;
+}
+
+export function snapPositionToGrid(
+  position: { x: number; y: number },
+  gridSize: number = GRID_SIZE,
+  mode: GridSnapMode = 'edge'
+) {
+  return {
+    x: snapToGrid(position.x, gridSize, mode),
+    y: snapToGrid(position.y, gridSize, mode)
+  };
+}
+
 // Animation utilities
 export const fadeInUp = {
   initial: { opacity: 0, y: 30 },

@@ -180,12 +180,7 @@ function isPageObject(entry: QueryDatabaseResponse['results'][number]): entry is
 export async function fetchNotionProgress(): Promise<NotionProgressPayload | null> {
   if (!notionClient) return null
 
-  console.log('Notion integration config', {
-    ready: notionIntegrationReady,
-    lifeGoalsDb: notionConfig.lifeGoalsDatabaseId,
-    bucketListDb: notionConfig.bucketListDatabaseId,
-    monthlyGoalsDb: notionConfig.monthlyGoalsDatabaseId
-  })
+
 
   const [goalPages, bucketPages, monthlyPages] = await Promise.all([
     queryDatabase(notionConfig.lifeGoalsDatabaseId),
@@ -244,11 +239,7 @@ export async function fetchNotionProgress(): Promise<NotionProgressPayload | nul
     }
   })
 
-  console.log('Notion payload counts', {
-    lifeGoals: lifeGoals.length,
-    bucketList: bucketList.length,
-    monthlyGoals: monthlyGoals.length
-  })
+
 
   if (!lifeGoals.length && !bucketList.length && !monthlyGoals.length) {
     return null

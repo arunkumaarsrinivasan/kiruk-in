@@ -11,16 +11,16 @@ const SketchingPage: React.FC<SketchingPageProps> = React.memo(({ study }) => {
   const sketching = useMemo(() => study.sketching, [study.sketching]);
   if (!sketching) return null;
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-8 space-y-5">
       <SketchHeading level={2} className="text-center mb-6 architect-font">Sketching & Exploration</SketchHeading>
-      <div className="space-y-8">
-        <div className="bg-gray-50 p-6 rounded-sm sketch-border">
+      <div className="space-y-10">
+        <div className="bg-gray-50 p-4 rounded-none sketch-border">
           {sketching.description && <div className="handwritten text-base text-gray-700">{sketching.description}</div>}
         </div>
         {sketching.images && sketching.images.length > 0 && (
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-2 gap-4">
             {sketching.images.map((img: string, index: number) => (
-              <div key={img} className="rounded overflow-hidden shadow sketch-border bg-white">
+              <div key={img} className="rounded-none overflow-hidden shadow sketch-border bg-white">
                 <div className="relative w-full h-32">
                   <Image
                     src={img}

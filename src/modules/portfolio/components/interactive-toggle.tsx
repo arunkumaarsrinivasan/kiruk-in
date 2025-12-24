@@ -4,6 +4,77 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import DraggableNotebook, { DraggableItem } from './draggable-notebook';
 
+// Teenage Engineering inspired timing and easing values
+const TE_TIMING = {
+  instant: 0.08,   // 80ms
+  quick: 0.15,     // 150ms
+  standard: 0.25,  // 250ms
+};
+
+const TE_EASING = {
+  mechanical: [0.4, 0.0, 0.2, 1] as const,
+  spring: [0.34, 1.56, 0.64, 1] as const,
+};
+
+// Motion variants for toggle button
+const toggleVariants = {
+  rest: {
+    scale: 1,
+    y: 0,
+    boxShadow: '0 0 0 0 rgba(0, 0, 0, 0)',
+  },
+  hover: {
+    scale: 1.02,
+    y: -2,
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+  },
+  tap: {
+    scale: 0.98,
+    y: 0,
+    boxShadow: '0 0 0 0 rgba(0, 0, 0, 0)',
+  },
+};
+
+// Overlay animation variants
+const overlayVariants = {
+  hidden: {
+    opacity: 0,
+  },
+  visible: {
+    opacity: 1,
+    transition: {
+      duration: TE_TIMING.standard,
+      ease: TE_EASING.mechanical,
+    },
+  },
+  exit: {
+    opacity: 0,
+    transition: {
+      duration: TE_TIMING.quick,
+      ease: TE_EASING.mechanical,
+    },
+  },
+};
+
+// Button appearance animation
+const buttonAppearVariants = {
+  hidden: {
+    opacity: 0,
+    scale: 0.9,
+    y: 20,
+  },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    y: 0,
+    transition: {
+      delay: 1,
+      duration: TE_TIMING.standard,
+      ease: TE_EASING.spring,
+    },
+  },
+};
+
 interface InteractiveToggleProps {
   isActive: boolean;
   items: DraggableItem[];
@@ -21,28 +92,39 @@ export const InteractiveToggle: React.FC<InteractiveToggleProps> = ({
 }) => {
   return (
     <>
-      {/* Toggle Button */}
+      {/* Toggle Button with TE mechanical feedback */}
       {!isActive && (
         <motion.button
           onClick={onToggle}
-          className="fixed bottom-6 right-6 z-50 bg-white border-2 border-black rounded-full p-3 shadow-lg hover:shadow-xl transition-all sketch-border"
-          whileHover={{ scale: 1.05, rotate: 5 }}
-          whileTap={{ scale: 0.95 }}
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 1, duration: 0.5, type: "spring" }}
+          className="te-button fixed bottom-4 right-4 z-50 bg-[var(--bg-card)] border border-[var(--border-color)] p-3 shadow-none"
+          initial="hidden"
+          animate="visible"
+          variants={buttonAppearVariants}
+          whileHover="hover"
+          whileTap="tap"
         >
-          <div className="handwritten text-sm font-bold">🎨 Interactive</div>
+          <motion.div
+            variants={toggleVariants}
+            transition={{
+              duration: TE_TIMING.quick,
+              ease: TE_EASING.spring,
+            }}
+          >
+            <div className="font-mono uppercase text-sm font-bold text-[var(--text-main)]">
+              🎨 Interactive
+            </div>
+          </motion.div>
         </motion.button>
       )}
 
-      {/* Interactive Overlay */}
+      {/* Interactive Overlay with smooth transitions */}
       <AnimatePresence>
         {isActive && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            variants={overlayVariants}
             className={`fixed inset-0 z-40 pointer-events-none ${className}`}
           >
             {/* Interactive notebook layer */}
@@ -56,14 +138,40 @@ export const InteractiveToggle: React.FC<InteractiveToggleProps> = ({
               />
             </div>
 
-            {/* Exit button */}
+            {/* Exit button with TE mechanical feedback */}
             <motion.button
               onClick={onToggle}
-              className="fixed top-4 right-4 z-50 bg-red-100 border-2 border-red-300 rounded-full p-2 shadow-lg hover:shadow-xl transition-all"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              className="te-button fixed top-4 right-4 z-50 bg-[var(--bg-card)] text-[var(--text-main)] border border-[var(--border-color)] p-2 shadow-none"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ 
+                opacity: 1, 
+                scale: 1,
+                transition: {
+                  delay: 0.2,
+                  duration: TE_TIMING.quick,
+                  ease: TE_EASING.mechanical,
+                },
+              }}
+              whileHover={{
+                scale: 1.02,
+                y: -2,
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+                transition: {
+                  duration: TE_TIMING.quick,
+                  ease: TE_EASING.spring,
+                },
+              }}
+              whileTap={{
+                scale: 0.98,
+                y: 0,
+                boxShadow: '0 0 0 0 rgba(0, 0, 0, 0)',
+                transition: {
+                  duration: TE_TIMING.instant,
+                  ease: TE_EASING.mechanical,
+                },
+              }}
             >
-              <div className="handwritten text-sm">✕ Exit</div>
+              <div className="font-mono uppercase text-sm font-bold">✕ Exit</div>
             </motion.button>
           </motion.div>
         )}

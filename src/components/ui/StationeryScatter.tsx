@@ -39,16 +39,16 @@ const Polaroid = ({ content }: { content?: React.ReactNode }) => (
   <div className="bg-white p-3 pb-8 shadow-xl transform transition-transform border border-gray-200 w-32 h-40 flex flex-col items-center justify-center rotate-1">
     <div className="bg-gray-100 w-full h-24 mb-2 overflow-hidden flex items-center justify-center text-gray-400 text-xs relative group">
       <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 opacity-50"></div>
-      <div className="w-8 h-8 rounded-full bg-gray-300 group-hover:scale-110 transition-transform duration-500"></div>
+      <div className="w-8 h-8 rounded-none bg-gray-300 group-hover:scale-110 transition-transform duration-500"></div>
     </div>
     <div className="handwritten text-center text-gray-600 text-sm font-medium">{content}</div>
   </div>
 );
 
 const Ticket = ({ content }: { content?: React.ReactNode }) => (
-  <div className="bg-[#f4e4bc] border-2 border-dashed border-[#d4c49c] p-4 shadow-md w-32 relative flex items-center justify-center overflow-hidden">
-    <div className="absolute left-[-8px] top-1/2 -translate-x-1/2 w-4 h-4 bg-white rounded-full border-r-2 border-[#d4c49c]"></div>
-    <div className="absolute right-[-8px] top-1/2 translate-x-1/2 w-4 h-4 bg-white rounded-full border-l-2 border-[#d4c49c]"></div>
+  <div className="bg-[#f4e4bc] border border-dashed border-[#d4c49c] p-4 shadow-md w-32 relative flex items-center justify-center overflow-hidden">
+    <div className="absolute left-[-8px] top-1/2 -translate-x-1/2 w-4 h-4 bg-white rounded-none border-r border-[#d4c49c]"></div>
+    <div className="absolute right-[-8px] top-1/2 translate-x-1/2 w-4 h-4 bg-white rounded-none border-l border-[#d4c49c]"></div>
     <div className="flex flex-col items-center">
         <span className="font-mono font-bold text-[#8c7b50] text-[10px] tracking-widest mb-1">CINEMA</span>
         <span className="font-mono font-black text-[#5c4b20] text-lg tracking-widest border-t border-b border-[#d4c49c] py-1">{content}</span>
@@ -76,24 +76,24 @@ const Clip = () => (
 );
 
 const Stamp = ({ content }: { content?: React.ReactNode }) => (
-  <div className="border-4 border-red-600 text-red-600 font-bold uppercase p-2 rounded-lg opacity-90 transform -rotate-12 text-xs tracking-widest border-double mix-blend-multiply">
+  <div className="border-4 border-red-600 text-red-600 font-bold uppercase p-2 rounded-none opacity-90 transform -rotate-12 text-xs tracking-widest border-double mix-blend-multiply">
     {content}
   </div>
 );
 
 const Pencil = () => (
-  <div className="w-64 h-4 bg-yellow-400 rounded-sm shadow-xl relative flex items-center filter drop-shadow-lg">
+  <div className="w-64 h-4 bg-yellow-400 rounded-none shadow-xl relative flex items-center filter drop-shadow-lg">
     <div className="absolute left-0 w-0 h-0 border-t-[8px] border-t-transparent border-r-[20px] border-r-[#f0d090] border-b-[8px] border-b-transparent"></div>
     <div className="absolute left-[-20px] w-0 h-0 border-t-[8px] border-t-transparent border-r-[20px] border-r-gray-800 border-b-[8px] border-b-transparent scale-50 origin-right"></div>
     <div className="w-full h-full bg-yellow-400 border-t border-b border-yellow-500 flex items-center justify-center">
         <span className="text-[8px] font-bold text-yellow-700 tracking-widest uppercase">Ticonderoga</span>
     </div>
-    <div className="absolute right-0 w-8 h-4 bg-pink-400 rounded-r-sm border-l-4 border-gray-300"></div>
+    <div className="absolute right-0 w-8 h-4 bg-pink-400 rounded-none border-l-4 border-gray-300"></div>
   </div>
 );
 
 const Eraser = () => (
-  <div className="w-20 h-10 bg-white border border-gray-200 shadow-xl rounded-sm relative overflow-hidden transform skew-x-6 flex">
+  <div className="w-16 h-8 bg-white border border-gray-200 shadow-xl rounded-none relative overflow-hidden transform skew-x-6 flex">
     <div className="w-1/2 h-full bg-blue-500 border-r border-blue-600"></div>
     <div className="w-1/2 h-full bg-white flex items-center justify-center">
         <span className="text-[6px] font-bold text-gray-300 rotate-180">ERASER</span>
@@ -102,10 +102,10 @@ const Eraser = () => (
 );
 
 const Ruler = () => (
-  <div className="w-80 h-12 bg-[#f0e68c]/90 backdrop-blur-sm border border-[#dkh070] shadow-lg flex items-end px-2 pb-1 space-x-[14px] overflow-hidden rounded-sm">
+  <div className="w-80 h-12 bg-[#f0e68c]/90 backdrop-blur-sm border border-[#dkh070] shadow-lg flex items-end px-2 pb-1 space-x-[14px] overflow-hidden rounded-none">
      {Array.from({ length: 15 }).map((_, i) => (
         <div key={i} className="h-4 w-px bg-gray-500 relative flex flex-col justify-end items-center">
-            {i % 5 === 0 && <div className="absolute bottom-5 text-[10px] font-mono text-gray-600">{i}</div>}
+            {i % 5 === 0 && <div className="absolute bottom-4 text-[10px] font-mono text-gray-600">{i}</div>}
             <div className={`w-px bg-gray-600 ${i % 5 === 0 ? 'h-6' : 'h-3'}`}></div>
         </div>
      ))}
@@ -119,7 +119,7 @@ const CoffeeStain = () => (
 );
 
 const CrumpledPaper = () => (
-    <div className="w-16 h-16 bg-white rounded-full shadow-md border border-gray-200 flex items-center justify-center overflow-hidden relative">
+    <div className="w-16 h-16 bg-white rounded-none shadow-md border border-gray-200 flex items-center justify-center overflow-hidden relative">
         <div className="absolute inset-0 bg-gray-100 opacity-50" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0% 100%)' }}></div>
         <svg viewBox="0 0 100 100" className="w-full h-full opacity-20">
             <path d="M10,10 Q30,50 10,90 T90,90 T90,10" fill="none" stroke="black" strokeWidth="1" />

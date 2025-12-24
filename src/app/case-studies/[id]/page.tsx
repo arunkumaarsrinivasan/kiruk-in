@@ -43,10 +43,10 @@ function BoardCard({ title, children, color, tapeColor, className }: BoardCardPr
       transition={{ duration: 0.35 }}
     >
       <span
-        className={`absolute -top-4 left-1/2 h-6 w-24 -translate-x-1/2 rotate-[-4deg] ${tapeColor} opacity-70`}
+        className={`absolute -top-5 left-1/2 h-6 w-24 -translate-x-1/2 rotate-[-4deg] ${tapeColor} opacity-70`}
         style={{ clipPath: 'polygon(0 0, 100% 0, 95% 100%, 5% 100%)' }}
       />
-      <div className="px-8 pt-10 pb-8 space-y-5">
+      <div className="px-8 pt-8 pb-8 space-y-5">
         <h2 className="handwritten text-2xl uppercase tracking-[0.35em] text-gray-900">
           {title}
         </h2>
@@ -63,9 +63,22 @@ const boardPattern = {
 };
 
 export default function CaseStudyPage() {
+  // Call useParams at top level (required for hooks)
   const params = useParams();
   const { trackCaseStudyView } = useAnalytics();
-  const caseStudy = CASE_STUDIES.find((study) => study.id === params.id);
+  
+  // Extract id immediately to avoid enumeration warnings
+  // Direct property access without enumerating the params object
+  const caseStudyId = useMemo(() => {
+    const id = (params as { id?: string | string[] }).id;
+    return typeof id === 'string' 
+      ? id 
+      : Array.isArray(id) 
+        ? id[0] 
+        : String(id || '');
+  }, [params]);
+  
+  const caseStudy = CASE_STUDIES.find((study) => study.id === caseStudyId);
 
   useEffect(() => {
     if (caseStudy) trackCaseStudyView(caseStudy.id);
@@ -98,7 +111,7 @@ export default function CaseStudyPage() {
   if (!caseStudy) {
     return (
       <main className="min-h-screen flex items-center justify-center" style={boardPattern}>
-        <div className="text-center space-y-4">
+        <div className="text-center space-y-5">
           <h1 className="text-4xl magnetic-font">Case studies are coming soon</h1>
           <p className="handwritten text-base text-gray-600">
             I&apos;m refreshing this wall. In the meantime, browse the full archive on Behance or dive into the Playbook snapshots for process notes.
@@ -108,7 +121,7 @@ export default function CaseStudyPage() {
               href="https://www.behance.net/arunkumaarsrinivasan"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-md bg-blue-500 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-600"
+              className="inline-flex items-center gap-2 rounded-none bg-blue-500 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-600"
             >
               🎨 Visit Behance
             </a>
@@ -116,7 +129,7 @@ export default function CaseStudyPage() {
               href="https://playbook.com/arunkumaar"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-md border border-gray-300 px-5 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
+              className="inline-flex items-center gap-2 rounded-none border border-gray-300 px-4 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
             >
               📓 View Playbook
             </a>
@@ -131,7 +144,7 @@ export default function CaseStudyPage() {
 
   return (
     <main className="min-h-screen pb-24" style={boardPattern}>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24">
+      <div className="max-w-6xl mx-auto px-4 sm:px-4 lg:px-8 pt-24">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <Link
             href="/case-studies"
@@ -146,7 +159,7 @@ export default function CaseStudyPage() {
 
         {/* Hero cluster */}
         <motion.div
-          className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,0.7fr)]"
+          className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,0.7fr)]"
           initial={{ opacity: 0, y: 22 }}
           animate={{ opacity: 1, y: 0 }}
         >
@@ -155,7 +168,7 @@ export default function CaseStudyPage() {
               className={`absolute -top-5 left-12 h-8 w-28 rotate-[-6deg] ${accent.tape} opacity-80`}
               style={{ clipPath: 'polygon(0 0, 100% 0, 96% 100%, 4% 100%)' }}
             />
-            <div className="px-10 pt-14 pb-12 space-y-6">
+            <div className="px-8 pt-14 pb-12 space-y-5">
               <span className="handwritten text-sm uppercase tracking-[0.4em] text-gray-500 flex items-center gap-2">
                 {accent.icon} Featured Project
               </span>
@@ -175,7 +188,7 @@ export default function CaseStudyPage() {
                   {caseStudy.technologies.map((tech) => (
                     <span
                       key={tech}
-                      className={`handwritten text-xs uppercase tracking-[0.35em] px-3 py-1 border border-gray-200 rounded-md bg-white/60 text-gray-700`}
+                      className={`handwritten text-xs uppercase tracking-[0.35em] px-3 py-1 border border-gray-200 rounded-none bg-white/60 text-gray-700`}
                     >
                       {tech}
                     </span>
@@ -196,7 +209,7 @@ export default function CaseStudyPage() {
                 transition={{ delay: 0.25 + index * 0.08, type: 'spring', stiffness: 70 }}
               >
                 <span
-                  className={`absolute -top-3 left-1/2 h-5 w-16 -translate-x-1/2 ${accent.tape} opacity-70`}
+                  className={`absolute -top-3 left-1/2 h-4 w-16 -translate-x-1/2 ${accent.tape} opacity-70`}
                   style={{ clipPath: 'polygon(0 0, 100% 0, 95% 100%, 5% 100%)' }}
                 />
                 <Image
@@ -204,7 +217,7 @@ export default function CaseStudyPage() {
                   alt={shot.label}
                   width={320}
                   height={200}
-                  className="h-32 w-full rounded-t-[12px] object-cover"
+                  className="h-32 w-full rounded-none object-cover"
                 />
                 <figcaption className="handwritten text-xs uppercase tracking-[0.35em] text-gray-600 px-4 py-3">
                   {shot.label}
@@ -216,10 +229,10 @@ export default function CaseStudyPage() {
 
         {/* Process */}
         <BoardCard title="Process Trail" color="bg-white" tapeColor={accent.tape} className="mt-16">
-          <div className="grid gap-6 md:grid-cols-5">
+          <div className="grid gap-4 md:grid-cols-5">
             {caseStudy.steps.map((step, index) => (
-              <div key={step.label} className="relative border border-dashed border-gray-300 bg-white/70 px-4 py-6 text-center" style={{ borderRadius: '8px' }}>
-                <span className="absolute -top-4 left-1/2 h-5 w-12 -translate-x-1/2 bg-gray-200/80" style={{ clipPath: 'polygon(0 0, 100% 0, 95% 100%, 5% 100%)' }} />
+              <div key={step.label} className="relative border border-dashed border-gray-300 bg-white/70 px-4 py-4 text-center" style={{ borderRadius: '8px' }}>
+                <span className="absolute -top-5 left-1/2 h-4 w-12 -translate-x-1/2 bg-gray-200/80" style={{ clipPath: 'polygon(0 0, 100% 0, 95% 100%, 5% 100%)' }} />
                 <span className="handwritten text-xs uppercase tracking-[0.4em] text-gray-500">Chapter {index + 1}</span>
                 <h3 className="handwritten mt-3 text-lg uppercase tracking-[0.3em] text-gray-800">{step.label}</h3>
                 <p className="mt-2 text-sm text-gray-600 handwritten leading-relaxed">{step.desc}</p>
@@ -230,7 +243,7 @@ export default function CaseStudyPage() {
 
         {/* Identity */}
         {caseStudy.branding && (
-          <div className="mt-14 grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+          <div className="mt-14 grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
             <BoardCard title="Visual Language" color="bg-white" tapeColor={accent.tape}>
               <p className="handwritten text-gray-700 leading-relaxed mb-6">
                 {caseStudy.branding.description}
@@ -239,7 +252,7 @@ export default function CaseStudyPage() {
                 {caseStudy.branding.colors.map((color) => (
                   <div key={color} className="text-center">
                     <div
-                      className="h-16 w-16 rounded-md border border-gray-200 shadow-sm"
+                      className="h-16 w-16 rounded-none border border-gray-200 shadow-sm"
                       style={{ backgroundColor: color }}
                     />
                     <span className="handwritten mt-2 block text-xs uppercase tracking-[0.3em] text-gray-600">
@@ -251,14 +264,14 @@ export default function CaseStudyPage() {
             </BoardCard>
 
             <BoardCard title="Type Stack" color="bg-white" tapeColor={accent.tape}>
-              <div className="space-y-4">
-                <div className="bg-gray-50 border border-gray-200 px-5 py-4" style={{ borderRadius: '6px' }}>
+              <div className="space-y-5">
+                <div className="bg-gray-50 border border-gray-200 px-4 py-4" style={{ borderRadius: '6px' }}>
                   <p className="text-xs uppercase tracking-[0.3em] text-gray-500">Primary</p>
                   <p className="mt-2 text-2xl" style={{ fontFamily: caseStudy.branding.typography.primary }}>
                     {caseStudy.branding.typography.primary}
                   </p>
                 </div>
-                <div className="bg-gray-50 border border-gray-200 px-5 py-4" style={{ borderRadius: '6px' }}>
+                <div className="bg-gray-50 border border-gray-200 px-4 py-4" style={{ borderRadius: '6px' }}>
                   <p className="text-xs uppercase tracking-[0.3em] text-gray-500">Secondary</p>
                   <p className="mt-2 text-2xl" style={{ fontFamily: caseStudy.branding.typography.secondary }}>
                     {caseStudy.branding.typography.secondary}
@@ -276,7 +289,7 @@ export default function CaseStudyPage() {
             {caseStudy.ideation.keyInsights && (
               <div className="grid gap-4 md:grid-cols-2">
                 {caseStudy.ideation.keyInsights.map((insight) => (
-                  <div key={insight} className="relative border border-gray-200 bg-yellow-50 px-5 py-4" style={{ borderRadius: '6px' }}>
+                  <div key={insight} className="relative border border-gray-200 bg-yellow-50 px-4 py-4" style={{ borderRadius: '6px' }}>
                     <span className="absolute -top-3 right-4 text-yellow-500">✨</span>
                     <p className="handwritten text-sm leading-relaxed text-gray-700">{insight}</p>
                   </div>
@@ -290,16 +303,16 @@ export default function CaseStudyPage() {
         {caseStudy.finalScreens && (
           <BoardCard title="Final State" color="bg-white" tapeColor={accent.tape} className="mt-14">
             <p className="handwritten text-gray-700 leading-relaxed mb-6">{caseStudy.finalScreens.description}</p>
-            <div className="grid gap-5 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-3">
               {caseStudy.finalScreens.images.map((img, index) => (
                 <figure key={img} className="relative">
-                  <span className={`absolute -top-3 left-1/2 h-5 w-14 -translate-x-1/2 ${accent.tape} opacity-70`} style={{ clipPath: 'polygon(0 0, 100% 0, 95% 100%, 5% 100%)' }} />
+                  <span className={`absolute -top-3 left-1/2 h-4 w-14 -translate-x-1/2 ${accent.tape} opacity-70`} style={{ clipPath: 'polygon(0 0, 100% 0, 95% 100%, 5% 100%)' }} />
                   <Image
                     src={img}
                     alt={`Final screen ${index + 1}`}
                     width={480}
                     height={320}
-                    className="h-44 w-full rounded-lg border border-gray-200 object-cover shadow-sm"
+                    className="h-44 w-full rounded-none border border-gray-200 object-cover shadow-sm"
                   />
                 </figure>
               ))}
@@ -320,9 +333,9 @@ export default function CaseStudyPage() {
         {/* Results */}
         {caseStudy.results && (
           <BoardCard title="Impact" color="bg-white" tapeColor={accent.tape} className="mt-14">
-            <div className="grid gap-6 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-3">
               {caseStudy.results.map((result) => (
-                <div key={result.metric} className="border border-gray-200 bg-white/80 px-5 py-4 text-center" style={{ borderRadius: '8px' }}>
+                <div key={result.metric} className="border border-gray-200 bg-white/80 px-4 py-4 text-center" style={{ borderRadius: '8px' }}>
                   <p className="handwritten text-xs uppercase tracking-[0.3em] text-gray-500">{result.metric}</p>
                   <p className="handwritten mt-3 text-3xl uppercase tracking-[0.3em] text-gray-900">{result.value}</p>
                   {result.description && (
@@ -344,7 +357,7 @@ export default function CaseStudyPage() {
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-3 rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                  className="inline-flex items-center gap-3 rounded-none border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                 >
                   <span>{link.icon ?? '🔗'}</span>
                   <span className="handwritten uppercase tracking-[0.35em]">{link.title}</span>
@@ -367,7 +380,7 @@ export default function CaseStudyPage() {
                 />
               </div>
               {caseStudy.figmaEmbed.description && (
-                <p className="handwritten text-sm text-gray-600 px-5 py-4 leading-relaxed">
+                <p className="handwritten text-sm text-gray-600 px-4 py-4 leading-relaxed">
                   {caseStudy.figmaEmbed.description}
                 </p>
               )}
@@ -376,7 +389,7 @@ export default function CaseStudyPage() {
         )}
 
         {/* CTA */}
-        <div className="mt-20 flex flex-wrap items-center justify-between gap-6 rounded-xl border border-dashed border-gray-400/60 bg-white/80 px-8 py-10 shadow-sm">
+        <div className="mt-16 flex flex-wrap items-center justify-between gap-4 rounded-none border border-dashed border-gray-400/60 bg-white/80 px-8 py-8 shadow-sm">
           <div>
             <h3 className="handwritten text-3xl uppercase tracking-[0.3em] text-gray-900">Thanks for exploring the board ✨</h3>
             <p className="handwritten mt-3 text-base text-gray-600">Want to add your ideas? Ping me and we&apos;ll co-create.</p>
@@ -384,13 +397,13 @@ export default function CaseStudyPage() {
           <div className="flex flex-wrap gap-3">
             <Link
               href="/case-studies"
-              className="rounded-md border border-gray-300 px-5 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
+              className="rounded-none border border-gray-300 px-4 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
             >
               ← Board overview
             </Link>
             <Link
               href="/contact"
-              className="rounded-md bg-blue-500 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-600"
+              className="rounded-none bg-blue-500 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-600"
             >
               ✉️ Collaborate
             </Link>

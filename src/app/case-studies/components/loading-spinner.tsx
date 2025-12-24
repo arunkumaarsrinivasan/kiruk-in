@@ -11,7 +11,7 @@ export default function LoadingSpinner({ message = "Loading..." }: LoadingSpinne
   return (
     <div className="flex flex-col items-center justify-center p-8">
       <motion.div
-        className="w-12 h-12 border-4 border-blue-200 border-t-blue-500 rounded-full"
+        className="w-12 h-12 border-4 border-blue-200 border-t-blue-500 rounded-none"
         animate={{ rotate: 360 }}
         transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
       />

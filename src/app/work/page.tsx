@@ -1,67 +1,19 @@
 'use client';
 
-import ScribbleNotepad from '@/components/ui/ScribbleNotepad';
-import { SketchHeading, SketchCard, WireframeCard, WireframeSeparator } from '@/components/ui/sketch-elements';
-import { motion } from 'framer-motion';
-import { ConstellationSkills, InvolvementSection } from '@/modules/work';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useCallback } from 'react';
+import { useShootingGame, WorkTarget } from './components/useShootingGame';
+import { PixelTarget } from './components/PixelTarget';
+import { SniperScope } from './components/SniperScope';
+import { GameStats } from './components/GameStats';
+import { LevelBackground } from './components/LevelBackground';
+import { PersonaProfile } from './components/PersonaProfile';
+import { TargetAchievements } from './components/TargetAchievements';
+import { PixelCursor } from './components/PixelCursor';
+import { ExperienceTimeline } from './components/ExperienceTimeline';
 
 // Shared handwritten font token
 const handwrittenFont = 'handwritten';
-
-// Horizontal bar chart used inside job cards
-const BarChart = ({ data }: { data: { label: string; value: number; color: string }[] }) => (
-  <div className="w-full flex flex-col gap-3 mt-4">
-    {data.map((item, index) => (
-      <div key={item.label} className="flex items-center gap-3">
-        <span className={`text-[10px] uppercase tracking-wider w-24 text-gray-500 ${handwrittenFont}`}>{item.label}</span>
-        <div className="flex-1 h-2 bg-gray-100 relative overflow-hidden border border-black">
-          <motion.div
-            className="h-full absolute left-0 top-0 bg-black"
-            style={{ width: `${item.value}%` }}
-            initial={{ width: 0 }}
-            animate={{ width: `${item.value}%` }}
-            transition={{ duration: 1.2, delay: 0.2 + index * 0.1 }}
-          />
-        </div>
-        <span className={`text-[10px] ${handwrittenFont} ml-2 text-gray-500`}>{item.value}%</span>
-      </div>
-    ))}
-  </div>
-);
-
-// Donut chart that spotlights impact metrics
-const DonutChart = ({ value, color, label }: { value: number; color: string; label?: string }) => {
-  const radius = 24;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (value / 100) * circumference;
-
-  return (
-    <div className="flex flex-col items-center gap-2">
-      <div className="relative w-[60px] h-[60px]">
-        <svg width="60" height="60" className="transform -rotate-90">
-          <circle cx="30" cy="30" r={radius} stroke="#f3f4f6" strokeWidth="4" fill="none" />
-          <motion.circle
-            cx="30"
-            cy="30"
-            r={radius}
-            stroke="#000"
-            strokeWidth="4"
-            fill="none"
-            strokeDasharray={circumference}
-            strokeDashoffset={circumference}
-            animate={{ strokeDashoffset: offset }}
-            transition={{ duration: 1.2 }}
-            strokeLinecap="square"
-          />
-        </svg>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className={`text-sm font-bold ${handwrittenFont}`}>{value}%</span>
-        </div>
-      </div>
-      {label && <span className={`text-[10px] uppercase tracking-widest text-gray-500 ${handwrittenFont} text-center max-w-[100px]`}>{label}</span>}
-    </div>
-  );
-};
 
 const involvementEnhanced = [
   {
@@ -278,335 +230,465 @@ const workExperience = [
 ];
 
 export default function Work() {
-  const notebookTemplates = [
-    {
-      label: 'HP follow-up',
-      text: 'Ask about deployment roadmap for HP Print AI pipeline and offer usage analytics recap.'
+  const [showIntro, setShowIntro] = useState(true);
+  const [selectedTarget, setSelectedTarget] = useState<WorkTarget | null>(null);
+  const [revealIndex, setRevealIndex] = useState(0);
+
+  const { gameState, startGame, togglePause } = useShootingGame({
+    workExperiences: workExperience,
+    onTargetHit: (target) => {
+      // Progressive reveal - update target and reveal index
+      setSelectedTarget(target);
+      setRevealIndex(target.hitCount - 1); // Show current reveal based on hit count
     },
-    {
-      label: 'Squarebridge nugget',
-      text: 'Highlight 45% engagement lift from Squarebridge usability studies and share candidate success story.'
+    onLevelComplete: () => {
+      setSelectedTarget(null);
+      setRevealIndex(0);
     },
-    {
-      label: 'Next steps',
-      text: 'Capture takeaways and confirm openings for async workshop or stakeholder walkthrough.'
-    }
-  ];
+    gameDuration: 300, // 5 minutes for all levels
+  });
+
+  const handleStartGame = useCallback(() => {
+    setShowIntro(false);
+    startGame();
+  }, [startGame]);
+
 
   return (
-    <main className="min-h-screen pt-16 bg-white overflow-x-hidden">
-      {/* Resume Download Section - Minimal Wireframe */}
-      <motion.div
-        className="fixed top-24 right-8 z-30 flex flex-col items-center"
-        style={{ width: '220px' }}
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 1.5 }}
-      >
-        <a
-          href="/ArunkumaarSResume.pdf"
-          download="Arun_Kumaar_Resume.pdf"
-          className={`${handwrittenFont} text-sm px-4 py-3 bg-white border border-black rounded-none text-center no-underline hover:bg-gray-50 transition-all w-full block hover:shadow-none`}
-        >
-          <span className="block text-xs text-gray-500 mb-1 uppercase tracking-widest">Document</span>
-          📎 Download Resume
-        </a>
-      </motion.div>
-
-      {/* Header Section */}
-      <motion.div
-        className="relative z-10 flex flex-col items-center mb-10"
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-      >
-        <SketchHeading level={1} className="text-4xl md:text-5xl mb-6 text-center">
-          <span>My Professional Journey</span>
-        </SketchHeading>
-        <div className="max-w-4xl mx-auto mb-8">
-          <WireframeCard className="bg-white p-0 mb-0">
-            {/* Wireframe accents */}
-            <div className="absolute -top-1 -left-1 w-2 h-2 border-t-2 border-l-2 border-black" />
-            <div className="absolute -top-1 -right-1 w-2 h-2 border-t-2 border-r-2 border-black" />
-            <div className="absolute -bottom-1 -left-1 w-2 h-2 border-b-2 border-l-2 border-black" />
-            <div className="absolute -bottom-1 -right-1 w-2 h-2 border-b-2 border-r-2 border-black" />
-
-            <div className="text-center space-y-6 p-6">
-            <p className={`${handwrittenFont} text-lg text-gray-800 leading-relaxed`}>
-              I craft products end to end—research to release—keeping teams shipped, measured, and in sync.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <button
-                onClick={() => document.getElementById('experience-track')?.scrollIntoView({ behavior: 'smooth' })}
-                className="group flex flex-col items-center gap-1 border border-gray-300 bg-white px-4 py-3 hover:border-black transition-all"
-                type="button"
-              >
-                <span className="text-xl text-gray-400 group-hover:text-black">🛠️</span>
-                <span className={`${handwrittenFont} text-sm font-semibold text-gray-600 group-hover:text-black`}>
-                  Build + Ship
+    <main className="min-h-screen overflow-hidden" style={{ backgroundColor: "var(--bg-main)" }}>
+      {/* Game Header */}
+      <div className="fixed top-0 left-0 right-0 z-30 border-b-4 border-black p-3" style={{ backgroundColor: "var(--bg-card)" }}>
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <h1 className="text-xl font-mono" style={{ color: "var(--text-main)" }}>
+              🎯 WORK EXPERIENCE ARCHERY
+            </h1>
+            {!showIntro && (
+              <div className="flex items-center gap-2 font-mono text-sm">
+                <span className="px-2 py-1 border-2 border-black" style={{ backgroundColor: "var(--bg-card)", color: "var(--accent-color)" }}>
+                  LEVEL {gameState.currentLevel}
                 </span>
-                <span className={`${handwrittenFont} text-[11px] text-gray-400`}>HP Print AI · Squarebridge</span>
-              </button>
+              </div>
+            )}
+          </div>
+          {!showIntro && (
+            <div className="flex items-center gap-2">
               <button
-                onClick={() => document.getElementById('impact-dash')?.scrollIntoView({ behavior: 'smooth' })}
-                className="group flex flex-col items-center gap-1 border border-gray-300 bg-white px-4 py-3 hover:border-black transition-all"
-                type="button"
+                onClick={togglePause}
+                className="px-3 py-1 font-mono text-sm border-2 border-black transition-colors hover:opacity-80"
+                style={{ backgroundColor: "var(--bg-card)", color: "var(--text-main)" }}
               >
-                <span className="text-xl text-gray-400 group-hover:text-black">📈</span>
-                <span className={`${handwrittenFont} text-sm font-semibold text-gray-600 group-hover:text-black`}>
-                  Measure impact
-                </span>
-                <span className={`${handwrittenFont} text-[11px] text-gray-400`}>80% faster print setup</span>
-              </button>
-              <button
-                onClick={() => document.getElementById('community-notes')?.scrollIntoView({ behavior: 'smooth' })}
-                className="group flex flex-col items-center gap-1 border border-gray-300 bg-white px-4 py-3 hover:border-black transition-all"
-                type="button"
-              >
-                <span className="text-xl text-gray-400 group-hover:text-black">🤝</span>
-                <span className={`${handwrittenFont} text-sm font-semibold text-gray-600 group-hover:text-black`}>
-                  Coach + collaborate
-                </span>
-                <span className={`${handwrittenFont} text-[11px] text-gray-400`}>60+ folks trained</span>
+                {gameState.isPaused ? "▶ RESUME" : "⏸ PAUSE"}
               </button>
             </div>
-          </div>
-          </WireframeCard>
+          )}
         </div>
-      </motion.div>
-
-      {/* Work Experience Section */}
-      <section id="experience-track" className="relative z-10 max-w-6xl mx-auto px-4 mb-12">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-          <SketchHeading level={2} className="text-2xl md:text-3xl mb-8 text-center">
-            Professional Experience
-          </SketchHeading>
-          <div className="grid gap-6">
-            {workExperience.map((job, index) => (
-              <motion.div
-                key={job.id}
-                initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-              >
-                <WireframeCard className="bg-white" measurement={job.duration}>
-                  <div className="grid md:grid-cols-3 relative">
-                    {/* Vertical separator between columns */}
-                    <div className="hidden md:block absolute top-[-24px] bottom-[-24px] left-[66.666%] w-px bg-gray-200" />
-                    
-                    {/* Left Column: Main Content */}
-                    <div className="md:col-span-2 pr-0 md:pr-8 p-6">
-                      {/* Header Row */}
-                      <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-6 pb-6 border-b border-gray-100 relative">
-                        <div className="absolute bottom-0 left-[-100vw] right-0 h-px bg-gray-100" />
-                        <div>
-                          <h3 className={`text-xl font-bold text-black mb-1 ${handwrittenFont} tracking-tight`}>{job.title}</h3>
-                          <div className={`text-sm text-gray-500 ${handwrittenFont} uppercase tracking-wider`}>
-                            {job.company} · {job.location}
-                          </div>
-                        </div>
-                        <div className={`text-xs text-gray-400 mt-2 md:mt-0 ${handwrittenFont} border border-gray-200 px-2 py-1`}>
-                          {job.period}
-                        </div>
-                      </div>
-
-                      {/* Summary */}
-                      <div className="mb-8">
-                        <p className={`text-gray-800 leading-relaxed font-light text-sm md:text-base ${handwrittenFont}`}>{job.summary}</p>
-                      </div>
-
-                      {/* Metrics Grid */}
-                      {job.metrics && (
-                        <div className="grid grid-cols-3 gap-px bg-gray-200 border border-gray-200 mb-8">
-                          {job.metrics.map((metric) => (
-                            <div key={metric.label} className="bg-white p-4 text-center">
-                              <p className={`text-lg font-bold text-black ${handwrittenFont}`}>{metric.value}</p>
-                              <p className={`text-[9px] uppercase tracking-widest text-gray-400 mt-1 ${handwrittenFont}`}>
-                                {metric.label}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Projects Grid */}
-                      {job.projects && (
-                        <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          {job.projects.map((project, i) => (
-                            <div key={i} className="border border-black p-3 bg-gray-50 relative">
-                              <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-black" />
-                              <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-black" />
-                              <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-black" />
-                              <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-black" />
-                              
-                              <h4 className={`font-bold text-sm text-black mb-1 ${handwrittenFont}`}>{project.title}</h4>
-                              <p className={`text-[10px] text-gray-500 mb-2 uppercase tracking-wider ${handwrittenFont}`}>{project.role}</p>
-                              <p className={`text-xs text-gray-700 mb-3 leading-relaxed ${handwrittenFont}`}>{project.desc}</p>
-                              <div className="flex flex-wrap gap-1">
-                                {project.tech.map(t => (
-                                  <span key={t} className={`text-[9px] px-1.5 py-0.5 border border-gray-300 bg-white text-gray-600 ${handwrittenFont}`}>
-                                    {t}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Spotlight Section */}
-                      {job.spotlight && (
-                        <div className="mt-auto pt-6 border-t border-gray-100 relative">
-                          <div className="absolute top-0 left-[-100vw] right-0 h-px bg-gray-100" />
-                          <div className="flex items-baseline gap-2 mb-2">
-                            <span className={`text-[10px] uppercase tracking-widest text-gray-400 ${handwrittenFont}`}>Spotlight</span>
-                            <h4 className={`font-bold text-black text-sm ${handwrittenFont}`}>{job.spotlight.title}</h4>
-                          </div>
-                          <p className={`text-xs text-gray-500 leading-relaxed ${handwrittenFont}`}>
-                            {job.spotlight.summary}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Right Column: Visuals */}
-                    <div className="md:col-span-1 pl-0 md:pl-8 pt-8 md:pt-0 border-t md:border-t-0 border-gray-100 relative p-6">
-                      <div className="md:hidden absolute top-0 left-[-24px] right-[-24px] h-px bg-gray-200" />
-                      
-                      {/* Skills Chart */}
-                      {job.chartData && (
-                        <div className="mb-10">
-                          <h4 className={`text-[10px] uppercase tracking-widest text-gray-400 mb-4 ${handwrittenFont}`}>Skill Proficiency</h4>
-                          <BarChart data={job.chartData} />
-                        </div>
-                      )}
-
-                      {/* Impact Chart */}
-                      {job.impactChart && (
-                        <div className="mb-10">
-                          <h4 className={`text-[10px] uppercase tracking-widest text-gray-400 mb-4 ${handwrittenFont} text-center`}>Impact Focus</h4>
-                          <DonutChart value={job.impactChart.value} color="#000" label={job.impactChart.label} />
-                        </div>
-                      )}
-
-                      {/* Skills Tags */}
-                      <div className="mt-auto">
-                        <h4 className={`text-[10px] uppercase tracking-widest text-gray-400 mb-3 ${handwrittenFont}`}>Tech Stack</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {job.skills.map((skill) => (
-                            <span key={skill} className={`text-[10px] px-2 py-1 bg-gray-50 text-gray-600 border border-gray-100 ${handwrittenFont}`}>
-                              {skill}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </WireframeCard>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.4 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="relative z-10 max-w-6xl mx-auto px-4 mb-16"
-        >
-          <span className={`flex justify-center text-xs uppercase tracking-[0.28em] text-gray-500 ${handwrittenFont} mb-6`}>
-            Personal Notes
-          </span>
-          
-          <WireframeCard className="bg-white">
-            <div className="flex flex-col md:flex-row items-stretch md:items-start relative">
-              {/* Vertical separator */}
-              <div className="hidden md:block absolute top-[-24px] bottom-[-24px] left-[70%] w-px bg-gray-200" />
-              
-              <div className="md:flex-[0_0_70%] p-6">
-                <ScribbleNotepad
-                  className="w-full"
-                  title="Notebook corner"
-                  subtitle="Drop takeaways, follow-ups, or questions before you dive into the dashboards."
-                  accentEmoji="🗒️"
-                  storageKey="work-notes"
-                  placeholder="Summarize what stood out or actions to loop back on..."
-                  quickTemplates={notebookTemplates}
-                />
-              </div>
-              
-              <div className="flex-1 p-6 border-t md:border-t-0 border-gray-200 relative">
-                <div className="md:hidden absolute top-0 left-[-24px] right-[-24px] h-px bg-gray-200" />
-                
-                <h3 className={`text-lg text-black mb-3 ${handwrittenFont}`}>Key angles</h3>
-                <p className={`text-sm text-gray-700 leading-relaxed mb-4 ${handwrittenFont}`}>
-                  Use these quick reminders to underline Arun&apos;s mix of AI product thinking, UX craft, and cloud delivery.
-                </p>
-                <ul className={`space-y-2 text-sm text-gray-700 ${handwrittenFont}`}>
-                  <li className="flex items-start gap-2">
-                    <span className="text-black mt-0.5">✧</span>
-                    <span>Say he ships AI-powered journeys like HP Print AI and still owns the UX loop end to end.</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-black mt-0.5">✧</span>
-                    <span>Mention his cloud fluency—tying Spring Boot, Node, and Next.js to ship live flows.</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-black mt-0.5">✧</span>
-                    <span>Frame him as a creative developer who prototypes, instruments, and ships without losing polish.</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-black mt-0.5">✧</span>
-                    <span>Underline the generalist streak—he jumps from stakeholder maps to analytics readouts to keep momentum.</span>
-                  </li>
-                </ul>
-                <div className={`mt-6 grid grid-cols-1 gap-2 text-[11px] text-black uppercase tracking-[0.18em] ${handwrittenFont}`}>
-                  <div className="flex justify-between border border-black bg-gray-50 px-3 py-2">
-                    <span>Core focus</span>
-                    <span className="text-black">AI × UX × Cloud</span>
-                  </div>
-                  <div className="flex justify-between border border-black bg-gray-50 px-3 py-2">
-                    <span>Role cue</span>
-                    <span className="text-black">Creative generalist</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </WireframeCard>
-        </motion.div>
-      </section>
-
-      {/* Constellation Skills */}
-      <motion.div
-        id="impact-dash"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="text-center mb-12 overflow-visible mt-16 max-w-7xl mx-auto px-4"
-      >
-        <SketchHeading level={2} className="text-2xl md:text-3xl mb-6">
-          Stargazing Through My Expertise
-        </SketchHeading>
-        <motion.p
-          className={`text-lg text-gray-700 mb-8 ${handwrittenFont}`}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-        >
-          Explore the celestial map of my skills, where each constellation tells a story of expertise and growth
-        </motion.p>
-        <div className="overflow-visible text-left">
-          <WireframeCard className="bg-white">
-            <ConstellationSkills />
-          </WireframeCard>
-        </div>
-      </motion.div>
-
-      {/* Involvement Section */}
-      <div id="community-notes">
-        <InvolvementSection involvementData={involvementEnhanced} />
       </div>
+
+      {/* Intro Screen */}
+      <AnimatePresence>
+        {showIntro && (
+          <motion.div
+            className="fixed inset-0 z-20 flex items-center justify-center"
+            style={{ backgroundColor: "var(--bg-main)" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            {/* Grid background */}
+            <div
+              className="absolute inset-0 opacity-30"
+              style={{
+                backgroundImage: `
+                  linear-gradient(var(--border-color) 1px, transparent 1px),
+                  linear-gradient(90deg, var(--border-color) 1px, transparent 1px)
+                `,
+                backgroundSize: "20px 20px",
+              }}
+            />
+
+            <div className="text-center max-w-2xl px-4 relative z-10">
+              <motion.h1
+                className="text-4xl md:text-6xl font-mono mb-4"
+                style={{ color: "var(--text-main)" }}
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+              >
+                🎯 WORK EXPERIENCE ARCHERY
+              </motion.h1>
+
+              <motion.p
+                className="text-lg font-mono mb-8"
+                style={{ color: "var(--text-muted)" }}
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.4 }}
+              >
+                Shoot targets to discover my professional journey!
+                <br />
+                Each target represents a company I&apos;ve worked with.
+                <br />
+                <span style={{ color: "var(--accent-color)" }}>Aim and shoot</span> to learn about my experience.
+              </motion.p>
+
+              <motion.div
+                className="flex flex-col items-center gap-4"
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.6 }}
+              >
+                <button
+                  onClick={handleStartGame}
+                  className="px-8 py-4 font-mono text-2xl transition-all hover:opacity-80 wireframe-btn"
+                  style={{
+                    borderWidth: "var(--border-width)",
+                    borderColor: "var(--border-color)",
+                    boxShadow: "var(--shadow-offset-x) var(--shadow-offset-y) var(--shadow-blur) var(--shadow-color)",
+                  }}
+                >
+                  ▶ START GAME
+                </button>
+
+                <div className="text-sm font-mono" style={{ color: "var(--text-muted)" }}>
+                  Move mouse to aim | Click/Hold to charge | Release to shoot
+                </div>
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Game Area */}
+      {!showIntro && gameState.targets.length > 0 && (
+        <LevelBackground
+          company={`Level ${gameState.currentLevel}`}
+          location={`${gameState.targets.length} Targets`}
+          level={gameState.currentLevel}
+          gameState={gameState}
+        >
+          <div 
+            className="fixed inset-0 pt-16" 
+            style={{ 
+              backgroundColor: "var(--bg-main)",
+              cursor: "none" // Hide default cursor
+            }}
+          >
+            {/* Targets - Multiple squares per level */}
+            {gameState.targets.map((target) => (
+              <div key={target.id}>
+                <PixelTarget target={target} />
+                {/* Achievement/Skill visuals around target */}
+                <TargetAchievements target={target} hitCount={target.hitCount} />
+              </div>
+            ))}
+
+            {/* Custom Pixel Cursor */}
+            <PixelCursor
+              x={gameState.crosshairX}
+              y={gameState.crosshairY}
+              power={gameState.power}
+              isCharging={gameState.isCharging}
+            />
+            
+            {/* Sniper Scope with sway (hidden, using pixel cursor instead) */}
+            {false && (
+              <SniperScope
+                x={gameState.crosshairX}
+                y={gameState.crosshairY}
+                power={gameState.power}
+                isCharging={gameState.isCharging}
+                isAiming={gameState.isAiming}
+              />
+            )}
+            
+            {/* Bullet trails */}
+            {gameState.bullets.map((bullet) => (
+              <motion.div
+                key={bullet.id}
+                className="absolute pointer-events-none"
+                style={{
+                  left: `${bullet.x}%`,
+                  top: `${bullet.y}%`,
+                  transform: "translate(-50%, -50%)",
+                  width: 4,
+                  height: 4,
+                  backgroundColor: "var(--text-main)",
+                  borderRadius: "50%",
+                  opacity: bullet.life / 0.3,
+                }}
+                animate={{
+                  scale: [1, 0.5, 0],
+                  opacity: [1, 0.5, 0],
+                }}
+                transition={{ duration: bullet.life }}
+              />
+            ))}
+
+            {/* Experience Timeline - Horizontal timeline showing all experiences */}
+            <ExperienceTimeline 
+              workExperiences={workExperience}
+              gameState={gameState}
+              currentTarget={selectedTarget || gameState.targets[0]}
+            />
+
+            {/* Game Stats */}
+            <GameStats gameState={gameState} currentTarget={selectedTarget || gameState.targets[0]} />
+
+            {/* Persona Profile - Detailed persona view with radar chart */}
+            {selectedTarget && selectedTarget.hitCount > 0 && (
+              <PersonaProfile 
+                target={selectedTarget} 
+                hitCount={selectedTarget.hitCount}
+              />
+            )}
+
+            {/* Level Complete Message */}
+            {gameState.isLevelComplete && (
+              <motion.div
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+              >
+                <div className="text-center p-8 wireframe-border" style={{
+                  borderWidth: "var(--border-width)",
+                  borderColor: "var(--border-color)",
+                  backgroundColor: "var(--bg-card)",
+                  boxShadow: "var(--shadow-offset-x) var(--shadow-offset-y) var(--shadow-blur) var(--shadow-color)",
+                }}>
+                  <h2 className="font-mono text-4xl font-bold mb-4" style={{ color: "var(--text-main)" }}>
+                    🎯 LEVEL {gameState.currentLevel} COMPLETE!
+                  </h2>
+                  <p className="font-mono text-lg mb-4" style={{ color: "var(--text-muted)" }}>
+                    {gameState.currentLevel < gameState.maxLevel 
+                      ? "Loading next level..." 
+                      : "All levels completed! 🎉"}
+                  </p>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Pause Overlay */}
+            <AnimatePresence>
+              {gameState.isPaused && (
+                <motion.div
+                  className="absolute inset-0 z-40 flex items-center justify-center"
+                  style={{ backgroundColor: "rgba(0,0,0,0.9)" }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  <div className="text-center p-8 wireframe-border" style={{
+                    borderWidth: "var(--border-width)",
+                    borderColor: "var(--border-color)",
+                    backgroundColor: "var(--bg-card)",
+                    boxShadow: "var(--shadow-offset-x) var(--shadow-offset-y) var(--shadow-blur) var(--shadow-color)",
+                  }}>
+                    <h2 className="text-4xl font-mono mb-4" style={{ color: "var(--text-main)" }}>
+                      ⏸ PAUSED
+                    </h2>
+                    <button
+                      onClick={togglePause}
+                      className="px-6 py-3 font-mono text-xl transition-colors wireframe-btn"
+                      style={{
+                        borderWidth: "var(--border-width)",
+                        borderColor: "var(--border-color)",
+                        backgroundColor: "var(--accent-color)",
+                        color: "var(--bg-main)",
+                      }}
+                    >
+                      ▶ RESUME
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Game Over Overlay - More Gamified */}
+            <AnimatePresence>
+              {gameState.isGameOver && (
+                <motion.div
+                  className="absolute inset-0 z-40 flex items-center justify-center"
+                  style={{ 
+                    backgroundColor: "rgba(0,0,0,0.95)",
+                    backgroundImage: `
+                      linear-gradient(var(--border-color) 1px, transparent 1px),
+                      linear-gradient(90deg, var(--border-color) 1px, transparent 1px)
+                    `,
+                    backgroundSize: "20px 20px",
+                    opacity: 0.3,
+                  }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  <motion.div 
+                    className="text-center p-8 max-w-2xl w-[90%] wireframe-border"
+                    style={{ 
+                      imageRendering: "pixelated" as any,
+                      borderWidth: "var(--border-width)",
+                      borderColor: "var(--border-color)",
+                      backgroundColor: "var(--bg-card)",
+                      boxShadow: "var(--shadow-offset-x) var(--shadow-offset-y) var(--shadow-blur) var(--shadow-color)",
+                    }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {/* Pixelated Header */}
+                    <div className="mb-6">
+                      <h2
+                        className="text-5xl md:text-6xl font-mono mb-2"
+                        style={{ color: "var(--text-main)" }}
+                      >
+                        🎉 MISSION COMPLETE
+                      </h2>
+                      <div className="font-mono text-xs uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
+                        All Experience Levels Unlocked
+                      </div>
+                    </div>
+                    
+                    {/* Stats Grid - Pixelated Style */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                      <div
+                        className="p-3 wireframe-border"
+                        style={{
+                          borderWidth: "var(--border-width)",
+                          borderColor: "var(--border-color)",
+                          backgroundColor: "var(--bg-main)",
+                        }}
+                      >
+                        <div className="font-mono text-[10px] uppercase mb-1" style={{ color: "var(--text-muted)" }}>
+                          Score
+                        </div>
+                        <div className="font-mono text-2xl font-bold" style={{ color: "var(--text-main)" }}>
+                          {gameState.score.toLocaleString()}
+                        </div>
+                      </div>
+                      
+                      <div
+                        className="p-3 wireframe-border"
+                        style={{
+                          borderWidth: "var(--border-width)",
+                          borderColor: "var(--border-color)",
+                          backgroundColor: "var(--bg-main)",
+                        }}
+                      >
+                        <div className="font-mono text-[10px] uppercase mb-1" style={{ color: "var(--text-muted)" }}>
+                          Accuracy
+                        </div>
+                        <div className="font-mono text-2xl font-bold" style={{ color: "var(--accent-color)" }}>
+                          {gameState.accuracy.toFixed(1)}%
+                        </div>
+                      </div>
+                      
+                      <div
+                        className="p-3 wireframe-border"
+                        style={{
+                          borderWidth: "var(--border-width)",
+                          borderColor: "var(--border-color)",
+                          backgroundColor: "var(--bg-main)",
+                        }}
+                      >
+                        <div className="font-mono text-[10px] uppercase mb-1" style={{ color: "var(--text-muted)" }}>
+                          Hits
+                        </div>
+                        <div className="font-mono text-2xl font-bold" style={{ color: "var(--accent-color)" }}>
+                          {gameState.hits}/{gameState.shots}
+                        </div>
+                      </div>
+                      
+                      <div
+                        className="p-3 wireframe-border"
+                        style={{
+                          borderWidth: "var(--border-width)",
+                          borderColor: "var(--border-color)",
+                          backgroundColor: "var(--bg-main)",
+                        }}
+                      >
+                        <div className="font-mono text-[10px] uppercase mb-1" style={{ color: "var(--text-muted)" }}>
+                          Levels
+                        </div>
+                        <div className="font-mono text-2xl font-bold" style={{ color: "var(--accent-color)" }}>
+                          {gameState.currentLevel - 1}/{gameState.maxLevel}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Performance Rating */}
+                    <div
+                      className="mb-6 p-4 wireframe-border"
+                      style={{
+                        borderWidth: "var(--border-width)",
+                        borderColor: "var(--border-color)",
+                        backgroundColor: "var(--bg-main)",
+                      }}
+                    >
+                      <div className="font-mono text-xs uppercase mb-2" style={{ color: "var(--text-muted)" }}>
+                        Performance Rating
+                      </div>
+                      <div className="flex items-center justify-center gap-2">
+                        {[1, 2, 3, 4, 5].map((star) => {
+                          const filled = star <= Math.ceil((gameState.accuracy / 100) * 5);
+                          return (
+                            <div
+                              key={star}
+                              className="text-2xl"
+                            >
+                              {filled ? "⭐" : "☆"}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    
+                    {/* Action Buttons - Pixelated Style */}
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                      <button
+                        onClick={() => {
+                          setShowIntro(true);
+                          setSelectedTarget(null);
+                          setRevealIndex(0);
+                        }}
+                        className="px-6 py-3 font-mono text-lg transition-colors wireframe-btn"
+                        style={{
+                          borderWidth: "var(--border-width)",
+                          borderColor: "var(--border-color)",
+                          backgroundColor: "var(--accent-color)",
+                          color: "var(--bg-main)",
+                          boxShadow: "var(--shadow-offset-x) var(--shadow-offset-y) var(--shadow-blur) var(--shadow-color)",
+                          imageRendering: "pixelated" as any,
+                        }}
+                      >
+                        🔄 MAIN MENU
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedTarget(null);
+                          setRevealIndex(0);
+                          startGame();
+                        }}
+                        className="px-6 py-3 font-mono text-lg transition-colors wireframe-btn"
+                        style={{
+                          borderWidth: "var(--border-width)",
+                          borderColor: "var(--border-color)",
+                          backgroundColor: "var(--accent-color)",
+                          color: "var(--bg-main)",
+                          boxShadow: "var(--shadow-offset-x) var(--shadow-offset-y) var(--shadow-blur) var(--shadow-color)",
+                          imageRendering: "pixelated" as any,
+                        }}
+                      >
+                        ▶ PLAY AGAIN
+                      </button>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </LevelBackground>
+      )}
+
     </main>
   );
 }

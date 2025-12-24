@@ -53,7 +53,7 @@ export default function CaseStudyBook({ study, onClose }: CaseStudyBookProps) {
     
     switch (currentPageId) {      case 'overview':
         return (
-          <div className="p-8 space-y-6">
+          <div className="p-8 space-y-5">
             <div className="text-center mb-8">
               <SketchHeading level={1} className="text-3xl mb-4 architect-font">{study.title}</SketchHeading>
               <p className="text-lg text-gray-600 max-w-2xl mx-auto handwritten leading-relaxed">{study.summary}</p>
@@ -69,9 +69,9 @@ export default function CaseStudyBook({ study, onClose }: CaseStudyBookProps) {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.1 }}
-                      className="flex items-start gap-3 p-3 bg-gray-50 rounded-sm border border-black/10 sketch-border"
+                      className="flex items-start gap-3 p-3 bg-gray-50 rounded-none border border-black/10 sketch-border"
                     >
-                      <span className="flex-shrink-0 w-8 h-8 bg-black text-white rounded-sm flex items-center justify-center text-sm font-bold sketch-font">
+                      <span className="flex-shrink-0 w-8 h-8 bg-black text-white rounded-none flex items-center justify-center text-sm font-bold sketch-font">
                         {i + 1}
                       </span>
                       <div>
@@ -85,8 +85,8 @@ export default function CaseStudyBook({ study, onClose }: CaseStudyBookProps) {
               
               <div>
                 <h3 className="text-xl font-semibold mb-4 sketch-font">Final Result</h3>
-                <div className="bg-white p-4 rounded-sm shadow-sm sketch-border">
-                  <div className="relative mb-4 h-48 w-full overflow-hidden rounded-sm border border-black/10">
+                <div className="bg-white p-4 rounded-none shadow-sm sketch-border">
+                  <div className="relative mb-4 h-48 w-full overflow-hidden rounded-none border border-black/10">
                     <Image
                       src={study.finalImg}
                       alt={`${study.title} final design`}
@@ -103,7 +103,7 @@ export default function CaseStudyBook({ study, onClose }: CaseStudyBookProps) {
                     <h4 className="font-medium mb-2 sketch-font">Technologies Used</h4>
                     <div className="flex flex-wrap gap-2">
                       {study.technologies.map((tech, i) => (
-                        <span key={`tech-${tech}-${i}`} className="px-3 py-1 bg-gray-100 text-black rounded-sm text-sm sketch-font border border-black/20">
+                        <span key={`tech-${tech}-${i}`} className="px-3 py-1 bg-gray-100 text-black rounded-none text-sm sketch-font border border-black/20">
                           {tech}
                         </span>
                       ))}
@@ -116,25 +116,25 @@ export default function CaseStudyBook({ study, onClose }: CaseStudyBookProps) {
         );
           case 'branding':
         return (
-          <div className="p-8 space-y-6">
+          <div className="p-8 space-y-5">
             <SketchHeading level={2} className="text-center mb-6 architect-font">Brand Identity</SketchHeading>
             {study.branding && (
-              <div className="space-y-8">
-                <div className="bg-gray-50 p-6 rounded-sm sketch-border">
+              <div className="space-y-10">
+                <div className="bg-gray-50 p-4 rounded-none sketch-border">
                   <p className="text-gray-700 leading-relaxed handwritten text-lg">{study.branding.description}</p>
                 </div>
                 
                 <div className="grid md:grid-cols-2 gap-8">
                   <div>
                     <h3 className="text-xl font-semibold mb-4 sketch-font">Typography</h3>
-                    <div className="space-y-4">
-                      <div className="p-4 bg-white rounded-sm sketch-border">
+                    <div className="space-y-5">
+                      <div className="p-4 bg-white rounded-none sketch-border">
                         <p className="text-sm text-gray-500 mb-2 sketch-font">Primary Font</p>
                         <p className="text-2xl font-bold" style={{ fontFamily: study.branding.typography.primary }}>
                           {study.branding.typography.primary}
                         </p>
                       </div>
-                      <div className="p-4 bg-white rounded-sm sketch-border">
+                      <div className="p-4 bg-white rounded-none sketch-border">
                         <p className="text-sm text-gray-500 mb-2 sketch-font">Secondary Font</p>
                         <p className="text-2xl" style={{ fontFamily: study.branding.typography.secondary }}>
                           {study.branding.typography.secondary}
@@ -150,10 +150,10 @@ export default function CaseStudyBook({ study, onClose }: CaseStudyBookProps) {
                         <motion.div 
                           key={`color-${color}`}
                           whileHover={{ scale: 1.05 }}
-                          className="aspect-square rounded-sm shadow-sm sketch-border flex flex-col items-center justify-end p-2"
+                          className="aspect-square rounded-none shadow-sm sketch-border flex flex-col items-center justify-end p-2"
                           style={{ backgroundColor: color }}
                         >
-                          <span className="text-xs handwritten bg-white/90 px-2 py-1 rounded-sm sketch-font border border-black/20">
+                          <span className="text-xs handwritten bg-white/90 px-2 py-1 rounded-none sketch-font border border-black/20">
                             {color}
                           </span>
                         </motion.div>
@@ -167,19 +167,19 @@ export default function CaseStudyBook({ study, onClose }: CaseStudyBookProps) {
         );
           case 'colors':
         return (
-          <div className="p-8 space-y-6">
+          <div className="p-8 space-y-5">
             <SketchHeading level={2} className="text-center mb-6 architect-font">Color Theory</SketchHeading>
             {study.colorTheory && (
-              <div className="space-y-8">
+              <div className="space-y-10">
                 <div className="text-center">
-                  <div className="flex justify-center space-x-4 mb-6">
+                  <div className="flex justify-center space-x-5 mb-6">
                     {study.colorTheory.palette.map((color, i) => (
                       <motion.div
                         key={`palette-${color}`}
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         transition={{ delay: i * 0.1 }}
-                        className="w-16 h-16 rounded-sm shadow-lg sketch-border"
+                        className="w-16 h-16 rounded-none shadow-lg sketch-border"
                         style={{ backgroundColor: color }}
                       />
                     ))}
@@ -187,13 +187,13 @@ export default function CaseStudyBook({ study, onClose }: CaseStudyBookProps) {
                 </div>
                 
                 <div className="grid md:grid-cols-2 gap-8">
-                  <div className="bg-white p-6 rounded-sm shadow-sm sketch-border">
+                  <div className="bg-white p-4 rounded-none shadow-sm sketch-border">
                     <h3 className="text-xl font-semibold mb-4 sketch-font">Color Usage</h3>
                     <p className="text-gray-700 leading-relaxed handwritten">{study.colorTheory.description}</p>
                   </div>
                   
                   {study.colorTheory.psychology && (
-                    <div className="bg-gray-50 p-6 rounded-sm sketch-border">
+                    <div className="bg-gray-50 p-4 rounded-none sketch-border">
                       <h3 className="text-xl font-semibold mb-4 sketch-font">Color Psychology</h3>
                       <p className="text-gray-700 leading-relaxed handwritten">{study.colorTheory.psychology}</p>
                     </div>
@@ -205,11 +205,11 @@ export default function CaseStudyBook({ study, onClose }: CaseStudyBookProps) {
         );
           case 'ideation':
         return (
-          <div className="p-8 space-y-6">
+          <div className="p-8 space-y-5">
             <SketchHeading level={2} className="text-center mb-6 architect-font">Ideation Process</SketchHeading>
             {study.ideation && (
-              <div className="space-y-8">
-                <div className="bg-gray-50 p-6 rounded-sm sketch-border">
+              <div className="space-y-10">
+                <div className="bg-gray-50 p-4 rounded-none sketch-border">
                   <p className="text-gray-700 leading-relaxed handwritten text-lg">{study.ideation.description}</p>
                 </div>
                 
@@ -223,7 +223,7 @@ export default function CaseStudyBook({ study, onClose }: CaseStudyBookProps) {
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: i * 0.2 }}
-                          className="bg-white p-4 rounded-sm shadow-sm sketch-border border-l-4 border-black"
+                          className="bg-white p-4 rounded-none shadow-sm sketch-border border-l-4 border-black"
                         >
                           <p className="text-sm text-gray-700 handwritten">{insight}</p>
                         </motion.div>
@@ -237,8 +237,8 @@ export default function CaseStudyBook({ study, onClose }: CaseStudyBookProps) {
                     <h3 className="text-xl font-semibold mb-4 sketch-font">Ideation Artifacts</h3>
                     <div className="grid md:grid-cols-2 gap-4">
                       {study.ideation.images.map((img, i) => (
-                        <div key={`ideation-${img}`} className="bg-white p-3 rounded-sm shadow-sm sketch-border">
-                          <div className="relative h-40 w-full overflow-hidden rounded-sm border border-black/10">
+                        <div key={`ideation-${img}`} className="bg-white p-3 rounded-none shadow-sm sketch-border">
+                          <div className="relative h-40 w-full overflow-hidden rounded-none border border-black/10">
                             <Image
                               src={img}
                               alt={`Ideation ${i + 1}`}
@@ -258,28 +258,28 @@ export default function CaseStudyBook({ study, onClose }: CaseStudyBookProps) {
         );
           case 'sketching':
         return (
-          <div className="p-8 space-y-6">
+          <div className="p-8 space-y-5">
             <SketchHeading level={2} className="text-center mb-6 architect-font">Sketching & Exploration</SketchHeading>
             {study.sketching && (
-              <div className="space-y-8">
-                <div className="bg-gray-50 p-6 rounded-sm sketch-border">
+              <div className="space-y-10">
+                <div className="bg-gray-50 p-4 rounded-none sketch-border">
                   <p className="text-gray-700 leading-relaxed handwritten text-lg">{study.sketching.description}</p>
                   {study.sketching.iterations && (
-                    <div className="mt-4 inline-flex items-center bg-white px-4 py-2 rounded-sm sketch-border">
+                    <div className="mt-4 inline-flex items-center bg-white px-4 py-2 rounded-none sketch-border">
                       <span className="text-sm font-medium sketch-font">{study.sketching.iterations} iterations</span>
                     </div>
                   )}
                 </div>
                 
                 {study.sketching.images && study.sketching.images.length > 0 && (
-                  <div className="grid md:grid-cols-2 gap-6">
+                  <div className="grid md:grid-cols-2 gap-4">
                     {study.sketching.images.map((img, i) => (
                       <motion.div
                         key={`sketch-${img}`}
                         whileHover={{ scale: 1.02, rotate: 0 }}
-                        className="bg-white p-4 rounded-sm shadow-sm sketch-border transform rotate-1 transition-transform"
+                        className="bg-white p-4 rounded-none shadow-sm sketch-border transform rotate-1 transition-transform"
                       >
-                        <div className="relative h-64 w-full overflow-hidden rounded-sm border border-black/10">
+                        <div className="relative h-64 w-full overflow-hidden rounded-none border border-black/10">
                           <Image
                             src={img}
                             alt={`Sketch ${i + 1}`}
@@ -298,16 +298,16 @@ export default function CaseStudyBook({ study, onClose }: CaseStudyBookProps) {
         );
           case 'wireframes':
         return (
-          <div className="p-8 space-y-6">
+          <div className="p-8 space-y-5">
             <SketchHeading level={2} className="text-center mb-6 architect-font">Wireframes & Structure</SketchHeading>
             {study.wireframes && (
-              <div className="space-y-8">
-                <div className="bg-gray-50 p-6 rounded-sm sketch-border">
+              <div className="space-y-10">
+                <div className="bg-gray-50 p-4 rounded-none sketch-border">
                   <p className="text-gray-700 leading-relaxed handwritten text-lg">{study.wireframes.description}</p>
                   {study.wireframes.userFlow && (
                     <div className="mt-4">
                       <h4 className="font-medium mb-2 sketch-font">User Flow:</h4>
-                      <p className="text-sm text-gray-800 handwritten bg-white px-3 py-2 rounded-sm border border-black/20">{study.wireframes.userFlow}</p>
+                      <p className="text-sm text-gray-800 handwritten bg-white px-3 py-2 rounded-none border border-black/20">{study.wireframes.userFlow}</p>
                     </div>
                   )}
                 </div>
@@ -315,8 +315,8 @@ export default function CaseStudyBook({ study, onClose }: CaseStudyBookProps) {
                 {study.wireframes.images && study.wireframes.images.length > 0 && (
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {study.wireframes.images.map((img, i) => (
-                      <div key={`wireframe-${img}`} className="bg-white p-3 rounded-sm shadow-sm sketch-border">
-                        <div className="relative h-48 w-full overflow-hidden rounded-sm border border-black/10">
+                      <div key={`wireframe-${img}`} className="bg-white p-3 rounded-none shadow-sm sketch-border">
+                        <div className="relative h-48 w-full overflow-hidden rounded-none border border-black/10">
                           <Image
                             src={img}
                             alt={`Wireframe ${i + 1}`}
@@ -335,11 +335,11 @@ export default function CaseStudyBook({ study, onClose }: CaseStudyBookProps) {
         );
           case 'final':
         return (
-          <div className="p-8 space-y-6">
+          <div className="p-8 space-y-5">
             <SketchHeading level={2} className="text-center mb-6 architect-font">Final Design</SketchHeading>
             {study.finalScreens && (
-              <div className="space-y-8">
-                <div className="bg-gray-50 p-6 rounded-sm sketch-border">
+              <div className="space-y-10">
+                <div className="bg-gray-50 p-4 rounded-none sketch-border">
                   <p className="text-gray-700 leading-relaxed handwritten text-lg">{study.finalScreens.description}</p>
                 </div>
                 
@@ -348,7 +348,7 @@ export default function CaseStudyBook({ study, onClose }: CaseStudyBookProps) {
                     <h3 className="text-xl font-semibold mb-4 sketch-font">Key Features</h3>
                     <div className="grid md:grid-cols-2 gap-3">
                       {study.finalScreens.features.map((feature, i) => (
-                        <div key={`feature-${i}-${feature.substring(0, 10)}`} className="flex items-center gap-2 p-3 bg-white rounded-sm sketch-border">
+                        <div key={`feature-${i}-${feature.substring(0, 10)}`} className="flex items-center gap-2 p-3 bg-white rounded-none sketch-border">
                           <span className="text-black text-lg">✓</span>
                           <span className="handwritten">{feature}</span>
                         </div>
@@ -363,9 +363,9 @@ export default function CaseStudyBook({ study, onClose }: CaseStudyBookProps) {
                       <motion.div
                         key={`final-${img}`}
                         whileHover={{ scale: 1.02 }}
-                        className="bg-white p-2 rounded-sm shadow-lg sketch-border"
+                        className="bg-white p-2 rounded-none shadow-lg sketch-border"
                       >
-                        <div className="relative h-64 w-full overflow-hidden rounded-sm border border-black/10">
+                        <div className="relative h-64 w-full overflow-hidden rounded-none border border-black/10">
                           <Image
                             src={img}
                             alt={`Final design ${i + 1}`}
@@ -384,7 +384,7 @@ export default function CaseStudyBook({ study, onClose }: CaseStudyBookProps) {
                     <h3 className="text-xl font-semibold mb-4 sketch-font">Results & Metrics</h3>
                     <div className="grid md:grid-cols-3 gap-4">
                       {study.results.map((result) => (
-                        <div key={`result-${result.metric}`} className="text-center p-4 bg-white rounded-sm shadow-sm sketch-border">
+                        <div key={`result-${result.metric}`} className="text-center p-4 bg-white rounded-none shadow-sm sketch-border">
                           <div className="text-2xl font-bold text-black mb-1 architect-font">{result.value}</div>
                           <div className="font-medium sketch-font">{result.metric}</div>
                           {result.description && (
@@ -401,19 +401,19 @@ export default function CaseStudyBook({ study, onClose }: CaseStudyBookProps) {
         );
           case 'figma':
         return (
-          <div className="p-8 space-y-6">
+          <div className="p-8 space-y-5">
             <SketchHeading level={2} className="text-center mb-6 architect-font">Interactive Prototype</SketchHeading>
             {study.figmaEmbed ? (
-              <div className="space-y-6">
+              <div className="space-y-5">
                 <div className="text-center">
                   <p className="text-gray-600 max-w-2xl mx-auto handwritten text-lg leading-relaxed">{study.figmaEmbed.description}</p>
                 </div>
                 
-                <div className="bg-white rounded-sm shadow-lg p-4 sketch-border">
+                <div className="bg-white rounded-none shadow-lg p-4 sketch-border">
                   <div className="relative w-full pb-16 h-96">
                     <iframe 
                       src={study.figmaEmbed.embedUrl} 
-                      className="absolute inset-0 w-full h-full rounded-sm border border-black/20"
+                      className="absolute inset-0 w-full h-full rounded-none border border-black/20"
                       allowFullScreen
                       title={study.figmaEmbed.title}
                     />
@@ -432,7 +432,7 @@ export default function CaseStudyBook({ study, onClose }: CaseStudyBookProps) {
                           rel="noopener noreferrer"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
-                          className="flex items-center gap-2 px-6 py-3 bg-black text-white rounded-sm hover:bg-gray-800 transition-colors sketch-border sketch-font"
+                          className="flex items-center gap-2 px-4 py-3 bg-black text-white rounded-none hover:bg-gray-800 transition-colors sketch-border sketch-font"
                         >
                           <span>{link.icon}</span>
                           <span>{link.title}</span>
@@ -443,7 +443,7 @@ export default function CaseStudyBook({ study, onClose }: CaseStudyBookProps) {
                 )}
               </div>
             ) : (
-              <div className="text-center py-12">
+              <div className="text-center py-8">
                 <p className="text-gray-500 handwritten text-lg">Interactive prototype coming soon...</p>
               </div>
             )}
@@ -477,7 +477,7 @@ export default function CaseStudyBook({ study, onClose }: CaseStudyBookProps) {
             </div>
             <button
               onClick={onClose}
-              className="handwritten text-2xl text-black hover:text-gray-600 transition-colors bg-gray-100 hover:bg-gray-200 w-10 h-10 rounded-sm border border-black/20 flex items-center justify-center sketch-border"
+              className="handwritten text-2xl text-black hover:text-gray-600 transition-colors bg-gray-100 hover:bg-gray-200 w-8 h-8 rounded-none border border-black/20 flex items-center justify-center sketch-border"
               aria-label="Close book"
             >
               ×
@@ -490,7 +490,7 @@ export default function CaseStudyBook({ study, onClose }: CaseStudyBookProps) {
               <button
                 key={page.id}
                 onClick={() => goToPage(index)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-sm whitespace-nowrap transition-all sketch-font border ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-none whitespace-nowrap transition-all sketch-font border ${
                   currentPage === index 
                     ? 'bg-white border-black/40 text-black shadow-sm' 
                     : 'bg-gray-100 border-black/20 text-gray-600 hover:bg-white hover:text-black'
@@ -524,7 +524,7 @@ export default function CaseStudyBook({ study, onClose }: CaseStudyBookProps) {
             <button
               onClick={prevPage}
               disabled={currentPage === 0}
-              className={`flex items-center gap-2 px-4 py-2 rounded-sm transition-all sketch-font border ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-none transition-all sketch-font border ${
                 currentPage === 0 
                   ? 'text-gray-400 cursor-not-allowed border-gray-200 bg-gray-50' 
                   : 'text-black hover:bg-gray-100 border-black/20 bg-white hover:border-black/40'
@@ -534,14 +534,14 @@ export default function CaseStudyBook({ study, onClose }: CaseStudyBookProps) {
               <span>Previous</span>
             </button>
             
-            <div className="text-sm text-gray-600 handwritten bg-gray-100 px-3 py-1 rounded-sm border border-black/20">
+            <div className="text-sm text-gray-600 handwritten bg-gray-100 px-3 py-1 rounded-none border border-black/20">
               page {currentPage + 1} of {pages.length}
             </div>
             
             <button
               onClick={nextPage}
               disabled={currentPage === pages.length - 1}
-              className={`flex items-center gap-2 px-4 py-2 rounded-sm transition-all sketch-font border ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-none transition-all sketch-font border ${
                 currentPage === pages.length - 1 
                   ? 'text-gray-400 cursor-not-allowed border-gray-200 bg-gray-50' 
                   : 'text-black hover:bg-gray-100 border-black/20 bg-white hover:border-black/40'

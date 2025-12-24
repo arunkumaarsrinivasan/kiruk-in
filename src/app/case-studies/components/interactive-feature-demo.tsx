@@ -14,7 +14,7 @@ export default function InteractiveFeatureDemo({ title, description, children }:
 
   return (
     <motion.div
-      className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden"
+      className="bg-white rounded-none shadow-lg border border-gray-200 overflow-hidden"
       whileHover={{ scale: 1.02 }}
       transition={{ duration: 0.2 }}
     >
@@ -32,7 +32,7 @@ export default function InteractiveFeatureDemo({ title, description, children }:
             transition={{ duration: 0.3 }}
           >
             <svg 
-              className="w-5 h-5 text-gray-500" 
+              className="w-4 h-4 text-gray-500" 
               fill="none" 
               stroke="currentColor" 
               viewBox="0 0 24 24"

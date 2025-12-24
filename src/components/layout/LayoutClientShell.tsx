@@ -1,13 +1,75 @@
 "use client";
 
-import Navigation from "./navigation";
+import { useState, useCallback } from 'react';
+import { usePathname } from 'next/navigation';
+import SimpleGameNav from "./SimpleGameNav";
 import AppLoader from "@/components/ui/app-loader";
+import { GridArcade } from "@/components/ui/arcade";
+import { getRandomGameId, getDefaultGameId, getGameEntry } from "@/components/ui/arcade/game-registry";
+import TimeMachine from "@/components/ui/TimeMachine";
+import { MissionCompletionNotification } from "./MissionCompletionNotification";
+import { useMissionTracker } from "@/hooks/useMissionTracker";
 
 interface LayoutClientShellProps {
   readonly children: React.ReactNode;
 }
 
 export default function LayoutClientShell({ children }: Readonly<LayoutClientShellProps>) {
+  const pathname = usePathname();
+  // Keep the global layout stable; only show the gamified header + grid on chosen pages.
+  const arcadeEnabled = pathname === '/' || pathname === '/lab' || pathname === '/arcade';
+  
+  // Game state lifted up for coordination between nav and arcade
+  const [isGameActive, setIsGameActive] = useState(false);
+  const [gameId, setGameId] = useState(getDefaultGameId());
+  const [score, setScore] = useState(0);
+  
+  // Mission tracking
+  const { trackInteraction, trackScore } = useMissionTracker();
+  
+  const gameEntry = getGameEntry(gameId);
+  const gameName = gameEntry?.label || 'Game';
+  
+  // Game icons based on game type
+  const gameIcons: Record<string, string> = {
+    'snake': '🐍',
+    'painter': '🎨',
+    'collector': '✨',
+    'avoider': '⚡',
+    'tetris': '🧱',
+    'pipe': '🔧',
+    'shooter': '🚀',
+    'minesweeper': '💣',
+    'flappy': '🐦',
+    'timeline': '📅',
+    'quiz': '❓',
+    'memory': '🧠',
+  };
+  const gameIcon = gameIcons[gameId] || '🎮';
+  
+  const handleToggleGame = useCallback(() => {
+    setIsGameActive(prev => !prev);
+    if (!isGameActive) {
+      setScore(0);
+    }
+    trackInteraction();
+  }, [isGameActive, trackInteraction]);
+  
+  const handleRandomGame = useCallback(() => {
+    let newGameId = getRandomGameId();
+    while (newGameId === gameId) {
+      newGameId = getRandomGameId();
+    }
+    setGameId(newGameId);
+    setScore(0);
+    trackInteraction();
+  }, [gameId, trackInteraction]);
+  
+  const handleScoreChange = useCallback((newScore: number) => {
+    setScore(newScore);
+    trackScore(newScore);
+  }, [trackScore]);
+
   return (
     <AppLoader enableLoader={true} loadingDuration={3500}>
       {/* Skip Links for Accessibility */}
@@ -20,15 +82,41 @@ export default function LayoutClientShell({ children }: Readonly<LayoutClientShe
       </a>
       <a 
         href="#navigation" 
-        className="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-32 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:text-sm focus:no-underline"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-30 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:text-sm focus:no-underline"
         tabIndex={2}
       >
         Skip to navigation
       </a>
-      <Navigation />
-      <main id="main-content" tabIndex={-1}>
+      
+      {/* Simplified Game Navigation */}
+      <SimpleGameNav 
+        isGameActive={arcadeEnabled ? isGameActive : false}
+        currentGameId={gameId}
+        currentGameName={gameName}
+        currentGameIcon={gameIcon}
+        onToggleGame={arcadeEnabled ? handleToggleGame : undefined}
+      />
+      
+      <main 
+        id="main-content" 
+        tabIndex={-1}
+        style={{ paddingTop: '120px' }} // Account for taller header (BAR_HEIGHT * 2 = 60px * 2)
+      >
         {children}
       </main>
+      
+      {/* Mission Completion Notifications */}
+      <MissionCompletionNotification />
+      
+      {/* Grid Arcade - only on home and lab pages */}
+      {arcadeEnabled && pathname === '/lab' && (
+        <GridArcade 
+          defaultGameId={gameId}
+        />
+      )}
+      
+      {/* Time Machine - Era Switcher - Available on all pages except home */}
+      {pathname !== '/' && <TimeMachine />}
     </AppLoader>
   );
 }

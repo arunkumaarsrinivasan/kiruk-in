@@ -6,7 +6,57 @@ import { motion } from 'framer-motion';
 // Type definitions
 type Size = 'sm' | 'md' | 'lg';
 
-// Sketch-style heading component
+// Teenage Engineering inspired timing and easing values
+const TE_TIMING = {
+  instant: 0.08,   // 80ms
+  quick: 0.15,     // 150ms
+  standard: 0.25,  // 250ms
+};
+
+const TE_EASING = {
+  mechanical: [0.4, 0.0, 0.2, 1] as const,
+  spring: [0.34, 1.56, 0.64, 1] as const,
+  easeIn: [0.4, 0.0, 1, 1] as const,
+};
+
+// Motion variants for interactive elements
+const cardVariants = {
+  rest: {
+    scale: 1,
+    y: 0,
+    boxShadow: '0 0 0 0 rgba(0, 0, 0, 0)',
+  },
+  hover: {
+    scale: 1.02,
+    y: -2,
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+  },
+  tap: {
+    scale: 0.98,
+    y: 0,
+    boxShadow: '0 0 0 0 rgba(0, 0, 0, 0)',
+  },
+};
+
+const buttonVariants = {
+  rest: {
+    scale: 1,
+    y: 0,
+    boxShadow: '0 0 0 0 rgba(0, 0, 0, 0)',
+  },
+  hover: {
+    scale: 1.02,
+    y: -2,
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+  },
+  tap: {
+    scale: 0.98,
+    y: 0,
+    boxShadow: '0 0 0 0 rgba(0, 0, 0, 0)',
+  },
+};
+
+// Wireframe-style heading component
 export const SketchHeading = ({ 
   children, 
   className = '',
@@ -29,18 +79,18 @@ export const SketchHeading = ({
   
   const Tag = headingElements[level] as any;
   return (
-    <Tag className={`sketch-font ${underline ? 'sketch-underline' : ''} ${className}`}>{children}</Tag>
+    <Tag className={`font-bold uppercase tracking-widest text-[var(--text-main)] ${underline ? 'border-b-[var(--border-width)] border-[var(--border-color)] pb-2' : ''} ${className}`}>{children}</Tag>
   );
 };
 
-// Sketch-style border component
+// Wireframe-style border component
 export const SketchBorder = ({ className = '' }: { className?: string }) => {
   return (
-    <div className={`absolute inset-0 w-full h-full border-2 border-dashed border-black rounded-2xl ${className}`} />
+    <div className={`absolute inset-0 w-full h-full border-[var(--border-width)] border-[var(--border-color)] ${className}`} />
   );
 };
 
-// Sketch-style card component
+// Wireframe-style card component with TE interactions
 export const SketchCard = ({ 
   children, 
   className = '',
@@ -50,41 +100,30 @@ export const SketchCard = ({
   className?: string;
   tilt?: 'left' | 'right' | 'none';
 }) => {
-  const tiltClass = {
-    left: '-rotate-1',
-    right: 'rotate-1',
-    none: 'rotate-0'
-  };
-
-  // Helper function to get hover rotation value
-  const getHoverRotation = (tilt: 'left' | 'right' | 'none') => {
-    if (tilt === 'left') return -0.5;
-    if (tilt === 'right') return 0.5;
-    return 0;
-  };
-
   return (
     <motion.div
       className={`
-        relative p-6 bg-white paper-texture
-        border-2 border-gray-300 rounded-lg
-        ${tiltClass[tilt]}
-        transition-all duration-300 ease-out
-        hover:scale-105
+        te-card relative p-4 bg-[var(--bg-card)]
+        border-[var(--border-width)] border-[var(--border-color)]
+        shadow-none cursor-pointer
         ${className}
       `}
-      whileHover={{
-        rotate: getHoverRotation(tilt),
-        y: -5
-      }}
       tabIndex={0}
+      initial="rest"
+      whileHover="hover"
+      whileTap="tap"
+      variants={cardVariants}
+      transition={{
+        duration: TE_TIMING.quick,
+        ease: TE_EASING.spring,
+      }}
     >
       {children}
     </motion.div>
   );
 };
 
-// Sketch-style button
+// Wireframe-style button with TE mechanical interactions
 export const SketchButton = ({ 
   children, 
   onClick,
@@ -103,32 +142,30 @@ export const SketchButton = ({
   size?: Size;
   className?: string;
   disabled?: boolean;
-}) => {  const baseClasses = `
-    relative font-bold sketch-font
-    border-2 rounded-xl
-    transition-all duration-200 ease-out
-    transform hover:scale-105 active:scale-95
-    focus:outline-none focus:ring-2 focus:ring-offset-2
+}) => {
+  const baseClasses = `
+    te-button relative font-bold uppercase tracking-wider
+    border-[var(--border-width)] border-[var(--border-color)]
+    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--border-color)]
     disabled:opacity-50 disabled:cursor-not-allowed
     inline-block text-center no-underline
-  `;  const variants = {
-    primary: 'bg-white border-black text-black hover:bg-gray-100 focus:ring-black btn-primary-text',
-    secondary: 'bg-gray-100 border-gray-600 text-black hover:bg-gray-200 focus:ring-gray-500 btn-secondary-text',
-    outline: 'bg-white border-gray-600 text-gray-800 hover:bg-gray-50 focus:ring-gray-500 btn-secondary-text'
+    shadow-none cursor-pointer select-none
+  `;
+
+  const variants = {
+    primary: 'bg-[var(--text-main)] text-[var(--bg-main)] hover:bg-[var(--text-muted)]',
+    secondary: 'bg-[var(--bg-card)] text-[var(--text-main)] hover:bg-[var(--bg-main)]',
+    outline: 'bg-transparent text-[var(--text-main)] hover:bg-[var(--bg-card)]'
   };
 
   const sizes = {
     sm: 'px-4 py-2 text-sm',
-    md: 'px-6 py-3 text-base',
+    md: 'px-4 py-3 text-base',
     lg: 'px-8 py-4 text-lg'
   };
 
   const content = (
-    <>      {/* Hand-drawn inner border */}
-      <div className="absolute inset-2 border border-dashed border-current opacity-30 rounded-lg" />
-      
-      <span className="relative z-10">{children}</span>
-    </>
+    <span className="relative z-10">{children}</span>
   );
 
   if (href) {
@@ -136,8 +173,14 @@ export const SketchButton = ({
       <motion.a
         href={href}
         className={`${baseClasses} ${variants[variant]} ${sizes[size]} ${className}`}
-        whileHover={{ rotate: Math.random() > 0.5 ? 0.5 : -0.5 }}
-        whileTap={{ scale: 0.95 }}
+        initial="rest"
+        whileHover="hover"
+        whileTap="tap"
+        variants={buttonVariants}
+        transition={{
+          duration: TE_TIMING.quick,
+          ease: TE_EASING.spring,
+        }}
       >
         {content}
       </motion.a>
@@ -150,35 +193,30 @@ export const SketchButton = ({
       className={`${baseClasses} ${variants[variant]} ${sizes[size]} ${className}`}
       onClick={onClick}
       disabled={disabled}
-      whileHover={{ rotate: Math.random() > 0.5 ? 0.5 : -0.5 }}
-      whileTap={{ scale: 0.95 }}
+      initial="rest"
+      whileHover="hover"
+      whileTap="tap"
+      variants={buttonVariants}
+      transition={{
+        duration: TE_TIMING.quick,
+        ease: TE_EASING.spring,
+      }}
     >
       {content}
     </motion.button>
   );
 };
 
-// Sketch-style divider
+// Wireframe-style divider
 export const SketchDivider = ({ className = '' }: { className?: string }) => {
   return (
     <div className={`relative my-8 ${className}`}>
-      <motion.div
-        className="h-0.5 bg-gray-400"
-        initial={{ width: 0, rotate: 0 }}
-        animate={{ width: '100%', rotate: 0.5 }}
-        transition={{ duration: 1 }}
-      />
-      <motion.div
-        className="absolute top-1 h-0.5 bg-gray-300 opacity-50"
-        initial={{ width: 0, rotate: 0 }}
-        animate={{ width: '98%', rotate: -0.3 }}
-        transition={{ duration: 0.8, delay: 0.3 }}
-      />
+      <div className="h-[var(--border-width)] bg-[var(--border-color)] w-full" />
     </div>
   );
 };
 
-// Sketch-style highlight box
+// Wireframe-style highlight box with hover effect
 export const SketchHighlight = ({ 
   children, 
   color = 'gray',
@@ -189,30 +227,36 @@ export const SketchHighlight = ({
   className?: string;
 }) => {
   const colors = {
-    gray: 'bg-gray-200 border-gray-400',
-    light: 'bg-gray-100 border-gray-300',
-    dark: 'bg-gray-300 border-gray-500',
-    muted: 'bg-gray-50 border-gray-200'
+    gray: 'bg-[var(--bg-card)]',
+    light: 'bg-[var(--bg-card)]',
+    dark: 'bg-[var(--bg-card)]',
+    muted: 'bg-[var(--bg-card)]'
   };
+
   return (
     <motion.span
       className={`
-        relative inline-block px-2 py-1 border-2 border-dashed rounded-lg
+        te-interactive relative inline-block px-2 py-1 border-[var(--border-width)] border-[var(--border-color)]
         ${colors[color]}
-        transform -rotate-0.5
+        shadow-none
+        font-mono text-sm text-[var(--text-main)]
         ${className}
       `}
-      whileHover={{ rotate: 0.5, scale: 1.02 }}
+      whileHover={{
+        scale: 1.02,
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+      }}
+      transition={{
+        duration: TE_TIMING.quick,
+        ease: TE_EASING.mechanical,
+      }}
     >
-      <span className="sketch-font">{children}</span>
-      
-      {/* Highlight marker effect */}
-      <span className="absolute inset-0 bg-current opacity-10 rounded-lg transform rotate-0.5" />
+      {children}
     </motion.span>
   );
 };
 
-// Sticky note component
+// Sticky note component with TE interactions
 export const StickyNote = ({ 
   children, 
   color = 'light',
@@ -225,10 +269,10 @@ export const StickyNote = ({
   className?: string;
 }) => {
   const colors = {
-    light: 'bg-gray-50 border-gray-200',
-    medium: 'bg-gray-100 border-gray-300',
-    dark: 'bg-gray-200 border-gray-400',
-    white: 'bg-white border-gray-300'
+    light: 'bg-[var(--bg-card)]',
+    medium: 'bg-[var(--bg-card)]',
+    dark: 'bg-[var(--bg-card)]',
+    white: 'bg-[var(--bg-card)]'
   };
 
   const sizes = {
@@ -237,32 +281,31 @@ export const StickyNote = ({
     lg: 'w-48 h-48 text-base'
   };
 
-  return (    <motion.div
+  return (
+    <motion.div
       className={`
-        relative p-4 border rounded-lg
+        te-card relative p-4 border-[var(--border-width)] border-[var(--border-color)]
         ${colors[color]} ${sizes[size]}
-        transform rotate-2
+        shadow-none cursor-pointer
         ${className}
       `}
-      whileHover={{ 
-        rotate: -1, 
-        scale: 1.05,
-        y: -5
+      initial="rest"
+      whileHover="hover"
+      whileTap="tap"
+      variants={cardVariants}
+      transition={{
+        duration: TE_TIMING.quick,
+        ease: TE_EASING.spring,
       }}
-      drag
-      dragConstraints={{ left: -50, right: 50, top: -50, bottom: 50 }}
     >
-      {/* Tape effect at top */}
-      <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-8 h-4 bg-gray-200 opacity-70 rounded-sm rotate-12" />
-      
-      <div className="handwritten text-gray-800 h-full overflow-hidden">
+      <div className="font-mono text-[var(--text-main)] h-full overflow-hidden">
         {children}
       </div>
     </motion.div>
   );
 };
 
-// Hand-drawn arrow
+// Wireframe Arrow (Straight lines) with hover animation
 export const SketchArrow = ({ 
   direction = 'right',
   size = 'md',
@@ -288,27 +331,21 @@ export const SketchArrow = ({
   return (
     <motion.div
       className={`${sizes[size]} ${rotations[direction]} ${className}`}
-      animate={{ 
-        rotate: [0, 5, -5, 0],
-        scale: [1, 1.1, 1] 
-      }}
-      transition={{ 
-        duration: 2, 
-        repeat: Infinity, 
-        repeatType: 'reverse' 
+      whileHover={{ x: direction === 'right' ? 4 : direction === 'left' ? -4 : 0 }}
+      transition={{
+        duration: TE_TIMING.quick,
+        ease: TE_EASING.mechanical,
       }}
     >
       <svg viewBox="0 0 100 100" className="w-full h-full">
-        <motion.path
-          d="M 10 50 Q 50 30 80 50 Q 50 70 80 50 M 70 40 L 80 50 L 70 60"
+        <path
+          d="M 0 50 L 80 50 M 60 30 L 80 50 L 60 70"
           stroke="currentColor"
-          strokeWidth="3"
+          strokeWidth="4"
           fill="none"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          initial={{ pathLength: 0 }}
-          animate={{ pathLength: 1 }}
-          transition={{ duration: 1.5, ease: "easeInOut" }}
+          strokeLinecap="square"
+          strokeLinejoin="miter"
+          className="text-[var(--text-main)]"
         />
       </svg>
     </motion.div>
@@ -328,24 +365,41 @@ export const WireframeCard = ({
   return (
     <div className={`relative mb-12 ${className}`}>
       {/* Long Horizontal Lines - extending far beyond */}
-      <div className="absolute top-0 left-[-100vw] right-[-100vw] h-px bg-gray-300" />
-      <div className="absolute bottom-0 left-[-100vw] right-[-100vw] h-px bg-gray-300" />
+      <div className="absolute top-0 left-[-100vw] right-[-100vw] h-px bg-[var(--border-color)] opacity-20" />
+      <div className="absolute bottom-0 left-[-100vw] right-[-100vw] h-px bg-[var(--border-color)] opacity-20" />
       
       {/* Long Vertical Lines - extending far beyond */}
-      <div className="absolute top-[-100vh] bottom-[-100vh] left-0 w-px bg-gray-300" />
-      <div className="absolute top-[-100vh] bottom-[-100vh] right-0 w-px bg-gray-300" />
+      <div className="absolute top-[-100vh] bottom-[-100vh] left-0 w-px bg-[var(--border-color)] opacity-20" />
+      <div className="absolute top-[-100vh] bottom-[-100vh] right-0 w-px bg-[var(--border-color)] opacity-20" />
 
       {/* Measurement Label */}
       {measurement && (
-        <div className="absolute -top-3 left-4 text-xs text-black bg-white px-2 handwritten border border-black z-20">
+        <motion.div 
+          className="absolute -top-3 left-4 text-xs text-[var(--text-main)] bg-[var(--bg-card)] px-2 font-mono border-[var(--border-width)] border-[var(--border-color)] z-20"
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{
+            duration: TE_TIMING.standard,
+            ease: TE_EASING.mechanical,
+          }}
+        >
           DURATION: {measurement}
-        </div>
+        </motion.div>
       )}
 
-      {/* Content Container */}
-      <div className="relative z-10 bg-white border-2 border-black">
+      {/* Content Container with TE hover */}
+      <motion.div 
+        className="te-card relative z-10 bg-[var(--bg-card)] border-[var(--border-width)] border-[var(--border-color)] shadow-none"
+        initial="rest"
+        whileHover="hover"
+        variants={cardVariants}
+        transition={{
+          duration: TE_TIMING.quick,
+          ease: TE_EASING.mechanical,
+        }}
+      >
         {children}
-      </div>
+      </motion.div>
     </div>
   );
 };
@@ -353,8 +407,8 @@ export const WireframeCard = ({
 // Internal grid separator for wireframe layout
 export const WireframeSeparator = ({ vertical = false }: { vertical?: boolean }) => {
   if (vertical) {
-    return <div className="absolute top-[-100vh] bottom-[-100vh] w-px bg-gray-300" />;
+    return <div className="absolute top-[-100vh] bottom-[-100vh] w-px bg-[var(--border-color)] opacity-20" />;
   }
-  return <div className="absolute left-[-100vw] right-[-100vw] h-px bg-gray-300" />;
+  return <div className="absolute left-[-100vw] right-[-100vw] h-px bg-[var(--border-color)] opacity-20" />;
 };
 

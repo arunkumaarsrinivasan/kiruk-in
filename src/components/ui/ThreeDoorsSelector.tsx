@@ -121,7 +121,7 @@ const Door: React.FC<DoorProps> = ({ theme, index, isSelected, onSelect, isHover
         </div>
 
         {/* Theme Preview */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 w-40 h-24 bg-gray-200 rounded overflow-hidden">
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 w-40 h-24 bg-gray-200 rounded-none overflow-hidden">
           <div 
             className="w-full h-full flex items-center justify-center text-xs"
             style={{ 
@@ -136,11 +136,11 @@ const Door: React.FC<DoorProps> = ({ theme, index, isSelected, onSelect, isHover
 
         {/* Door Decoration based on theme */}
         {theme.style === 'sketch' && (
-          <div className="absolute inset-4 border-2 border-dashed border-gray-400 rounded-lg opacity-30" />
+          <div className="absolute inset-4 border border-dashed border-gray-400 rounded-none opacity-30" />
         )}
         
         {theme.style === 'minimal' && (
-          <div className="absolute top-4 left-4 w-2 h-2 bg-blue-500 rounded-full" />
+          <div className="absolute top-4 left-4 w-2 h-2 bg-blue-500 rounded-none" />
         )}
         
         {theme.style === 'absurd' && (
@@ -161,7 +161,7 @@ const Door: React.FC<DoorProps> = ({ theme, index, isSelected, onSelect, isHover
             borderRadius: theme.style === 'sketch' ? '15px' : theme.style === 'minimal' ? '8px' : '20px',
           }}
         >
-          <div className="text-center p-6">
+          <div className="text-center p-4">
             <div className="text-3xl mb-4">🎉</div>
             <div className="text-lg font-bold mb-2" style={{ fontFamily: theme.fonts.primary }}>
               Welcome to
@@ -241,7 +241,7 @@ export const ThreeDoorsSelector: React.FC = () => {
 
           {/* Three Doors */}
           <motion.div
-            className="flex justify-center items-center space-x-8"
+            className="flex justify-center items-center space-x-10"
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.4 }}
