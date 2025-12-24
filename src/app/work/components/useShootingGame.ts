@@ -90,12 +90,12 @@ export function useShootingGame({
     
     const work = workExperiences[workIndex];
     
-    // Single target in center - sniper style
+    // Single target in center - sniper style - bigger target
     return [{
       id: `target-${work.id}-level-${level}`,
       x: 50, // Center
       y: 50, // Center
-      radius: 60, // Larger target for sniper game
+      radius: 120, // Much larger target (32*6 = 192px, so radius ~96px, use 120 for hit detection)
       workExperience: work,
       hit: false,
       hitCount: 0,
@@ -199,7 +199,7 @@ export function useShootingGame({
         
         // Convert target radius from pixels to percentage
         const screenWidth = typeof globalThis !== 'undefined' ? globalThis.innerWidth : 1920;
-        const targetSizePx = 80; // gridSize (20) * pixelSize (4)
+        const targetSizePx = 192; // gridSize (32) * pixelSize (6) = 192px
         const targetRadiusPercent = (targetSizePx / screenWidth) * 100;
         
         // shotRadius is already in percentage

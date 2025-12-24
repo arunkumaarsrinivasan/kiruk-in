@@ -5,4 +5,5 @@ export { GameStats } from './GameStats';
 export { SkillsVisualization } from './SkillsVisualization';
 export { LevelBackground } from './LevelBackground';
 export { ProgressiveReveal } from './ProgressiveReveal';
+export { ExperienceTimeline } from './ExperienceTimeline';
 

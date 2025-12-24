@@ -7,7 +7,10 @@ import { PixelTarget } from './components/PixelTarget';
 import { SniperScope } from './components/SniperScope';
 import { GameStats } from './components/GameStats';
 import { LevelBackground } from './components/LevelBackground';
-import { VisualShowcase } from './components/VisualShowcase';
+import { PersonaProfile } from './components/PersonaProfile';
+import { TargetAchievements } from './components/TargetAchievements';
+import { PixelCursor } from './components/PixelCursor';
+import { ExperienceTimeline } from './components/ExperienceTimeline';
 
 // Shared handwritten font token
 const handwrittenFont = 'handwritten';
@@ -337,10 +340,11 @@ export default function Work() {
               >
                 <button
                   onClick={handleStartGame}
-                  className="px-8 py-4 font-mono text-2xl border-4 border-black transition-all hover:opacity-80 shadow-[4px_4px_0_#000]"
+                  className="px-8 py-4 font-mono text-2xl transition-all hover:opacity-80 wireframe-btn"
                   style={{
-                    backgroundColor: "var(--bg-card)",
-                    color: "var(--accent-color)",
+                    borderWidth: "var(--border-width)",
+                    borderColor: "var(--border-color)",
+                    boxShadow: "var(--shadow-offset-x) var(--shadow-offset-y) var(--shadow-blur) var(--shadow-color)",
                   }}
                 >
                   ▶ START GAME
@@ -361,6 +365,7 @@ export default function Work() {
           company={`Level ${gameState.currentLevel}`}
           location={`${gameState.targets.length} Targets`}
           level={gameState.currentLevel}
+          gameState={gameState}
         >
           <div 
             className="fixed inset-0 pt-16" 
@@ -371,17 +376,31 @@ export default function Work() {
           >
             {/* Targets - Multiple squares per level */}
             {gameState.targets.map((target) => (
-              <PixelTarget key={target.id} target={target} />
+              <div key={target.id}>
+                <PixelTarget target={target} />
+                {/* Achievement/Skill visuals around target */}
+                <TargetAchievements target={target} hitCount={target.hitCount} />
+              </div>
             ))}
 
-            {/* Sniper Scope with sway */}
-            <SniperScope
+            {/* Custom Pixel Cursor */}
+            <PixelCursor
               x={gameState.crosshairX}
               y={gameState.crosshairY}
               power={gameState.power}
               isCharging={gameState.isCharging}
-              isAiming={gameState.isAiming}
             />
+            
+            {/* Sniper Scope with sway (hidden, using pixel cursor instead) */}
+            {false && (
+              <SniperScope
+                x={gameState.crosshairX}
+                y={gameState.crosshairY}
+                power={gameState.power}
+                isCharging={gameState.isCharging}
+                isAiming={gameState.isAiming}
+              />
+            )}
             
             {/* Bullet trails */}
             {gameState.bullets.map((bullet) => (
@@ -406,15 +425,21 @@ export default function Work() {
               />
             ))}
 
-            {/* Game Stats */}
-            <GameStats gameState={gameState} />
+            {/* Experience Timeline - Horizontal timeline showing all experiences */}
+            <ExperienceTimeline 
+              workExperiences={workExperience}
+              gameState={gameState}
+              currentTarget={selectedTarget || gameState.targets[0]}
+            />
 
-            {/* Visual Showcase - Visual representations instead of text */}
+            {/* Game Stats */}
+            <GameStats gameState={gameState} currentTarget={selectedTarget || gameState.targets[0]} />
+
+            {/* Persona Profile - Detailed persona view with radar chart */}
             {selectedTarget && selectedTarget.hitCount > 0 && (
-              <VisualShowcase 
+              <PersonaProfile 
                 target={selectedTarget} 
-                revealIndex={revealIndex}
-                level={gameState.currentLevel} 
+                hitCount={selectedTarget.hitCount}
               />
             )}
 
@@ -425,11 +450,16 @@ export default function Work() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
               >
-                <div className="text-center border-4 border-black bg-white p-8 shadow-[8px_8px_0_#000]">
-                  <h2 className="font-mono text-4xl font-bold text-black mb-4">
+                <div className="text-center p-8 wireframe-border" style={{
+                  borderWidth: "var(--border-width)",
+                  borderColor: "var(--border-color)",
+                  backgroundColor: "var(--bg-card)",
+                  boxShadow: "var(--shadow-offset-x) var(--shadow-offset-y) var(--shadow-blur) var(--shadow-color)",
+                }}>
+                  <h2 className="font-mono text-4xl font-bold mb-4" style={{ color: "var(--text-main)" }}>
                     🎯 LEVEL {gameState.currentLevel} COMPLETE!
                   </h2>
-                  <p className="font-mono text-lg text-gray-600 mb-4">
+                  <p className="font-mono text-lg mb-4" style={{ color: "var(--text-muted)" }}>
                     {gameState.currentLevel < gameState.maxLevel 
                       ? "Loading next level..." 
                       : "All levels completed! 🎉"}
@@ -448,13 +478,24 @@ export default function Work() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                 >
-                  <div className="text-center border-4 border-black bg-white p-8 shadow-[8px_8px_0_#000]">
-                    <h2 className="text-4xl font-mono mb-4 text-black">
+                  <div className="text-center p-8 wireframe-border" style={{
+                    borderWidth: "var(--border-width)",
+                    borderColor: "var(--border-color)",
+                    backgroundColor: "var(--bg-card)",
+                    boxShadow: "var(--shadow-offset-x) var(--shadow-offset-y) var(--shadow-blur) var(--shadow-color)",
+                  }}>
+                    <h2 className="text-4xl font-mono mb-4" style={{ color: "var(--text-main)" }}>
                       ⏸ PAUSED
                     </h2>
                     <button
                       onClick={togglePause}
-                      className="px-6 py-3 font-mono text-xl border-4 border-black bg-green-500 text-white hover:bg-green-600 transition-colors"
+                      className="px-6 py-3 font-mono text-xl transition-colors wireframe-btn"
+                      style={{
+                        borderWidth: "var(--border-width)",
+                        borderColor: "var(--border-color)",
+                        backgroundColor: "var(--accent-color)",
+                        color: "var(--bg-main)",
+                      }}
                     >
                       ▶ RESUME
                     </button>
@@ -463,40 +504,163 @@ export default function Work() {
               )}
             </AnimatePresence>
 
-            {/* Game Over Overlay */}
+            {/* Game Over Overlay - More Gamified */}
             <AnimatePresence>
               {gameState.isGameOver && (
                 <motion.div
                   className="absolute inset-0 z-40 flex items-center justify-center"
-                  style={{ backgroundColor: "rgba(0,0,0,0.9)" }}
+                  style={{ 
+                    backgroundColor: "rgba(0,0,0,0.95)",
+                    backgroundImage: `
+                      linear-gradient(var(--border-color) 1px, transparent 1px),
+                      linear-gradient(90deg, var(--border-color) 1px, transparent 1px)
+                    `,
+                    backgroundSize: "20px 20px",
+                    opacity: 0.3,
+                  }}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                 >
-                  <div className="text-center border-4 border-black bg-white p-8 shadow-[8px_8px_0_#000] max-w-lg">
-                    <motion.h2
-                      className="text-6xl font-mono mb-4 text-black"
-                      animate={{ scale: [1, 1.1, 1] }}
-                      transition={{ duration: 0.5, repeat: Infinity }}
+                  <motion.div 
+                    className="text-center p-8 max-w-2xl w-[90%] wireframe-border"
+                    style={{ 
+                      imageRendering: "pixelated" as any,
+                      borderWidth: "var(--border-width)",
+                      borderColor: "var(--border-color)",
+                      backgroundColor: "var(--bg-card)",
+                      boxShadow: "var(--shadow-offset-x) var(--shadow-offset-y) var(--shadow-blur) var(--shadow-color)",
+                    }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {/* Pixelated Header */}
+                    <div className="mb-6">
+                      <h2
+                        className="text-5xl md:text-6xl font-mono mb-2"
+                        style={{ color: "var(--text-main)" }}
+                      >
+                        🎉 MISSION COMPLETE
+                      </h2>
+                      <div className="font-mono text-xs uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
+                        All Experience Levels Unlocked
+                      </div>
+                    </div>
+                    
+                    {/* Stats Grid - Pixelated Style */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                      <div
+                        className="p-3 wireframe-border"
+                        style={{
+                          borderWidth: "var(--border-width)",
+                          borderColor: "var(--border-color)",
+                          backgroundColor: "var(--bg-main)",
+                        }}
+                      >
+                        <div className="font-mono text-[10px] uppercase mb-1" style={{ color: "var(--text-muted)" }}>
+                          Score
+                        </div>
+                        <div className="font-mono text-2xl font-bold" style={{ color: "var(--text-main)" }}>
+                          {gameState.score.toLocaleString()}
+                        </div>
+                      </div>
+                      
+                      <div
+                        className="p-3 wireframe-border"
+                        style={{
+                          borderWidth: "var(--border-width)",
+                          borderColor: "var(--border-color)",
+                          backgroundColor: "var(--bg-main)",
+                        }}
+                      >
+                        <div className="font-mono text-[10px] uppercase mb-1" style={{ color: "var(--text-muted)" }}>
+                          Accuracy
+                        </div>
+                        <div className="font-mono text-2xl font-bold" style={{ color: "var(--accent-color)" }}>
+                          {gameState.accuracy.toFixed(1)}%
+                        </div>
+                      </div>
+                      
+                      <div
+                        className="p-3 wireframe-border"
+                        style={{
+                          borderWidth: "var(--border-width)",
+                          borderColor: "var(--border-color)",
+                          backgroundColor: "var(--bg-main)",
+                        }}
+                      >
+                        <div className="font-mono text-[10px] uppercase mb-1" style={{ color: "var(--text-muted)" }}>
+                          Hits
+                        </div>
+                        <div className="font-mono text-2xl font-bold" style={{ color: "var(--accent-color)" }}>
+                          {gameState.hits}/{gameState.shots}
+                        </div>
+                      </div>
+                      
+                      <div
+                        className="p-3 wireframe-border"
+                        style={{
+                          borderWidth: "var(--border-width)",
+                          borderColor: "var(--border-color)",
+                          backgroundColor: "var(--bg-main)",
+                        }}
+                      >
+                        <div className="font-mono text-[10px] uppercase mb-1" style={{ color: "var(--text-muted)" }}>
+                          Levels
+                        </div>
+                        <div className="font-mono text-2xl font-bold" style={{ color: "var(--accent-color)" }}>
+                          {gameState.currentLevel - 1}/{gameState.maxLevel}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Performance Rating */}
+                    <div
+                      className="mb-6 p-4 wireframe-border"
+                      style={{
+                        borderWidth: "var(--border-width)",
+                        borderColor: "var(--border-color)",
+                        backgroundColor: "var(--bg-main)",
+                      }}
                     >
-                      🎉 GAME OVER
-                    </motion.h2>
-                    <p className="font-mono text-xl mb-2 text-black">
-                      Final Score: {gameState.score.toLocaleString()}
-                    </p>
-                    <p className="font-mono text-sm mb-6 text-gray-600">
-                      Accuracy: {gameState.accuracy.toFixed(1)}% | Hits: {gameState.hits}/{gameState.shots} | Levels: {gameState.currentLevel - 1}/{gameState.maxLevel}
-                    </p>
-                    <div className="flex gap-4 justify-center">
+                      <div className="font-mono text-xs uppercase mb-2" style={{ color: "var(--text-muted)" }}>
+                        Performance Rating
+                      </div>
+                      <div className="flex items-center justify-center gap-2">
+                        {[1, 2, 3, 4, 5].map((star) => {
+                          const filled = star <= Math.ceil((gameState.accuracy / 100) * 5);
+                          return (
+                            <div
+                              key={star}
+                              className="text-2xl"
+                            >
+                              {filled ? "⭐" : "☆"}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    
+                    {/* Action Buttons - Pixelated Style */}
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
                       <button
                         onClick={() => {
                           setShowIntro(true);
                           setSelectedTarget(null);
                           setRevealIndex(0);
                         }}
-                        className="px-6 py-3 font-mono text-xl border-4 border-black bg-yellow-400 text-black hover:bg-yellow-500 transition-colors"
+                        className="px-6 py-3 font-mono text-lg transition-colors wireframe-btn"
+                        style={{
+                          borderWidth: "var(--border-width)",
+                          borderColor: "var(--border-color)",
+                          backgroundColor: "var(--accent-color)",
+                          color: "var(--bg-main)",
+                          boxShadow: "var(--shadow-offset-x) var(--shadow-offset-y) var(--shadow-blur) var(--shadow-color)",
+                          imageRendering: "pixelated" as any,
+                        }}
                       >
-                        🔄 MENU
+                        🔄 MAIN MENU
                       </button>
                       <button
                         onClick={() => {
@@ -504,12 +668,20 @@ export default function Work() {
                           setRevealIndex(0);
                           startGame();
                         }}
-                        className="px-6 py-3 font-mono text-xl border-4 border-black bg-green-500 text-white hover:bg-green-600 transition-colors"
+                        className="px-6 py-3 font-mono text-lg transition-colors wireframe-btn"
+                        style={{
+                          borderWidth: "var(--border-width)",
+                          borderColor: "var(--border-color)",
+                          backgroundColor: "var(--accent-color)",
+                          color: "var(--bg-main)",
+                          boxShadow: "var(--shadow-offset-x) var(--shadow-offset-y) var(--shadow-blur) var(--shadow-color)",
+                          imageRendering: "pixelated" as any,
+                        }}
                       >
                         ▶ PLAY AGAIN
                       </button>
                     </div>
-                  </div>
+                  </motion.div>
                 </motion.div>
               )}
             </AnimatePresence>

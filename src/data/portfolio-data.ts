@@ -218,7 +218,7 @@ export const AVAILABLE_THEMES: ThemeConfig[] = [
     era: 'Pre-Web Foundations',
     description: 'Green phosphor terminals, command prompts, and ASCII-only storytelling.',
     lesson: 'Typography is the UI -- function over form.',
-    heritage: "Seeded today's terminal-inspired portfolios and brutalist web.",
+    heritage: "Seeded today's terminal-inspired portfolios and minimalist web.",
     keyElements: ['Monospace grids', 'Blinking cursors', 'Phosphor glow'],
     preview: '/themes/1970-terminal.jpg',
     colors: {
@@ -628,12 +628,12 @@ export const AVAILABLE_THEMES: ThemeConfig[] = [
   },
   {
     id: '2022',
-    name: '2022: Glass vs Neo-Brutalism',
-    era: 'Glassmorphism & Neo-Brutalism (2022-2023)',
-    description: 'Frosted layers clash with thick black outlines.',
-    lesson: 'Design swings between polished and raw aesthetics.',
-    heritage: 'Layered frosted cards and brutalist outlines stay trendy.',
-    keyElements: ['Backdrop blur', 'Frosted panels', '3px brutalist borders'],
+    name: '2022: Glassmorphism Era',
+    era: 'Glassmorphism (2022-2023)',
+    description: 'Frosted layers and translucent interfaces create depth.',
+    lesson: 'Transparency and blur create modern, elegant interfaces.',
+    heritage: 'Layered frosted cards and glass effects stay trendy.',
+    keyElements: ['Backdrop blur', 'Frosted panels', 'Translucent layers'],
     preview: '/themes/2022-glass.jpg',
     colors: {
       primary: '#93c5fd',
@@ -652,7 +652,7 @@ export const AVAILABLE_THEMES: ThemeConfig[] = [
   {
     id: '2023',
     name: '2023: AI Glass Playgrounds',
-    era: 'Glassmorphism & Neo-Brutalism (2022-2023)',
+    era: 'Glassmorphism (2022-2023)',
     description: 'Chat-inspired layouts, animated gradients, and playful glow.',
     lesson: 'AI UIs invite personality and layered motion.',
     heritage: 'Modern chatbots and particle canvases mimic this era.',

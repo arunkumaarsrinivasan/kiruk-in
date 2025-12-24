@@ -3,6 +3,18 @@
 import { motion } from "framer-motion";
 import { ReactNode } from "react";
 
+interface LifeEvent {
+  id: string;
+  year: number;
+  title: string;
+  description: string;
+  location?: string;
+  period?: string;
+  details?: string;
+  tags?: string[];
+  icon?: string;
+}
+
 interface LevelBackgroundProps {
   year: number;
   title: string;
@@ -11,6 +23,8 @@ interface LevelBackgroundProps {
   className?: string;
   playerX?: number;      // Player's world position for scrolling
   worldWidth?: number;   // Total world width
+  event?: LifeEvent;     // Full event data for story display
+  levelProgress?: number; // Level progress 0-1
 }
 
 const GRID_SIZE = 20;
@@ -24,6 +38,8 @@ export function LevelBackground({
   className,
   playerX = 0,
   worldWidth = 2000,
+  event,
+  levelProgress = 0,
 }: LevelBackgroundProps) {
   // Camera offset - player stays centered, world scrolls
   const cameraOffset = Math.max(0, playerX - 400);
@@ -109,11 +125,7 @@ export function LevelBackground({
           className="absolute bottom-16"
           style={{ left: worldWidth - 60 }}
         >
-          <motion.div
-            className="flex flex-col items-center"
-            animate={{ y: [0, -5, 0] }}
-            transition={{ duration: 1, repeat: Infinity }}
-          >
+          <div className="flex flex-col items-center">
             <div 
               className="px-3 py-1 font-mono text-xs font-bold mb-2"
               style={{
@@ -131,19 +143,24 @@ export function LevelBackground({
               className="w-8 h-2"
               style={{ backgroundColor: "var(--accent-color)" }}
             />
-          </motion.div>
+          </div>
         </div>
       </div>
       
       {/* Fixed UI Elements */}
-      {/* Level info overlay - Time Machine Style */}
-      <div className="absolute top-6 left-4 z-20 pointer-events-none">
-        <div
-          className="px-4 py-3 font-mono"
+      {/* Level info overlay - Time Machine Style - Top Right */}
+      <div className="absolute top-20 right-4 z-30 pointer-events-none">
+        <motion.div
+          className="px-4 py-3 font-mono wireframe-border"
           style={{ 
+            borderWidth: "var(--border-width)",
+            borderColor: "var(--border-color)",
             backgroundColor: "var(--bg-card)",
-            border: "2px solid var(--border-color)",
+            boxShadow: "var(--shadow-offset-x) var(--shadow-offset-y) var(--shadow-blur) var(--shadow-color)",
           }}
+          initial={{ x: 50, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
         >
           <div 
             className="text-2xl font-bold"
@@ -163,28 +180,364 @@ export function LevelBackground({
           >
             LEVEL_{String(year).slice(-2)}
           </div>
-        </div>
-      </div>
-      
-      {/* Description card */}
-      <div className="absolute bottom-20 left-4 right-4 z-20 pointer-events-none">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="p-3 text-sm max-w-md font-mono"
-          style={{ 
-            backgroundColor: "var(--bg-card)",
-            border: "2px solid var(--border-color)",
-            color: "var(--text-main)",
-          }}
-        >
-          {description}
         </motion.div>
       </div>
       
+      {/* Gaming-style Progress Bar - Top Center, below nav */}
+      <div className="absolute top-20 left-1/2 -translate-x-1/2 z-30 pointer-events-none max-w-2xl w-[calc(100%-2rem)] px-4">
+        <div className="mb-2">
+          <div className="h-4 relative overflow-hidden wireframe-border" style={{
+            borderWidth: "var(--border-width)",
+            borderColor: "var(--border-color)",
+            backgroundColor: "var(--bg-main)",
+            boxShadow: "var(--shadow-offset-x) var(--shadow-offset-y) var(--shadow-blur) var(--shadow-color)",
+          }}>
+            {/* Animated progress fill */}
+            <motion.div
+              className="h-full bg-gradient-to-r from-green-500 via-yellow-400 to-green-500"
+              style={{ 
+                width: `${levelProgress * 100}%`,
+                backgroundSize: "200% 100%",
+              }}
+              initial={{ width: 0 }}
+              animate={{ 
+                width: `${levelProgress * 100}%`,
+                backgroundPosition: ["0% 0%", "100% 0%"],
+              }}
+              transition={{ 
+                width: { duration: 0.3, ease: "easeOut" },
+              }}
+            >
+            </motion.div>
+            {/* Progress percentage overlay */}
+            {levelProgress > 0.1 && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="font-mono text-xs font-bold text-white drop-shadow-[0_0_3px_rgba(0,0,0,0.9)]">
+                  {Math.round(levelProgress * 100)}%
+                </span>
+              </div>
+            )}
+          </div>
+          {/* Progress labels */}
+          <div className="flex justify-between mt-1.5 font-mono text-xs font-bold" style={{ color: "var(--text-muted)" }}>
+            <span className="flex items-center gap-1.5">
+              <span className="text-green-500 text-sm">●</span>
+              <span>START</span>
+            </span>
+            <span className="text-yellow-400 px-2 py-0.5 border border-yellow-400/30 bg-yellow-400/10">
+              {Math.round(levelProgress * 100)}%
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="text-xl leading-none">🏁</span>
+              <span>GOAL</span>
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      {/* Dynamic Story Elements in Game World */}
+      {event && (
+        <StoryElementsInWorld 
+          event={event} 
+          worldWidth={worldWidth}
+          playerX={playerX}
+          cameraOffset={cameraOffset}
+        />
+      )}
+      
       {children}
     </div>
+  );
+}
+
+// Dynamic Story Elements in Game World
+function StoryElementsInWorld({ 
+  event, 
+  worldWidth, 
+  playerX, 
+  cameraOffset 
+}: { 
+  event: LifeEvent; 
+  worldWidth: number; 
+  playerX: number;
+  cameraOffset: number;
+}) {
+  // Calculate story segment positions (distributed across the level)
+  const storySegments = [
+    { type: 'header', position: worldWidth * 0.2, delay: 0, y: '15%' },
+    { type: 'description', position: worldWidth * 0.4, delay: 0.1, y: '25%' },
+    { type: 'details', position: worldWidth * 0.6, delay: 0.2, y: '20%' },
+    { type: 'tags', position: worldWidth * 0.8, delay: 0.3, y: '30%' },
+  ];
+
+  // Check if player is near a story segment (within 400px)
+  const isNearSegment = (position: number) => {
+    return Math.abs(playerX - position) < 400;
+  };
+
+  return (
+    <>
+      {/* Themed Background Elements - Fixed to world */}
+      <div 
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          transform: `translateX(${-cameraOffset}px)`,
+          transition: "transform 0.05s linear",
+        }}
+      >
+        <ThemedBackgroundElements event={event} worldWidth={worldWidth} playerX={playerX} />
+      </div>
+      
+      {/* Story Cards positioned in world - Scrolls with camera */}
+      <div 
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          transform: `translateX(${-cameraOffset}px)`,
+          transition: "transform 0.05s linear",
+        }}
+      >
+        {storySegments.map((segment, index) => {
+          const distance = Math.abs(playerX - segment.position);
+          const isVisible = distance < 600;
+          const opacity = isNearSegment(segment.position) 
+            ? Math.max(0.9, 1 - distance / 600)
+            : Math.max(0.3, 0.8 - distance / 600);
+          const scale = isNearSegment(segment.position) ? 1 : 0.9;
+          
+          return (
+            <motion.div
+              key={segment.type}
+              className="absolute"
+              style={{
+                left: segment.position,
+                top: segment.y,
+                transform: `translateX(-50%) scale(${scale})`,
+                opacity: isVisible ? opacity : 0,
+                zIndex: 20,
+              }}
+              initial={{ opacity: 0, y: 30, scale: 0.8 }}
+              animate={{ 
+                opacity: isVisible ? opacity : 0,
+                y: isVisible ? 0 : 30,
+                scale: isVisible ? scale : 0.8,
+              }}
+              transition={{ delay: segment.delay, duration: 0.6, ease: "easeOut" }}
+            >
+              <StoryCard segment={segment} event={event} />
+            </motion.div>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
+// Individual Story Card Component
+function StoryCard({ segment, event }: { segment: { type: string; position: number; delay: number }; event: LifeEvent }) {
+  const cardStyle = {
+    backgroundColor: "var(--bg-card)",
+    color: "var(--text-main)",
+    border: "3px solid var(--border-color)",
+    boxShadow: "4px 4px 0 var(--border-color)",
+  };
+
+  switch (segment.type) {
+    case 'header':
+      return (
+        <div className="p-4 font-mono max-w-xs" style={cardStyle}>
+          <div className="flex items-center gap-3 mb-2">
+            {event.icon && <span className="text-3xl">{event.icon}</span>}
+            <div>
+              <div className="text-sm font-bold">{event.title}</div>
+              {event.location && (
+                <div className="text-[10px] opacity-70 mt-1">
+                  📍 {event.location}
+                </div>
+              )}
+              {event.period && (
+                <div className="text-[10px] opacity-70">
+                  🗓️ {event.period}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    
+    case 'description':
+      return (
+        <div className="p-4 font-mono max-w-sm" style={cardStyle}>
+          <p className="text-sm leading-relaxed">
+            {event.description}
+          </p>
+        </div>
+      );
+    
+    case 'details':
+      return event.details ? (
+        <div className="p-4 font-mono max-w-sm" style={{ ...cardStyle, backgroundColor: "var(--bg-main)", border: "2px dashed var(--border-color)" }}>
+          <div className="flex items-start gap-2">
+            <span className="text-lg">💭</span>
+            <p className="text-xs italic leading-relaxed">
+              {event.details}
+            </p>
+          </div>
+        </div>
+      ) : null;
+    
+    case 'tags':
+      return event.tags && event.tags.length > 0 ? (
+        <div className="p-3 font-mono" style={cardStyle}>
+          <div className="text-[10px] opacity-60 mb-2 uppercase">Tags</div>
+          <div className="flex flex-wrap gap-2">
+            {event.tags.map((tag) => (
+              <span
+                key={tag}
+                className="px-2 py-1 bg-black text-white text-[10px] border border-black"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+      ) : null;
+    
+    default:
+      return null;
+  }
+}
+
+// Themed Background Elements
+function ThemedBackgroundElements({ event, worldWidth, playerX }: { event: LifeEvent; worldWidth: number; playerX: number }) {
+  // Create themed elements based on event content
+  const themeElements = [];
+  const elementCount = Math.ceil(worldWidth / 400);
+  
+  // Add floating icons throughout the level
+  for (let i = 0; i < elementCount; i++) {
+    const position = (worldWidth / elementCount) * i + 200;
+    themeElements.push({ position, index: i });
+  }
+
+  return (
+    <>
+      {/* Floating themed icons/elements */}
+      {themeElements.map((element) => {
+        const distance = Math.abs(playerX - element.position);
+        const opacity = Math.max(0.1, 0.3 - distance / 1000);
+        
+        return (
+          <motion.div
+            key={element.index}
+            className="absolute pointer-events-none"
+            style={{
+              left: element.position,
+              top: `${20 + (element.index % 3) * 25}%`,
+              opacity: opacity,
+            }}
+            animate={{
+              y: [0, -15, 0],
+              rotate: [0, 3, -3, 0],
+              scale: [1, 1.1, 1],
+            }}
+            transition={{
+              duration: 4 + (element.index % 3),
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: element.index * 0.2,
+            }}
+          >
+            <div className="text-3xl filter blur-[0.5px]">{event.icon}</div>
+          </motion.div>
+        );
+      })}
+      
+      {/* Background pattern based on year/theme - More engaging */}
+      {event.year <= 2010 && (
+        <>
+          <div 
+            className="absolute inset-0 pointer-events-none opacity-[0.03]"
+            style={{
+              backgroundImage: "radial-gradient(circle at 20% 50%, var(--accent-color) 0%, transparent 50%), radial-gradient(circle at 80% 50%, var(--accent-color) 0%, transparent 50%)",
+            }}
+          />
+          <div 
+            className="absolute inset-0 pointer-events-none opacity-[0.02]"
+            style={{
+              backgroundImage: "repeating-linear-gradient(30deg, transparent, transparent 100px, var(--accent-color) 100px, var(--accent-color) 101px)",
+            }}
+          />
+        </>
+      )}
+      
+      {event.year > 2010 && event.year <= 2020 && (
+        <>
+          <div 
+            className="absolute inset-0 pointer-events-none opacity-[0.03]"
+            style={{
+              backgroundImage: "linear-gradient(45deg, transparent 30%, var(--accent-color) 30%, var(--accent-color) 35%, transparent 35%, transparent 65%, var(--accent-color) 65%, var(--accent-color) 70%, transparent 70%)",
+              backgroundSize: "60px 60px",
+            }}
+          />
+          <div 
+            className="absolute inset-0 pointer-events-none opacity-[0.02]"
+            style={{
+              backgroundImage: "repeating-linear-gradient(0deg, var(--accent-color), var(--accent-color) 1px, transparent 1px, transparent 20px)",
+            }}
+          />
+        </>
+      )}
+      
+      {event.year > 2020 && (
+        <>
+          <div 
+            className="absolute inset-0 pointer-events-none opacity-[0.03]"
+            style={{
+              backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, var(--accent-color) 2px, var(--accent-color) 4px)",
+            }}
+          />
+          <div 
+            className="absolute inset-0 pointer-events-none opacity-[0.02]"
+            style={{
+              backgroundImage: "repeating-linear-gradient(90deg, transparent, transparent 2px, var(--accent-color) 2px, var(--accent-color) 4px)",
+            }}
+          />
+        </>
+      )}
+      
+      {/* Dynamic particles based on player position */}
+      {Array.from({ length: 20 }).map((_, i) => {
+        const x = (worldWidth / 20) * i;
+        const distance = Math.abs(playerX - x);
+        const opacity = Math.max(0, 0.1 - distance / 800);
+        
+        return (
+          <motion.div
+            key={i}
+            className="absolute pointer-events-none"
+            style={{
+              left: x,
+              top: `${30 + (i % 5) * 15}%`,
+              width: '2px',
+              height: '2px',
+              backgroundColor: "var(--accent-color)",
+              borderRadius: '50%',
+              opacity: opacity,
+            }}
+            animate={{
+              y: [0, -30, 0],
+              opacity: [opacity, opacity * 0.5, opacity],
+            }}
+            transition={{
+              duration: 2 + (i % 3),
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: i * 0.1,
+            }}
+          />
+        );
+      })}
+    </>
   );
 }
 
@@ -421,9 +774,8 @@ function PixelElement({ year, variant }: { year: number; variant: number }) {
                 height: pixelSize * 2,
                 backgroundColor: "var(--accent-color)",
                 borderRadius: "50%",
+                opacity: 0.7,
               }}
-              animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
             />
             <div 
               style={{
@@ -446,14 +798,12 @@ function PixelElement({ year, variant }: { year: number; variant: number }) {
               justifyContent: "center",
             }}
           >
-            <motion.div
+            <div
               className="font-mono text-[6px]"
-              style={{ color: "var(--accent-color)" }}
-              animate={{ opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 2, repeat: Infinity }}
+              style={{ color: "var(--accent-color)", opacity: 0.7 }}
             >
               {">_"}
-            </motion.div>
+            </div>
           </div>
         )}
       </div>

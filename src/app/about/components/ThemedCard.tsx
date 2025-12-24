@@ -14,7 +14,6 @@ export type ThemeType =
   | "neumorphism"
   | "widgets"
   | "claymorphism"
-  | "brutalism"
   | "aurora"
   | "minimalism"
   | "paper"
@@ -30,7 +29,6 @@ export const themeNames: Record<ThemeType, string> = {
   neumorphism: "Neumorphism (2020)",
   widgets: "Bento Grids (2021)",
   claymorphism: "Claymorphism (2022)",
-  brutalism: "Neo-Brutalism (2023)",
   aurora: "Aurora Gradients (2024)",
   minimalism: "Minimalism (2024)",
   paper: "Paper Journal (2025)",
@@ -46,8 +44,8 @@ interface ThemedCardProps {
 }
 
 export function ThemedCard({ theme, children, className, onClick, isCollapsed }: ThemedCardProps) {
-  // Global wireframe enforcement: sharp corners, black borders, hard shadows
-  const baseClasses = "relative overflow-hidden transition-all duration-300 group border-2 border-black shadow-[4px_4px_0px_#000] rounded-none hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_#000]";
+  // Global wireframe enforcement: uses era-based CSS variables
+  const baseClasses = "relative overflow-hidden transition-all duration-300 group rounded-none wireframe-border";
   
   const themeStyles: Record<ThemeType, string> = {
     xp: "bg-[#ECE9D8] font-[Tahoma,sans-serif] [&_span.rounded-none]:!bg-white [&_span.rounded-none]:!border-[#003c74] [&_span.rounded-none]:!text-black [&_span.rounded-none]:!rounded-none [&_span.rounded-none]:!shadow-none",
@@ -59,7 +57,6 @@ export function ThemedCard({ theme, children, className, onClick, isCollapsed }:
     neumorphism: "bg-[#e0e5ec] text-[#4a4a4a] [&_span.rounded-none]:!bg-[#e0e5ec] [&_span.rounded-none]:!border-black [&_span.rounded-none]:!text-[#4a4a4a]",
     widgets: "bg-white hover:scale-[1.02] transition-transform [&_span.rounded-none]:!bg-gray-100 [&_span.rounded-none]:!text-black [&_span.rounded-none]:!border-black",
     claymorphism: "bg-white backdrop-blur-sm [&_span.rounded-none]:!bg-[#f0f0f3] [&_span.rounded-none]:!border-black [&_span.rounded-none]:!rounded-none",
-    brutalism: "bg-[#FFDE59] font-mono [&_span.rounded-none]:!bg-white [&_span.rounded-none]:!border-2 [&_span.rounded-none]:!border-black [&_span.rounded-none]:!text-black [&_span.rounded-none]:!rounded-none [&_span.rounded-none]:!shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]",
     aurora: "bg-gradient-to-br from-[#2E3192] to-[#1BFFFF] text-white [&_span.rounded-none]:!bg-white/20 [&_span.rounded-none]:!backdrop-blur-md [&_span.rounded-none]:!border-black [&_span.rounded-none]:!text-white [&_h3]:!text-white [&_p]:!text-white/90",
     minimalism: "bg-white text-slate-900 font-[Helvetica,Arial,sans-serif] [&_h3]:!text-slate-900 [&_p]:!text-slate-600 [&_span.rounded-none]:!bg-slate-100 [&_span.rounded-none]:!text-slate-800 [&_span.rounded-none]:!border-black [&_span.rounded-none]:!uppercase [&_span.rounded-none]:!tracking-[0.15em] [&_span.rounded-none]:!text-[10px] [&_span.rounded-none]:!font-semibold",
     paper: "bg-[#fffdf5] text-[#2f271a] font-mono [&_h3]:!text-[#1f1510] [&_p]:!text-[#4b4336] [&_span.rounded-none]:!bg-white [&_span.rounded-none]:!border-black [&_span.rounded-none]:!text-[#3b3227]",
@@ -76,7 +73,6 @@ export function ThemedCard({ theme, children, className, onClick, isCollapsed }:
     neumorphism: "p-8",
     widgets: "p-8",
     claymorphism: "p-8",
-    brutalism: "p-4",
     aurora: "p-8",
     minimalism: "p-8",
     paper: "p-8",

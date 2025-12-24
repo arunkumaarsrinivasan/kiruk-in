@@ -2,7 +2,10 @@
 
 import { motion } from "framer-motion";
 
-export type ObstacleType = "rock" | "bush" | "box" | "cone" | "computer" | "coffee" | "book" | "cloud";
+export type ObstacleType = 
+  | "rock" | "bush" | "box" | "cone" | "computer" | "coffee" | "book" | "cloud"
+  | "crochet" | "notebook" | "biryani" | "chai" | "paintbrush" | "calligraphy" 
+  | "poster" | "sketchbook" | "laptop" | "phone" | "gamepad" | "design-tool";
 
 interface PixelObstacleProps {
   type: ObstacleType;
@@ -125,6 +128,188 @@ const obstacleSprites: Record<ObstacleType, { width: number; height: number; pix
       ["", "#eee", "#eee", "#eee", "#eee", "#eee", "#eee", "#eee", "#eee", "#eee", "#eee", ""],
     ],
   },
+  crochet: {
+    width: 8,
+    height: 10,
+    pixels: [
+      ["", "", "#FF69B4", "#FF69B4", "#FF69B4", "", "", ""],
+      ["", "#FF69B4", "#FFB6C1", "#FFB6C1", "#FFB6C1", "#FF69B4", "", ""],
+      ["#FF69B4", "#FFB6C1", "#FFC0CB", "#FFC0CB", "#FFC0CB", "#FFB6C1", "#FF69B4", ""],
+      ["#8B4513", "#8B4513", "#8B4513", "#8B4513", "#8B4513", "#8B4513", "#8B4513", ""],
+      ["", "#8B4513", "#654321", "#654321", "#654321", "#8B4513", "", ""],
+      ["", "", "#654321", "#654321", "#654321", "", "", ""],
+      ["", "", "#654321", "#654321", "#654321", "", "", ""],
+      ["", "", "#654321", "#654321", "#654321", "", "", ""],
+      ["", "", "#654321", "#654321", "#654321", "", "", ""],
+      ["", "", "#8B4513", "#8B4513", "#8B4513", "", "", ""],
+    ],
+  },
+  notebook: {
+    width: 10,
+    height: 12,
+    pixels: [
+      ["#FFF", "#FFF", "#FFF", "#FFF", "#FFF", "#FFF", "#FFF", "#FFF", "#FFF", "#FFF"],
+      ["#FFF", "#000", "#000", "#000", "#000", "#000", "#000", "#000", "#000", "#FFF"],
+      ["#FFF", "#000", "#FFF", "#FFF", "#FFF", "#FFF", "#FFF", "#FFF", "#000", "#FFF"],
+      ["#FFF", "#000", "#FFF", "#333", "#333", "#333", "#FFF", "#FFF", "#000", "#FFF"],
+      ["#FFF", "#000", "#FFF", "#FFF", "#FFF", "#FFF", "#FFF", "#FFF", "#000", "#FFF"],
+      ["#FFF", "#000", "#FFF", "#333", "#333", "#333", "#FFF", "#FFF", "#000", "#FFF"],
+      ["#FFF", "#000", "#FFF", "#FFF", "#FFF", "#FFF", "#FFF", "#FFF", "#000", "#FFF"],
+      ["#FFF", "#000", "#FFF", "#333", "#333", "#333", "#FFF", "#FFF", "#000", "#FFF"],
+      ["#FFF", "#000", "#000", "#000", "#000", "#000", "#000", "#000", "#000", "#FFF"],
+      ["#8B4513", "#8B4513", "#8B4513", "#8B4513", "#8B4513", "#8B4513", "#8B4513", "#8B4513", "#8B4513", "#8B4513"],
+      ["#654321", "#654321", "#654321", "#654321", "#654321", "#654321", "#654321", "#654321", "#654321", "#654321"],
+      ["#8B4513", "#8B4513", "#8B4513", "#8B4513", "#8B4513", "#8B4513", "#8B4513", "#8B4513", "#8B4513", "#8B4513"],
+    ],
+  },
+  biryani: {
+    width: 10,
+    height: 8,
+    pixels: [
+      ["", "", "#FFD700", "#FFD700", "#FFD700", "#FFD700", "#FFD700", "", "", ""],
+      ["", "#FF8C00", "#FFA500", "#FFA500", "#FFA500", "#FFA500", "#FF8C00", "", ""],
+      ["#8B4513", "#FF8C00", "#FFA500", "#FFD700", "#FFD700", "#FFA500", "#FF8C00", "#8B4513", ""],
+      ["#8B4513", "#FF8C00", "#FFA500", "#FFA500", "#FFA500", "#FFA500", "#FF8C00", "#8B4513", ""],
+      ["#8B4513", "#654321", "#8B4513", "#8B4513", "#8B4513", "#8B4513", "#654321", "#8B4513", ""],
+      ["#654321", "#8B4513", "#654321", "#654321", "#654321", "#654321", "#8B4513", "#654321", ""],
+      ["#8B4513", "#654321", "#8B4513", "#8B4513", "#8B4513", "#8B4513", "#654321", "#8B4513", ""],
+      ["", "#8B4513", "#654321", "#654321", "#654321", "#654321", "#8B4513", "", ""],
+    ],
+  },
+  chai: {
+    width: 8,
+    height: 10,
+    pixels: [
+      ["", "", "#8B4513", "#8B4513", "#8B4513", "", "", ""],
+      ["", "#8B4513", "#FFF", "#FFF", "#FFF", "#8B4513", "", ""],
+      ["#8B4513", "#FFF", "#FFD700", "#FFD700", "#FFD700", "#FFF", "#8B4513", ""],
+      ["#8B4513", "#FFF", "#FFD700", "#FFA500", "#FFD700", "#FFF", "#8B4513", ""],
+      ["#8B4513", "#FFF", "#FFD700", "#FFD700", "#FFD700", "#FFF", "#8B4513", ""],
+      ["#8B4513", "#FFF", "#FFF", "#FFF", "#FFF", "#FFF", "#8B4513", ""],
+      ["#8B4513", "#654321", "#654321", "#654321", "#654321", "#654321", "#8B4513", ""],
+      ["", "#8B4513", "#654321", "#654321", "#654321", "#8B4513", "", ""],
+      ["", "", "#8B4513", "#654321", "#8B4513", "", "", ""],
+      ["", "", "", "#8B4513", "", "", "", ""],
+    ],
+  },
+  paintbrush: {
+    width: 10,
+    height: 8,
+    pixels: [
+      ["", "", "", "#8B4513", "#8B4513", "#8B4513", "", "", "", ""],
+      ["", "", "#8B4513", "#654321", "#654321", "#654321", "#8B4513", "", "", ""],
+      ["", "#8B4513", "#654321", "#8B4513", "#8B4513", "#8B4513", "#654321", "#8B4513", "", ""],
+      ["#FF69B4", "#FFB6C1", "#FFC0CB", "#FFC0CB", "#FFC0CB", "#FFC0CB", "#FFB6C1", "#FF69B4", "", ""],
+      ["#FF69B4", "#FFB6C1", "#FFC0CB", "#FFC0CB", "#FFC0CB", "#FFC0CB", "#FFB6C1", "#FF69B4", "", ""],
+      ["#FF69B4", "#FFB6C1", "#FFC0CB", "#FFC0CB", "#FFC0CB", "#FFC0CB", "#FFB6C1", "#FF69B4", "", ""],
+      ["", "#FF69B4", "#FFB6C1", "#FFC0CB", "#FFC0CB", "#FFC0CB", "#FFB6C1", "#FF69B4", "", ""],
+      ["", "", "#FF69B4", "#FFB6C1", "#FFC0CB", "#FFB6C1", "#FF69B4", "", "", ""],
+    ],
+  },
+  calligraphy: {
+    width: 10,
+    height: 8,
+    pixels: [
+      ["", "", "#8B4513", "#8B4513", "#8B4513", "#8B4513", "", "", "", ""],
+      ["", "#8B4513", "#654321", "#654321", "#654321", "#654321", "#8B4513", "", "", ""],
+      ["#8B4513", "#654321", "#000", "#000", "#000", "#000", "#654321", "#8B4513", "", ""],
+      ["#8B4513", "#654321", "#000", "#333", "#333", "#000", "#654321", "#8B4513", "", ""],
+      ["#8B4513", "#654321", "#000", "#000", "#000", "#000", "#654321", "#8B4513", "", ""],
+      ["#8B4513", "#654321", "#000", "#333", "#333", "#000", "#654321", "#8B4513", "", ""],
+      ["", "#8B4513", "#654321", "#654321", "#654321", "#654321", "#8B4513", "", "", ""],
+      ["", "", "#8B4513", "#8B4513", "#8B4513", "#8B4513", "", "", "", ""],
+    ],
+  },
+  poster: {
+    width: 12,
+    height: 10,
+    pixels: [
+      ["#FFF", "#FFF", "#FFF", "#FFF", "#FFF", "#FFF", "#FFF", "#FFF", "#FFF", "#FFF", "#FFF", "#FFF"],
+      ["#FFF", "#FF6B6B", "#FF6B6B", "#FF6B6B", "#FF6B6B", "#FF6B6B", "#FF6B6B", "#FF6B6B", "#FF6B6B", "#FF6B6B", "#FF6B6B", "#FFF"],
+      ["#FFF", "#FF6B6B", "#FFD93D", "#FFD93D", "#FFD93D", "#FFD93D", "#FFD93D", "#FFD93D", "#FFD93D", "#FFD93D", "#FF6B6B", "#FFF"],
+      ["#FFF", "#FF6B6B", "#FFD93D", "#6BCF7F", "#6BCF7F", "#6BCF7F", "#6BCF7F", "#6BCF7F", "#6BCF7F", "#FFD93D", "#FF6B6B", "#FFF"],
+      ["#FFF", "#FF6B6B", "#FFD93D", "#6BCF7F", "#4D96FF", "#4D96FF", "#4D96FF", "#4D96FF", "#6BCF7F", "#FFD93D", "#FF6B6B", "#FFF"],
+      ["#FFF", "#FF6B6B", "#FFD93D", "#6BCF7F", "#4D96FF", "#4D96FF", "#4D96FF", "#6BCF7F", "#FFD93D", "#FF6B6B", "#FFF"],
+      ["#FFF", "#FF6B6B", "#FFD93D", "#6BCF7F", "#6BCF7F", "#6BCF7F", "#6BCF7F", "#FFD93D", "#FF6B6B", "#FFF"],
+      ["#FFF", "#FF6B6B", "#FFD93D", "#FFD93D", "#FFD93D", "#FFD93D", "#FFD93D", "#FF6B6B", "#FFF"],
+      ["#FFF", "#FF6B6B", "#FF6B6B", "#FF6B6B", "#FF6B6B", "#FF6B6B", "#FF6B6B", "#FF6B6B", "#FF6B6B", "#FF6B6B", "#FF6B6B", "#FFF"],
+      ["#8B4513", "#8B4513", "#8B4513", "#8B4513", "#8B4513", "#8B4513", "#8B4513", "#8B4513", "#8B4513", "#8B4513", "#8B4513", "#8B4513"],
+    ],
+  },
+  sketchbook: {
+    width: 10,
+    height: 8,
+    pixels: [
+      ["#FFF", "#FFF", "#FFF", "#FFF", "#FFF", "#FFF", "#FFF", "#FFF", "#FFF", "#FFF"],
+      ["#FFF", "#000", "#000", "#000", "#000", "#000", "#000", "#000", "#000", "#FFF"],
+      ["#FFF", "#000", "#FFD700", "#FFD700", "#FFD700", "#FFD700", "#FFD700", "#000", "#FFF"],
+      ["#FFF", "#000", "#FFD700", "#FFA500", "#FFA500", "#FFA500", "#FFD700", "#000", "#FFF"],
+      ["#FFF", "#000", "#FFD700", "#FFD700", "#FFD700", "#FFD700", "#FFD700", "#000", "#FFF"],
+      ["#FFF", "#000", "#000", "#000", "#000", "#000", "#000", "#000", "#000", "#FFF"],
+      ["#8B4513", "#8B4513", "#8B4513", "#8B4513", "#8B4513", "#8B4513", "#8B4513", "#8B4513", "#8B4513", "#8B4513"],
+      ["#654321", "#654321", "#654321", "#654321", "#654321", "#654321", "#654321", "#654321", "#654321", "#654321"],
+    ],
+  },
+  laptop: {
+    width: 14,
+    height: 10,
+    pixels: [
+      ["#333", "#333", "#333", "#333", "#333", "#333", "#333", "#333", "#333", "#333", "#333", "#333", "#333", "#333"],
+      ["#333", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#333"],
+      ["#333", "#1a1a2e", "#00ff00", "#00ff00", "#1a1a2e", "#00ff00", "#1a1a2e", "#00ff00", "#00ff00", "#1a1a2e", "#1a1a2e", "#00ff00", "#1a1a2e", "#333"],
+      ["#333", "#1a1a2e", "#00ff00", "#1a1a2e", "#1a1a2e", "#00ff00", "#1a1a2e", "#00ff00", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#00ff00", "#1a1a2e", "#333"],
+      ["#333", "#1a1a2e", "#00ff00", "#00ff00", "#1a1a2e", "#00ff00", "#1a1a2e", "#00ff00", "#00ff00", "#1a1a2e", "#1a1a2e", "#00ff00", "#1a1a2e", "#333"],
+      ["#333", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#333"],
+      ["#333", "#333", "#333", "#333", "#333", "#333", "#333", "#333", "#333", "#333", "#333", "#333", "#333", "#333"],
+      ["", "", "", "", "#555", "#555", "#555", "#555", "#555", "#555", "", "", "", ""],
+      ["", "", "", "#666", "#666", "#666", "#666", "#666", "#666", "#666", "#666", "", "", ""],
+      ["", "", "#777", "#777", "#777", "#777", "#777", "#777", "#777", "#777", "#777", "#777", "", ""],
+    ],
+  },
+  phone: {
+    width: 6,
+    height: 10,
+    pixels: [
+      ["#333", "#333", "#333", "#333", "#333", "#333"],
+      ["#333", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#333"],
+      ["#333", "#1a1a2e", "#00ff00", "#00ff00", "#1a1a2e", "#333"],
+      ["#333", "#1a1a2e", "#00ff00", "#00ff00", "#1a1a2e", "#333"],
+      ["#333", "#1a1a2e", "#00ff00", "#00ff00", "#1a1a2e", "#333"],
+      ["#333", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#333"],
+      ["#333", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#333"],
+      ["#333", "#333", "#333", "#333", "#333", "#333"],
+      ["", "", "#555", "#555", "", ""],
+      ["", "", "#666", "#666", "", ""],
+    ],
+  },
+  gamepad: {
+    width: 12,
+    height: 8,
+    pixels: [
+      ["", "", "#333", "#333", "#333", "#333", "#333", "#333", "", "", "", ""],
+      ["", "#333", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#333", "", "", ""],
+      ["#333", "#1a1a2e", "#00ff00", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#00ff00", "#1a1a2e", "#333", "", ""],
+      ["#333", "#1a1a2e", "#1a1a2e", "#00ff00", "#1a1a2e", "#1a1a2e", "#00ff00", "#1a1a2e", "#1a1a2e", "#333", "", ""],
+      ["#333", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#00ff00", "#00ff00", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#333", "", ""],
+      ["#333", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#333", "", ""],
+      ["", "#333", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#1a1a2e", "#333", "", "", ""],
+      ["", "", "#333", "#333", "#333", "#333", "#333", "#333", "", "", "", ""],
+    ],
+  },
+  "design-tool": {
+    width: 10,
+    height: 8,
+    pixels: [
+      ["", "", "#4D96FF", "#4D96FF", "#4D96FF", "#4D96FF", "", "", "", ""],
+      ["", "#4D96FF", "#6BCF7F", "#6BCF7F", "#6BCF7F", "#6BCF7F", "#4D96FF", "", "", ""],
+      ["#4D96FF", "#6BCF7F", "#FFD93D", "#FFD93D", "#FFD93D", "#FFD93D", "#6BCF7F", "#4D96FF", "", ""],
+      ["#4D96FF", "#6BCF7F", "#FFD93D", "#FF6B6B", "#FF6B6B", "#FFD93D", "#6BCF7F", "#4D96FF", "", ""],
+      ["#4D96FF", "#6BCF7F", "#FFD93D", "#FFD93D", "#FFD93D", "#FFD93D", "#6BCF7F", "#4D96FF", "", ""],
+      ["", "#4D96FF", "#6BCF7F", "#6BCF7F", "#6BCF7F", "#6BCF7F", "#4D96FF", "", "", ""],
+      ["", "", "#4D96FF", "#4D96FF", "#4D96FF", "#4D96FF", "", "", "", ""],
+      ["", "", "", "#333", "#333", "#333", "", "", "", ""],
+    ],
+  },
 };
 
 const sizeMultipliers = {
@@ -171,11 +356,38 @@ export function PixelObstacle({ type, className, size = "medium" }: PixelObstacl
   );
 }
 
-// Get obstacles based on year/theme
-export function getObstaclesForLevel(year: number): ObstacleType[] {
-  if (year <= 2008) return ["rock", "bush"];
-  if (year <= 2014) return ["rock", "bush", "box"];
-  if (year <= 2019) return ["box", "book", "cone"];
-  if (year <= 2022) return ["computer", "coffee", "book"];
-  return ["computer", "coffee", "cloud"];
+// Get obstacles based on event story/theme
+export function getObstaclesForLevel(year: number, eventTitle?: string, tags?: string[]): ObstacleType[] {
+  // Match obstacles to story themes
+  if (eventTitle?.toLowerCase().includes("creative clan") || eventTitle?.toLowerCase().includes("joint family")) {
+    return ["crochet", "paintbrush", "calligraphy", "chai"];
+  }
+  if (eventTitle?.toLowerCase().includes("family studio") || eventTitle?.toLowerCase().includes("playground")) {
+    return ["crochet", "paintbrush", "calligraphy", "chai", "book"];
+  }
+  if (eventTitle?.toLowerCase().includes("scribble") || eventTitle?.toLowerCase().includes("notebook") || eventTitle?.toLowerCase().includes("biryani")) {
+    return ["notebook", "biryani", "chai", "book"];
+  }
+  if (eventTitle?.toLowerCase().includes("freelance") || eventTitle?.toLowerCase().includes("poster") || eventTitle?.toLowerCase().includes("illustration")) {
+    return ["poster", "sketchbook", "paintbrush", "book"];
+  }
+  if (eventTitle?.toLowerCase().includes("engineering") || eventTitle?.toLowerCase().includes("college")) {
+    return ["laptop", "notebook", "book", "coffee"];
+  }
+  if (eventTitle?.toLowerCase().includes("campus") || eventTitle?.toLowerCase().includes("creative lead")) {
+    return ["laptop", "design-tool", "poster", "coffee"];
+  }
+  if (eventTitle?.toLowerCase().includes("pandemic") || eventTitle?.toLowerCase().includes("game") || eventTitle?.toLowerCase().includes("playlab")) {
+    return ["gamepad", "phone", "laptop", "design-tool"];
+  }
+  if (eventTitle?.toLowerCase().includes("design system") || eventTitle?.toLowerCase().includes("figma")) {
+    return ["design-tool", "laptop", "computer", "coffee"];
+  }
+  
+  // Fallback to year-based if no match
+  if (year <= 2008) return ["crochet", "paintbrush", "chai"];
+  if (year <= 2014) return ["notebook", "biryani", "chai", "book"];
+  if (year <= 2019) return ["poster", "sketchbook", "book", "coffee"];
+  if (year <= 2022) return ["laptop", "design-tool", "computer", "coffee"];
+  return ["laptop", "phone", "gamepad", "design-tool"];
 }

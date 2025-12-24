@@ -10,6 +10,7 @@ import { PixelCharacter, getStageFromAge, getActionFromAge } from "./components/
 import { PixelObstacle } from "./components/PixelObstacle";
 import { LevelBackground } from "./components/LevelBackground";
 import { useGameEngine } from "./components/useGameEngine";
+import { useGameMode } from "@/contexts/GameModeContext";
 
 // Life events data with timeline
 type LifeEvent = {
@@ -268,8 +269,12 @@ export default function About() {
 		age: event.age,
 	}));
 	
+	const { mode: gameMode } = useGameMode();
+	
 	const { gameState, startGame, jump, duck, setMoving, togglePause, nextLevel, goToLevel, restartLevel } = useGameEngine({
 		levels,
+		events: lifeEvents.map(e => ({ id: e.id, year: e.year, title: e.title, tags: e.tags, icon: e.icon })),
+		gameMode: gameMode || 'normal',
 		worldWidth: 2000,
 		onLevelComplete: (level) => {
 			// Show event details when level completes
@@ -509,29 +514,12 @@ export default function About() {
 						description={currentEvent?.description || ""}
 						playerX={gameState.playerX}
 						worldWidth={gameState.worldWidth}
+						event={currentEvent || undefined}
+						levelProgress={gameState.levelProgress}
 					>
-						{/* Progress Bar */}
-						<div className="absolute top-20 left-4 right-4 z-10">
-							<div className="h-4 border-2" style={{ backgroundColor: "var(--bg-card)", borderColor: "var(--border-color)" }}>
-								<motion.div
-									className="h-full"
-									style={{ 
-										width: `${gameState.levelProgress * 100}%`,
-										backgroundColor: "var(--accent-color)"
-									}}
-								/>
-							</div>
-							<div className="flex justify-between mt-1 font-mono text-xs" style={{ color: "var(--text-muted)" }}>
-								<span>START</span>
-								<span className="font-mono" style={{ color: "var(--text-main)" }}>
-									{Math.round(gameState.levelProgress * 100)}%
-								</span>
-								<span>🏁 GOAL</span>
-							</div>
-						</div>
 						
 						{/* Game Canvas - with camera offset */}
-						<div className="absolute bottom-16 left-0 right-0 h-48 overflow-hidden">
+						<div className="absolute bottom-16 left-0 right-0 h-48 overflow-hidden z-10">
 							{/* Scrolling world container */}
 							<div 
 								className="relative h-full"
@@ -543,7 +531,7 @@ export default function About() {
 							>
 								{/* Player - positioned by playerX */}
 								<div
-									className="absolute z-10"
+									className="absolute"
 									style={{
 										bottom: gameState.playerY,
 										left: gameState.playerX,
@@ -572,15 +560,13 @@ export default function About() {
 								
 								{/* Collectibles */}
 								{gameState.collectibles?.map((collectible) => (
-									<motion.div
+									<div
 										key={collectible.id}
 										className="absolute"
 										style={{ left: collectible.x, bottom: collectible.y }}
-										animate={{ y: [0, -5, 0], rotate: [0, 10, 0, -10, 0] }}
-										transition={{ duration: 1, repeat: Infinity }}
 									>
 										<PixelCollectible type={collectible.type} />
-									</motion.div>
+									</div>
 								))}
 								
 								{/* Goal marker at end */}
@@ -588,14 +574,12 @@ export default function About() {
 									className="absolute bottom-0 flex flex-col items-center"
 									style={{ left: gameState.worldWidth - 60 }}
 								>
-									<motion.div
+									<div
 										className="font-mono text-lg mb-2"
 										style={{ color: "var(--accent-color)" }}
-										animate={{ scale: [1, 1.2, 1] }}
-										transition={{ duration: 1, repeat: Infinity }}
 									>
 										🏁
-									</motion.div>
+									</div>
 									<div 
 										className="w-2 h-24 border-2"
 										style={{ 
@@ -608,7 +592,7 @@ export default function About() {
 						</div>
 						
 						{/* Controls Hint */}
-						<div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20">
+						<div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-30">
 							<div 
 								className="font-mono text-sm px-4 py-2 flex items-center gap-4 border"
 								style={{ 
@@ -664,14 +648,12 @@ export default function About() {
 								exit={{ opacity: 0 }}
 							>
 								<div className="text-center">
-									<motion.h2
+									<h2
 										className="text-6xl font-mono mb-4"
 										style={{ color: "var(--accent-color)" }}
-										animate={{ scale: [1, 1.1, 1] }}
-										transition={{ duration: 0.5, repeat: Infinity }}
 									>
 										GAME OVER
-									</motion.h2>
+									</h2>
 									<p className="font-mono mb-2" style={{ color: "var(--text-main)" }}>
 										Level: {gameState.level + 1} | Score: {gameState.score}
 									</p>
@@ -709,100 +691,209 @@ export default function About() {
 				</div>
 			)}
 			
-			{/* Level Complete Modal */}
+			{/* Level Complete Modal - Timeline Era Design */}
 			<AnimatePresence>
 				{showEventModal && selectedEvent && (
 					<motion.div
-						className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+						className="fixed inset-0 z-50 flex items-center justify-center p-4"
+						style={{ backgroundColor: "rgba(0,0,0,0.95)" }}
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
 					>
 						<motion.div
-							className="bg-white max-w-lg w-full border-4 border-black shadow-[8px_8px_0_#000]"
-							initial={{ scale: 0.8, y: 50 }}
-							animate={{ scale: 1, y: 0 }}
-							exit={{ scale: 0.8, y: 50 }}
+							className="max-w-lg w-full font-mono relative"
+							style={{
+								backgroundColor: "var(--bg-main)",
+								border: "2px solid var(--border-color)",
+								imageRendering: "pixelated",
+							}}
+							initial={{ scale: 0.9, opacity: 0 }}
+							animate={{ scale: 1, opacity: 1 }}
+							exit={{ scale: 0.9, opacity: 0 }}
 						>
-							{/* Header */}
-							<div className="bg-yellow-400 border-b-4 border-black p-4">
-								<div className="flex items-center gap-4">
-									<span className="text-4xl">{selectedEvent.icon}</span>
-									<div>
-										<p className="font-mono text-sm text-black/60">
-											LEVEL {gameState.level + 1} COMPLETE!
-										</p>
-										<h3 className="font-mono text-xl font-bold">
-											{selectedEvent.year}: {selectedEvent.title}
-										</h3>
+							{/* Grid Background */}
+							<div 
+								className="absolute inset-0 opacity-20 pointer-events-none"
+								style={{
+									backgroundImage: `
+										linear-gradient(var(--border-color) 1px, transparent 1px),
+										linear-gradient(90deg, var(--border-color) 1px, transparent 1px)
+									`,
+									backgroundSize: "20px 20px",
+								}}
+							/>
+							
+							{/* Scanlines effect */}
+							<div 
+								className="absolute inset-0 pointer-events-none opacity-10"
+								style={{
+									backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px)",
+								}}
+							/>
+							
+							{/* Header - Terminal Style */}
+							<div 
+								className="p-4 border-b-2"
+								style={{ 
+									borderColor: "var(--border-color)",
+									backgroundColor: "var(--bg-card)",
+								}}
+							>
+								<div className="flex items-center gap-3">
+									<span className="text-3xl">{selectedEvent.icon}</span>
+									<div className="flex-1">
+										<div 
+											className="text-xs uppercase tracking-wider mb-1"
+											style={{ color: "var(--text-muted)" }}
+										>
+											LEVEL_{String(selectedEvent.year).slice(-2)} COMPLETE
+										</div>
+										<div 
+											className="text-lg font-bold"
+											style={{ color: "var(--accent-color)" }}
+										>
+											{selectedEvent.year}
+										</div>
+										<div 
+											className="text-sm"
+											style={{ color: "var(--text-main)" }}
+										>
+											{selectedEvent.title}
+										</div>
 									</div>
 								</div>
 							</div>
 							
-							{/* Content */}
-							<div className="p-6">
-								<p className="font-mono text-sm text-gray-600 mb-2">
-									📍 {selectedEvent.location}
-								</p>
-								{selectedEvent.period && (
-									<p className="font-mono text-sm text-gray-600 mb-4">
-										🗓️ {selectedEvent.period}
-									</p>
-								)}
-								<p className="font-mono text-gray-800 mb-4">
-									{selectedEvent.description}
-								</p>
-								<div className="bg-gray-100 border-2 border-black p-4 mb-4">
-									<p className="font-mono text-sm text-gray-700 italic">
-										💭 {selectedEvent.details}
-									</p>
-								</div>
-								{selectedEvent.tags && (
-									<div className="flex flex-wrap gap-2 mb-6">
-										{selectedEvent.tags.map((tag) => (
-											<span
-												key={tag}
-												className="px-3 py-1 bg-black text-white font-mono text-xs"
-											>
-												{tag}
-											</span>
-										))}
+							{/* Content - Terminal Style */}
+							<div className="p-6 relative z-10">
+								{/* Score Display */}
+								<div className="mb-6">
+									<div 
+										className="text-xs uppercase tracking-wider mb-2"
+										style={{ color: "var(--text-muted)" }}
+									>
+										SCORE UPDATE
 									</div>
-								)}
+									<div className="flex items-baseline gap-3 mb-1">
+										<span 
+											className="text-2xl font-bold"
+											style={{ color: "var(--accent-color)" }}
+										>
+											+100
+										</span>
+										<span 
+											className="text-sm"
+											style={{ color: "var(--text-main)" }}
+										>
+											POINTS
+										</span>
+									</div>
+									<div 
+										className="text-sm"
+										style={{ color: "var(--text-muted)" }}
+									>
+										TOTAL: {gameState.score.toLocaleString()}
+									</div>
+								</div>
 								
-								{/* Score */}
-								<div className="text-center mb-4">
-									<p className="font-mono text-2xl font-bold text-green-600">
-										+100 POINTS
-									</p>
-									<p className="font-mono text-sm text-gray-500">
-										Total: {gameState.score}
-									</p>
+								{/* Progress Stats */}
+								<div className="grid grid-cols-2 gap-4 mb-6">
+									<div 
+										className="p-3 border"
+										style={{ 
+											borderColor: "var(--border-color)",
+											backgroundColor: "var(--bg-card)",
+										}}
+									>
+										<div 
+											className="text-[10px] uppercase tracking-wider mb-1 opacity-60"
+											style={{ color: "var(--text-muted)" }}
+										>
+											CURRENT
+										</div>
+										<div 
+											className="text-xl font-bold"
+											style={{ color: "var(--accent-color)" }}
+										>
+											LEVEL {gameState.level + 1}
+										</div>
+									</div>
+									<div 
+										className="p-3 border"
+										style={{ 
+											borderColor: "var(--border-color)",
+											backgroundColor: "var(--bg-card)",
+										}}
+									>
+										<div 
+											className="text-[10px] uppercase tracking-wider mb-1 opacity-60"
+											style={{ color: "var(--text-muted)" }}
+										>
+											PROGRESS
+										</div>
+										<div 
+											className="text-xl font-bold"
+											style={{ color: "var(--accent-color)" }}
+										>
+											{gameState.level + 1}/{lifeEvents.length}
+										</div>
+									</div>
+								</div>
+								
+								{/* Terminal Prompt */}
+								<div 
+									className="text-xs mb-4"
+									style={{ color: "var(--text-muted)" }}
+								>
+									<span style={{ color: "var(--accent-color)" }}>{'>'}</span> MISSION STATUS: COMPLETE
 								</div>
 							</div>
 							
-							{/* Actions */}
-							<div className="border-t-4 border-black p-4 flex justify-center gap-4">
+							{/* Actions - Terminal Style */}
+							<div 
+								className="p-4 border-t-2 flex justify-center"
+								style={{ 
+									borderColor: "var(--border-color)",
+									backgroundColor: "var(--bg-card)",
+								}}
+							>
 								{gameState.level < lifeEvents.length - 1 ? (
 									<button
 										onClick={handleContinue}
-										className="px-8 py-3 bg-green-500 text-white font-mono text-xl border-4 border-black shadow-[4px_4px_0_#000] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0_#000] transition-all"
+										className="px-6 py-2 font-mono text-sm border-2 transition-all hover:opacity-80"
+										style={{ 
+											backgroundColor: "var(--accent-color)",
+											color: "var(--bg-main)",
+											borderColor: "var(--accent-color)",
+										}}
 									>
-										NEXT LEVEL ▶
+										▶ CONTINUE TO NEXT LEVEL
 									</button>
 								) : (
 									<div className="text-center">
-										<p className="font-mono text-2xl font-bold text-yellow-500 mb-4">
-											🎉 CONGRATULATIONS! 🎉
-										</p>
-										<p className="font-mono text-gray-600 mb-4">
-											You&apos;ve completed Kiruk&apos;s Journey!
-										</p>
+										<div 
+											className="text-lg font-bold mb-3"
+											style={{ color: "var(--accent-color)" }}
+										>
+											🎉 JOURNEY COMPLETE 🎉
+										</div>
+										<div 
+											className="text-sm mb-4"
+											style={{ color: "var(--text-muted)" }}
+										>
+											All levels completed!
+										</div>
 										<Link
 											href="/progress"
-											className="inline-block px-8 py-3 bg-yellow-400 text-black font-mono text-xl border-4 border-black shadow-[4px_4px_0_#000] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0_#000] transition-all"
+											className="inline-block px-6 py-2 font-mono text-sm border-2 transition-all hover:opacity-80"
+											style={{ 
+												backgroundColor: "var(--accent-color)",
+												color: "var(--bg-main)",
+												borderColor: "var(--accent-color)",
+											}}
 										>
-											VIEW PROGRESS ▶
+											▶ VIEW PROGRESS
 										</Link>
 									</div>
 								)}
@@ -818,8 +909,13 @@ export default function About() {
 					<div id="instagram-section" className="max-w-7xl mx-auto px-4 py-12 mt-16 relative bg-white">
 						{/* Sketchy section divider */}
 						<div className="text-center mb-8">
-							<div className="inline-block border-2 border-black px-8 py-4 bg-white shadow-[4px_4px_0px_#000]">
-								<h2 className="text-xl text-black mb-2 font-bold uppercase tracking-widest">📱 Stories & Adventures</h2>
+							<div className="inline-block px-8 py-4 wireframe-border" style={{
+								borderWidth: "var(--border-width)",
+								borderColor: "var(--border-color)",
+								backgroundColor: "var(--bg-card)",
+								boxShadow: "var(--shadow-offset-x) var(--shadow-offset-y) var(--shadow-blur) var(--shadow-color)",
+							}}>
+								<h2 className="text-xl mb-2 font-bold uppercase tracking-widest" style={{ color: "var(--text-main)" }}>📱 Stories & Adventures</h2>
 								<p className="text-sm text-gray-600 uppercase">Swipe through my digital diary</p>
 							</div>
 						</div>

@@ -63,9 +63,22 @@ const boardPattern = {
 };
 
 export default function CaseStudyPage() {
+  // Call useParams at top level (required for hooks)
   const params = useParams();
   const { trackCaseStudyView } = useAnalytics();
-  const caseStudy = CASE_STUDIES.find((study) => study.id === params.id);
+  
+  // Extract id immediately to avoid enumeration warnings
+  // Direct property access without enumerating the params object
+  const caseStudyId = useMemo(() => {
+    const id = (params as { id?: string | string[] }).id;
+    return typeof id === 'string' 
+      ? id 
+      : Array.isArray(id) 
+        ? id[0] 
+        : String(id || '');
+  }, [params]);
+  
+  const caseStudy = CASE_STUDIES.find((study) => study.id === caseStudyId);
 
   useEffect(() => {
     if (caseStudy) trackCaseStudyView(caseStudy.id);

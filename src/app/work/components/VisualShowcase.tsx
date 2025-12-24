@@ -25,15 +25,18 @@ export function VisualShowcase({ target, revealIndex, level }: VisualShowcasePro
   
   return (
     <motion.div
-      className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-40 border-2 p-4 max-w-3xl w-[90%]"
+      className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-40 p-4 max-w-3xl w-[90%] wireframe-border"
       style={{
-        backgroundColor: "var(--bg-card)",
+        borderWidth: "var(--border-width)",
         borderColor: "var(--border-color)",
+        backgroundColor: "var(--bg-card)",
+        boxShadow: "var(--shadow-offset-x) var(--shadow-offset-y) var(--shadow-blur) var(--shadow-color)",
+        imageRendering: "pixelated" as any,
       }}
-      initial={{ y: 100, opacity: 0, scale: 0.95 }}
-      animate={{ y: 0, opacity: 1, scale: 1 }}
-      exit={{ y: 100, opacity: 0, scale: 0.95 }}
-      transition={{ duration: 0.3, type: "spring" }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
     >
       {/* Progress bar */}
       <div className="flex items-center gap-2 mb-3">
@@ -50,12 +53,7 @@ export function VisualShowcase({ target, revealIndex, level }: VisualShowcasePro
         </span>
       </div>
       
-      <motion.div
-        key={revealIndex}
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.3 }}
-      >
+      <div key={revealIndex}>
         {/* Title Visual */}
         {currentReveal.type === "title" && (
           <div className="text-center">
@@ -247,11 +245,11 @@ export function VisualShowcase({ target, revealIndex, level }: VisualShowcasePro
             </div>
           </div>
         )}
-      </motion.div>
+      </div>
       
-      {/* Hint */}
-      <div className="text-center mt-3 pt-2 border-t" style={{ borderColor: "var(--border-color)" }}>
-        <div className="font-mono text-[9px]" style={{ color: "var(--text-muted)" }}>
+      {/* Hint - Pixelated style */}
+      <div className="text-center mt-3 pt-2" style={{ borderTopWidth: "var(--border-width)", borderColor: "var(--border-color)" }}>
+        <div className="font-mono text-[10px] uppercase" style={{ color: "var(--text-muted)" }}>
           {revealIndex < reveals.length - 1 ? "Shoot again to reveal more →" : "✓ Complete"}
         </div>
       </div>

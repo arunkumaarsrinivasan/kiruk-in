@@ -47,8 +47,20 @@ export interface GameState {
   worldWidth: number;  // Total width of level
 }
 
+interface LifeEvent {
+  id: string;
+  year: number;
+  title: string;
+  tags?: string[];
+  icon?: string;
+}
+
+type GameMode = 'god' | 'devil' | 'normal';
+
 interface UseGameEngineProps {
   levels: { year: number; age: number }[];
+  events?: LifeEvent[];  // Event data for story-based obstacles
+  gameMode?: GameMode;  // Game mode for difficulty adjustment
   onLevelComplete?: (level: number) => void;
   onGameOver?: () => void;
   onCollect?: (type: CollectibleType, score: number) => void;
@@ -57,6 +69,8 @@ interface UseGameEngineProps {
 
 export function useGameEngine({
   levels,
+  events,
+  gameMode = 'normal',
   onLevelComplete,
   onGameOver,
   onCollect,
@@ -123,15 +137,65 @@ export function useGameEngine({
     return 11;                // Professional - sprint
   }, [levels]);
   
+  // Get story-based collectibles
+  const getCollectiblesForEvent = (event?: LifeEvent): CollectibleType[] => {
+    if (!event) return ["coin", "star", "coffee"];
+    
+    const title = event.title.toLowerCase();
+    const tags = event.tags?.map(t => t.toLowerCase()) || [];
+    
+    if (title.includes("creative clan") || title.includes("joint family") || tags.some(t => t.includes("creative"))) {
+      return ["coin", "star", "heart", "coffee"]; // Creative energy
+    }
+    if (title.includes("family studio") || tags.some(t => t.includes("crochet") || t.includes("calligraphy"))) {
+      return ["coin", "star", "heart", "book"]; // Art supplies
+    }
+    if (title.includes("biryani") || title.includes("notebook") || tags.some(t => t.includes("biryani"))) {
+      return ["coin", "star", "coffee", "book"]; // Food and learning
+    }
+    if (title.includes("freelance") || title.includes("poster") || title.includes("illustration")) {
+      return ["coin", "star", "book", "coffee"]; // Creative work
+    }
+    if (title.includes("engineering") || title.includes("college")) {
+      return ["coin", "star", "book", "coffee"]; // Study items
+    }
+    if (title.includes("campus") || title.includes("design lead")) {
+      return ["coin", "star", "book", "coffee"]; // Leadership
+    }
+    if (title.includes("pandemic") || title.includes("game") || title.includes("playlab")) {
+      return ["coin", "star", "heart", "coffee"]; // Fun and games
+    }
+    if (title.includes("design system") || title.includes("figma")) {
+      return ["coin", "star", "book", "coffee"]; // Design tools
+    }
+    
+    return ["coin", "star", "coffee"];
+  };
+  
   // Generate obstacles for a level
   const generateLevelContent = useCallback((level: number) => {
     const currentYear = levels[level]?.year || 2001;
-    const obstacleTypes = getObstaclesForLevel(currentYear);
+    const currentEvent = events?.[level];
+    const obstacleTypes = getObstaclesForLevel(
+      currentYear, 
+      currentEvent?.title, 
+      currentEvent?.tags
+    );
     const obstacles: GameObstacle[] = [];
     const collectibles: GameCollectible[] = [];
     
-    // Distribute obstacles across the level
-    const obstacleCount = 10 + level * 2; // More obstacles as levels progress
+    // Get obstacle count based on game mode (2-3 obstacles only)
+    const getObstacleCount = (mode: GameMode): number => {
+      switch (mode) {
+        case 'normal': return 2;  // Easiest - 2 obstacles
+        case 'devil': return 3;  // Harder - 3 obstacles
+        case 'god': return 2;    // Easy - 2 obstacles (god mode is exploration)
+        default: return 2;
+      }
+    };
+    
+    const obstacleCount = getObstacleCount(gameMode);
+    // Distribute obstacles evenly across the level with good spacing
     const spacing = worldWidth / (obstacleCount + 1);
     
     for (let i = 0; i < obstacleCount; i++) {
@@ -148,21 +212,34 @@ export function useGameEngine({
         coffee: { width: 36, height: 44 },
         book: { width: 48, height: 36 },
         cloud: { width: 56, height: 32 },
+        crochet: { width: 36, height: 44 },
+        notebook: { width: 48, height: 52 },
+        biryani: { width: 48, height: 36 },
+        chai: { width: 36, height: 44 },
+        paintbrush: { width: 48, height: 36 },
+        calligraphy: { width: 48, height: 36 },
+        poster: { width: 56, height: 48 },
+        sketchbook: { width: 48, height: 36 },
+        laptop: { width: 64, height: 48 },
+        phone: { width: 24, height: 44 },
+        gamepad: { width: 56, height: 36 },
+        "design-tool": { width: 48, height: 36 },
       };
       
       obstacles.push({
         id: `obstacle-${i}`,
         type,
         x: baseX + variation,
-        width: sizes[type].width,
-        height: sizes[type].height,
+        width: sizes[type]?.width || 40,
+        height: sizes[type]?.height || 40,
         passed: false,
       });
     }
     
-    // Generate collectibles between obstacles
-    const collectibleTypes: CollectibleType[] = ["coin", "coin", "coin", "star", "coffee"];
-    const collectibleCount = obstacleCount * 2;
+    // Generate story-based collectibles - fewer collectibles for easier gameplay
+    const collectibleTypes = getCollectiblesForEvent(currentEvent);
+    // Reduce collectibles: 3-5 per level (was obstacleCount * 2)
+    const collectibleCount = Math.min(5, obstacleCount + 2);
     
     for (let i = 0; i < collectibleCount; i++) {
       const type = collectibleTypes[Math.floor(Math.random() * collectibleTypes.length)];
@@ -182,7 +259,7 @@ export function useGameEngine({
     levelCollectiblesRef.current = collectibles;
     
     return { obstacles, collectibles };
-  }, [levels, worldWidth]);
+  }, [levels, events, worldWidth]);
   
   // Start game
   const startGame = useCallback(() => {

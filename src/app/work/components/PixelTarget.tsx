@@ -8,9 +8,9 @@ interface PixelTargetProps {
   pixelSize?: number;
 }
 
-export function PixelTarget({ target, pixelSize = 4 }: PixelTargetProps) {
-  // Pixel art target design matching grid system - square-based target
-  const gridSize = 20; // 20x20 pixel grid
+export function PixelTarget({ target, pixelSize = 6 }: PixelTargetProps) {
+  // Bigger, more pixelated target - 32x32 pixel grid for better visibility
+  const gridSize = 32; // Larger grid for bigger target
   const pixels: string[][] = [];
   
   // Initialize grid
@@ -33,38 +33,51 @@ export function PixelTarget({ target, pixelSize = 4 }: PixelTargetProps) {
   
   const borderColor = getColor();
   const fillColor = target.hit ? "var(--bg-card)" : "var(--bg-main)";
+  const accentColor = target.type === 'boss' ? "#FF4444" : target.type === 'bonus' ? "#44FF44" : "var(--accent-color)";
   
-  // Draw concentric square rings (pixel art style)
-  const rings = target.type === 'boss' ? 5 : 4;
+  // Draw thicker concentric square rings (pixel art style) - more visible
+  const rings = target.type === 'boss' ? 6 : 5;
   for (let ring = 0; ring < rings; ring++) {
-    const ringSize = gridSize - ring * 4;
-    const start = ring * 2;
-    const end = gridSize - ring * 2;
+    const ringSize = gridSize - ring * 5;
+    const start = ring * 2.5;
+    const end = gridSize - ring * 2.5;
     const color = ring % 2 === 0 ? borderColor : fillColor;
     
-    // Draw square ring
-    for (let y = start; y < end; y++) {
-      for (let x = start; x < end; x++) {
-        // Only draw border pixels
-        if (y === start || y === end - 1 || x === start || x === end - 1) {
+    // Draw square ring with thicker borders
+    for (let y = Math.floor(start); y < Math.ceil(end); y++) {
+      for (let x = Math.floor(start); x < Math.ceil(end); x++) {
+        // Draw border pixels (thicker borders)
+        const isBorder = y <= Math.floor(start) + 1 || y >= Math.ceil(end) - 2 || 
+                        x <= Math.floor(start) + 1 || x >= Math.ceil(end) - 2;
+        if (isBorder) {
           pixels[y][x] = color;
         }
       }
     }
   }
   
-  // Draw center crosshair (pixelated)
+  // Draw center crosshair (pixelated, thicker)
+  const crosshairThickness = 2;
   for (let i = 0; i < gridSize; i++) {
-    pixels[Math.floor(center)][i] = pixels[Math.floor(center)][i] || borderColor;
-    pixels[i][Math.floor(center)] = pixels[i][Math.floor(center)] || borderColor;
+    for (let t = 0; t < crosshairThickness; t++) {
+      if (Math.floor(center) + t < gridSize) {
+        pixels[Math.floor(center) + t][i] = pixels[Math.floor(center) + t][i] || borderColor;
+        pixels[i][Math.floor(center) + t] = pixels[i][Math.floor(center) + t] || borderColor;
+      }
+    }
   }
   
-  // Draw center dot
-  pixels[center][center] = borderColor;
-  if (center > 0) pixels[center - 1][center] = borderColor;
-  if (center < gridSize - 1) pixels[center + 1][center] = borderColor;
-  if (center > 0) pixels[center][center - 1] = borderColor;
-  if (center < gridSize - 1) pixels[center][center + 1] = borderColor;
+  // Draw center dot (bigger)
+  const dotSize = 3;
+  for (let dy = -Math.floor(dotSize/2); dy <= Math.floor(dotSize/2); dy++) {
+    for (let dx = -Math.floor(dotSize/2); dx <= Math.floor(dotSize/2); dx++) {
+      const y = Math.floor(center) + dy;
+      const x = Math.floor(center) + dx;
+      if (y >= 0 && y < gridSize && x >= 0 && x < gridSize) {
+        pixels[y][x] = accentColor;
+      }
+    }
+  }
   
   
   return (
@@ -76,6 +89,7 @@ export function PixelTarget({ target, pixelSize = 4 }: PixelTargetProps) {
         transform: "translate(-50%, -50%)",
         width: gridSize * pixelSize,
         height: gridSize * pixelSize,
+        imageRendering: "pixelated" as any,
       }}
       initial={{ scale: 0, opacity: 0 }}
       animate={{ 
@@ -119,15 +133,16 @@ export function PixelTarget({ target, pixelSize = 4 }: PixelTargetProps) {
         </div>
       )}
       
-      {/* Pixel grid - matching design system */}
+      {/* Pixel grid - matching design system with stronger borders */}
       <div
-        className="grid border-2"
+        className="grid border-4"
         style={{
           gridTemplateColumns: `repeat(${gridSize}, ${pixelSize}px)`,
           gridTemplateRows: `repeat(${gridSize}, ${pixelSize}px)`,
-          imageRendering: "pixelated",
+          imageRendering: "pixelated" as any,
           borderColor: "var(--border-color)",
           backgroundColor: "var(--bg-card)",
+          boxShadow: "0 0 0 2px var(--bg-main), 4px 4px 0 var(--border-color)",
         }}
       >
         {pixels.flat().map((color, idx) => (

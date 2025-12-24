@@ -25,24 +25,35 @@ export function WorkExperienceModal({ target, isOpen, onClose }: WorkExperienceM
           onClick={onClose}
         >
           <motion.div
-            className="bg-white max-w-2xl w-full border-4 border-black shadow-[8px_8px_0_#000] max-h-[90vh] overflow-y-auto"
-            initial={{ scale: 0.8, y: 50 }}
-            animate={{ scale: 1, y: 0 }}
-            exit={{ scale: 0.8, y: 50 }}
+            className="max-w-2xl w-full max-h-[90vh] overflow-y-auto wireframe-border"
+            style={{
+              borderWidth: "var(--border-width)",
+              borderColor: "var(--border-color)",
+              backgroundColor: "var(--bg-card)",
+              boxShadow: "var(--shadow-offset-x) var(--shadow-offset-y) var(--shadow-blur) var(--shadow-color)",
+            }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="bg-yellow-400 border-b-4 border-black p-4">
+            <div className="p-4 wireframe-border" style={{
+              borderBottomWidth: "var(--border-width)",
+              borderColor: "var(--border-color)",
+              backgroundColor: "var(--accent-color)",
+            }}>
               <div className="flex items-center gap-4">
                 <div className="text-4xl">🎯</div>
                 <div>
-                  <h3 className="font-mono text-2xl font-bold text-black">
+                  <h3 className="font-mono text-2xl font-bold" style={{ color: "var(--bg-main)" }}>
                     {work.title}
                   </h3>
-                  <p className="font-mono text-sm text-black/60">
+                  <p className="font-mono text-sm" style={{ color: "var(--bg-main)", opacity: 0.8 }}>
                     {work.company} · {work.location}
                   </p>
-                  <p className="font-mono text-xs text-black/60 mt-1">
+                  <p className="font-mono text-xs mt-1" style={{ color: "var(--bg-main)", opacity: 0.8 }}>
                     {work.period} ({work.duration})
                   </p>
                 </div>
@@ -64,12 +75,17 @@ export function WorkExperienceModal({ target, isOpen, onClose }: WorkExperienceM
                   {work.metrics.map((metric: any, idx: number) => (
                     <div
                       key={idx}
-                      className="bg-gray-100 border-2 border-black p-3 text-center"
+                      className="p-3 text-center wireframe-border"
+                      style={{
+                        borderWidth: "var(--border-width)",
+                        borderColor: "var(--border-color)",
+                        backgroundColor: "var(--bg-main)",
+                      }}
                     >
-                      <p className="font-mono text-xl font-bold text-black">
+                      <p className="font-mono text-xl font-bold" style={{ color: "var(--text-main)" }}>
                         {metric.value}
                       </p>
-                      <p className="font-mono text-xs text-gray-600 uppercase">
+                      <p className="font-mono text-xs uppercase" style={{ color: "var(--text-muted)" }}>
                         {metric.label}
                       </p>
                     </div>
@@ -80,31 +96,40 @@ export function WorkExperienceModal({ target, isOpen, onClose }: WorkExperienceM
               {/* Projects */}
               {work.projects && (
                 <div className="mb-6">
-                  <h4 className="font-mono text-sm font-bold text-black uppercase mb-3">
+                  <h4 className="font-mono text-sm font-bold uppercase mb-3" style={{ color: "var(--text-main)" }}>
                     Key Projects
                   </h4>
                   <div className="space-y-2">
                     {work.projects.map((project: any, idx: number) => (
                       <div
                         key={idx}
-                        className="bg-gray-100 border-2 border-black p-3"
+                        className="p-3 wireframe-border"
+                        style={{
+                          borderWidth: "var(--border-width)",
+                          borderColor: "var(--border-color)",
+                          backgroundColor: "var(--bg-main)",
+                        }}
                       >
                         <div className="flex justify-between items-start mb-2">
-                          <h5 className="font-mono text-sm font-bold text-black">
+                          <h5 className="font-mono text-sm font-bold" style={{ color: "var(--text-main)" }}>
                             {project.title}
                           </h5>
-                          <span className="font-mono text-xs text-gray-600 uppercase">
+                          <span className="font-mono text-xs uppercase" style={{ color: "var(--text-muted)" }}>
                             {project.role}
                           </span>
                         </div>
-                        <p className="font-mono text-xs text-gray-700 mb-2">
+                        <p className="font-mono text-xs mb-2" style={{ color: "var(--text-main)" }}>
                           {project.desc}
                         </p>
                         <div className="flex flex-wrap gap-1">
                           {project.tech.map((tech: string, techIdx: number) => (
                             <span
                               key={techIdx}
-                              className="px-2 py-1 bg-black text-white font-mono text-xs"
+                              className="px-2 py-1 font-mono text-xs"
+                              style={{
+                                backgroundColor: "var(--text-main)",
+                                color: "var(--bg-main)",
+                              }}
                             >
                               {tech}
                             </span>
@@ -119,14 +144,20 @@ export function WorkExperienceModal({ target, isOpen, onClose }: WorkExperienceM
               {/* Skills */}
               {work.skills && (
                 <div className="mb-6">
-                  <h4 className="font-mono text-sm font-bold text-black uppercase mb-3">
+                  <h4 className="font-mono text-sm font-bold uppercase mb-3" style={{ color: "var(--text-main)" }}>
                     Tech Stack
                   </h4>
                   <div className="flex flex-wrap gap-2">
                     {work.skills.map((skill: string, idx: number) => (
                       <span
                         key={idx}
-                        className="px-3 py-1 bg-gray-200 border-2 border-black text-black font-mono text-xs"
+                        className="px-3 py-1 font-mono text-xs wireframe-border"
+                        style={{
+                          borderWidth: "var(--border-width)",
+                          borderColor: "var(--border-color)",
+                          backgroundColor: "var(--bg-main)",
+                          color: "var(--text-main)",
+                        }}
                       >
                         {skill}
                       </span>
@@ -137,11 +168,15 @@ export function WorkExperienceModal({ target, isOpen, onClose }: WorkExperienceM
               
               {/* Spotlight */}
               {work.spotlight && (
-                <div className="bg-yellow-100 border-2 border-black p-4">
-                  <h4 className="font-mono text-sm font-bold text-black uppercase mb-2">
+                <div className="p-4 wireframe-border" style={{
+                  borderWidth: "var(--border-width)",
+                  borderColor: "var(--border-color)",
+                  backgroundColor: "var(--bg-main)",
+                }}>
+                  <h4 className="font-mono text-sm font-bold uppercase mb-2" style={{ color: "var(--text-main)" }}>
                     ⭐ Spotlight: {work.spotlight.title}
                   </h4>
-                  <p className="font-mono text-xs text-gray-700 mb-2">
+                  <p className="font-mono text-xs mb-2" style={{ color: "var(--text-main)" }}>
                     {work.spotlight.summary}
                   </p>
                   <div className="flex gap-4 text-xs">
@@ -157,10 +192,17 @@ export function WorkExperienceModal({ target, isOpen, onClose }: WorkExperienceM
             </div>
             
             {/* Footer */}
-            <div className="border-t-4 border-black p-4 flex justify-center">
+            <div className="p-4 flex justify-center" style={{ borderTopWidth: "var(--border-width)", borderColor: "var(--border-color)" }}>
               <button
                 onClick={onClose}
-                className="px-8 py-3 bg-green-500 text-white font-mono text-xl border-4 border-black shadow-[4px_4px_0_#000] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0_#000] transition-all"
+                className="px-8 py-3 font-mono text-xl transition-all wireframe-btn"
+                style={{
+                  borderWidth: "var(--border-width)",
+                  borderColor: "var(--border-color)",
+                  backgroundColor: "var(--accent-color)",
+                  color: "var(--bg-main)",
+                  boxShadow: "var(--shadow-offset-x) var(--shadow-offset-y) var(--shadow-blur) var(--shadow-color)",
+                }}
               >
                 CONTINUE GAME ▶
               </button>
