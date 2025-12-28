@@ -45,6 +45,8 @@ export interface GameState {
   isMovingLeft: boolean;
   isMovingRight: boolean;
   worldWidth: number;  // Total width of level
+  activeCheckpoint: number | null; // Current checkpoint index (0, 1, 2) or null
+  visitedCheckpoints: Set<number>; // Track which checkpoints have been visited
 }
 
 interface LifeEvent {
@@ -103,6 +105,8 @@ export function useGameEngine({
     isMovingLeft: false,
     isMovingRight: false,
     worldWidth,
+    activeCheckpoint: null,
+    visitedCheckpoints: new Set(),
   });
   
   // Player physics
@@ -299,6 +303,8 @@ export function useGameEngine({
       isMovingLeft: false,
       isMovingRight: false,
       worldWidth,
+      activeCheckpoint: null,
+      visitedCheckpoints: new Set(),
     });
     
     lastTimeRef.current = performance.now();
@@ -390,6 +396,8 @@ export function useGameEngine({
       isMovingLeft: false,
       isMovingRight: false,
       combo: 0,
+      activeCheckpoint: null,
+      visitedCheckpoints: new Set(),
     }));
     
     lastTimeRef.current = performance.now();
@@ -435,6 +443,8 @@ export function useGameEngine({
       isMovingLeft: false,
       isMovingRight: false,
       worldWidth,
+      activeCheckpoint: null,
+      visitedCheckpoints: new Set(),
     });
     
     lastTimeRef.current = performance.now();
@@ -444,6 +454,7 @@ export function useGameEngine({
   const restartLevel = useCallback(() => {
     goToLevel(gameState.level);
   }, [gameState.level, goToLevel]);
+
   
   // Check collision
   const checkCollision = useCallback((obstacle: GameObstacle, playerX: number): boolean => {
@@ -537,6 +548,35 @@ export function useGameEngine({
       
       // Calculate progress based on player position
       const newProgress = newX / worldWidth;
+      
+      // Track checkpoints (at 25%, 50%, 75% of worldWidth) - no pause, just tracking
+      const checkpointPositions = [
+        worldWidth * 0.25,
+        worldWidth * 0.5,
+        worldWidth * 0.75,
+      ];
+      
+      // Check if player reached a checkpoint (just for visual highlighting)
+      for (let index = 0; index < checkpointPositions.length; index++) {
+        const checkpointX = checkpointPositions[index];
+        const distance = Math.abs(newX - checkpointX);
+        const checkpointThreshold = 50; // 50px threshold to trigger checkpoint
+        
+        if (distance < checkpointThreshold && !gameState.visitedCheckpoints.has(index)) {
+          // Mark checkpoint as visited for visual highlighting
+          setGameState((prev) => ({
+            ...prev,
+            activeCheckpoint: index,
+            visitedCheckpoints: new Set([...prev.visitedCheckpoints, index]),
+          }));
+        } else if (distance > checkpointThreshold + 100 && gameState.activeCheckpoint === index) {
+          // Clear active checkpoint when player moves away
+          setGameState((prev) => ({
+            ...prev,
+            activeCheckpoint: null,
+          }));
+        }
+      }
       
       // Check collisions with obstacles
       let collision = false;
@@ -650,11 +690,17 @@ export function useGameEngine({
       keysPressed.current.add(e.code);
       
       // Jump
-      if (e.code === "Space" || e.code === "ArrowUp" || e.code === "KeyW") {
+      if (e.code === "ArrowUp" || e.code === "KeyW") {
         e.preventDefault();
         if (gameState.isPlaying && !gameState.isPaused) {
           jump();
-        } else if (gameState.isLevelComplete) {
+        }
+      }
+      
+      // Space - Continue to next level or start game
+      if (e.code === "Space" || e.code === "Enter") {
+        e.preventDefault();
+        if (gameState.isLevelComplete) {
           nextLevel();
         } else if (gameState.isGameOver) {
           restartLevel();

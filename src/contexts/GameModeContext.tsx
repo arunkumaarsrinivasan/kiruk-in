@@ -276,4 +276,4 @@ export function useGameMode(): GameModeContextType {
 
 // Re-export data types for convenience
 export type { GameMode, GameProgress, PageGame, GameLevel };
-export { PAGE_GAMES, GAME_MODES, GAME_TYPE_EMOJIS } from '@/data/game-navigation-data';
+export { PAGE_GAMES, GAME_MODES, GAME_TYPE_ICONS } from '@/data/game-navigation-data';

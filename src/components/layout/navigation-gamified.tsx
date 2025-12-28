@@ -7,58 +7,13 @@ import { GRID_SIZE, cn } from '@/lib/utils';
 import { useGameMode, PAGE_GAMES, GAME_MODES } from '@/contexts/GameModeContext';
 import { GameMenuOverlay } from './GameMenuOverlay';
 import { TimeMachine } from '@/components/ui/TimeMachine';
+import { PixelIcon } from '@/components/ui/PixelIcon';
 
 const TE_TIMING = {
   instant: 0.08,
   quick: 0.15,
 };
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// PIXEL ICON COMPONENT
-// ═══════════════════════════════════════════════════════════════════════════════
-
-const PixelIcon = ({ name, size = 16, className }: { name: string; size?: number; className?: string }) => {
-  const ICON_PATHS: Record<string, string> = {
-    'home': 'solid/home-solid.svg',
-    'user': 'solid/user-solid.svg',
-    'grid': 'solid/grid-solid.svg',
-    'folder': 'solid/folder-solid.svg',
-    'chart': 'solid/chart-line-solid.svg',
-    'globe': 'solid/globe-solid.svg',
-    'envelope': 'solid/envelope-solid.svg',
-    'bars': 'solid/bars-solid.svg',
-    'times': 'solid/times-solid.svg',
-    'play': 'solid/play-solid.svg',
-    'pause': 'solid/pause-solid.svg',
-    'clock': 'solid/clock-solid.svg',
-    'angle-left': 'solid/angle-left-solid.svg',
-    'angle-right': 'solid/angle-right-solid.svg',
-    'angle-down': 'solid/angle-down-solid.svg',
-    'gamepad': 'solid/gamepad-solid.svg',
-  };
-  
-  const iconPath = ICON_PATHS[name];
-  if (!iconPath) return <span className="font-mono" style={{ fontSize: size }}>?</span>;
-
-  return (
-    <span
-      className={cn('inline-block', className)}
-      style={{
-        width: size,
-        height: size,
-        backgroundColor: 'currentColor',
-        WebkitMaskImage: `url(/icons/${iconPath})`,
-        WebkitMaskSize: 'contain',
-        WebkitMaskRepeat: 'no-repeat',
-        WebkitMaskPosition: 'center',
-        maskImage: `url(/icons/${iconPath})`,
-        maskSize: 'contain',
-        maskRepeat: 'no-repeat',
-        maskPosition: 'center',
-      }}
-    />
-  );
-};
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // 3x3 GRID MENU BUTTON (Main navigation trigger)
@@ -222,7 +177,7 @@ const GameModeIndicator = () => {
       className="flex items-center gap-1.5 px-2 border-y border-r border-[var(--border-color)] bg-[var(--bg-card)]"
       style={{ height: BAR_HEIGHT }}
     >
-      <span className="text-sm">{modeConfig.icon}</span>
+      <PixelIcon name={modeConfig.icon} size={16} />
       <div className="flex flex-col">
         <span className="text-[8px] font-mono font-bold uppercase tracking-wider">
           {modeConfig.name}

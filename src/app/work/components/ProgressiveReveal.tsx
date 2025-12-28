@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { WorkTarget } from "./useShootingGame";
+import { PixelIcon } from "@/components/ui/PixelIcon";
 
 interface ProgressiveRevealProps {
   target: WorkTarget | null;
@@ -64,8 +65,9 @@ export function ProgressiveReveal({ target, revealIndex, level }: ProgressiveRev
         >
           {currentReveal.type === "title" && (
             <div className="text-center">
-              <div className="font-mono text-sm font-bold mb-1" style={{ color: "var(--text-main)" }}>
-                🎯 {currentReveal.content}
+              <div className="font-mono text-sm font-bold mb-1 flex items-center gap-2" style={{ color: "var(--text-main)" }}>
+                <PixelIcon name="flag-checkered" size={16} />
+                {currentReveal.content}
               </div>
               <div className="font-mono text-[10px]" style={{ color: "var(--text-muted)" }}>
                 {work.period} · {work.location}

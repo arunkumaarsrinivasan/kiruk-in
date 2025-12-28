@@ -1,7 +1,10 @@
 "use client";
 
-import { motion, useMotionValue, useSpring } from "framer-motion";
-import { useEffect } from "react";
+import { motion, useMotionValue, useSpring, useMotionTemplate } from "framer-motion";
+import { useEffect, useState } from "react";
+
+// Account for fixed container with pt-16 (64px padding-top)
+const TOP_PADDING = 64; // pt-16 = 64px
 
 interface PixelCursorProps {
   x: number; // Percentage
@@ -11,13 +14,34 @@ interface PixelCursorProps {
 }
 
 export function PixelCursor({ x, y, isCharging, power }: PixelCursorProps) {
+  const [viewportY, setViewportY] = useState(0);
+  
+  useEffect(() => {
+    const updateViewportY = () => {
+      // Convert container y percentage to viewport y percentage
+      // y is percentage of container height, convert to viewport percentage
+      const containerHeight = window.innerHeight - TOP_PADDING;
+      const calculatedY = containerHeight > 0 
+        ? ((y / 100) * containerHeight + TOP_PADDING) / window.innerHeight * 100
+        : y;
+      setViewportY(calculatedY);
+    };
+    updateViewportY();
+    window.addEventListener('resize', updateViewportY);
+    return () => window.removeEventListener('resize', updateViewportY);
+  }, [y]);
+  
   const cursorX = useSpring(useMotionValue(x), { stiffness: 500, damping: 30 });
-  const cursorY = useSpring(useMotionValue(y), { stiffness: 500, damping: 30 });
+  const cursorY = useSpring(useMotionValue(viewportY), { stiffness: 500, damping: 30 });
   
   useEffect(() => {
     cursorX.set(x);
-    cursorY.set(y);
-  }, [x, y, cursorX, cursorY]);
+    cursorY.set(viewportY);
+  }, [x, viewportY, cursorX, cursorY]);
+  
+  // Create reactive style strings
+  const left = useMotionTemplate`${cursorX}%`;
+  const top = useMotionTemplate`${cursorY}%`;
   
   const pixelSize = 4;
   const baseSize = 16; // 4x4 grid
@@ -48,8 +72,8 @@ export function PixelCursor({ x, y, isCharging, power }: PixelCursorProps) {
     <motion.div
       className="fixed pointer-events-none z-[60]"
       style={{
-        left: `${x}%`,
-        top: `${y}%`,
+        left,
+        top,
         transform: "translate(-50%, -50%)",
         cursor: "none",
       }}

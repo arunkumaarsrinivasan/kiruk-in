@@ -21,6 +21,49 @@ import {
   type StoryTileContent,
   type FunFactTileContent,
 } from './grid-tile-types';
+import { PixelIcon } from '@/components/ui/PixelIcon';
+
+// Helper function to map emoji to pixel icon name
+const emojiToIconName = (emoji: string): string => {
+  const emojiMap: Record<string, string> = {
+    '🎯': 'flag-checkered',
+    '📍': 'location',
+    '🚀': 'plane',
+    '📖': 'book-heart',
+    '🧩': 'cog',
+    '✨': 'sparkles',
+    '🎨': 'pencil-ruler',
+    '🔧': 'cog',
+    '💼': 'wallet',
+    '🌊': 'sparkles',
+    '📝': 'pen',
+    '🧠': 'face-thinking',
+    '🎓': 'crown',
+    '🏔️': 'location',
+    '🤖': 'robot',
+    '🎭': 'themes',
+    '⚡': 'bolt',
+    '🔍': 'search',
+    '📊': 'chart',
+    '🍃': 'seedlings',
+    '☁️': 'cloud',
+    '🎮': 'trophy',
+    '✍️': 'pen',
+    '☕': 'star',
+    '📓': 'book-heart',
+    '🖊️': 'pen-nib',
+    '⛰️': 'location',
+    '⌨️': 'code',
+    '✏️': 'pencil',
+    '🖨️': 'print',
+    '👨‍🏫': 'user',
+    '🏓': 'trophy',
+    '🌲': 'seedlings',
+    '🏙️': 'globe',
+    '❓': 'question',
+  };
+  return emojiMap[emoji] || 'star';
+};
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -80,7 +123,7 @@ const IntroCard: React.FC<{ content: IntroContent }> = ({ content }) => (
         {content.tagline}
       </p>
       <div className="flex items-center gap-1 mt-3 text-[10px] font-mono text-[var(--text-muted)]">
-        <span>📍</span>
+        <PixelIcon name="location" size={12} />
         <span>{content.location}</span>
       </div>
     </motion.div>
@@ -104,7 +147,7 @@ const SkillCard: React.FC<{ content: SkillTileContent; index: number }> = ({ con
       transition={{ delay: index * 0.05 }}
     >
       <div className="flex items-center gap-2 mb-1">
-        <span className="text-lg">{content.emoji}</span>
+        <PixelIcon name={emojiToIconName(content.emoji)} size={18} />
         <span className="text-[10px] font-mono font-bold text-[var(--text-main)] uppercase truncate">
           {content.name}
         </span>
@@ -162,7 +205,7 @@ const StoryCard: React.FC<{ content: StoryTileContent; index: number }> = ({ con
       onClick={() => setIsExpanded(!isExpanded)}
     >
       <div className="flex items-center gap-2 mb-2">
-        <span className="text-xl">{content.emoji}</span>
+        <PixelIcon name={emojiToIconName(content.emoji)} size={20} />
         <h3 className="text-xs font-mono font-bold text-[var(--text-main)] line-clamp-1">
           {content.title}
         </h3>
@@ -186,7 +229,7 @@ const FunFactCard: React.FC<{ content: FunFactTileContent; index: number }> = ({
     animate={{ opacity: 1, scale: 1 }}
     transition={{ delay: index * 0.05, type: 'spring' }}
   >
-    <span className="text-xl flex-shrink-0">{content.emoji}</span>
+    <span className="flex-shrink-0"><PixelIcon name={emojiToIconName(content.emoji)} size={20} /></span>
     <p className="text-[10px] font-mono text-[var(--text-main)] leading-tight line-clamp-3">
       {content.fact}
     </p>

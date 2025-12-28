@@ -14,6 +14,7 @@ import { FullPageGridArcade } from './FullPageGridArcade';
 import { getRandomGameId, getDefaultGameId, getGameEntry, getGameIds } from './game-registry';
 import { GRID_SIZE, cn } from '@/lib/utils';
 import { useGameMode } from '@/contexts/GameModeContext';
+import { PixelIcon } from '@/components/ui/PixelIcon';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // GAME INSTRUCTIONS MODAL
@@ -228,7 +229,7 @@ const GameInstructions: React.FC<GameInstructionsProps> = ({ gameId, isOpen, onS
         
         {/* Goal */}
         <div className="mb-4">
-          <h3 className="text-[10px] font-mono text-[var(--text-muted)] uppercase mb-1">🎯 Goal</h3>
+          <h3 className="text-[10px] font-mono text-[var(--text-muted)] uppercase mb-1 flex items-center gap-1"><PixelIcon name="flag-checkered" size={10} /> Goal</h3>
           <p className="text-sm font-mono text-[var(--text-main)]">{instructions.goal}</p>
         </div>
         

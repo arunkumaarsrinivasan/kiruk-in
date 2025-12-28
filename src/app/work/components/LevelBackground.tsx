@@ -105,7 +105,7 @@ export function LevelBackground({ company, location, level, children, gameState 
               {/* Progress percentage overlay */}
               {targetProgress > 0.1 && (
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="font-mono text-xs font-bold text-white drop-shadow-[0_0_3px_rgba(0,0,0,0.9)]">
+                  <span className="font-mono text-xs font-bold" style={{ color: "var(--bg-main)" }}>
                     {Math.round(targetProgress * 100)}%
                   </span>
                 </div>
@@ -118,7 +118,7 @@ export function LevelBackground({ company, location, level, children, gameState 
                 <span>START</span>
               </span>
               <span className="text-yellow-400 px-2 py-0.5 border border-yellow-400/30 bg-yellow-400/10">
-                TARGET: {gameState.targets[0]?.hitCount || 0}/{gameState.targets[0]?.maxHits || 5}
+                TARGET: {gameState.targets[0]?.hitCount || 0}/{gameState.targets[0]?.maxHits || 9}
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="text-xl leading-none">🏁</span>

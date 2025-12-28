@@ -8,9 +8,10 @@ import { SniperScope } from './components/SniperScope';
 import { GameStats } from './components/GameStats';
 import { LevelBackground } from './components/LevelBackground';
 import { PersonaProfile } from './components/PersonaProfile';
-import { TargetAchievements } from './components/TargetAchievements';
 import { PixelCursor } from './components/PixelCursor';
 import { ExperienceTimeline } from './components/ExperienceTimeline';
+import { GridBackground } from '@/components/ui/GridBackground';
+import { PixelIcon } from '@/components/ui/PixelIcon';
 
 // Shared handwritten font token
 const handwrittenFont = 'handwritten';
@@ -21,7 +22,7 @@ const involvementEnhanced = [
     description:
       'Delivered guest lectures and conducted workshops on UI/UX design for 60 students, sharing insights and practical knowledge and skill development in the field.',
     category: 'Education',
-    icon: '👨‍🏫',
+    icon: 'user',
     color: '#3b82f6',
     impact: '60+ students trained'
   },
@@ -30,7 +31,7 @@ const involvementEnhanced = [
     description:
       'Engaging in tech events and meetups across Bangalore during weekends, actively participating to stay updated with trends and connect with the tech community.',
     category: 'Community',
-    icon: '🤝',
+    icon: 'users',
     color: '#8b5cf6',
     impact: 'Active community member'
   }
@@ -255,13 +256,14 @@ export default function Work() {
 
 
   return (
-    <main className="min-h-screen overflow-hidden" style={{ backgroundColor: "var(--bg-main)" }}>
+    <main className="min-h-screen overflow-hidden relative" style={{ backgroundColor: "var(--bg-main)" }}>
+      <GridBackground />
       {/* Game Header */}
       <div className="fixed top-0 left-0 right-0 z-30 border-b-4 border-black p-3" style={{ backgroundColor: "var(--bg-card)" }}>
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <h1 className="text-xl font-mono" style={{ color: "var(--text-main)" }}>
-              🎯 WORK EXPERIENCE ARCHERY
+            <h1 className="text-xl font-mono flex items-center gap-2" style={{ color: "var(--text-main)" }}>
+              <PixelIcon name="flag-checkered" size={20} /> WORK EXPERIENCE ARCHERY
             </h1>
             {!showIntro && (
               <div className="flex items-center gap-2 font-mono text-sm">
@@ -275,10 +277,10 @@ export default function Work() {
             <div className="flex items-center gap-2">
               <button
                 onClick={togglePause}
-                className="px-3 py-1 font-mono text-sm border-2 border-black transition-colors hover:opacity-80"
+                className="px-3 py-1 font-mono text-sm border-2 border-black transition-colors hover:opacity-80 flex items-center gap-1"
                 style={{ backgroundColor: "var(--bg-card)", color: "var(--text-main)" }}
               >
-                {gameState.isPaused ? "▶ RESUME" : "⏸ PAUSE"}
+                {gameState.isPaused ? <><PixelIcon name="play" size={16} /> RESUME</> : <><PixelIcon name="pause" size={16} /> PAUSE</>}
               </button>
             </div>
           )}
@@ -295,27 +297,19 @@ export default function Work() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {/* Grid background */}
-            <div
-              className="absolute inset-0 opacity-30"
-              style={{
-                backgroundImage: `
-                  linear-gradient(var(--border-color) 1px, transparent 1px),
-                  linear-gradient(90deg, var(--border-color) 1px, transparent 1px)
-                `,
-                backgroundSize: "20px 20px",
-              }}
-            />
+            <GridBackground opacity={0.3} />
 
             <div className="text-center max-w-2xl px-4 relative z-10">
               <motion.h1
-                className="text-4xl md:text-6xl font-mono mb-4"
+                className="text-4xl md:text-6xl font-mono mb-4 flex items-center justify-center gap-3"
                 style={{ color: "var(--text-main)" }}
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.2 }}
               >
-                🎯 WORK EXPERIENCE ARCHERY
+                <PixelIcon name="flag-checkered" size={48} className="md:hidden" />
+                <PixelIcon name="flag-checkered" size={64} className="hidden md:inline" />
+                WORK EXPERIENCE ARCHERY
               </motion.h1>
 
               <motion.p
@@ -347,7 +341,7 @@ export default function Work() {
                     boxShadow: "var(--shadow-offset-x) var(--shadow-offset-y) var(--shadow-blur) var(--shadow-color)",
                   }}
                 >
-                  ▶ START GAME
+                  <PixelIcon name="play" size={24} /> START GAME
                 </button>
 
                 <div className="text-sm font-mono" style={{ color: "var(--text-muted)" }}>
@@ -374,12 +368,10 @@ export default function Work() {
               cursor: "none" // Hide default cursor
             }}
           >
-            {/* Targets - Multiple squares per level */}
+            {/* Targets - Clean game area without cluttering info boxes */}
             {gameState.targets.map((target) => (
               <div key={target.id}>
                 <PixelTarget target={target} />
-                {/* Achievement/Skill visuals around target */}
-                <TargetAchievements target={target} hitCount={target.hitCount} />
               </div>
             ))}
 
@@ -456,13 +448,14 @@ export default function Work() {
                   backgroundColor: "var(--bg-card)",
                   boxShadow: "var(--shadow-offset-x) var(--shadow-offset-y) var(--shadow-blur) var(--shadow-color)",
                 }}>
-                  <h2 className="font-mono text-4xl font-bold mb-4" style={{ color: "var(--text-main)" }}>
-                    🎯 LEVEL {gameState.currentLevel} COMPLETE!
+                  <h2 className="font-mono text-4xl font-bold mb-4 flex items-center justify-center gap-3" style={{ color: "var(--text-main)" }}>
+                    <PixelIcon name="flag-checkered" size={40} />
+                    LEVEL {gameState.currentLevel} COMPLETE!
                   </h2>
-                  <p className="font-mono text-lg mb-4" style={{ color: "var(--text-muted)" }}>
+                  <p className="font-mono text-lg mb-4 flex items-center justify-center gap-2" style={{ color: "var(--text-muted)" }}>
                     {gameState.currentLevel < gameState.maxLevel 
                       ? "Loading next level..." 
-                      : "All levels completed! 🎉"}
+                      : <>All levels completed! <PixelIcon name="trophy" size={20} /></>}
                   </p>
                 </div>
               </motion.div>
@@ -484,8 +477,9 @@ export default function Work() {
                     backgroundColor: "var(--bg-card)",
                     boxShadow: "var(--shadow-offset-x) var(--shadow-offset-y) var(--shadow-blur) var(--shadow-color)",
                   }}>
-                    <h2 className="text-4xl font-mono mb-4" style={{ color: "var(--text-main)" }}>
-                      ⏸ PAUSED
+                    <h2 className="text-4xl font-mono mb-4 flex items-center justify-center gap-3" style={{ color: "var(--text-main)" }}>
+                      <PixelIcon name="pause" size={40} />
+                      PAUSED
                     </h2>
                     <button
                       onClick={togglePause}
@@ -497,7 +491,7 @@ export default function Work() {
                         color: "var(--bg-main)",
                       }}
                     >
-                      ▶ RESUME
+                      <PixelIcon name="play" size={20} /> RESUME
                     </button>
                   </div>
                 </motion.div>
@@ -538,10 +532,12 @@ export default function Work() {
                     {/* Pixelated Header */}
                     <div className="mb-6">
                       <h2
-                        className="text-5xl md:text-6xl font-mono mb-2"
+                        className="text-5xl md:text-6xl font-mono mb-2 flex items-center justify-center gap-3"
                         style={{ color: "var(--text-main)" }}
                       >
-                        🎉 MISSION COMPLETE
+                        <PixelIcon name="trophy" size={48} className="md:hidden" />
+                        <PixelIcon name="trophy" size={64} className="hidden md:inline" />
+                        MISSION COMPLETE
                       </h2>
                       <div className="font-mono text-xs uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
                         All Experience Levels Unlocked
@@ -635,7 +631,7 @@ export default function Work() {
                               key={star}
                               className="text-2xl"
                             >
-                              {filled ? "⭐" : "☆"}
+                              {filled ? <PixelIcon name="star" size={24} /> : <PixelIcon name="star-crescent" size={24} style={{ opacity: 0.3 }} />}
                             </div>
                           );
                         })}
@@ -660,7 +656,7 @@ export default function Work() {
                           imageRendering: "pixelated" as any,
                         }}
                       >
-                        🔄 MAIN MENU
+                        <PixelIcon name="refresh" size={20} /> MAIN MENU
                       </button>
                       <button
                         onClick={() => {
@@ -678,7 +674,7 @@ export default function Work() {
                           imageRendering: "pixelated" as any,
                         }}
                       >
-                        ▶ PLAY AGAIN
+                        <PixelIcon name="play" size={20} /> PLAY AGAIN
                       </button>
                     </div>
                   </motion.div>

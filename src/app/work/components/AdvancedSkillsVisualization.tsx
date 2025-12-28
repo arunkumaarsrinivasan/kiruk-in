@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { WorkTarget } from "./useShootingGame";
+import { PixelIcon } from "@/components/ui/PixelIcon";
 
 interface AdvancedSkillsVisualizationProps {
   target: WorkTarget | null;
@@ -26,8 +27,9 @@ export function AdvancedSkillsVisualization({ target, level }: AdvancedSkillsVis
       transition={{ duration: 0.5 }}
     >
       <div className="text-center mb-4 border-b-2 pb-3" style={{ borderColor: "var(--border-color)" }}>
-        <h3 className="font-mono text-lg font-bold mb-2" style={{ color: "var(--text-main)" }}>
-          🎯 LEVEL {level} COMPLETE
+        <h3 className="font-mono text-lg font-bold mb-2 flex items-center justify-center gap-2" style={{ color: "var(--text-main)" }}>
+          <PixelIcon name="flag-checkered" size={20} />
+          LEVEL {level} COMPLETE
         </h3>
         <p className="font-mono text-xs" style={{ color: "var(--text-muted)" }}>
           {work.company} · {work.title}

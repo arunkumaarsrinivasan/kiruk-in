@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { PixelIcon } from '@/components/ui/PixelIcon';
 
 export default function LocationWidget() {
   const [location, setLocation] = useState({
@@ -38,20 +39,20 @@ export default function LocationWidget() {
   }, []);
 
   return (
-    <article className="p-4 bg-[var(--bg-card)]">
-      <div className="bg-[var(--accent-color)] p-2 mb-3 -m-4 -mt-4">
-        <h3 className="font-mono font-bold text-sm uppercase text-[var(--bg-main)] flex items-center gap-2">
-          <span>📍</span> LOCATION REPORT
+    <article className="grid-p-1 bg-[var(--bg-card)]">
+      <div className="bg-[var(--accent-color)] grid-p-1 grid-mb-1 -m-1 -mt-1">
+        <h3 className="font-mono font-bold text-sm uppercase text-[var(--bg-main)] flex items-center grid-gap-1">
+          <PixelIcon name="location" size={16} className="text-[var(--bg-main)]" /> LOCATION REPORT
         </h3>
       </div>
-      <div className="grid grid-cols-2 gap-1 mb-3 mt-4">
+      <div className="grid grid-cols-2 grid-gap-1 grid-mb-1 grid-mt-1">
         {Array.from({ length: 2 }).map((_, i) => (
           <div key={i} className="h-1 border border-[var(--border-color)] bg-[var(--bg-main)]"></div>
         ))}
       </div>
-      <div className="mt-4 space-y-3">
-        <div className="p-3 bg-[var(--bg-main)]">
-          <div className="font-mono font-bold text-sm mb-1 uppercase">{location.city}</div>
+      <div className="grid-mt-1 space-y-3">
+        <div className="grid-p-1 bg-[var(--bg-main)]">
+          <div className="font-mono font-bold text-sm grid-mb-1 uppercase">{location.city}</div>
           <div className="text-xs font-mono">{location.area}</div>
         </div>
         <div className="space-y-2 text-xs font-mono">
@@ -78,7 +79,7 @@ export default function LocationWidget() {
             </span>
           </div>
         </div>
-        <div className="text-[10px] font-mono text-[var(--text-muted)] italic mt-2">
+        <div className="text-[10px] font-mono text-[var(--text-muted)] italic grid-mt-1">
           Based in the heart of India's technology capital
         </div>
       </div>

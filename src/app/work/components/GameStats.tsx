@@ -12,12 +12,11 @@ export function GameStats({ gameState, currentTarget }: GameStatsProps) {
   
   return (
     <div
-      className="absolute z-40 border border-[var(--border-color)] bg-[var(--bg-card)] p-3"
+      className="absolute z-40 border border-[var(--border-color)] bg-[var(--bg-card)] grid-p-1"
       style={{ 
-        minWidth: "200px", 
-        maxWidth: "220px",
-        bottom: "16px",
-        left: "16px",
+        width: "200px", // 10 * 20px
+        bottom: "20px", // 1 * 20px
+        left: "20px",   // 1 * 20px
       }}
     >
       {/* Grid background */}

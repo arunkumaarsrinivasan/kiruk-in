@@ -9,6 +9,8 @@ import { getRandomGameId, getDefaultGameId, getGameEntry } from "@/components/ui
 import TimeMachine from "@/components/ui/TimeMachine";
 import { MissionCompletionNotification } from "./MissionCompletionNotification";
 import { useMissionTracker } from "@/hooks/useMissionTracker";
+import DetectiveStoryWrapper from "./DetectiveStoryWrapper";
+import { HelpBot } from "@/components/ui/HelpBot";
 
 interface LayoutClientShellProps {
   readonly children: React.ReactNode;
@@ -30,22 +32,22 @@ export default function LayoutClientShell({ children }: Readonly<LayoutClientShe
   const gameEntry = getGameEntry(gameId);
   const gameName = gameEntry?.label || 'Game';
   
-  // Game icons based on game type
+  // Game icons based on game type - using pixel icons
   const gameIcons: Record<string, string> = {
-    'snake': '🐍',
-    'painter': '🎨',
-    'collector': '✨',
-    'avoider': '⚡',
-    'tetris': '🧱',
-    'pipe': '🔧',
-    'shooter': '🚀',
-    'minesweeper': '💣',
-    'flappy': '🐦',
-    'timeline': '📅',
-    'quiz': '❓',
-    'memory': '🧠',
+    'snake': 'bolt',
+    'painter': 'pen',
+    'collector': 'sparkles',
+    'avoider': 'eye-cross',
+    'tetris': 'grid',
+    'pipe': 'cog',
+    'shooter': 'eye',
+    'minesweeper': 'exclamation-triangle',
+    'flappy': 'arrow-up',
+    'timeline': 'clock',
+    'quiz': 'question',
+    'memory': 'bookmark',
   };
-  const gameIcon = gameIcons[gameId] || '🎮';
+  const gameIcon = gameIcons[gameId] || 'play';
   
   const handleToggleGame = useCallback(() => {
     setIsGameActive(prev => !prev);
@@ -97,16 +99,21 @@ export default function LayoutClientShell({ children }: Readonly<LayoutClientShe
         onToggleGame={arcadeEnabled ? handleToggleGame : undefined}
       />
       
-      <main 
-        id="main-content" 
-        tabIndex={-1}
-        style={{ paddingTop: '120px' }} // Account for taller header (BAR_HEIGHT * 2 = 60px * 2)
-      >
-        {children}
-      </main>
+      <DetectiveStoryWrapper>
+        <main 
+          id="main-content" 
+          tabIndex={-1}
+          style={{ paddingTop: '120px' }} // 6 * 20px - Account for taller header (BAR_HEIGHT * 2 = 60px * 2)
+        >
+          {children}
+        </main>
+      </DetectiveStoryWrapper>
       
       {/* Mission Completion Notifications */}
       <MissionCompletionNotification />
+      
+      {/* Help Bot - Available on all pages */}
+      <HelpBot />
       
       {/* Grid Arcade - only on home and lab pages */}
       {arcadeEnabled && pathname === '/lab' && (

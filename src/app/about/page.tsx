@@ -11,6 +11,7 @@ import { PixelObstacle } from "./components/PixelObstacle";
 import { LevelBackground } from "./components/LevelBackground";
 import { useGameEngine } from "./components/useGameEngine";
 import { useGameMode } from "@/contexts/GameModeContext";
+import { GridBackground } from "@/components/ui/GridBackground";
 
 // Life events data with timeline
 type LifeEvent = {
@@ -304,6 +305,25 @@ export default function About() {
 		setSelectedEvent(null);
 		nextLevel();
 	}, [nextLevel]);
+
+	// Keyboard support: Space to continue to next level when modal is open
+	useEffect(() => {
+		const handleKeyDown = (e: KeyboardEvent) => {
+			// Only handle Space when modal is open and level is complete
+			if ((e.code === "Space" || e.code === "Enter") && showEventModal && gameState.isLevelComplete) {
+				e.preventDefault();
+				// Only continue if there are more levels
+				if (gameState.level < lifeEvents.length - 1) {
+					handleContinue();
+				}
+			}
+		};
+
+		globalThis.addEventListener("keydown", handleKeyDown);
+		return () => {
+			globalThis.removeEventListener("keydown", handleKeyDown);
+		};
+	}, [showEventModal, gameState.isLevelComplete, gameState.level, handleContinue]);
 	
 	const handleLevelSelect = useCallback((level: number) => {
 		setShowIntro(false);
@@ -350,7 +370,8 @@ export default function About() {
 	}, [gameState.isPlaying, gameState.isPaused, gameState.isLevelComplete, gameState.isGameOver, showIntro, showEventModal, jump, setMoving, handleContinue, restartLevel, handleStartGame]);
 
 	return (
-		<main className="min-h-screen overflow-hidden" style={{ backgroundColor: "var(--bg-main)" }}>
+		<main className="min-h-screen overflow-hidden relative" style={{ backgroundColor: "var(--bg-main)" }}>
+			<GridBackground />
 			{/* Game Header */}
 			<div className="fixed top-0 left-0 right-0 z-30 border-b-2 p-3" style={{ backgroundColor: "var(--bg-card)", borderColor: "var(--border-color)" }}>
 				<div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -403,17 +424,7 @@ export default function About() {
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
 					>
-						{/* Grid background */}
-						<div 
-							className="absolute inset-0 opacity-30"
-							style={{
-								backgroundImage: `
-									linear-gradient(var(--border-color) 1px, transparent 1px),
-									linear-gradient(90deg, var(--border-color) 1px, transparent 1px)
-								`,
-								backgroundSize: "20px 20px",
-							}}
-						/>
+						<GridBackground opacity={0.3} />
 						
 						<div className="text-center max-w-2xl px-4 relative z-10">
 							<motion.div
@@ -516,10 +527,12 @@ export default function About() {
 						worldWidth={gameState.worldWidth}
 						event={currentEvent || undefined}
 						levelProgress={gameState.levelProgress}
+						activeCheckpoint={gameState.activeCheckpoint}
+						visitedCheckpoints={gameState.visitedCheckpoints}
 					>
 						
 						{/* Game Canvas - with camera offset */}
-						<div className="absolute bottom-16 left-0 right-0 h-48 overflow-hidden z-10">
+						<div className="absolute bottom-20 left-0 right-0 h-48 overflow-hidden z-10">
 							{/* Scrolling world container */}
 							<div 
 								className="relative h-full"
@@ -529,11 +542,11 @@ export default function About() {
 									transition: 'transform 0.05s linear',
 								}}
 							>
-								{/* Player - positioned by playerX */}
+								{/* Player - positioned by playerX, slightly above ground */}
 								<div
 									className="absolute"
 									style={{
-										bottom: gameState.playerY,
+										bottom: gameState.playerY - 12,
 										left: gameState.playerX,
 										transform: `${gameState.isDucking ? 'scaleY(0.6)' : 'scaleY(1)'} ${gameState.isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)'}`,
 										transformOrigin: 'bottom center',
@@ -591,22 +604,24 @@ export default function About() {
 							</div>
 						</div>
 						
-						{/* Controls Hint */}
-						<div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-30">
-							<div 
-								className="font-mono text-sm px-4 py-2 flex items-center gap-4 border"
-								style={{ 
-									backgroundColor: "var(--bg-card)", 
-									color: "var(--text-main)",
-									borderColor: "var(--border-color)"
-								}}
-							>
-								<span>← → MOVE</span>
-								<span>⬆️ SPACE = JUMP</span>
-								<span>⬇️ DOWN = DUCK</span>
-								<span>⏸️ ESC = PAUSE</span>
+						{/* Controls Hint - Hidden while playing */}
+						{!gameState.isPlaying && (
+							<div className="absolute grid-bottom-1 left-1/2 transform -translate-x-1/2 z-30">
+								<div 
+									className="font-mono text-xs grid-px-1 grid-py-1 flex items-center gap-3 border"
+									style={{ 
+										backgroundColor: "var(--bg-card)", 
+										color: "var(--text-main)",
+										borderColor: "var(--border-color)"
+									}}
+								>
+									<span>← → MOVE</span>
+									<span>⬆️ SPACE = JUMP</span>
+									<span>⬇️ DOWN = DUCK</span>
+									<span>⏸️ ESC = PAUSE</span>
+								</div>
 							</div>
-						</div>
+						)}
 					</LevelBackground>
 					
 					{/* Pause Overlay */}
@@ -712,25 +727,7 @@ export default function About() {
 							animate={{ scale: 1, opacity: 1 }}
 							exit={{ scale: 0.9, opacity: 0 }}
 						>
-							{/* Grid Background */}
-							<div 
-								className="absolute inset-0 opacity-20 pointer-events-none"
-								style={{
-									backgroundImage: `
-										linear-gradient(var(--border-color) 1px, transparent 1px),
-										linear-gradient(90deg, var(--border-color) 1px, transparent 1px)
-									`,
-									backgroundSize: "20px 20px",
-								}}
-							/>
-							
-							{/* Scanlines effect */}
-							<div 
-								className="absolute inset-0 pointer-events-none opacity-10"
-								style={{
-									backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px)",
-								}}
-							/>
+							<GridBackground opacity={0.2} scanlinesOpacity={0.1} />
 							
 							{/* Header - Terminal Style */}
 							<div 
@@ -869,6 +866,7 @@ export default function About() {
 										}}
 									>
 										▶ CONTINUE TO NEXT LEVEL
+										<span className="ml-2 text-xs opacity-70">(Press SPACE)</span>
 									</button>
 								) : (
 									<div className="text-center">
