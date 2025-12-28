@@ -2,40 +2,30 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import { useShootingGame, WorkTarget } from './components/useShootingGame';
 import { PixelTarget } from './components/PixelTarget';
 import { SniperScope } from './components/SniperScope';
 import { GameStats } from './components/GameStats';
-import { LevelBackground } from './components/LevelBackground';
-import { PersonaProfile } from './components/PersonaProfile';
-import { PixelCursor } from './components/PixelCursor';
-import { ExperienceTimeline } from './components/ExperienceTimeline';
 import { GridBackground } from '@/components/ui/GridBackground';
 import { PixelIcon } from '@/components/ui/PixelIcon';
 
-// Shared handwritten font token
-const handwrittenFont = 'handwritten';
+// Lazy load heavy components
+const LevelBackground = dynamic(() => import('./components/LevelBackground').then(mod => ({ default: mod.LevelBackground })), {
+  ssr: false,
+});
 
-const involvementEnhanced = [
-  {
-    title: 'Guest Lecturer & Workshop Conductor',
-    description:
-      'Delivered guest lectures and conducted workshops on UI/UX design for 60 students, sharing insights and practical knowledge and skill development in the field.',
-    category: 'Education',
-    icon: 'user',
-    color: '#3b82f6',
-    impact: '60+ students trained'
-  },
-  {
-    title: 'Tech Community Engagement',
-    description:
-      'Engaging in tech events and meetups across Bangalore during weekends, actively participating to stay updated with trends and connect with the tech community.',
-    category: 'Community',
-    icon: 'users',
-    color: '#8b5cf6',
-    impact: 'Active community member'
-  }
-];
+const PersonaProfile = dynamic(() => import('./components/PersonaProfile').then(mod => ({ default: mod.PersonaProfile })), {
+  ssr: false,
+});
+
+const PixelCursor = dynamic(() => import('./components/PixelCursor').then(mod => ({ default: mod.PixelCursor })), {
+  ssr: false,
+});
+
+const ExperienceTimeline = dynamic(() => import('./components/ExperienceTimeline').then(mod => ({ default: mod.ExperienceTimeline })), {
+  ssr: false,
+});
 
 const workExperience = [
   {
@@ -233,7 +223,7 @@ const workExperience = [
 export default function Work() {
   const [showIntro, setShowIntro] = useState(true);
   const [selectedTarget, setSelectedTarget] = useState<WorkTarget | null>(null);
-  const [revealIndex, setRevealIndex] = useState(0);
+  const [_revealIndex, setRevealIndex] = useState(0);
 
   const { gameState, startGame, togglePause } = useShootingGame({
     workExperiences: workExperience,

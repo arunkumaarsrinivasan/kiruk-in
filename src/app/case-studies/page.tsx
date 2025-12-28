@@ -2,11 +2,21 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { GRID_SIZE } from '@/lib/utils';
 import { GridBackground } from '@/components/ui/GridBackground';
-import { CrosswordPuzzle } from './components/crossword-puzzle';
-import { ProjectFolders } from './components/project-folders';
+
+// Lazy load heavy components
+const CrosswordPuzzle = dynamic(() => import('./components/crossword-puzzle').then(mod => ({ default: mod.CrosswordPuzzle })), {
+  loading: () => <div className="flex items-center justify-center min-h-[400px]"><div className="text-sm font-mono">Loading puzzle...</div></div>,
+  ssr: false,
+});
+
+const ProjectFolders = dynamic(() => import('./components/project-folders').then(mod => ({ default: mod.ProjectFolders })), {
+  loading: () => <div className="flex items-center justify-center min-h-[400px]"><div className="text-sm font-mono">Loading projects...</div></div>,
+  ssr: false,
+});
 
 export default function CaseStudies() {
   const { trackPageView, trackInteraction } = useAnalytics();
@@ -21,8 +31,8 @@ export default function CaseStudies() {
     setShowFolders(true);
   };
 
-  const handleFolderClick = (folder: any) => {
-    trackInteraction('project_folder_clicked', { folder: folder.id });
+  const handleFolderClick = (_folder: { id: string }) => {
+    trackInteraction('project_folder_clicked', { folder: _folder.id });
   };
 
   return (

@@ -2,13 +2,13 @@
 @import "../styles/typography-enhancements.css";
 @import "../styles/teenage-engineering-interactions.css";
 
-/* Custom font declarations */
+/* Custom font declarations - optimized for performance */
 @font-face {
   font-family: 'StackSansHeadline';
   src: url('../assets/fonts/StackSansHeadline[wght].ttf') format('truetype');
   font-weight: 100 900;
   font-style: normal;
-  font-display: swap;
+  font-display: optional; /* Changed from swap to optional for better LCP */
 }
 
 @font-face {
@@ -16,7 +16,7 @@
   src: url('../assets/fonts/StackSansNotch[wght].ttf') format('truetype');
   font-weight: 100 900;
   font-style: normal;
-  font-display: swap;
+  font-display: optional; /* Changed from swap to optional for better LCP */
 }
 
 @font-face {
@@ -24,7 +24,7 @@
   src: url('../assets/fonts/StackSansText[wght].ttf') format('truetype');
   font-weight: 100 900;
   font-style: normal;
-  font-display: swap;
+  font-display: optional; /* Changed from swap to optional for better LCP */
 }
 
 /* =========================================

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 import { PixelIcon } from '@/components/ui/PixelIcon';
 import { useGameMode } from '@/contexts/GameModeContext';
 import { useDesignEra } from '@/contexts/DesignEraContext';
@@ -286,23 +287,36 @@ export default function NewspaperLayout() {
                   }}
                   whileHover={{ scale: 1.02 }}
                 >
-                  <motion.img
-                    src="/images/dp-8bit.jpg"
-                    alt="Subject Photo"
-                    className="absolute inset-0 w-full h-full object-cover"
-                    style={{ imageRendering: 'pixelated' }}
+                  <motion.div
+                    className="absolute inset-0"
                     initial={{ opacity: 1 }}
                     whileHover={{ opacity: 0 }}
                     transition={{ duration: 0.3 }}
-                  />
-                  <motion.img
-                    src="/images/dp.jpeg"
-                    alt="Subject Photo Real"
-                    className="absolute inset-0 w-full h-full object-cover"
+                  >
+                    <Image
+                      src="/images/dp-8bit.jpg"
+                      alt="Subject Photo"
+                      fill
+                      className="object-cover"
+                      style={{ imageRendering: 'pixelated' }}
+                      sizes="128px"
+                      priority
+                    />
+                  </motion.div>
+                  <motion.div
+                    className="absolute inset-0"
                     initial={{ opacity: 0 }}
                     whileHover={{ opacity: 1 }}
                     transition={{ duration: 0.3 }}
-                  />
+                  >
+                    <Image
+                      src="/images/dp.jpeg"
+                      alt="Subject Photo Real"
+                      fill
+                      className="object-cover"
+                      sizes="128px"
+                    />
+                  </motion.div>
                 </motion.div>
                 <div 
                   className="text-xs font-mono uppercase px-2 py-1 inline-block"

@@ -164,7 +164,7 @@ export function CrosswordPuzzle({ onComplete }: CrosswordPuzzleProps) {
   });
 
   const [activeClue, setActiveClue] = useState<Clue | null>(crosswordData.clues[0]);
-  const [activeDirection, setActiveDirection] = useState<'across' | 'down'>('across');
+  const [_activeDirection, setActiveDirection] = useState<'across' | 'down'>('across');
   const [isComplete, setIsComplete] = useState(false);
   const [revealedClues, setRevealedClues] = useState<Set<string>>(new Set());
   const [activeCell, setActiveCell] = useState<{ row: number; col: number } | null>(null);
@@ -553,8 +553,8 @@ export function CrosswordPuzzle({ onComplete }: CrosswordPuzzleProps) {
     checkCompletion();
   }, [grid, checkCompletion]);
 
-  // All clues are across now
-  const allClues = crosswordData.clues.filter(c => c.direction === 'across');
+  // All clues are across now (commented out unused variable)
+  // const allClues = crosswordData.clues.filter(c => c.direction === 'across');
 
   return (
     <div className="max-w-6xl mx-auto">

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState, useMemo } from "react";
 
 import { VlogGallery } from "@/modules/vlogs";
-import { SketchHeading } from "@/components/ui/sketch-elements";
+// Removed unused import
 import { PixelCharacter, getStageFromAge, getActionFromAge } from "./components/PixelCharacter";
 import { PixelObstacle } from "./components/PixelObstacle";
 import { LevelBackground } from "./components/LevelBackground";
@@ -272,7 +272,7 @@ export default function About() {
 	
 	const { mode: gameMode } = useGameMode();
 	
-	const { gameState, startGame, jump, duck, setMoving, togglePause, nextLevel, goToLevel, restartLevel } = useGameEngine({
+	const { gameState, startGame, jump, setMoving, togglePause, nextLevel, goToLevel, restartLevel } = useGameEngine({
 		levels,
 		events: lifeEvents.map(e => ({ id: e.id, year: e.year, title: e.title, tags: e.tags, icon: e.icon })),
 		gameMode: gameMode || 'normal',
@@ -546,7 +546,7 @@ export default function About() {
 								<div
 									className="absolute"
 									style={{
-										bottom: gameState.playerY - 12,
+										bottom: gameState.playerY,
 										left: gameState.playerX,
 										transform: `${gameState.isDucking ? 'scaleY(0.6)' : 'scaleY(1)'} ${gameState.isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)'}`,
 										transformOrigin: 'bottom center',
