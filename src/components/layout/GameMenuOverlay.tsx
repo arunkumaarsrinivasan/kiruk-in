@@ -206,7 +206,7 @@ const StatsHUD = ({
           onClick={onModeChange}
           className="flex items-center gap-2 px-3 py-2 border-l-2 border-[var(--border-color)] bg-[var(--bg-card)] hover:bg-[var(--accent-color)] hover:text-[var(--bg-main)] transition-colors cursor-pointer"
         >
-          <span className="text-lg">{modeConfig?.icon}</span>
+          <PixelIcon name={modeConfig?.icon || 'user'} size={18} />
           <div className="flex flex-col text-left">
             <span className="text-[8px] text-[var(--text-muted)]">MODE</span>
             <span className="text-[10px] font-bold leading-none">{modeConfig?.name}</span>

@@ -71,7 +71,7 @@ export function ExperienceTimeline({
     <div 
       className="absolute z-30 pointer-events-none w-full left-0"
       style={{
-        top: "130px", // Right after progress bars/objectives section (header ~64px + progress bars ~109px, no gap)
+        top: "120px", // 6 * 20px - aligned to grid
       }}
     >
       <div className="relative w-full">

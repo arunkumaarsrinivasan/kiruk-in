@@ -20,43 +20,8 @@ import { cn, GRID_SIZE } from '@/lib/utils';
 import { getGameEntry, getGameIds } from './game-registry';
 import { getPageInfo } from '@/data/page-info';
 import { PlayerArchetypeSelector } from './PlayerArchetypeSelector';
+import { PixelIcon } from '@/components/ui/PixelIcon';
 
-// Pixel Icon component using mask for color theming
-const PixelIcon = ({ name, size = 16, className }: { name: string; size?: number; className?: string }) => {
-  const ICON_PATHS: Record<string, string> = {
-    'play': 'solid/play-solid.svg',
-    'pause': 'solid/pause-solid.svg',
-    'shuffle': 'solid/shuffle-solid.svg',
-    'times': 'solid/times-solid.svg',
-    'sparkles': 'solid/sparkles-solid.svg',
-    'robot': 'solid/robot-solid.svg',
-    'fire': 'solid/fire-solid.svg',
-    'trophy': 'solid/trophy-solid.svg',
-    'question': 'solid/question-solid.svg',
-  };
-  
-  const iconPath = ICON_PATHS[name];
-  if (!iconPath) return <span className="font-mono" style={{ fontSize: size }}>?</span>;
-
-  return (
-    <span
-      className={cn('inline-block', className)}
-      style={{
-        width: size,
-        height: size,
-        backgroundColor: 'currentColor',
-        WebkitMaskImage: `url(/icons/${iconPath})`,
-        WebkitMaskSize: 'contain',
-        WebkitMaskRepeat: 'no-repeat',
-        WebkitMaskPosition: 'center',
-        maskImage: `url(/icons/${iconPath})`,
-        maskSize: 'contain',
-        maskRepeat: 'no-repeat',
-        maskPosition: 'center',
-      }}
-    />
-  );
-};
 
 // Compact animated hints for each game type
 const GameHint = ({ gameId, isActive }: { gameId: string; isActive: boolean }) => {
@@ -486,7 +451,7 @@ export const ArcadePlayButton: React.FC<ArcadePlayButtonProps> = ({
               {/* Page Description - Friendly copy */}
               <div className="flex-1 flex flex-col items-start justify-center px-2">
                 <span className="text-[6px] font-mono uppercase tracking-wider opacity-50">
-                  {isActive ? '🎯 MISSION' : '📍 THIS PAGE'}
+                  {isActive ? <><PixelIcon name="flag-checkered" size={8} className="inline-block" /> MISSION</> : <><PixelIcon name="location" size={8} className="inline-block" /> THIS PAGE</>}
                 </span>
                 <AnimatePresence mode="wait">
                   <motion.span 

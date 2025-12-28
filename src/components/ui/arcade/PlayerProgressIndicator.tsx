@@ -16,37 +16,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn, GRID_SIZE } from '@/lib/utils';
 import { calculateProgress, type PlayerProgress } from './grid-tile-types';
-
-// Pixel Icon component
-const PixelIcon = ({ name, size = 16, className }: { name: string; size?: number; className?: string }) => {
-  const ICON_PATHS: Record<string, string> = {
-    'trophy': 'solid/trophy-solid.svg',
-    'star': 'solid/star-solid.svg',
-    'chart': 'solid/chart-line-solid.svg',
-  };
-  
-  const iconPath = ICON_PATHS[name];
-  if (!iconPath) return <span className="font-mono" style={{ fontSize: size }}>?</span>;
-
-  return (
-    <span
-      className={cn('inline-block', className)}
-      style={{
-        width: size,
-        height: size,
-        backgroundColor: 'currentColor',
-        WebkitMaskImage: `url(/icons/${iconPath})`,
-        WebkitMaskSize: 'contain',
-        WebkitMaskRepeat: 'no-repeat',
-        WebkitMaskPosition: 'center',
-        maskImage: `url(/icons/${iconPath})`,
-        maskSize: 'contain',
-        maskRepeat: 'no-repeat',
-        maskPosition: 'center',
-      }}
-    />
-  );
-};
+import { PixelIcon } from '@/components/ui/PixelIcon';
 
 interface PlayerProgressIndicatorProps {
   tilesExplored?: number;
@@ -209,7 +179,7 @@ export const PlayerProgressIndicator: React.FC<PlayerProgressIndicatorProps> = (
           style={{ width: GRID_SIZE * 2.5 }}
         >
           <div className="flex items-center gap-1">
-            <span className="text-[10px]">🎯</span>
+            <PixelIcon name="flag-checkered" size={10} />
             <span className="font-mono text-[11px] font-bold">{progress.tilesExplored}</span>
           </div>
           <span className="font-mono text-[6px] opacity-50">EXPLORED</span>

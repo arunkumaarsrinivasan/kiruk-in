@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { WireframeCard, SketchHeading } from '@/components/ui/sketch-elements';
+import { PixelIcon } from '@/components/ui/PixelIcon';
 
 interface InvolvementItem {
   title: string;
@@ -17,15 +18,15 @@ interface InvolvementSectionProps {
 }
 
 const statChips = [
-  { icon: '📚', value: '60+', label: 'students taught', caption: 'UI/UX sprints and critiques' },
-  { icon: '🧭', value: '2+', label: 'years active', caption: 'Campus and community circles' },
-  { icon: '✨', value: '∞', label: 'micro experiments', caption: 'Meetups, AMAs, prototype jams' }
+  { icon: 'book-heart', value: '60+', label: 'students taught', caption: 'UI/UX sprints and critiques' },
+  { icon: 'globe', value: '2+', label: 'years active', caption: 'Campus and community circles' },
+  { icon: 'sparkles', value: '∞', label: 'micro experiments', caption: 'Meetups, AMAs, prototype jams' }
 ];
 
 const collabPills = [
-  { icon: '🎤', text: 'Guest workshop' },
-  { icon: '🧠', text: 'Mentor hour' },
-  { icon: '🔗', text: 'Community collab' }
+  { icon: 'message', text: 'Guest workshop' },
+  { icon: 'users-crown', text: 'Mentor hour' },
+  { icon: 'link', text: 'Community collab' }
 ];
 
 const fadeUp = (delay = 0) => ({
@@ -51,9 +52,9 @@ const InvolvementCard = ({ item, index }: { item: InvolvementItem; index: number
         <div className="flex items-start justify-between gap-4 mb-4">
           <div className="flex items-start gap-3">
             <span
-              className="flex h-8 w-8 items-center justify-center border border-black text-xl bg-gray-50"
+              className="flex h-8 w-8 items-center justify-center border border-black bg-gray-50"
             >
-              {item.icon}
+              <PixelIcon name={item.icon} size={24} />
             </span>
             <div>
               <span className="inline-block px-2 py-0.5 border border-black text-[10px] uppercase tracking-[0.2em] text-gray-600 handwritten mb-1">
@@ -100,7 +101,7 @@ export const InvolvementSection = ({ involvementData }: InvolvementSectionProps)
               <div className="absolute -bottom-px -left-px w-1.5 h-1.5 border-b border-l border-black" />
               <div className="absolute -bottom-px -right-px w-1.5 h-1.5 border-b border-r border-black" />
 
-              <span className="text-xl mb-1" aria-hidden>{chip.icon}</span>
+              <span className="mb-1" aria-hidden><PixelIcon name={chip.icon} size={24} /></span>
               <span className="text-2xl font-bold text-black handwritten">{chip.value}</span>
               <span className="text-sm font-semibold text-gray-800 handwritten uppercase tracking-wider">{chip.label}</span>
               <span className="text-[10px] text-gray-500 handwritten mt-1 border-t border-gray-200 pt-1">{chip.caption}</span>
@@ -132,7 +133,7 @@ export const InvolvementSection = ({ involvementData }: InvolvementSectionProps)
             <div className="mb-8 flex flex-wrap justify-center gap-3 text-sm text-black handwritten">
               {collabPills.map((pill) => (
                 <span key={pill.text} className="inline-flex items-center gap-2 border border-gray-300 bg-gray-50 px-4 py-2 uppercase tracking-wider text-xs">
-                  <span aria-hidden>{pill.icon}</span>
+                  <span aria-hidden><PixelIcon name={pill.icon} size={16} /></span>
                   {pill.text}
                 </span>
               ))}

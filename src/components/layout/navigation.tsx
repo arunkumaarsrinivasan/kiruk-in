@@ -5,6 +5,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GRID_SIZE, cn } from '@/lib/utils';
 import { useDesignEra } from '@/contexts/DesignEraContext';
+import { PixelIcon } from '@/components/ui/PixelIcon';
 
 const TE_TIMING = {
   instant: 0.08,
@@ -19,55 +20,6 @@ const Z_LAYERS = {
   nav: 50,
 };
 
-// Pixel Icon component using mask for color theming
-const PixelIcon = ({ name, size = 16, className }: { name: string; size?: number; className?: string }) => {
-  const ICON_PATHS: Record<string, string> = {
-    'home': 'solid/home-solid.svg',
-    'user': 'solid/user-solid.svg',
-    'grid': 'solid/grid-solid.svg',
-    'folder': 'solid/folder-solid.svg',
-    'chart': 'solid/chart-line-solid.svg',
-    'globe': 'solid/globe-solid.svg',
-    'envelope': 'solid/envelope-solid.svg',
-    'bars': 'solid/bars-solid.svg',
-    'times': 'solid/times-solid.svg',
-    'play': 'solid/play-solid.svg',
-    'pause': 'solid/pause-solid.svg',
-    'clock': 'solid/clock-solid.svg',
-    'analytics': 'solid/analytics-solid.svg',
-    'location': 'solid/location-pin-solid.svg',
-    'pen': 'solid/pen-solid.svg',
-    'arrow-left': 'solid/arrow-left-solid.svg',
-    'arrow-right': 'solid/arrow-right-solid.svg',
-    'angle-left': 'solid/angle-left-solid.svg',
-    'angle-right': 'solid/angle-right-solid.svg',
-    'angle-down': 'solid/angle-down-solid.svg',
-    'sparkles': 'solid/sparkles-solid.svg',
-    'themes': 'solid/themes-solid.svg',
-  };
-  
-  const iconPath = ICON_PATHS[name];
-  if (!iconPath) return <span className="font-mono" style={{ fontSize: size }}>?</span>;
-
-  return (
-    <span
-      className={cn('inline-block', className)}
-      style={{
-        width: size,
-        height: size,
-        backgroundColor: 'currentColor',
-        WebkitMaskImage: `url(/icons/${iconPath})`,
-        WebkitMaskSize: 'contain',
-        WebkitMaskRepeat: 'no-repeat',
-        WebkitMaskPosition: 'center',
-        maskImage: `url(/icons/${iconPath})`,
-        maskSize: 'contain',
-        maskRepeat: 'no-repeat',
-        maskPosition: 'center',
-      }}
-    />
-  );
-};
 
 // Pixelated Oval Eye for header
 const PixelEye = ({ size = 52 }: { size?: number }) => {

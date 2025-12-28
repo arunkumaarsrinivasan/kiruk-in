@@ -38,39 +38,39 @@ const jobOpportunities = [
 
 export default function JobNews() {
   return (
-    <section className="mb-6">
-      <div className="bg-[var(--accent-color)] p-3 mb-4">
-        <h2 className="text-xl md:text-2xl font-mono font-bold uppercase text-[var(--bg-main)] flex items-center gap-2">
+    <section className="grid-mb-3">
+      <div className="bg-[var(--accent-color)] grid-p-1 grid-mb-1">
+        <h2 className="text-xl md:text-2xl font-mono font-bold uppercase text-[var(--bg-main)] flex items-center grid-gap-1">
           <span>💼</span> JOB MARKET NEWS
         </h2>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 grid-gap-1">
         {jobOpportunities.map((job, index) => (
           <article 
             key={job.id}
-            className={`p-4 bg-[var(--bg-card)]`}
+            className={`grid-p-1 bg-[var(--bg-card)]`}
           >
-            <div className="grid grid-cols-2 gap-1 mb-2">
+            <div className="grid grid-cols-2 grid-gap-1 grid-mb-1">
               {Array.from({ length: 2 }).map((_, i) => (
                 <div key={i} className="h-1 border border-[var(--border-color)] bg-[var(--bg-main)]"></div>
               ))}
             </div>
-            <div className="flex items-start justify-between mb-2">
-              <div className="bg-[var(--accent-color)] px-2 py-1">
+            <div className="flex items-start justify-between grid-mb-1">
+              <div className="bg-[var(--accent-color)] grid-px-1 grid-py-1">
                 <span className="font-mono font-bold text-[10px] uppercase text-[var(--bg-main)]">{job.status}</span>
               </div>
-              <div className="bg-[var(--bg-main)] px-2 py-1">
+              <div className="bg-[var(--bg-main)] grid-px-1 grid-py-1">
                 <span className="font-mono font-bold text-[10px] uppercase">{job.match} MATCH</span>
               </div>
             </div>
-            <h3 className="font-mono font-bold text-sm mb-2 uppercase">{job.title}</h3>
-            <div className="space-y-1 text-xs font-mono mb-3">
+            <h3 className="font-mono font-bold text-sm grid-mb-1 uppercase">{job.title}</h3>
+            <div className="grid-space-y-1 text-xs font-mono grid-mb-1">
               <div><strong>Company:</strong> {job.company}</div>
               <div><strong>Location:</strong> {job.location}</div>
               <div><strong>Type:</strong> {job.type}</div>
             </div>
-            <div className="border-t border-[var(--border-color)] pt-2">
+            <div className="border-t border-[var(--border-color)] grid-pt-1">
               <div className="text-[10px] font-mono text-[var(--text-muted)]">
                 Skills: {job.skills}
               </div>
@@ -80,15 +80,15 @@ export default function JobNews() {
       </div>
 
       {/* Current Status - Pixel Grid */}
-      <article className="p-4 bg-[var(--bg-card)] mt-4">
-        <div className="grid grid-cols-3 gap-1 mb-3">
+      <article className="grid-p-1 bg-[var(--bg-card)] grid-mt-1">
+        <div className="grid grid-cols-3 grid-gap-1 grid-mb-1">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="h-1 border border-[var(--border-color)] bg-[var(--bg-main)]"></div>
           ))}
         </div>
-        <h3 className="font-mono font-bold text-sm mb-2 uppercase">CURRENT STATUS</h3>
-        <div className="text-xs font-mono space-y-1">
-          <div className="border-l-2 border-[var(--accent-color)] pl-2">
+        <h3 className="font-mono font-bold text-sm grid-mb-1 uppercase">CURRENT STATUS</h3>
+        <div className="text-xs font-mono grid-space-y-1">
+          <div className="border-l-2 border-[var(--accent-color)] grid-pl-1">
             <strong>Position:</strong> Software Development Engineer 1 at HP Inc
           </div>
           <div className="border-l-2 border-[var(--accent-color)] pl-2">

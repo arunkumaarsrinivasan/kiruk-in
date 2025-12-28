@@ -59,11 +59,11 @@ export default function BreakingNews() {
   }, []);
 
   return (
-    <section className="mb-6">
+    <section className="grid-mb-3">
       {/* Breaking News Banner - Pixel Grid Style */}
-      <div className="p-3 mb-4 bg-[var(--accent-color)]">
-        <div className="flex items-center gap-3">
-          <div className="bg-[var(--bg-main)] px-3 py-1">
+      <div className="grid-p-1 grid-mb-1 bg-[var(--accent-color)]">
+        <div className="flex items-center grid-gap-1">
+          <div className="bg-[var(--bg-main)] grid-px-1 grid-py-1">
             <span className="font-mono font-bold text-xs uppercase text-[var(--accent-color)] animate-pulse">
               BREAKING
             </span>
@@ -77,21 +77,21 @@ export default function BreakingNews() {
       </div>
 
       {/* Main Breaking News Article - Pixel Grid */}
-      <article className="p-6 bg-[var(--bg-card)]">
-        <div className="grid grid-cols-4 gap-1 mb-4">
+      <article className="grid-p-3 bg-[var(--bg-card)]">
+        <div className="grid grid-cols-4 grid-gap-1 grid-mb-1">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="h-1 border border-[var(--border-color)] bg-[var(--bg-main)]"></div>
           ))}
         </div>
-        <div className="flex items-start gap-4 mb-4 flex-wrap">
-          <div className="bg-[var(--accent-color)] px-3 py-1">
+        <div className="flex items-start grid-gap-1 grid-mb-1 flex-wrap">
+          <div className="bg-[var(--accent-color)] grid-px-1 grid-py-1">
             <span className="font-mono font-bold text-xs uppercase text-[var(--bg-main)]">
               {currentNews.category}
             </span>
           </div>
           <div className="text-xs font-mono text-[var(--text-muted)]">{currentNews.time}</div>
         </div>
-        <h3 className="text-xl md:text-2xl font-mono font-bold mb-3 leading-tight uppercase">
+        <h3 className="text-xl md:text-2xl font-mono font-bold grid-mb-1 leading-tight uppercase">
           {currentNews.headline}
         </h3>
         <p className="text-sm md:text-base leading-relaxed font-mono">
@@ -100,23 +100,23 @@ export default function BreakingNews() {
       </article>
 
       {/* Additional News Items - Pixel Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 grid-gap-1 grid-mt-1">
         {breakingNewsItems.slice(1, 3).map((item) => (
           <article 
             key={item.id} 
-            className="p-4 bg-[var(--bg-card)]"
+            className="grid-p-1 bg-[var(--bg-card)]"
           >
-            <div className="grid grid-cols-3 gap-1 mb-2">
+            <div className="grid grid-cols-3 grid-gap-1 grid-mb-1">
               {Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className="h-1 border border-[var(--border-color)] bg-[var(--bg-main)]"></div>
               ))}
             </div>
-            <div className="bg-[var(--accent-color)] px-2 py-1 mb-2 inline-block">
+            <div className="bg-[var(--accent-color)] grid-px-1 grid-py-1 grid-mb-1 inline-block">
               <span className="font-mono font-bold text-[10px] uppercase text-[var(--bg-main)]">{item.category}</span>
             </div>
-            <h4 className="font-mono font-bold text-sm mb-2 uppercase">{item.headline}</h4>
+            <h4 className="font-mono font-bold text-sm grid-mb-1 uppercase">{item.headline}</h4>
             <p className="text-xs font-mono leading-relaxed">{item.summary}</p>
-            <div className="text-[10px] font-mono text-[var(--text-muted)] mt-2">{item.time}</div>
+            <div className="text-[10px] font-mono text-[var(--text-muted)] grid-mt-1">{item.time}</div>
           </article>
         ))}
       </div>

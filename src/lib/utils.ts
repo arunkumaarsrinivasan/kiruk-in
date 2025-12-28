@@ -25,6 +25,38 @@ export function snapPositionToGrid(
   };
 }
 
+// Grid alignment utilities for components
+export function alignToGrid(value: number, gridSize: number = GRID_SIZE): number {
+  return Math.round(value / gridSize) * gridSize;
+}
+
+export function alignSizeToGrid(value: number, gridSize: number = GRID_SIZE): number {
+  // For sizes (width/height), round up to nearest grid multiple
+  return Math.ceil(value / gridSize) * gridSize;
+}
+
+export function alignSpacingToGrid(value: number, gridSize: number = GRID_SIZE): number {
+  // For spacing (padding/margin), round to nearest grid multiple
+  return Math.round(value / gridSize) * gridSize;
+}
+
+// Generate grid-aligned CSS values
+export function gridValue(multiplier: number, gridSize: number = GRID_SIZE): string {
+  return `${multiplier * gridSize}px`;
+}
+
+// Grid-aligned spacing helpers
+export const gridSpacing = {
+  xs: gridValue(1),   // 20px
+  sm: gridValue(2),   // 40px
+  md: gridValue(3),   // 60px
+  lg: gridValue(4),   // 80px
+  xl: gridValue(5),   // 100px
+  '2xl': gridValue(6), // 120px
+  '3xl': gridValue(8), // 160px
+  '4xl': gridValue(10), // 200px
+};
+
 // Animation utilities
 export const fadeInUp = {
   initial: { opacity: 0, y: 30 },

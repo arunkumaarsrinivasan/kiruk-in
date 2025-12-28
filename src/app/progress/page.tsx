@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState, useId, type CSSProperties, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { GRID_SIZE } from '@/lib/utils'
+import { GridBackground } from '@/components/ui/GridBackground'
+import { PixelIcon } from '@/components/ui/PixelIcon'
 
 interface GitHubCommit {
   sha: string
@@ -168,7 +170,7 @@ type ChartCardProps = {
   variant?: 'default' | 'terminal' | 'notebook' | 'strategy' | 'map' | 'calendar'
 }
 
-// Calendar Component - Actual calendar grid
+// Calendar Component - Week blocks view
 function CalendarView({ monthlyHighlights }: { monthlyHighlights: Array<{ id: string; title: string; completion: number; wins: Array<{ label: string; detail?: string }> }> }) {
   const currentDate = new Date()
   const currentMonth = currentDate.getMonth()
@@ -176,62 +178,81 @@ function CalendarView({ monthlyHighlights }: { monthlyHighlights: Array<{ id: st
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate()
   const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay()
   
-  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1)
-  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  // Calculate weeks
+  const weeks: Array<{ start: number; end: number; days: number[] }> = []
+  let currentWeekStart = 1
+  
+  // First week (may start mid-week)
+  const firstWeekDays = 7 - firstDayOfMonth
+  weeks.push({
+    start: 1,
+    end: Math.min(firstWeekDays, daysInMonth),
+    days: Array.from({ length: firstWeekDays }, (_, i) => i + 1)
+  })
+  
+  // Remaining weeks
+  currentWeekStart = firstWeekDays + 1
+  while (currentWeekStart <= daysInMonth) {
+    const weekEnd = Math.min(currentWeekStart + 6, daysInMonth)
+    weeks.push({
+      start: currentWeekStart,
+      end: weekEnd,
+      days: Array.from({ length: weekEnd - currentWeekStart + 1 }, (_, i) => currentWeekStart + i)
+    })
+    currentWeekStart = weekEnd + 1
+  }
+  
+  const today = currentDate.getDate()
   
   return (
-    <div className="wireframe-border p-4" style={{ imageRendering: "pixelated" as any }}>
-      <div className="grid grid-cols-7 gap-1 mb-2">
-        {weekDays.map((day) => (
-          <div key={day} className="font-mono text-xs text-center font-bold" style={{ color: "var(--text-muted)" }}>
-            {day}
-          </div>
-        ))}
-      </div>
-      <div className="grid grid-cols-7 gap-1">
-        {Array.from({ length: firstDayOfMonth }).map((_, i) => (
-          <div key={`empty-${i}`} className="aspect-square" />
-        ))}
-        {days.map((day) => {
-          const isToday = day === currentDate.getDate()
-          const hasData = monthlyHighlights.some(h => {
-            const highlightDate = new Date(h.title)
-            return highlightDate.getDate() === day
-          })
+    <div>
+      {/* Week blocks */}
+      <div className="space-y-1.5">
+        {weeks.slice(0, 5).map((week, weekIndex) => {
+          const hasToday = week.days.includes(today)
           
           return (
-            <motion.div
-              key={day}
-              className="wireframe-border aspect-square flex flex-col items-center justify-center p-1"
+            <div
+              key={weekIndex}
+              className="wireframe-border p-2 flex items-center justify-between"
               style={{ 
-                backgroundColor: isToday ? "var(--accent-color)" : hasData ? "var(--bg-card)" : "var(--bg-main)",
-                color: isToday ? "var(--bg-main)" : "var(--text-main)",
+                backgroundColor: hasToday ? "var(--bg-card)" : "var(--bg-main)",
                 borderWidth: "1px",
                 imageRendering: "pixelated" as any,
               }}
-              whileHover={{ scale: 1.1 }}
             >
-              <span className="font-mono text-xs font-bold">{day}</span>
-              {hasData && !isToday && (
-                <div className="w-1 h-1 rounded-full mt-1" style={{ backgroundColor: "var(--accent-color)" }} />
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-[10px] uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
+                  W{weekIndex + 1}
+                </span>
+                <span className="font-mono text-xs" style={{ color: "var(--text-main)" }}>
+                  {week.start}-{week.end}
+                </span>
+              </div>
+              {hasToday && (
+                <span className="font-mono text-[10px] font-bold" style={{ color: "var(--accent-color)" }}>TODAY</span>
               )}
-            </motion.div>
+            </div>
           )
         })}
       </div>
-      <div className="mt-4 space-y-2">
-        {monthlyHighlights.slice(0, 3).map((highlight) => (
-          <div key={highlight.id} className="wireframe-border p-2" style={{ borderWidth: "1px" }}>
-            <div className="flex items-center justify-between mb-1">
-              <span className="font-mono text-xs font-bold" style={{ color: "var(--text-main)" }}>{highlight.title}</span>
-              <span className="font-mono text-xs" style={{ color: "var(--accent-color)" }}>{highlight.completion}%</span>
+      
+      {/* Minimal highlights */}
+      {monthlyHighlights.length > 0 && (
+        <div className="mt-4 space-y-2">
+          {monthlyHighlights.slice(0, 2).map((highlight) => (
+            <div key={highlight.id} className="wireframe-border p-2" style={{ 
+              borderWidth: "1px",
+              imageRendering: "pixelated" as any,
+            }}>
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-xs font-bold" style={{ color: "var(--text-main)" }}>{highlight.title}</span>
+                <span className="font-mono text-xs" style={{ color: "var(--accent-color)" }}>{highlight.completion}%</span>
+              </div>
             </div>
-            <div className="h-1 wireframe-border" style={{ backgroundColor: "var(--bg-main)", borderWidth: "1px" }}>
-              <div className="h-full" style={{ backgroundColor: "var(--accent-color)", width: `${highlight.completion}%` }} />
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -298,7 +319,7 @@ function StrategyBoard({
       
       <div>
         <div className="flex items-center gap-2 mb-4">
-          <span className="text-xl">🎯</span>
+          <PixelIcon name="flag-checkered" size={20} />
           <p className="font-mono text-xs uppercase tracking-wider" style={{ color: "var(--accent-color)" }}>Priority Deck</p>
         </div>
         {priorityDeck.length > 0 ? (
@@ -380,16 +401,18 @@ function StrategyBoard({
   )
 }
 
-// Map Component - Treasure map style
+// Map Component - Pixel grid style matching timeline era
 function AdventureMap({ adventures }: { adventures: BucketListItem[] }) {
   return (
     <div className="relative" style={{ minHeight: "400px" }}>
-      {/* Map background with paths */}
-      <div className="absolute inset-0 opacity-20" style={{
+      {/* Grid pattern overlay */}
+      <div className="absolute inset-0 opacity-10" style={{
         backgroundImage: `
-          repeating-linear-gradient(45deg, transparent, transparent 10px, #8b4513 10px, #8b4513 11px),
-          repeating-linear-gradient(-45deg, transparent, transparent 10px, #8b4513 10px, #8b4513 11px)
+          linear-gradient(var(--border-color) 1px, transparent 1px),
+          linear-gradient(90deg, var(--border-color) 1px, transparent 1px)
         `,
+        backgroundSize: `${GRID_SIZE}px ${GRID_SIZE}px`,
+        imageRendering: "pixelated" as any,
       }} />
       
       {/* Adventure markers */}
@@ -399,24 +422,27 @@ function AdventureMap({ adventures }: { adventures: BucketListItem[] }) {
             key={item._id}
             className="relative wireframe-border p-4"
             style={{ 
-              backgroundColor: "#f5f1e8",
-              borderColor: "#8b4513",
+              backgroundColor: "var(--bg-card)",
               borderWidth: "2px",
               imageRendering: "pixelated" as any,
             }}
-            initial={{ opacity: 0, x: -30, rotate: -2 }}
-            animate={{ opacity: 1, x: 0, rotate: 0 }}
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.15 }}
-            whileHover={{ rotate: 1, scale: 1.02 }}
+            whileHover={{ scale: 1.02 }}
           >
             {/* Map pin */}
             <div className="absolute -left-3 top-4">
               <div className="w-6 h-6 wireframe-border flex items-center justify-center" style={{ 
-                backgroundColor: "#8b4513",
+                backgroundColor: "var(--accent-color)",
                 borderWidth: "2px",
                 transform: "rotate(45deg)",
+                imageRendering: "pixelated" as any,
               }}>
-                <span className="text-white text-xs font-bold" style={{ transform: "rotate(-45deg)" }}>
+                <span className="text-xs font-bold font-mono" style={{ 
+                  transform: "rotate(-45deg)",
+                  color: "var(--bg-main)",
+                }}>
                   {index + 1}
                 </span>
               </div>
@@ -425,8 +451,8 @@ function AdventureMap({ adventures }: { adventures: BucketListItem[] }) {
             {/* Connecting line */}
             {index < adventures.length - 1 && (
               <div className="absolute left-0 top-full w-0.5 h-4" style={{ 
-                backgroundColor: "#8b4513",
-                opacity: 0.3,
+                backgroundColor: "var(--border-color)",
+                opacity: 0.5,
                 left: "9px",
               }} />
             )}
@@ -434,20 +460,20 @@ function AdventureMap({ adventures }: { adventures: BucketListItem[] }) {
             <div className="ml-6">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1">
-                  <p className="font-mono text-base font-bold mb-1" style={{ color: "#654321" }}>{item.title}</p>
+                  <p className="font-mono text-base font-bold mb-1" style={{ color: "var(--text-main)" }}>{item.title}</p>
                   {item.location && (
-                    <p className="font-mono text-xs uppercase tracking-wider mb-2" style={{ color: "#8b4513" }}>
-                      📍 {item.location}
+                    <p className="font-mono text-xs uppercase tracking-wider mb-2" style={{ color: "var(--text-muted)" }}>
+                      <PixelIcon name="location" size={16} className="inline-block mr-1" /> {item.location}
                     </p>
                   )}
                   {item.description && (
-                    <p className="font-mono text-sm" style={{ color: "#654321" }}>{item.description}</p>
+                    <p className="font-mono text-sm" style={{ color: "var(--text-muted)" }}>{item.description}</p>
                   )}
                 </div>
                 {item.targetDate && (
                   <div className="text-right flex-shrink-0">
-                    <p className="font-mono text-xs uppercase tracking-wider" style={{ color: "#8b4513" }}>Target</p>
-                    <p className="font-mono text-lg font-bold" style={{ color: "#654321" }}>{formatDate(item.targetDate)}</p>
+                    <p className="font-mono text-xs uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Target</p>
+                    <p className="font-mono text-lg font-bold" style={{ color: "var(--accent-color)" }}>{formatDate(item.targetDate)}</p>
                   </div>
                 )}
               </div>
@@ -458,9 +484,8 @@ function AdventureMap({ adventures }: { adventures: BucketListItem[] }) {
                       key={tag} 
                       className="font-mono text-xs uppercase tracking-wider px-2 py-1 wireframe-border"
                       style={{ 
-                        backgroundColor: "#fff",
-                        borderColor: "#8b4513",
-                        color: "#654321",
+                        backgroundColor: "var(--bg-main)",
+                        color: "var(--text-main)",
                         borderWidth: "1px",
                         imageRendering: "pixelated" as any,
                       }}
@@ -511,39 +536,61 @@ function TerminalOutput({ commits }: { commits: GitHubCommit[] }) {
   )
 }
 
-// Terminal-style card for Commit Stream
+// Terminal-style card for Commit Stream - Pixel grid style
 function TerminalCard({ title, description, children, className }: ChartCardProps) {
   return (
     <motion.section
       className={`relative wireframe-border ${className ?? ''}`}
       style={{ 
         imageRendering: "pixelated" as any,
-        backgroundColor: "var(--bg-main)",
+        backgroundColor: "var(--bg-card)",
         borderWidth: "2px",
       }}
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
+      {/* Grid pattern overlay */}
+      <div className="absolute inset-0 pointer-events-none opacity-10" style={{
+        backgroundImage: `
+          linear-gradient(var(--border-color) 1px, transparent 1px),
+          linear-gradient(90deg, var(--border-color) 1px, transparent 1px)
+        `,
+        backgroundSize: `${GRID_SIZE}px ${GRID_SIZE}px`,
+        imageRendering: "pixelated" as any,
+      }} />
+      
       {/* Terminal header */}
-      <div className="wireframe-border px-4 py-2 flex items-center gap-2" style={{ 
+      <div className="wireframe-border px-4 py-2 flex items-center gap-2 relative z-10" style={{ 
         borderBottomWidth: "2px",
         borderTop: "none",
         borderLeft: "none",
         borderRight: "none",
-        backgroundColor: "var(--bg-card)",
+        backgroundColor: "var(--bg-main)",
         imageRendering: "pixelated" as any,
       }}>
         <div className="flex gap-1">
-          <div className="w-3 h-3 wireframe-border" style={{ backgroundColor: "var(--accent-color)", borderWidth: "1px" }} />
-          <div className="w-3 h-3 wireframe-border" style={{ backgroundColor: "var(--text-muted)", borderWidth: "1px" }} />
-          <div className="w-3 h-3 wireframe-border" style={{ backgroundColor: "var(--text-muted)", borderWidth: "1px" }} />
+          <div className="w-3 h-3 wireframe-border" style={{ 
+            backgroundColor: "var(--accent-color)", 
+            borderWidth: "1px",
+            imageRendering: "pixelated" as any,
+          }} />
+          <div className="w-3 h-3 wireframe-border" style={{ 
+            backgroundColor: "var(--text-muted)", 
+            borderWidth: "1px",
+            imageRendering: "pixelated" as any,
+          }} />
+          <div className="w-3 h-3 wireframe-border" style={{ 
+            backgroundColor: "var(--text-muted)", 
+            borderWidth: "1px",
+            imageRendering: "pixelated" as any,
+          }} />
         </div>
         <div className="flex-1 font-mono text-xs" style={{ color: "var(--text-muted)" }}>
           <span style={{ color: "var(--accent-color)" }}>$</span> {title}
         </div>
       </div>
-      <div className="px-4 py-3" style={{ backgroundColor: "var(--bg-main)", minHeight: "200px" }}>
+      <div className="px-4 py-3 relative z-10" style={{ backgroundColor: "var(--bg-card)", minHeight: "200px" }}>
         <p className="mb-4 font-mono text-xs" style={{ color: "var(--text-muted)" }}>
           {'// '}{description}
         </p>
@@ -639,28 +686,28 @@ function TodoList({ items, type }: { items: (LifeGoal | BucketListItem | Monthly
   return <div>No items to display</div>
 }
 
-// Notebook-style card for Notion Boards
+// Notebook-style card for Notion Boards - Pixel grid style
 function NotebookCard({ title, description, children, className }: ChartCardProps) {
   return (
     <motion.section
-      className={`relative ${className ?? ''}`}
+      className={`relative wireframe-border ${className ?? ''}`}
       style={{ 
         imageRendering: "pixelated" as any,
         backgroundColor: "var(--bg-card)",
-        borderLeft: "4px solid var(--accent-color)",
-        borderTop: "1px solid var(--border-color)",
-        borderRight: "1px solid var(--border-color)",
-        borderBottom: "1px solid var(--border-color)",
-        boxShadow: "4px 4px 0 var(--border-color)",
+        borderWidth: "2px",
       }}
-      initial={{ opacity: 0, rotate: -0.5 }}
-      animate={{ opacity: 1, rotate: 0 }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      {/* Notebook lines background */}
+      {/* Grid pattern overlay */}
       <div className="absolute inset-0 pointer-events-none opacity-10" style={{
-        backgroundImage: "repeating-linear-gradient(transparent, transparent 24px, var(--border-color) 24px, var(--border-color) 25px)",
-        backgroundSize: "100% 25px",
+        backgroundImage: `
+          linear-gradient(var(--border-color) 1px, transparent 1px),
+          linear-gradient(90deg, var(--border-color) 1px, transparent 1px)
+        `,
+        backgroundSize: `${GRID_SIZE}px ${GRID_SIZE}px`,
+        imageRendering: "pixelated" as any,
       }} />
       <div className="relative px-6 py-4">
         <h2 className="font-mono text-xl uppercase tracking-wider font-bold mb-1" style={{ color: "var(--accent-color)" }}>{title}</h2>
@@ -671,7 +718,7 @@ function NotebookCard({ title, description, children, className }: ChartCardProp
   )
 }
 
-// Strategy board-style card for Goal Strategy
+// Strategy board-style card for Goal Strategy - Pixel grid style
 function StrategyCard({ title, description, children, className }: ChartCardProps) {
   return (
     <motion.section
@@ -679,27 +726,44 @@ function StrategyCard({ title, description, children, className }: ChartCardProp
       style={{ 
         imageRendering: "pixelated" as any,
         backgroundColor: "var(--bg-card)",
-        borderWidth: "3px",
+        borderWidth: "2px",
         position: "relative",
       }}
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5 }}
     >
-      {/* Strategy board grid overlay */}
-      <div className="absolute inset-0 pointer-events-none opacity-20" style={{
+      {/* Grid pattern overlay */}
+      <div className="absolute inset-0 pointer-events-none opacity-10" style={{
         backgroundImage: `
           linear-gradient(var(--border-color) 1px, transparent 1px),
           linear-gradient(90deg, var(--border-color) 1px, transparent 1px)
         `,
-        backgroundSize: `${GRID_SIZE * 2}px ${GRID_SIZE * 2}px`,
+        backgroundSize: `${GRID_SIZE}px ${GRID_SIZE}px`,
+        imageRendering: "pixelated" as any,
       }} />
       
       {/* Corner pins */}
-      <div className="absolute -top-1 -left-1 w-3 h-3 wireframe-border" style={{ backgroundColor: "var(--accent-color)", borderWidth: "2px" }} />
-      <div className="absolute -top-1 -right-1 w-3 h-3 wireframe-border" style={{ backgroundColor: "var(--accent-color)", borderWidth: "2px" }} />
-      <div className="absolute -bottom-1 -left-1 w-3 h-3 wireframe-border" style={{ backgroundColor: "var(--accent-color)", borderWidth: "2px" }} />
-      <div className="absolute -bottom-1 -right-1 w-3 h-3 wireframe-border" style={{ backgroundColor: "var(--accent-color)", borderWidth: "2px" }} />
+      <div className="absolute -top-1 -left-1 w-3 h-3 wireframe-border" style={{ 
+        backgroundColor: "var(--accent-color)", 
+        borderWidth: "2px",
+        imageRendering: "pixelated" as any,
+      }} />
+      <div className="absolute -top-1 -right-1 w-3 h-3 wireframe-border" style={{ 
+        backgroundColor: "var(--accent-color)", 
+        borderWidth: "2px",
+        imageRendering: "pixelated" as any,
+      }} />
+      <div className="absolute -bottom-1 -left-1 w-3 h-3 wireframe-border" style={{ 
+        backgroundColor: "var(--accent-color)", 
+        borderWidth: "2px",
+        imageRendering: "pixelated" as any,
+      }} />
+      <div className="absolute -bottom-1 -right-1 w-3 h-3 wireframe-border" style={{ 
+        backgroundColor: "var(--accent-color)", 
+        borderWidth: "2px",
+        imageRendering: "pixelated" as any,
+      }} />
       
       <div className="relative px-6 py-4">
         <div className="flex items-center gap-2 mb-2">
@@ -715,49 +779,46 @@ function StrategyCard({ title, description, children, className }: ChartCardProp
   )
 }
 
-// Map-style card for Adventure Timeline
+// Map-style card for Adventure Timeline - Pixel grid style
 function MapCard({ title, description, children, className }: ChartCardProps) {
   return (
     <motion.section
-      className={`relative ${className ?? ''}`}
+      className={`relative wireframe-border ${className ?? ''}`}
       style={{ 
         imageRendering: "pixelated" as any,
-        backgroundColor: "#f5f1e8",
-        border: "3px solid var(--border-color)",
-        boxShadow: "6px 6px 0 var(--border-color)",
+        backgroundColor: "var(--bg-card)",
+        borderWidth: "2px",
         position: "relative",
       }}
-      initial={{ opacity: 0, rotate: 1 }}
-      animate={{ opacity: 1, rotate: 0 }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      {/* Paper texture and map lines */}
-      <div className="absolute inset-0 pointer-events-none opacity-30" style={{
+      {/* Grid pattern overlay */}
+      <div className="absolute inset-0 pointer-events-none opacity-10" style={{
         backgroundImage: `
-          repeating-linear-gradient(0deg, transparent, transparent 2px, var(--border-color) 2px, var(--border-color) 4px),
-          repeating-linear-gradient(90deg, transparent, transparent 2px, var(--border-color) 2px, var(--border-color) 4px)
+          linear-gradient(var(--border-color) 1px, transparent 1px),
+          linear-gradient(90deg, var(--border-color) 1px, transparent 1px)
         `,
-        backgroundSize: "40px 40px",
+        backgroundSize: `${GRID_SIZE}px ${GRID_SIZE}px`,
+        imageRendering: "pixelated" as any,
       }} />
-      
-      {/* Compass rose decoration */}
-      <div className="absolute top-4 right-4 font-mono text-2xl opacity-20">🧭</div>
       
       <div className="relative px-6 py-4">
         <div className="flex items-center gap-3 mb-2">
           <span className="text-2xl">{title.split(' ')[0]}</span>
-          <h2 className="font-mono text-xl uppercase tracking-wider font-bold" style={{ color: "#8b4513" }}>
+          <h2 className="font-mono text-xl uppercase tracking-wider font-bold" style={{ color: "var(--accent-color)" }}>
             {title.split(' ').slice(1).join(' ')}
           </h2>
         </div>
-        <p className="font-mono text-sm mb-4" style={{ color: "#654321" }}>{description}</p>
+        <p className="font-mono text-sm mb-4" style={{ color: "var(--text-muted)" }}>{description}</p>
         {children}
       </div>
     </motion.section>
   )
 }
 
-// Calendar-style card for Monthly Cadence
+// Calendar-style card for Monthly Cadence - Pixel grid style
 function CalendarCard({ title, description, children, className }: ChartCardProps) {
   return (
     <motion.section
@@ -772,13 +833,14 @@ function CalendarCard({ title, description, children, className }: ChartCardProp
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      {/* Calendar grid pattern */}
+      {/* Grid pattern overlay */}
       <div className="absolute inset-0 pointer-events-none opacity-10" style={{
         backgroundImage: `
           linear-gradient(var(--border-color) 1px, transparent 1px),
           linear-gradient(90deg, var(--border-color) 1px, transparent 1px)
         `,
         backgroundSize: `${GRID_SIZE}px ${GRID_SIZE}px`,
+        imageRendering: "pixelated" as any,
       }} />
       
       {/* Calendar header style */}
@@ -895,7 +957,6 @@ function LineChart({ data, color, onHover, activeIndex }: LineChartProps) {
         .map((point) => `${point.x} ${point.y}`)
         .join(' L ')} L ${coordinates[coordinates.length - 1].x} ${height} Z`
     : ''
-  const pencilStroke = '#1f2937'
 
   return (
     <div className="relative">
@@ -903,6 +964,7 @@ function LineChart({ data, color, onHover, activeIndex }: LineChartProps) {
         viewBox={`0 0 ${width} ${height}`}
         className="w-full h-56"
         onPointerLeave={() => onHover?.(null, null)}
+        style={{ imageRendering: "pixelated" as any }}
       >
         <defs>
           <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
@@ -929,11 +991,12 @@ function LineChart({ data, color, onHover, activeIndex }: LineChartProps) {
             <path
               d={roughPath}
               fill="none"
-              stroke={pencilStroke}
+              stroke={color}
               strokeWidth={2.6}
               strokeLinecap="round"
               strokeLinejoin="round"
               filter={`url(#${roughFilterId})`}
+              opacity={0.8}
             />
           </>
         )}
@@ -943,17 +1006,19 @@ function LineChart({ data, color, onHover, activeIndex }: LineChartProps) {
               cx={point.x}
               cy={point.y}
               r={activeIndex === index ? 7 : 5}
-              fill={activeIndex === index ? "#06b6d4" : "#0891b2"}
-              stroke={activeIndex === index ? "#06b6d4" : "#0e7490"}
+              fill="var(--accent-color)"
+              stroke="var(--border-color)"
               strokeWidth={activeIndex === index ? 2.5 : 1.5}
               onPointerEnter={() => onHover?.(data[index], index)}
               className="cursor-pointer transition-transform"
+              style={{ opacity: activeIndex === index ? 1 : 0.8 }}
             />
             <text
               x={point.x}
               y={height - 6}
               textAnchor="middle"
-              className="fill-cyan-400/70 text-[10px] font-mono"
+              className="text-[10px] font-mono"
+              style={{ fill: "var(--text-muted)", opacity: 0.7 }}
             >
               {data[index].label}
             </text>
@@ -1052,7 +1117,13 @@ function RadialChart({ value, label, accentColor }: RadialChartProps) {
           animate={{ strokeDashoffset: dashOffset }}
           transition={{ duration: 1.5, ease: "easeOut" }}
         />
-        <text x="50" y="54" textAnchor="middle" className="text-[18px] font-bold fill-cyan-400 font-mono">
+        <text 
+          x="50" 
+          y="54" 
+          textAnchor="middle" 
+          className="text-[18px] font-bold font-mono"
+          style={{ fill: "var(--accent-color)" }}
+        >
           {normalizedValue}%
         </text>
       </svg>
@@ -1436,9 +1507,10 @@ export default function UnifiedProgress() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={gameBackgroundStyle}>
+      <div className="min-h-screen flex items-center justify-center relative" style={gameBackgroundStyle}>
+        <GridBackground />
         <motion.div
-          className="wireframe-border px-8 py-4"
+          className="wireframe-border px-8 py-4 relative z-10"
           style={{ imageRendering: "pixelated" as any }}
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -1452,27 +1524,7 @@ export default function UnifiedProgress() {
 
   return (
     <main className="min-h-screen py-8 relative" style={gameBackgroundStyle}>
-      {/* Grid Background - Timeline Era Style */}
-      <div 
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          backgroundImage: `
-            linear-gradient(var(--border-color) 1px, transparent 1px),
-            linear-gradient(90deg, var(--border-color) 1px, transparent 1px)
-          `,
-          backgroundSize: `${GRID_SIZE}px ${GRID_SIZE}px`,
-          opacity: 0.3,
-          imageRendering: "pixelated" as any,
-        }}
-      />
-      
-      {/* Scanlines effect for retro pixel feel */}
-      <div 
-        className="absolute inset-0 pointer-events-none opacity-5"
-        style={{
-          backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px)",
-        }}
-      />
+      <GridBackground opacity={0.3} scanlinesOpacity={0.05} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Game HUD Header - Player Stats */}
         <motion.div
@@ -1775,9 +1827,9 @@ export default function UnifiedProgress() {
           >
             <div className="flex flex-wrap items-center gap-3">
               {[
-                { key: 'lifeGoals', label: 'Life goals', icon: '🎯' },
-                { key: 'bucketList', label: 'Bucket list', icon: '🗺️' },
-                { key: 'monthlyGoals', label: 'Monthly goals', icon: '🗓️' }
+                { key: 'lifeGoals', label: 'Life goals', icon: 'flag-checkered' },
+                { key: 'bucketList', label: 'Bucket list', icon: 'globe' },
+                { key: 'monthlyGoals', label: 'Monthly goals', icon: 'calender' }
               ].map((tab) => (
                 <button
                   key={tab.key}
@@ -1790,7 +1842,7 @@ export default function UnifiedProgress() {
                     imageRendering: "pixelated" as any,
                   }}
                 >
-                  <span aria-hidden>{tab.icon}</span>
+                  <span aria-hidden><PixelIcon name={tab.icon} size={16} /></span>
                   {tab.label}
                 </button>
               ))}
@@ -1919,7 +1971,7 @@ export default function UnifiedProgress() {
             {adventureSchedule.length > 0 ? (
               <AdventureMap adventures={adventureSchedule} />
             ) : (
-              <p className="font-mono text-sm" style={{ color: "#654321" }}>Add target dates to bucket list items in Notion to populate the timeline.</p>
+              <p className="font-mono text-sm" style={{ color: "var(--text-muted)" }}>Add target dates to bucket list items in Notion to populate the timeline.</p>
             )}
           </ChartCard>
 

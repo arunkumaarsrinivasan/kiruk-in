@@ -9,6 +9,7 @@ import { useCursor } from '@/components/ui/CursorContext';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { useDesignSystem } from '@/contexts/ThemeContext';
 import { AnimatedPortrait } from './AnimatedPortrait';
+import { PixelIcon } from '@/components/ui/PixelIcon';
 
 // Type alias for compatibility
 type ScribbleDragItem = EnhancedScribbleDragItem;
@@ -58,16 +59,16 @@ const PERSONAL_NOTE_LIBRARY = [
 ];
 
 const SKILL_LIBRARY = [
-  { name: 'Spring Boot Systems', color: 'bg-[var(--bg-secondary)] text-[var(--text-main)] border border-[var(--border-color)]', icon: '🍃' },
-  { name: 'Node.js + TypeScript', color: 'bg-[var(--bg-secondary)] text-[var(--text-main)] border border-[var(--border-color)]', icon: '🟢' },
-  { name: 'Next.js Storytelling', color: 'bg-[var(--bg-secondary)] text-[var(--text-main)] border border-[var(--border-color)]', icon: '⚡' },
-  { name: 'UX Research Rituals', color: 'bg-[var(--bg-secondary)] text-[var(--text-main)] border border-[var(--border-color)]', icon: '🔍' },
-  { name: 'Design Systems', color: 'bg-[var(--bg-secondary)] text-[var(--text-main)] border border-[var(--border-color)]', icon: '🎨' },
-  { name: 'Observability (Splunk & Prometheus)', color: 'bg-[var(--bg-secondary)] text-[var(--text-main)] border border-[var(--border-color)]', icon: '📈' },
-  { name: 'AI Facilitation', color: 'bg-[var(--bg-secondary)] text-[var(--text-main)] border border-[var(--border-color)]', icon: '🤖' },
-  { name: 'Gamified Interaction', color: 'bg-[var(--bg-secondary)] text-[var(--text-main)] border border-[var(--border-color)]', icon: '🎮' },
-  { name: 'Workshop Hosting', color: 'bg-[var(--bg-secondary)] text-[var(--text-main)] border border-[var(--border-color)]', icon: '📚' },
-  { name: 'Mobile Product Loops', color: 'bg-[var(--bg-secondary)] text-[var(--text-main)] border border-[var(--border-color)]', icon: '📱' }
+  { name: 'Spring Boot Systems', color: 'bg-[var(--bg-secondary)] text-[var(--text-main)] border border-[var(--border-color)]', icon: 'code' },
+  { name: 'Node.js + TypeScript', color: 'bg-[var(--bg-secondary)] text-[var(--text-main)] border border-[var(--border-color)]', icon: 'code-block' },
+  { name: 'Next.js Storytelling', color: 'bg-[var(--bg-secondary)] text-[var(--text-main)] border border-[var(--border-color)]', icon: 'bolt' },
+  { name: 'UX Research Rituals', color: 'bg-[var(--bg-secondary)] text-[var(--text-main)] border border-[var(--border-color)]', icon: 'search' },
+  { name: 'Design Systems', color: 'bg-[var(--bg-secondary)] text-[var(--text-main)] border border-[var(--border-color)]', icon: 'pencil-ruler' },
+  { name: 'Observability (Splunk & Prometheus)', color: 'bg-[var(--bg-secondary)] text-[var(--text-main)] border border-[var(--border-color)]', icon: 'chart' },
+  { name: 'AI Facilitation', color: 'bg-[var(--bg-secondary)] text-[var(--text-main)] border border-[var(--border-color)]', icon: 'robot' },
+  { name: 'Gamified Interaction', color: 'bg-[var(--bg-secondary)] text-[var(--text-main)] border border-[var(--border-color)]', icon: 'trophy' },
+  { name: 'Workshop Hosting', color: 'bg-[var(--bg-secondary)] text-[var(--text-main)] border border-[var(--border-color)]', icon: 'book-heart' },
+  { name: 'Mobile Product Loops', color: 'bg-[var(--bg-secondary)] text-[var(--text-main)] border border-[var(--border-color)]', icon: 'phone-ringing-high' }
 ];
 
 const TESTIMONIAL_LIBRARY = [
@@ -192,7 +193,7 @@ const INITIAL_ACHIEVEMENTS: Omit<Achievement, 'unlocked'>[] = [
     id: 'first-interaction',
     title: 'Getting Started',
     description: 'Created your first interactive item',
-    icon: '🎯',
+    icon: 'flag-checkered',
     condition: (stats) => stats.itemsCreated >= 1
   },
   {
@@ -547,7 +548,7 @@ export const InteractivePortfolioSection: React.FC<{
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
           >
-            <div className="text-lg mb-1 grayscale">{randomSkill.icon}</div>
+            <div className="mb-1 grayscale"><PixelIcon name={randomSkill.icon} size={20} /></div>
             <div className="font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--text-main)]">
               {randomSkill.name}
             </div>
@@ -649,14 +650,14 @@ export const InteractivePortfolioSection: React.FC<{
         },
         {
           id: 'notes',
-          icon: '📝',
+          icon: 'pen',
           title: 'Personal Scribbles',
           description: 'Add a tiny note from my day-to-day.',
           action: addPersonalNote
         },
         {
           id: 'skills',
-          icon: '🎯',
+          icon: 'flag-checkered',
           title: 'Skill Bubbles',
           description: 'Show a stack bubble I rely on.',
           action: addSkillBubble
@@ -1019,7 +1020,7 @@ export const InteractivePortfolioSection: React.FC<{
                 animate={{ rotate: [0, -12, 12, 0], scale: [1, 1.15, 1] }}
                 transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
               >
-                {achievement.icon}
+                <PixelIcon name={achievement.icon} size={32} />
               </motion.div>
               <div className="flex-1 space-y-1">
                 <div className="flex items-center gap-2">
@@ -1094,7 +1095,7 @@ export const InteractivePortfolioSection: React.FC<{
               animate={isUnlocked ? { rotate: [0, -8, 8, 0] } : {}}
               transition={{ duration: 4, repeat: isUnlocked ? Infinity : 0, ease: 'easeInOut', repeatDelay: 1 }}
             >
-              {achievement.icon}
+              <PixelIcon name={achievement.icon} size={32} />
             </motion.div>
             <div className="flex-1 space-y-1">
               <div className="flex items-center gap-2">
@@ -1270,7 +1271,7 @@ export const InteractivePortfolioSection: React.FC<{
                     className="border border-[var(--border-color)] bg-[var(--bg-card)] px-3 py-2.5.5 hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] transition-colors group"
                   >
                     <div className="flex items-start gap-3">
-                      <span className="text-2xl grayscale group-hover:grayscale-0">{entry.icon}</span>
+                      <span className="grayscale group-hover:grayscale-0"><PixelIcon name={entry.icon} size={24} /></span>
                       <div className="flex-1">
                         <p className="font-bold text-xs uppercase tracking-wide group-hover:text-[var(--bg-main)]">
                           {entry.title}
@@ -1515,7 +1516,7 @@ export const InteractivePortfolioSection: React.FC<{
                     transition={{ duration: 0.3 }}
                     className="mb-4 bg-[var(--bg-secondary)] border border-[var(--border-color)] p-3 shadow-none flex items-start gap-3"
                   >
-                    <span className="text-2xl grayscale">{activeHighlight.icon}</span>
+                    <span className="grayscale"><PixelIcon name={activeHighlight.icon} size={24} /></span>
                     <div>
                       <p className="text-sm font-bold text-[var(--text-main)] uppercase tracking-wide">
                         {activeHighlight.title}

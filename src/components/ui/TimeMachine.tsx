@@ -882,14 +882,14 @@ export const TimeMachine = () => {
         }
       >
         {/* Reactor Switch - aligned to header */}
-        <div className="flex items-center" style={{ height: '60px' }}>
+        <div className="flex items-center grid-h-3">
           <ReactorSwitch isOn={isExpanded || showCustomPanel} onToggle={handleToggle} />
         </div>
 
         {/* Horizontal Era Strip OR Custom Panel - appears below header */}
         <AnimatePresence mode="wait">
           {isExpanded && !showCustomPanel && (
-            <div style={{ marginTop: '60px' }}>
+            <div className="grid-my-3">
               <HorizontalEraStrip
                 key="era-strip"
                 onSelectEra={handleSelectEra}
@@ -900,7 +900,7 @@ export const TimeMachine = () => {
           )}
           
           {showCustomPanel && (
-            <div style={{ marginTop: '60px' }}>
+            <div className="grid-my-3">
               <GameCustomizationPanel
                 key="custom-panel"
                 customEra={customEra}

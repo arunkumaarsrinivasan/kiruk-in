@@ -47,6 +47,9 @@ interface UseShootingGameProps {
   gameDuration?: number; // seconds
 }
 
+// Account for fixed container with pt-16 (64px padding-top)
+const TOP_PADDING = 64; // pt-16 = 64px
+
 export function useShootingGame({
   workExperiences,
   onTargetHit,
@@ -90,16 +93,17 @@ export function useShootingGame({
     
     const work = workExperiences[workIndex];
     
-    // Single target in center - sniper style - bigger target
+    // Single target in center of game area (left side, excluding 320px details panel on right)
+    // Game area width = viewport - 320px, so center is around 35% of full viewport
     return [{
       id: `target-${work.id}-level-${level}`,
-      x: 50, // Center
-      y: 50, // Center
-      radius: 120, // Much larger target (32*6 = 192px, so radius ~96px, use 120 for hit detection)
+      x: 35, // Center in game area (left side)
+      y: 42, // Positioned slightly higher to avoid bottom overlap
+      radius: 15, // Larger target (responsive, use 15% for hit detection)
       workExperience: work,
       hit: false,
       hitCount: 0,
-      maxHits: 5, // 5 hits to fully reveal
+      maxHits: 9, // 9 hits to fully reveal all boxes
       points: 100 * level,
       speed: 0,
       direction: undefined,
@@ -170,8 +174,11 @@ export function useShootingGame({
     chargeStartTimeRef.current = null;
     
     const power = Math.min(1, chargeTime / 2); // Max charge at 2 seconds
+    // Use container width for percentage calculations
+    const containerWidth = typeof globalThis !== 'undefined' ? globalThis.innerWidth : 1920;
+    
     const shotRadiusPixels = 15 + power * 25; // Smaller, more precise for sniper
-    const shotRadius = typeof globalThis !== 'undefined' ? (shotRadiusPixels / globalThis.innerWidth) * 100 : 2;
+    const shotRadius = (shotRadiusPixels / containerWidth) * 100;
     
     // Create bullet with physics
     const bulletId = `bullet-${Date.now()}-${Math.random()}`;
@@ -197,13 +204,9 @@ export function useShootingGame({
         const dy = prev.crosshairY - target.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         
-        // Convert target radius from pixels to percentage
-        const screenWidth = typeof globalThis !== 'undefined' ? globalThis.innerWidth : 1920;
-        const targetSizePx = 192; // gridSize (32) * pixelSize (6) = 192px
-        const targetRadiusPercent = (targetSizePx / screenWidth) * 100;
-        
-        // shotRadius is already in percentage
-        if (distance <= shotRadius + targetRadiusPercent) {
+        // target.radius is already in percentage, use it directly
+        // shotRadius is also in percentage
+        if (distance <= shotRadius + target.radius) {
           // Increment hit count for progressive reveal
           const newHitCount = target.hitCount + 1;
           const isFullyHit = newHitCount >= target.maxHits;
@@ -378,8 +381,14 @@ export function useShootingGame({
     if (!gameState.isPlaying) return;
     
     const handleMouseMove = (e: MouseEvent) => {
-      let x = (e.clientX / globalThis.innerWidth) * 100;
-      let y = (e.clientY / globalThis.innerHeight) * 100;
+      // Calculate position relative to the actual container (viewport minus top padding)
+      const containerWidth = globalThis.innerWidth;
+      const containerHeight = globalThis.innerHeight - TOP_PADDING;
+      const containerTop = TOP_PADDING;
+      
+      // Calculate position relative to container
+      let x = (e.clientX / containerWidth) * 100;
+      let y = ((e.clientY - containerTop) / containerHeight) * 100;
       
       // Check if cursor is inside any target
       const target = gameState.targets.find(t => !t.hit);
@@ -389,8 +398,8 @@ export function useShootingGame({
         const distance = Math.sqrt(dx * dx + dy * dy);
         
         // If inside target radius, add very subtle random movement
-        const targetRadiusPercent = (target.radius / globalThis.innerWidth) * 100;
-        if (distance < targetRadiusPercent) {
+        // target.radius is already in percentage
+        if (distance < target.radius) {
           // Very minor random offset: max 0.3% in any direction
           const randomOffsetX = (Math.random() - 0.5) * 0.3;
           const randomOffsetY = (Math.random() - 0.5) * 0.3;
@@ -404,8 +413,13 @@ export function useShootingGame({
     
     const handleTouchMove = (e: TouchEvent) => {
       if (e.touches.length > 0) {
-        let x = (e.touches[0].clientX / globalThis.innerWidth) * 100;
-        let y = (e.touches[0].clientY / globalThis.innerHeight) * 100;
+        // Calculate position relative to the actual container (viewport minus top padding)
+        const containerWidth = globalThis.innerWidth;
+        const containerHeight = globalThis.innerHeight - TOP_PADDING;
+        const containerTop = TOP_PADDING;
+        
+        let x = (e.touches[0].clientX / containerWidth) * 100;
+        let y = ((e.touches[0].clientY - containerTop) / containerHeight) * 100;
         
         // Check if cursor is inside any target
         const target = gameState.targets.find(t => !t.hit);
@@ -415,8 +429,8 @@ export function useShootingGame({
           const distance = Math.sqrt(dx * dx + dy * dy);
           
           // If inside target radius, add very subtle random movement
-          const targetRadiusPercent = (target.radius / globalThis.innerWidth) * 100;
-          if (distance < targetRadiusPercent) {
+          // target.radius is already in percentage
+          if (distance < target.radius) {
             const randomOffsetX = (Math.random() - 0.5) * 0.3;
             const randomOffsetY = (Math.random() - 0.5) * 0.3;
             x += randomOffsetX;

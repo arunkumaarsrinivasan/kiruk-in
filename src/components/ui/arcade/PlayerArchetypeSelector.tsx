@@ -16,6 +16,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn, GRID_SIZE } from '@/lib/utils';
+import { PixelIcon } from '@/components/ui/PixelIcon';
+
+// Helper function to map emoji to pixel icon name
+const emojiToIconName = (emoji: string): string => {
+  const emojiMap: Record<string, string> = {
+    '🎨': 'pencil-ruler',
+    '🔧': 'cog',
+    '💼': 'wallet',
+    '🌊': 'sparkles',
+  };
+  return emojiMap[emoji] || 'star';
+};
 
 export type PlayerArchetype = 'designer' | 'explorer' | 'recruiter' | 'vibing';
 
@@ -71,38 +83,6 @@ export const ARCHETYPES: Record<PlayerArchetype, ArchetypeInfo> = {
     hint: 'Unlock easter eggs & fun interactions',
     accentHue: 200, // Sky blue
   },
-};
-
-// Pixel Icon component
-const PixelIcon = ({ name, size = 16, className }: { name: string; size?: number; className?: string }) => {
-  const ICON_PATHS: Record<string, string> = {
-    'user': 'solid/user-solid.svg',
-    'angle-down': 'solid/angle-down-solid.svg',
-    'times': 'solid/times-solid.svg',
-    'check': 'solid/check-solid.svg',
-  };
-  
-  const iconPath = ICON_PATHS[name];
-  if (!iconPath) return <span className="font-mono" style={{ fontSize: size }}>?</span>;
-
-  return (
-    <span
-      className={cn('inline-block', className)}
-      style={{
-        width: size,
-        height: size,
-        backgroundColor: 'currentColor',
-        WebkitMaskImage: `url(/icons/${iconPath})`,
-        WebkitMaskSize: 'contain',
-        WebkitMaskRepeat: 'no-repeat',
-        WebkitMaskPosition: 'center',
-        maskImage: `url(/icons/${iconPath})`,
-        maskSize: 'contain',
-        maskRepeat: 'no-repeat',
-        maskPosition: 'center',
-      }}
-    />
-  );
 };
 
 interface PlayerArchetypeSelectorProps {
@@ -211,7 +191,7 @@ export const PlayerArchetypeSelector: React.FC<PlayerArchetypeSelectorProps> = (
               animate={{ rotate: [0, -5, 5, 0] }}
               transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
             >
-              {currentInfo.emoji}
+              <PixelIcon name={emojiToIconName(currentInfo.emoji)} size={20} />
             </motion.span>
             {!compact && (
               <div className="flex flex-col items-start">
@@ -306,7 +286,7 @@ export const PlayerArchetypeSelector: React.FC<PlayerArchetypeSelectorProps> = (
                       animate={isSelected ? { scale: [1, 1.2, 1] } : {}}
                       transition={{ duration: 0.3 }}
                     >
-                      {archetype.emoji}
+                      <PixelIcon name={emojiToIconName(archetype.emoji)} size={20} />
                     </motion.span>
                     
                     {/* Text */}

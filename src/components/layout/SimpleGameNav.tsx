@@ -16,7 +16,8 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { GRID_SIZE, cn } from '@/lib/utils';
 import { useDesignEra, DesignEra } from '@/contexts/DesignEraContext';
-import { useGameMode, PAGE_GAMES, GAME_TYPE_EMOJIS } from '@/contexts/GameModeContext';
+import { useGameMode, PAGE_GAMES, GAME_TYPE_ICONS } from '@/contexts/GameModeContext';
+import { PixelIcon } from '@/components/ui/PixelIcon';
 import { AVAILABLE_THEMES, ThemeConfig } from '@/data/portfolio-data';
 import { GameMenuOverlay } from './GameMenuOverlay';
 import { getPageInfo, PAGE_INFO } from '@/data/page-info';
@@ -415,11 +416,24 @@ const EyeTimelineOverlay: React.FC<EyeTimelineOverlayProps> = ({
               <FullScreenPixelEye eraId={displayEraId} size={typeof globalThis !== 'undefined' ? Math.min(globalThis.innerWidth, globalThis.innerHeight) * 0.8 : 600} />
             </div>
 
-            {/* Top Left: Stats */}
-            <motion.div
+            {/* Top Left: Close Button */}
+            <motion.button
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="absolute top-4 left-4 pointer-events-auto bg-[var(--bg-card)]/95 backdrop-blur-md border-2 border-[var(--border-color)] p-4 z-50"
+              exit={{ opacity: 0 }}
+              onClick={onClose}
+              className="absolute top-4 left-4 w-12 h-12 border-2 border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-main)] flex items-center justify-center font-mono text-xl hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] transition-colors pointer-events-auto z-50"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              ×
+            </motion.button>
+
+            {/* Top Right: Stats */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="absolute top-4 right-4 pointer-events-auto bg-[var(--bg-card)]/95 backdrop-blur-md border-2 border-[var(--border-color)] p-4 z-50"
             >
               <div className="space-y-2">
                 <div className="text-xs font-mono text-[var(--text-muted)] uppercase">Stats</div>
@@ -435,12 +449,12 @@ const EyeTimelineOverlay: React.FC<EyeTimelineOverlayProps> = ({
               </div>
             </motion.div>
 
-            {/* Top Right: Chips */}
+            {/* Top Right: Chips - Below Stats */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               className="absolute top-4 right-4 pointer-events-auto bg-[var(--bg-card)]/95 backdrop-blur-md border-2 border-[var(--border-color)] p-4 z-50 max-w-xs"
-              style={{ marginTop: '80px' }}
+              style={{ marginTop: '120px' }}
             >
               <div className="text-xs font-mono text-[var(--text-muted)] uppercase mb-2">Key Elements</div>
               <div className="flex flex-wrap gap-1.5">
@@ -558,18 +572,6 @@ const EyeTimelineOverlay: React.FC<EyeTimelineOverlayProps> = ({
               </div>
             </motion.div>
 
-            {/* Close Button - Top Right */}
-            <motion.button
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={onClose}
-              className="absolute top-4 right-4 w-12 h-12 border-2 border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-main)] flex items-center justify-center font-mono text-xl hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] transition-colors pointer-events-auto z-50"
-              whileHover={{ scale: 1.1, rotate: 90 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              ×
-            </motion.button>
           </div>
         </>
       )}
@@ -593,7 +595,7 @@ const SimpleGameNav: React.FC<SimpleGameNavProps> = ({
   isGameActive = false,
   currentGameId = 'snake',
   currentGameName = 'SNAKE TRAIL',
-  currentGameIcon = '🐍',
+  currentGameIcon = 'bolt',
   onToggleGame,
 }) => {
   const { currentEraId, setEra } = useDesignEra();
@@ -634,7 +636,7 @@ const SimpleGameNav: React.FC<SimpleGameNavProps> = ({
   const gameProgress = currentGame ? getGameProgress(currentGame.id) : 0;
   const completedLevels = currentGame ? (progress.completedLevels[currentGame.id] || []) : [];
   const totalLevels = currentGame ? currentGame.levels.length : 0;
-  const gameTypeEmoji = currentGame ? GAME_TYPE_EMOJIS[currentGame.gameType] : '🎮';
+  const gameTypeIcon = currentGame ? GAME_TYPE_ICONS[currentGame.gameType] : 'play';
 
   return (
     <>
@@ -673,7 +675,7 @@ const SimpleGameNav: React.FC<SimpleGameNavProps> = ({
           >
             {currentGame ? (
               <>
-                <span className="text-xl sm:text-2xl flex-shrink-0">{gameTypeEmoji}</span>
+                <PixelIcon name={gameTypeIcon} size={24} className="flex-shrink-0" />
                 <div className="flex flex-col items-center min-w-0">
                   <div className="text-[10px] sm:text-xs font-mono text-[var(--text-muted)] uppercase tracking-wider truncate w-full text-center">
                     MISSION: {currentGame.title}

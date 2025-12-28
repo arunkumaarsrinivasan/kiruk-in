@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { WorkTarget } from "./useShootingGame";
+import { PixelIcon } from "@/components/ui/PixelIcon";
 
 interface WorkExperienceModalProps {
   target: WorkTarget | null;
@@ -45,7 +46,7 @@ export function WorkExperienceModal({ target, isOpen, onClose }: WorkExperienceM
               backgroundColor: "var(--accent-color)",
             }}>
               <div className="flex items-center gap-4">
-                <div className="text-4xl">🎯</div>
+                <PixelIcon name="flag-checkered" size={40} style={{ color: "var(--bg-main)" }} />
                 <div>
                   <h3 className="font-mono text-2xl font-bold" style={{ color: "var(--bg-main)" }}>
                     {work.title}
@@ -173,8 +174,9 @@ export function WorkExperienceModal({ target, isOpen, onClose }: WorkExperienceM
                   borderColor: "var(--border-color)",
                   backgroundColor: "var(--bg-main)",
                 }}>
-                  <h4 className="font-mono text-sm font-bold uppercase mb-2" style={{ color: "var(--text-main)" }}>
-                    ⭐ Spotlight: {work.spotlight.title}
+                  <h4 className="font-mono text-sm font-bold uppercase mb-2 flex items-center gap-2" style={{ color: "var(--text-main)" }}>
+                    <PixelIcon name="star" size={16} />
+                    Spotlight: {work.spotlight.title}
                   </h4>
                   <p className="font-mono text-xs mb-2" style={{ color: "var(--text-main)" }}>
                     {work.spotlight.summary}
@@ -204,7 +206,7 @@ export function WorkExperienceModal({ target, isOpen, onClose }: WorkExperienceM
                   boxShadow: "var(--shadow-offset-x) var(--shadow-offset-y) var(--shadow-blur) var(--shadow-color)",
                 }}
               >
-                CONTINUE GAME ▶
+                CONTINUE GAME <PixelIcon name="play" size={20} style={{ color: "var(--bg-main)" }} />
               </button>
             </div>
           </motion.div>

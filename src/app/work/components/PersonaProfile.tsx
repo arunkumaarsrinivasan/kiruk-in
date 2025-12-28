@@ -217,11 +217,11 @@ export function PersonaProfile({ target, hitCount }: PersonaProfileProps) {
   
   return (
     <div
-      className="fixed right-4 bottom-4 z-40 border border-[var(--border-color)] bg-[var(--bg-card)]"
+      className="fixed grid-right-1 grid-bottom-1 z-40 border border-[var(--border-color)] bg-[var(--bg-card)]"
       style={{
         imageRendering: "pixelated" as any,
-        maxWidth: isExpanded ? "400px" : "200px",
-        width: isExpanded ? "400px" : "200px",
+        maxWidth: isExpanded ? "400px" : "200px", // 20 * 20px or 10 * 20px
+        width: isExpanded ? "400px" : "200px",    // 20 * 20px or 10 * 20px
         backgroundColor: "var(--bg-card)",
       }}
     >
@@ -238,7 +238,7 @@ export function PersonaProfile({ target, hitCount }: PersonaProfileProps) {
       />
       {/* Compact Header - Always Visible */}
       <div 
-        className="relative p-3 border-b border-[var(--border-color)] cursor-pointer hover:bg-[var(--bg-main)]/50 transition-colors"
+        className="relative grid-p-1 border-b border-[var(--border-color)] cursor-pointer hover:bg-[var(--bg-main)]/50 transition-colors"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-2">
