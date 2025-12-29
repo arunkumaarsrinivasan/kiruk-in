@@ -6,6 +6,7 @@ import CustomCursor from "@/components/ui/CustomCursor";
 import { CursorProvider } from "@/components/ui/CursorContext";
 import AnalyticsTracker from "@/components/analytics/AnalyticsTracker";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/react";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { DesignEraProvider } from "@/contexts/DesignEraContext";
 import { GameModeProvider } from "@/contexts/GameModeContext";
@@ -53,6 +54,7 @@ export default function RootLayout({
           </DesignEraProvider>
         </ThemeProvider>
         <SpeedInsights />
+        <Analytics />
       </body>
     </html>
   );
