@@ -1037,7 +1037,7 @@ type BarChartProps = {
   onSelect?: (point: ChartPoint, index: number) => void
 }
 
-function BarChart({ data, color, onHover, activeIndex, onSelect }: BarChartProps) {
+function _BarChart({ data, color: _color, onHover, activeIndex: _activeIndex, onSelect }: BarChartProps) {
   const maxValue = Math.max(...data.map((point) => point.value), 1)
 
   if (data.length === 0) {
@@ -1095,7 +1095,7 @@ type RadialChartProps = {
   accentColor: string
 }
 
-function RadialChart({ value, label, accentColor }: RadialChartProps) {
+function _RadialChart({ value, label, accentColor: _accentColor }: RadialChartProps) {
   const normalizedValue = Math.min(Math.max(value, 0), 100)
   const dashArray = 2 * Math.PI * 38
   const dashOffset = dashArray - (normalizedValue / 100) * dashArray
@@ -1152,7 +1152,7 @@ export default function UnifiedProgress() {
 
   const [timelineView, setTimelineView] = useState<'dev' | 'monthly'>('dev')
   const [timelineHighlight, setTimelineHighlight] = useState<number | null>(null)
-  const [barHighlight, setBarHighlight] = useState<number | null>(null)
+  const [barHighlight] = useState<number | null>(null)
   const [timelineSpan, setTimelineSpan] = useState(12)
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null)
   const [activeNotebook, setActiveNotebook] = useState<'lifeGoals' | 'bucketList' | 'monthlyGoals'>('lifeGoals')
@@ -1283,7 +1283,7 @@ export default function UnifiedProgress() {
     return lifeGoalBars.findIndex((point) => point.meta === selectedStatus)
   }, [lifeGoalBars, selectedStatus])
 
-  const selectedGoals = useMemo(() => {
+  const _selectedGoals = useMemo(() => {
     if (!selectedStatus) return []
     const goals = lifeGoalsByStatus[selectedStatus] ?? []
     return goals
@@ -1298,7 +1298,7 @@ export default function UnifiedProgress() {
       .slice(0, 4)
   }, [lifeGoalsByStatus, selectedStatus])
 
-  const bucketProgress = useMemo(() => {
+  const _bucketProgress = useMemo(() => {
     const totals = bucketList.length
     const completed = bucketList.filter((item) => item.status === 'completed').length
     const active = bucketList.filter((item) => item.status === 'in_progress').length
@@ -1347,7 +1347,7 @@ export default function UnifiedProgress() {
       return current
     })
   }, [trimmedTimelineData])
-  const activeBarPoint = useMemo(() => {
+  const _activeBarPoint = useMemo(() => {
     if (barHighlight != null) {
       return lifeGoalBars[barHighlight] ?? null
     }

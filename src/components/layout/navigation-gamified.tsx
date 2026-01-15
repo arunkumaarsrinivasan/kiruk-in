@@ -1,18 +1,13 @@
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState, useRef, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { usePathname } from 'next/navigation';
+import { useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { GRID_SIZE, cn } from '@/lib/utils';
 import { useGameMode, PAGE_GAMES, GAME_MODES } from '@/contexts/GameModeContext';
 import { GameMenuOverlay } from './GameMenuOverlay';
 import { TimeMachine } from '@/components/ui/TimeMachine';
 import { PixelIcon } from '@/components/ui/PixelIcon';
-
-const TE_TIMING = {
-  instant: 0.08,
-  quick: 0.15,
-};
 
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -112,7 +107,7 @@ const GridMenuButton = ({ onClick, isOpen }: { onClick: () => void; isOpen: bool
 
 const CurrentPageIndicator = () => {
   const pathname = usePathname();
-  const { getGameProgress, isGameUnlocked } = useGameMode();
+  const { getGameProgress } = useGameMode();
   
   // Find current game
   const currentGame = PAGE_GAMES.find(g => g.path === pathname);
@@ -197,7 +192,7 @@ const GameModeIndicator = () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const XPBar = () => {
-  const { progress, totalPossibleXP, currentXPPercentage } = useGameMode();
+  const { progress, currentXPPercentage } = useGameMode();
   const BAR_HEIGHT = GRID_SIZE * 3;
   
   return (
@@ -239,7 +234,7 @@ const XPBar = () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const Navigation = () => {
-  const { isMenuOpen, toggleMenu, openMenu, closeMenu } = useGameMode();
+  const { isMenuOpen, toggleMenu } = useGameMode();
   const BAR_HEIGHT = GRID_SIZE * 3;
 
   // Keyboard shortcuts

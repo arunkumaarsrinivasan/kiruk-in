@@ -54,6 +54,7 @@ const CONTACT_INFO = {
 export default function Contact() {
   const { trackInteraction } = useAnalytics();
   const [showIntro, setShowIntro] = useState(true);
+  const [skipped, setSkipped] = useState(false);
   const [completedStats, setCompletedStats] = useState<{
     wpm: number;
     cps: number;
@@ -87,6 +88,7 @@ export default function Contact() {
   const handleRestart = useCallback(() => {
     resetGame();
     setCompletedStats(null);
+    setSkipped(false);
     setShowIntro(true);
   }, [resetGame]);
 
@@ -94,6 +96,12 @@ export default function Contact() {
     resetGame();
     startGame();
   }, [resetGame, startGame]);
+
+  const handleSkip = useCallback(() => {
+    setShowIntro(false);
+    setSkipped(true);
+    trackInteraction('typing_game_skipped');
+  }, [trackInteraction]);
 
   return (
     <main
@@ -141,59 +149,55 @@ export default function Contact() {
                 }}
               >
                 <p className="font-mono text-sm mb-4" style={{ color: 'var(--text-main)' }}>
-                  Want to contact me? First, prove your typing skills!
+                  Want to contact me? Prove your typing skills!
                 </p>
-                <p className="font-mono text-sm mb-4" style={{ color: '#FFD93D' }}>
-                  📋 Challenge:
+                <p className="font-mono text-sm mb-3" style={{ color: '#FFD93D' }}>
+                  📋 Type fast & accurately. Need 70%+ to unlock.
                 </p>
-                <ul className="font-mono text-sm space-y-2 mb-4" style={{ color: 'var(--text-main)' }}>
-                  <li>• Type the displayed text as fast and accurately as possible</li>
-                  <li>• Maintain at least 70% accuracy to unlock</li>
-                  <li>• Watch your WPM (words per minute) climb!</li>
-                </ul>
                 <div
-                  className="p-4 mb-4"
+                  className="p-4 mb-3"
                   style={{
                     backgroundColor: 'rgba(107, 207, 127, 0.1)',
                     border: '2px solid #6BCF7F',
                   }}
                 >
-                  <p className="font-mono text-sm font-bold mb-2" style={{ color: '#6BCF7F' }}>
-                    🎁 REWARDS:
-                  </p>
-                  <ul className="font-mono text-xs space-y-1" style={{ color: '#6BCF7F' }}>
-                    <li>✓ All my social media links unlocked</li>
-                    <li>✓ Direct contact information revealed</li>
-                    <li>✓ Schedule a meeting link</li>
-                    <li>✓ Bragging rights for your WPM score!</li>
-                  </ul>
-                </div>
-                <div
-                  className="p-4"
-                  style={{
-                    backgroundColor: 'rgba(255, 217, 61, 0.1)',
-                    border: '2px solid #FFD93D',
-                  }}
-                >
-                  <p className="font-mono text-xs" style={{ color: '#FFD93D' }}>
-                    💡 The text you'll type is a short intro about me - just one sentence!
+                  <p className="font-mono text-xs" style={{ color: '#6BCF7F' }}>
+                    🎁 Unlock: Social links, contact info & meeting scheduler
                   </p>
                 </div>
+                <p className="font-mono text-xs" style={{ color: 'var(--text-muted)' }}>
+                  💡 Just one sentence to type!
+                </p>
               </div>
-              <motion.button
-                onClick={handleStartGame}
-                className="px-8 py-4 font-mono text-lg border-2 font-bold"
-                style={{
-                  backgroundColor: '#FFD93D',
-                  borderColor: '#FFD93D',
-                  color: '#000',
-                  boxShadow: '0 0 0 2px var(--bg-main), 4px 4px 0 var(--border-color)',
-                }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                ⌨️ START CHALLENGE
-              </motion.button>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <motion.button
+                  onClick={handleStartGame}
+                  className="px-8 py-4 font-mono text-lg border-2 font-bold"
+                  style={{
+                    backgroundColor: '#FFD93D',
+                    borderColor: '#FFD93D',
+                    color: '#000',
+                    boxShadow: '0 0 0 2px var(--bg-main), 4px 4px 0 var(--border-color)',
+                  }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  ⌨️ START CHALLENGE
+                </motion.button>
+                <motion.button
+                  onClick={handleSkip}
+                  className="px-8 py-4 font-mono text-lg border-2 font-bold"
+                  style={{
+                    backgroundColor: 'transparent',
+                    borderColor: 'var(--border-color)',
+                    color: 'var(--text-main)',
+                  }}
+                  whileHover={{ scale: 1.05, backgroundColor: 'var(--bg-card)' }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  ⏭️ SKIP TO CONTENT
+                </motion.button>
+              </div>
             </motion.div>
           </motion.div>
         )}
@@ -220,7 +224,7 @@ export default function Contact() {
 
       {/* Success Screen */}
       <AnimatePresence>
-        {gameState.isCompleted && completedStats && (
+        {((gameState.isCompleted && completedStats) || skipped) && (
           <motion.div
             className="fixed inset-0 z-40 overflow-auto"
             style={{ backgroundColor: 'var(--bg-main)' }}
@@ -248,86 +252,88 @@ export default function Contact() {
                   🎉
                 </motion.div>
                 <h1 className="text-4xl font-mono font-bold mb-4" style={{ color: '#6BCF7F' }}>
-                  CHALLENGE COMPLETE!
+                  {skipped ? 'CONTACT INFO' : 'CHALLENGE COMPLETE!'}
                 </h1>
                 <p className="font-mono text-lg" style={{ color: 'var(--text-main)' }}>
-                  Impressive typing! Here's your reward.
+                  {skipped ? "Here's how to reach me." : "Impressive typing! Here's your reward."}
                 </p>
               </motion.div>
 
-              {/* Stats Card */}
-              <motion.div
-                className="mb-8 p-6"
-                style={{
-                  backgroundColor: 'var(--bg-card)',
-                  border: '2px solid #FFD93D',
-                }}
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.3 }}
-              >
-                <h3 className="text-xl font-mono font-bold mb-6 text-center" style={{ color: '#FFD93D' }}>
-                  📊 YOUR STATS
-                </h3>
-                <div className="grid grid-cols-4 gap-4 text-center">
-                  <div
-                    className="p-4"
-                    style={{
-                      backgroundColor: 'var(--bg-main)',
-                      border: '1px solid var(--border-color)',
-                    }}
-                  >
-                    <div className="text-3xl font-mono font-bold" style={{ color: '#FFD93D' }}>
-                      {completedStats.wpm}
+              {/* Stats Card - Only show if challenge was completed, not skipped */}
+              {!skipped && completedStats && (
+                <motion.div
+                  className="mb-8 p-6"
+                  style={{
+                    backgroundColor: 'var(--bg-card)',
+                    border: '2px solid #FFD93D',
+                  }}
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <h3 className="text-xl font-mono font-bold mb-6 text-center" style={{ color: '#FFD93D' }}>
+                    📊 YOUR STATS
+                  </h3>
+                  <div className="grid grid-cols-4 gap-4 text-center">
+                    <div
+                      className="p-4"
+                      style={{
+                        backgroundColor: 'var(--bg-main)',
+                        border: '1px solid var(--border-color)',
+                      }}
+                    >
+                      <div className="text-3xl font-mono font-bold" style={{ color: '#FFD93D' }}>
+                        {completedStats.wpm}
+                      </div>
+                      <div className="text-xs font-mono uppercase" style={{ color: 'var(--text-muted)' }}>
+                        WPM
+                      </div>
                     </div>
-                    <div className="text-xs font-mono uppercase" style={{ color: 'var(--text-muted)' }}>
-                      WPM
+                    <div
+                      className="p-4"
+                      style={{
+                        backgroundColor: 'var(--bg-main)',
+                        border: '1px solid var(--border-color)',
+                      }}
+                    >
+                      <div className="text-3xl font-mono font-bold" style={{ color: '#6BCF7F' }}>
+                        {completedStats.cps}
+                      </div>
+                      <div className="text-xs font-mono uppercase" style={{ color: 'var(--text-muted)' }}>
+                        CPS
+                      </div>
+                    </div>
+                    <div
+                      className="p-4"
+                      style={{
+                        backgroundColor: 'var(--bg-main)',
+                        border: '1px solid var(--border-color)',
+                      }}
+                    >
+                      <div className="text-3xl font-mono font-bold" style={{ color: '#6BCF7F' }}>
+                        {completedStats.accuracy}%
+                      </div>
+                      <div className="text-xs font-mono uppercase" style={{ color: 'var(--text-muted)' }}>
+                        Accuracy
+                      </div>
+                    </div>
+                    <div
+                      className="p-4"
+                      style={{
+                        backgroundColor: 'var(--bg-main)',
+                        border: '1px solid var(--border-color)',
+                      }}
+                    >
+                      <div className="text-3xl font-mono font-bold" style={{ color: 'var(--text-main)' }}>
+                        {completedStats.time.toFixed(1)}s
+                      </div>
+                      <div className="text-xs font-mono uppercase" style={{ color: 'var(--text-muted)' }}>
+                        Time
+                      </div>
                     </div>
                   </div>
-                  <div
-                    className="p-4"
-                    style={{
-                      backgroundColor: 'var(--bg-main)',
-                      border: '1px solid var(--border-color)',
-                    }}
-                  >
-                    <div className="text-3xl font-mono font-bold" style={{ color: '#6BCF7F' }}>
-                      {completedStats.cps}
-                    </div>
-                    <div className="text-xs font-mono uppercase" style={{ color: 'var(--text-muted)' }}>
-                      CPS
-                    </div>
-                  </div>
-                  <div
-                    className="p-4"
-                    style={{
-                      backgroundColor: 'var(--bg-main)',
-                      border: '1px solid var(--border-color)',
-                    }}
-                  >
-                    <div className="text-3xl font-mono font-bold" style={{ color: '#6BCF7F' }}>
-                      {completedStats.accuracy}%
-                    </div>
-                    <div className="text-xs font-mono uppercase" style={{ color: 'var(--text-muted)' }}>
-                      Accuracy
-                    </div>
-                  </div>
-                  <div
-                    className="p-4"
-                    style={{
-                      backgroundColor: 'var(--bg-main)',
-                      border: '1px solid var(--border-color)',
-                    }}
-                  >
-                    <div className="text-3xl font-mono font-bold" style={{ color: 'var(--text-main)' }}>
-                      {completedStats.time.toFixed(1)}s
-                    </div>
-                    <div className="text-xs font-mono uppercase" style={{ color: 'var(--text-muted)' }}>
-                      Time
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
+                </motion.div>
+              )}
 
               {/* Contact Info Grid */}
               <motion.div

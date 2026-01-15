@@ -224,8 +224,8 @@ const StatsHUD = ({
 const PlayerCharacter = ({ 
   direction, 
   tileSize,
-  position,
-  mapHeight,
+  position: _position,
+  mapHeight: _mapHeight,
 }: { 
   direction: 'up' | 'down' | 'left' | 'right';
   tileSize: number;

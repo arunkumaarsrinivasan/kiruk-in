@@ -5,7 +5,6 @@
  */
 
 import { PAGE_INFO } from './page-info';
-import { PAGE_GAMES } from './game-navigation-data';
 
 export interface FAQItem {
   id: string;
@@ -124,7 +123,7 @@ export const PAGE_HELP_DATA: PageHelp[] = [
   },
   {
     path: '/work',
-    title: 'Work - Evidence Locker',
+    title: 'Work - Experience Arena',
     description: 'Browse through my projects and experiments. Click on project cards to examine them in detail.',
     instructions: [
       'Browse the project gallery',

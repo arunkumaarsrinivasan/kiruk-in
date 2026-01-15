@@ -168,19 +168,19 @@ export abstract class BaseGridGame implements GridGameEngine {
   protected onReset(): void {}
 
   /** Called each frame with delta time. Override for game logic. */
-  protected onUpdate(dt: number): void {}
+  protected onUpdate(_dt: number): void {}
 
   /** Called when cursor moves to a new cell. */
-  protected onCursorMove(cell: GridCell): void {}
+  protected onCursorMove(_cell: GridCell): void {}
 
   /** Called for each cell in the cursor's path (for interpolation). */
-  protected onCursorPath(cell: GridCell): void {}
+  protected onCursorPath(_cell: GridCell): void {}
 
   /** Called when cursor leaves the grid. */
   protected onCursorLeave(): void {}
 
   /** Called when user clicks on a cell. Override for click-based games. */
-  protected onCellClick(cell: GridCell): void {}
+  protected onCellClick(_cell: GridCell): void {}
 
   /** Return segments to render. Override for game-specific segments. */
   protected getSegments(): GridSegment[] {

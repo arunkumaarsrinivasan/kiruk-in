@@ -44,7 +44,6 @@ export function PixelCursor({ x, y, isCharging, power }: PixelCursorProps) {
   const top = useMotionTemplate`${cursorY}%`;
   
   const pixelSize = 4;
-  const baseSize = 16; // 4x4 grid
   
   // Pixelated crosshair pattern
   const crosshairPattern = [

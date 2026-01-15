@@ -357,7 +357,7 @@ export function PixelObstacle({ type, className, size = "medium" }: PixelObstacl
 }
 
 // Get obstacles based on event story/theme
-export function getObstaclesForLevel(year: number, eventTitle?: string, tags?: string[]): ObstacleType[] {
+export function getObstaclesForLevel(year: number, eventTitle?: string, _tags?: string[]): ObstacleType[] {
   // Match obstacles to story themes
   if (eventTitle?.toLowerCase().includes("creative clan") || eventTitle?.toLowerCase().includes("joint family")) {
     return ["crochet", "paintbrush", "calligraphy", "chai"];

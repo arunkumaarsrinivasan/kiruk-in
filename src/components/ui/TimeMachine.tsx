@@ -231,6 +231,7 @@ const PixelTransition = ({
 // POWER LEVER CONSOLE (MINI GAME)
 // ═══════════════════════════════════════════════════════════════════════════════
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const PowerLeverConsole = ({
   isPanelOpen,
   onLaunch,

@@ -106,7 +106,7 @@ export default function DetectiveHintsOverlay({ children }: DetectiveHintsOverla
             // Fallback to percentage-based positioning
             positions[clue.id] = clue.position;
           }
-        } catch (e) {
+        } catch (_e) {
           // Fallback to percentage-based positioning
           positions[clue.id] = clue.position;
         }
@@ -424,21 +424,6 @@ export default function DetectiveHintsOverlay({ children }: DetectiveHintsOverla
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Floating reveal button when hints are dismissed */}
-      {!showHints && !everythingRevealed && (
-        <motion.button
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={handleRevealEverything}
-          className="fixed bottom-6 right-6 z-[9998] bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg shadow-lg font-semibold flex items-center gap-2 transition-colors"
-        >
-          <span>🔓</span>
-          <span>Reveal Everything</span>
-        </motion.button>
-      )}
 
       {children}
     </div>

@@ -120,10 +120,10 @@ const DETECTIVE_STORIES: Record<string, StorySegment> = {
 
 export default function DetectiveStoryWrapper({ children }: DetectiveStoryWrapperProps) {
   const pathname = usePathname();
-  const { mode, setMode } = useGameMode();
+  const { mode: _mode, setMode } = useGameMode();
   const [showStory, setShowStory] = useState(false); // Don't show by default
   const [storyDismissed, setStoryDismissed] = useState(false);
-  const [everythingRevealed, setEverythingRevealed] = useState(false);
+  const [_everythingRevealed, setEverythingRevealed] = useState(false);
   const [currentDialogueIndex, setCurrentDialogueIndex] = useState(0);
 
   // Don't show story overlay on home page - it uses hints overlay instead
@@ -334,24 +334,6 @@ export default function DetectiveStoryWrapper({ children }: DetectiveStoryWrappe
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Floating Action Buttons - Always visible if story is dismissed */}
-      {storyDismissed && !everythingRevealed && (
-        <div className="fixed bottom-6 right-6 z-[9998] flex flex-col gap-3">
-          <motion.button
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleRevealEverything}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg shadow-lg font-semibold flex items-center gap-2 transition-colors"
-            title="Reveal all content and unlock everything"
-          >
-            <span>🔓</span>
-            <span>Reveal Everything</span>
-          </motion.button>
-        </div>
-      )}
 
       {/* Main Content */}
       <div className={showStory && !storyDismissed ? 'pointer-events-none opacity-50' : ''}>

@@ -24,7 +24,7 @@ export default function LayoutClientShell({ children }: Readonly<LayoutClientShe
   // Game state lifted up for coordination between nav and arcade
   const [isGameActive, setIsGameActive] = useState(false);
   const [gameId, setGameId] = useState(getDefaultGameId());
-  const [score, setScore] = useState(0);
+  const [_score, setScore] = useState(0);
   
   // Mission tracking
   const { trackInteraction, trackScore } = useMissionTracker();
@@ -57,7 +57,7 @@ export default function LayoutClientShell({ children }: Readonly<LayoutClientShe
     trackInteraction();
   }, [isGameActive, trackInteraction]);
   
-  const handleRandomGame = useCallback(() => {
+  const _handleRandomGame = useCallback(() => {
     let newGameId = getRandomGameId();
     while (newGameId === gameId) {
       newGameId = getRandomGameId();
@@ -67,7 +67,7 @@ export default function LayoutClientShell({ children }: Readonly<LayoutClientShe
     trackInteraction();
   }, [gameId, trackInteraction]);
   
-  const handleScoreChange = useCallback((newScore: number) => {
+  const _handleScoreChange = useCallback((newScore: number) => {
     setScore(newScore);
     trackScore(newScore);
   }, [trackScore]);

@@ -9,8 +9,6 @@ interface ZombieGameBackgroundProps {
 export function ZombieGameBackground({ children }: ZombieGameBackgroundProps) {
   // Create prominent pixel grid pattern
   const pixelSize = 20; // pixels
-  const gridCols = typeof window !== 'undefined' ? Math.ceil(window.innerWidth / pixelSize) : 50;
-  const gridRows = typeof window !== 'undefined' ? Math.ceil(window.innerHeight / pixelSize) : 50;
 
   return (
     <div className="relative w-full h-full min-h-screen overflow-hidden" style={{ backgroundColor: '#0a0a0a' }}>

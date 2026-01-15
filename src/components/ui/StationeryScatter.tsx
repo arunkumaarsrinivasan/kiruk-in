@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, useScroll, useTransform, useSpring, useMotionValue } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
 
 // Types of stationery items
 type ItemType = 'polaroid' | 'ticket' | 'sticky-note' | 'tape' | 'clip' | 'stamp' | 'pencil' | 'eraser' | 'ruler' | 'coffee-stain' | 'crumpled-paper';

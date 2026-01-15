@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ObstacleType, getObstaclesForLevel } from "./PixelObstacle";
+import { ObstacleType } from "./PixelObstacle";
 
 export type CollectibleType = "coin" | "star" | "heart" | "coffee" | "book";
 
@@ -72,7 +72,7 @@ interface UseGameEngineProps {
 export function useGameEngine({
   levels,
   events,
-  gameMode = 'normal',
+  gameMode: _gameMode = 'normal',
   onLevelComplete,
   onGameOver,
   onCollect,
@@ -129,7 +129,6 @@ export function useGameEngine({
   const JUMP_FORCE = 18;
   const DOUBLE_JUMP_FORCE = 14;
   const GROUND_Y = 0;
-  const SCREEN_CENTER = 400; // Player visual position on screen
   
   // Get speed based on age/level - player moves faster as they grow
   const getSpeedForLevel = useCallback((level: number) => {
@@ -178,72 +177,13 @@ export function useGameEngine({
   
   // Generate obstacles for a level
   const generateLevelContent = useCallback((level: number) => {
-    const currentYear = levels[level]?.year || 2001;
     const currentEvent = events?.[level];
-    const obstacleTypes = getObstaclesForLevel(
-      currentYear, 
-      currentEvent?.title, 
-      currentEvent?.tags
-    );
-    const obstacles: GameObstacle[] = [];
+    const obstacles: GameObstacle[] = []; // No obstacles
     const collectibles: GameCollectible[] = [];
     
-    // Get obstacle count based on game mode (2-3 obstacles only)
-    const getObstacleCount = (mode: GameMode): number => {
-      switch (mode) {
-        case 'normal': return 2;  // Easiest - 2 obstacles
-        case 'devil': return 3;  // Harder - 3 obstacles
-        case 'god': return 2;    // Easy - 2 obstacles (god mode is exploration)
-        default: return 2;
-      }
-    };
-    
-    const obstacleCount = getObstacleCount(gameMode);
-    // Distribute obstacles evenly across the level with good spacing
-    const spacing = worldWidth / (obstacleCount + 1);
-    
-    for (let i = 0; i < obstacleCount; i++) {
-      const type = obstacleTypes[Math.floor(Math.random() * obstacleTypes.length)];
-      const baseX = spacing * (i + 1);
-      const variation = (Math.random() - 0.5) * spacing * 0.5;
-      
-      const sizes: Record<ObstacleType, { width: number; height: number }> = {
-        rock: { width: 40, height: 32 },
-        bush: { width: 48, height: 40 },
-        box: { width: 40, height: 40 },
-        cone: { width: 36, height: 48 },
-        computer: { width: 56, height: 48 },
-        coffee: { width: 36, height: 44 },
-        book: { width: 48, height: 36 },
-        cloud: { width: 56, height: 32 },
-        crochet: { width: 36, height: 44 },
-        notebook: { width: 48, height: 52 },
-        biryani: { width: 48, height: 36 },
-        chai: { width: 36, height: 44 },
-        paintbrush: { width: 48, height: 36 },
-        calligraphy: { width: 48, height: 36 },
-        poster: { width: 56, height: 48 },
-        sketchbook: { width: 48, height: 36 },
-        laptop: { width: 64, height: 48 },
-        phone: { width: 24, height: 44 },
-        gamepad: { width: 56, height: 36 },
-        "design-tool": { width: 48, height: 36 },
-      };
-      
-      obstacles.push({
-        id: `obstacle-${i}`,
-        type,
-        x: baseX + variation,
-        width: sizes[type]?.width || 40,
-        height: sizes[type]?.height || 40,
-        passed: false,
-      });
-    }
-    
-    // Generate story-based collectibles - fewer collectibles for easier gameplay
+    // Generate story-based collectibles
     const collectibleTypes = getCollectiblesForEvent(currentEvent);
-    // Reduce collectibles: 3-5 per level (was obstacleCount * 2)
-    const collectibleCount = Math.min(5, obstacleCount + 2);
+    const collectibleCount = 5; // Keep some collectibles for gameplay
     
     for (let i = 0; i < collectibleCount; i++) {
       const type = collectibleTypes[Math.floor(Math.random() * collectibleTypes.length)];
@@ -263,7 +203,7 @@ export function useGameEngine({
     levelCollectiblesRef.current = collectibles;
     
     return { obstacles, collectibles };
-  }, [levels, events, worldWidth]);
+  }, [events, worldWidth]);
   
   // Start game
   const startGame = useCallback(() => {
@@ -578,24 +518,11 @@ export function useGameEngine({
         }
       }
       
-      // Check collisions with obstacles
-      let collision = false;
-      let scoreIncrease = 0;
+      // No obstacle collisions - obstacles removed
+      const collision = false;
+      const scoreIncrease = 0;
       
-      const updatedObstacles = gameState.obstacles.map((obstacle) => {
-        // Mark obstacle as passed when player moves past it
-        if (!obstacle.passed && newX > obstacle.x + obstacle.width) {
-          scoreIncrease += 10;
-          return { ...obstacle, passed: true };
-        }
-        
-        // Check collision
-        if (!obstacle.passed && checkCollision(obstacle, newX)) {
-          collision = true;
-        }
-        
-        return obstacle;
-      });
+      const updatedObstacles = gameState.obstacles; // No obstacles to update
       
       // Check collectibles
       let collectibleScore = 0;
@@ -675,6 +602,8 @@ export function useGameEngine({
     gameState.isMovingLeft,
     gameState.isMovingRight,
     gameState.level,
+    gameState.activeCheckpoint,
+    gameState.visitedCheckpoints,
     worldWidth,
     checkCollision,
     checkCollectibleCollision,

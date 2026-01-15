@@ -39,8 +39,6 @@ export function PixelCrosshair({ x, y, pixelSize = 2 }: PixelCrosshairProps) {
         {Array.from({ length: 256 }).map((_, idx) => {
           const row = Math.floor(idx / 16);
           const col = idx % 16;
-          const centerX = 7.5;
-          const centerY = 7.5;
           
           // Draw crosshair pattern
           const isHorizontal = row >= 6 && row <= 9;

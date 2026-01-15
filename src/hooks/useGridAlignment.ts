@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { GRID_SIZE, alignToGrid, alignSizeToGrid, alignSpacingToGrid } from '@/lib/utils';
+import { alignToGrid, alignSizeToGrid, alignSpacingToGrid } from '@/lib/utils';
 
 /**
  * Hook to align style properties to the grid

@@ -111,7 +111,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       );
     }
 
-    const { onAnimationStart, onAnimationEnd, onAnimationIteration, onDrag, onDragEnd, onDragStart, ...buttonProps } = props;
+    const { onAnimationStart: _onAnimationStart, onAnimationEnd: _onAnimationEnd, onAnimationIteration: _onAnimationIteration, onDrag: _onDrag, onDragEnd: _onDragEnd, onDragStart: _onDragStart, ...buttonProps } = props;
 
     return (
       <motion.button

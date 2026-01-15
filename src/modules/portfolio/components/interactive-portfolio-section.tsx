@@ -15,7 +15,7 @@ import { PixelIcon } from '@/components/ui/PixelIcon';
 type ScribbleDragItem = EnhancedScribbleDragItem;
 
 // Type definitions
-type InteractiveMode = 'notebook' | 'scribble' | 'mixed' | 'presentation' | 'collaboration';
+type _InteractiveMode = 'notebook' | 'scribble' | 'mixed' | 'presentation' | 'collaboration';
 
 interface InteractiveStats {
   itemsCreated: number;
@@ -372,7 +372,7 @@ export const InteractivePortfolioSection: React.FC<{
     const cardContainerClass = designSystem.components.cards.base;
     const cardTagClass = designSystem.components.cards.tag;
     const cardHeadingClass = designSystem.components.cards.heading;
-    const primaryButtonClass = designSystem.components.buttons.primary;
+    const _primaryButtonClass = designSystem.components.buttons.primary;
 
     const getStickyNoteColorClass = useCallback(
       (color?: string) => {
@@ -496,7 +496,7 @@ export const InteractivePortfolioSection: React.FC<{
         projectTitle: randomProject.title,
         company: randomProject.company
       });
-    }, [cardHeadingClass, cardTagClass, markJourneyStep, primaryButtonClass, trackPortfolioInteraction]);
+    }, [cardHeadingClass, cardTagClass, markJourneyStep, trackPortfolioInteraction, addNotebookItem, getNextZIndex]);
 
     const addPersonalNote = useCallback(() => {
       const randomNote = PERSONAL_NOTE_LIBRARY[Math.floor(Math.random() * PERSONAL_NOTE_LIBRARY.length)];
@@ -534,7 +534,7 @@ export const InteractivePortfolioSection: React.FC<{
       trackPortfolioInteraction('personal_note_added', {
         noteType: 'sticky_note'
       });
-    }, [markJourneyStep, trackPortfolioInteraction]);
+    }, [markJourneyStep, trackPortfolioInteraction, addNotebookItem, getNextZIndex]);
 
     const addSkillBubble = useCallback(() => {
       const randomSkill = SKILL_LIBRARY[Math.floor(Math.random() * SKILL_LIBRARY.length)];
@@ -572,7 +572,7 @@ export const InteractivePortfolioSection: React.FC<{
         interactionsCount: prev.interactionsCount + 1
       }));
       markJourneyStep('skills');
-    }, [markJourneyStep]);
+    }, [markJourneyStep, addNotebookItem, getNextZIndex]);
 
     const addInteractiveResume = useCallback(() => {
       const newItem: DraggableItem = {
@@ -605,7 +605,7 @@ export const InteractivePortfolioSection: React.FC<{
         interactionsCount: prev.interactionsCount + 1
       }));
       markJourneyStep('resume');
-    }, [markJourneyStep]);
+    }, [markJourneyStep, addNotebookItem, getNextZIndex]);
 
     const addTestimonial = useCallback(() => {
       const randomTestimonial = TESTIMONIAL_LIBRARY[Math.floor(Math.random() * TESTIMONIAL_LIBRARY.length)];
@@ -637,7 +637,7 @@ export const InteractivePortfolioSection: React.FC<{
         interactionsCount: prev.interactionsCount + 1
       }));
       markJourneyStep('testimonials');
-    }, [markJourneyStep]);
+    }, [markJourneyStep, addNotebookItem, getNextZIndex]);
 
     const journeySteps = useMemo(
       () => [
@@ -756,7 +756,7 @@ export const InteractivePortfolioSection: React.FC<{
         setBoardNote('All badges cleared—remix the desk or drop a doodle.');
         setBoardMood('🎉');
       }
-    }, [journeyStepsCompleted, journeySteps.length, journeyStoryMoments]);
+    }, [journeyStepsCompleted, journeySteps.length, journeyStoryMoments, setBoardMood, setBoardNote]);
 
     const achievementsUnlockedCount = useMemo(
       () => achievements.filter((achievement) => achievement.unlocked).length,
@@ -906,7 +906,7 @@ export const InteractivePortfolioSection: React.FC<{
         globalThis.removeEventListener('resize', updateLayout);
         globalThis.removeEventListener('scroll', updateLayout);
       };
-    }, [showProjectSpotlight]);
+    }, [showProjectSpotlight, setProjectSpotlightLayout]);
 
     // Extract mouse move handler for intro dragging
     const createMouseMoveHandler = (offsetX: number, offsetY: number, rect: DOMRect) => {
@@ -987,7 +987,7 @@ export const InteractivePortfolioSection: React.FC<{
           : i
       );
       setNotebookItems(newItems);
-    }, [notebookItems]);
+    }, [notebookItems, setNotebookItems]);
 
     // Extract achievement notification rendering to reduce nesting
     const renderAchievementNotification = useCallback((achievementId: string, index: number) => {
@@ -1155,7 +1155,7 @@ export const InteractivePortfolioSection: React.FC<{
     const handleCloseIntro = useCallback(() => {
       setShowIntro(false);
       setIsIntroDocked(true);
-    }, []);
+    }, [setIsIntroDocked]);
 
     // handleRestoreIntro - removed unused callback
 

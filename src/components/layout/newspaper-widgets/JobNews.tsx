@@ -46,7 +46,7 @@ export default function JobNews() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 grid-gap-1">
-        {jobOpportunities.map((job, index) => (
+        {jobOpportunities.map((job) => (
           <article 
             key={job.id}
             className={`grid-p-1 bg-[var(--bg-card)]`}

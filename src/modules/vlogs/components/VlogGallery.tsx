@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { SketchHeading } from '@/components/ui/sketch-elements';
 
 type InstagramSpace = {

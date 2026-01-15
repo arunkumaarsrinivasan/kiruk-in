@@ -22,14 +22,14 @@ export default function LocationWidget() {
     return () => clearInterval(interval);
   }, []);
 
-  const locations = [
-    { area: 'Silicon Valley of India', status: 'Working from Home' },
-    { area: 'Tech Hub', status: 'In Office' },
-    { area: 'Innovation District', status: 'Working from Home' },
-    { area: 'IT Corridor', status: 'Remote' },
-  ];
-
   useEffect(() => {
+    const locations = [
+      { area: 'Silicon Valley of India', status: 'Working from Home' },
+      { area: 'Tech Hub', status: 'In Office' },
+      { area: 'Innovation District', status: 'Working from Home' },
+      { area: 'IT Corridor', status: 'Remote' },
+    ];
+
     const interval = setInterval(() => {
       const randomLocation = locations[Math.floor(Math.random() * locations.length)];
       setLocation(prev => ({ ...prev, ...randomLocation }));

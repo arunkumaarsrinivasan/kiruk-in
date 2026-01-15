@@ -1,0 +1,693 @@
+<!DOCTYPE html><html><head>
+      <title>NEXTJS_FUNDAMENTALS</title>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      
+      <link rel="stylesheet" href="file:///c:\Users\arunk\.antigravity\extensions\shd101wyy.markdown-preview-enhanced-0.8.20-universal\crossnote\dependencies\katex\katex.min.css">
+      
+      
+      
+      
+      
+      <style>
+      code[class*=language-],pre[class*=language-]{color:#333;background:0 0;font-family:Consolas,"Liberation Mono",Menlo,Courier,monospace;text-align:left;white-space:pre;word-spacing:normal;word-break:normal;word-wrap:normal;line-height:1.4;-moz-tab-size:8;-o-tab-size:8;tab-size:8;-webkit-hyphens:none;-moz-hyphens:none;-ms-hyphens:none;hyphens:none}pre[class*=language-]{padding:.8em;overflow:auto;border-radius:3px;background:#f5f5f5}:not(pre)>code[class*=language-]{padding:.1em;border-radius:.3em;white-space:normal;background:#f5f5f5}.token.blockquote,.token.comment{color:#969896}.token.cdata{color:#183691}.token.doctype,.token.macro.property,.token.punctuation,.token.variable{color:#333}.token.builtin,.token.important,.token.keyword,.token.operator,.token.rule{color:#a71d5d}.token.attr-value,.token.regex,.token.string,.token.url{color:#183691}.token.atrule,.token.boolean,.token.code,.token.command,.token.constant,.token.entity,.token.number,.token.property,.token.symbol{color:#0086b3}.token.prolog,.token.selector,.token.tag{color:#63a35c}.token.attr-name,.token.class,.token.class-name,.token.function,.token.id,.token.namespace,.token.pseudo-class,.token.pseudo-element,.token.url-reference .token.variable{color:#795da3}.token.entity{cursor:help}.token.title,.token.title .token.punctuation{font-weight:700;color:#1d3e81}.token.list{color:#ed6a43}.token.inserted{background-color:#eaffea;color:#55a532}.token.deleted{background-color:#ffecec;color:#bd2c00}.token.bold{font-weight:700}.token.italic{font-style:italic}.language-json .token.property{color:#183691}.language-markup .token.tag .token.punctuation{color:#333}.language-css .token.function,code.language-css{color:#0086b3}.language-yaml .token.atrule{color:#63a35c}code.language-yaml{color:#183691}.language-ruby .token.function{color:#333}.language-markdown .token.url{color:#795da3}.language-makefile .token.symbol{color:#795da3}.language-makefile .token.variable{color:#183691}.language-makefile .token.builtin{color:#0086b3}.language-bash .token.keyword{color:#0086b3}pre[data-line]{position:relative;padding:1em 0 1em 3em}pre[data-line] .line-highlight-wrapper{position:absolute;top:0;left:0;background-color:transparent;display:block;width:100%}pre[data-line] .line-highlight{position:absolute;left:0;right:0;padding:inherit 0;margin-top:1em;background:hsla(24,20%,50%,.08);background:linear-gradient(to right,hsla(24,20%,50%,.1) 70%,hsla(24,20%,50%,0));pointer-events:none;line-height:inherit;white-space:pre}pre[data-line] .line-highlight:before,pre[data-line] .line-highlight[data-end]:after{content:attr(data-start);position:absolute;top:.4em;left:.6em;min-width:1em;padding:0 .5em;background-color:hsla(24,20%,50%,.4);color:#f4f1ef;font:bold 65%/1.5 sans-serif;text-align:center;vertical-align:.3em;border-radius:999px;text-shadow:none;box-shadow:0 1px #fff}pre[data-line] .line-highlight[data-end]:after{content:attr(data-end);top:auto;bottom:.4em}html body{font-family:'Helvetica Neue',Helvetica,'Segoe UI',Arial,freesans,sans-serif;font-size:16px;line-height:1.6;color:#333;background-color:#fff;overflow:initial;box-sizing:border-box;word-wrap:break-word}html body>:first-child{margin-top:0}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{line-height:1.2;margin-top:1em;margin-bottom:16px;color:#000}html body h1{font-size:2.25em;font-weight:300;padding-bottom:.3em}html body h2{font-size:1.75em;font-weight:400;padding-bottom:.3em}html body h3{font-size:1.5em;font-weight:500}html body h4{font-size:1.25em;font-weight:600}html body h5{font-size:1.1em;font-weight:600}html body h6{font-size:1em;font-weight:600}html body h1,html body h2,html body h3,html body h4,html body h5{font-weight:600}html body h5{font-size:1em}html body h6{color:#5c5c5c}html body strong{color:#000}html body del{color:#5c5c5c}html body a:not([href]){color:inherit;text-decoration:none}html body a{color:#08c;text-decoration:none}html body a:hover{color:#00a3f5;text-decoration:none}html body img{max-width:100%}html body>p{margin-top:0;margin-bottom:16px;word-wrap:break-word}html body>ol,html body>ul{margin-bottom:16px}html body ol,html body ul{padding-left:2em}html body ol.no-list,html body ul.no-list{padding:0;list-style-type:none}html body ol ol,html body ol ul,html body ul ol,html body ul ul{margin-top:0;margin-bottom:0}html body li{margin-bottom:0}html body li.task-list-item{list-style:none}html body li>p{margin-top:0;margin-bottom:0}html body .task-list-item-checkbox{margin:0 .2em .25em -1.8em;vertical-align:middle}html body .task-list-item-checkbox:hover{cursor:pointer}html body blockquote{margin:16px 0;font-size:inherit;padding:0 15px;color:#5c5c5c;background-color:#f0f0f0;border-left:4px solid #d6d6d6}html body blockquote>:first-child{margin-top:0}html body blockquote>:last-child{margin-bottom:0}html body hr{height:4px;margin:32px 0;background-color:#d6d6d6;border:0 none}html body table{margin:10px 0 15px 0;border-collapse:collapse;border-spacing:0;display:block;width:100%;overflow:auto;word-break:normal;word-break:keep-all}html body table th{font-weight:700;color:#000}html body table td,html body table th{border:1px solid #d6d6d6;padding:6px 13px}html body dl{padding:0}html body dl dt{padding:0;margin-top:16px;font-size:1em;font-style:italic;font-weight:700}html body dl dd{padding:0 16px;margin-bottom:16px}html body code{font-family:Menlo,Monaco,Consolas,'Courier New',monospace;font-size:.85em;color:#000;background-color:#f0f0f0;border-radius:3px;padding:.2em 0}html body code::after,html body code::before{letter-spacing:-.2em;content:'\00a0'}html body pre>code{padding:0;margin:0;word-break:normal;white-space:pre;background:0 0;border:0}html body .highlight{margin-bottom:16px}html body .highlight pre,html body pre{padding:1em;overflow:auto;line-height:1.45;border:#d6d6d6;border-radius:3px}html body .highlight pre{margin-bottom:0;word-break:normal}html body pre code,html body pre tt{display:inline;max-width:initial;padding:0;margin:0;overflow:initial;line-height:inherit;word-wrap:normal;background-color:transparent;border:0}html body pre code:after,html body pre code:before,html body pre tt:after,html body pre tt:before{content:normal}html body blockquote,html body dl,html body ol,html body p,html body pre,html body ul{margin-top:0;margin-bottom:16px}html body kbd{color:#000;border:1px solid #d6d6d6;border-bottom:2px solid #c7c7c7;padding:2px 4px;background-color:#f0f0f0;border-radius:3px}@media print{html body{background-color:#fff}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{color:#000;page-break-after:avoid}html body blockquote{color:#5c5c5c}html body pre{page-break-inside:avoid}html body table{display:table}html body img{display:block;max-width:100%;max-height:100%}html body code,html body pre{word-wrap:break-word;white-space:pre}}.markdown-preview{width:100%;height:100%;box-sizing:border-box}.markdown-preview ul{list-style:disc}.markdown-preview ul ul{list-style:circle}.markdown-preview ul ul ul{list-style:square}.markdown-preview ol{list-style:decimal}.markdown-preview ol ol,.markdown-preview ul ol{list-style-type:lower-roman}.markdown-preview ol ol ol,.markdown-preview ol ul ol,.markdown-preview ul ol ol,.markdown-preview ul ul ol{list-style-type:lower-alpha}.markdown-preview .newpage,.markdown-preview .pagebreak{page-break-before:always}.markdown-preview pre.line-numbers{position:relative;padding-left:3.8em;counter-reset:linenumber}.markdown-preview pre.line-numbers>code{position:relative}.markdown-preview pre.line-numbers .line-numbers-rows{position:absolute;pointer-events:none;top:1em;font-size:100%;left:0;width:3em;letter-spacing:-1px;border-right:1px solid #999;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.markdown-preview pre.line-numbers .line-numbers-rows>span{pointer-events:none;display:block;counter-increment:linenumber}.markdown-preview pre.line-numbers .line-numbers-rows>span:before{content:counter(linenumber);color:#999;display:block;padding-right:.8em;text-align:right}.markdown-preview .mathjax-exps .MathJax_Display{text-align:center!important}.markdown-preview:not([data-for=preview]) .code-chunk .code-chunk-btn-group{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .status{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .output-div{margin-bottom:16px}.markdown-preview .md-toc{padding:0}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link div,.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}.markdown-preview .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}.scrollbar-style::-webkit-scrollbar{width:8px}.scrollbar-style::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}.scrollbar-style::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,.66);border:4px solid rgba(150,150,150,.66);background-clip:content-box}html body[for=html-export]:not([data-presentation-mode]){position:relative;width:100%;height:100%;top:0;left:0;margin:0;padding:0;overflow:auto}html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{position:relative;top:0;min-height:100vh}@media screen and (min-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em calc(50% - 457px + 2em)}}@media screen and (max-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{font-size:14px!important;padding:1em}}@media print{html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{display:none}}html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{position:fixed;bottom:8px;left:8px;font-size:28px;cursor:pointer;color:inherit;z-index:99;width:32px;text-align:center;opacity:.4}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] #sidebar-toc-btn{opacity:1}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc{position:fixed;top:0;left:0;width:300px;height:100%;padding:32px 0 48px 0;font-size:14px;box-shadow:0 0 4px rgba(150,150,150,.33);box-sizing:border-box;overflow:auto;background-color:inherit}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar{width:8px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,.66);border:4px solid rgba(150,150,150,.66);background-clip:content-box}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc a{text-decoration:none}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc{padding:0 16px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link div,html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{left:300px;width:calc(100% - 300px);padding:2em calc(50% - 457px - 300px / 2);margin:0;box-sizing:border-box}@media screen and (max-width:1274px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{width:100%}}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .markdown-preview{left:50%;transform:translateX(-50%)}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .md-sidebar-toc{display:none}
+/* Please visit the URL below for more information: */
+/*   https://shd101wyy.github.io/markdown-preview-enhanced/#/customize-css */
+
+      </style>
+      <!-- The content below will be included at the end of the <head> element. --><script type="text/javascript">
+  document.addEventListener("DOMContentLoaded", function () {
+    // your code here
+  });
+</script></head><body for="html-export">
+    
+    
+      <div class="crossnote markdown-preview  ">
+      
+<h1 id="-nextjs-fundamentals-for-kiruk-portfolio">📚 Next.js Fundamentals for Kiruk Portfolio </h1>
+<blockquote>
+<p>A practical guide to Next.js concepts as they apply to this portfolio</p>
+</blockquote>
+<hr>
+<h2 id="-table-of-contents">📋 Table of Contents </h2>
+<ol>
+<li><a href="#what-is-nextjs">What is Next.js?</a></li>
+<li><a href="#app-router-explained">App Router Explained</a></li>
+<li><a href="#server-vs-client-components">Server vs Client Components</a></li>
+<li><a href="#routing-in-this-project">Routing in This Project</a></li>
+<li><a href="#layouts-and-templates">Layouts and Templates</a></li>
+<li><a href="#data-fetching">Data Fetching</a></li>
+<li><a href="#api-routes">API Routes</a></li>
+<li><a href="#context--state-management">Context &amp; State Management</a></li>
+<li><a href="#styling">Styling</a></li>
+<li><a href="#common-patterns-used">Common Patterns Used</a></li>
+</ol>
+<hr>
+<h2 id="what-is-nextjs">What is Next.js? </h2>
+<p><strong>Next.js</strong> is a React framework that adds:</p>
+<ul>
+<li><strong>Server-Side Rendering (SSR)</strong> - Render pages on the server for better SEO</li>
+<li><strong>Static Site Generation (SSG)</strong> - Pre-build pages at build time</li>
+<li><strong>File-Based Routing</strong> - Folders = routes, no router config needed</li>
+<li><strong>API Routes</strong> - Build backend endpoints alongside frontend</li>
+<li><strong>Optimizations</strong> - Automatic code splitting, image optimization, etc.</li>
+</ul>
+<h3 id="this-project-uses">This Project Uses </h3>
+<ul>
+<li><strong>Next.js 15</strong> with the App Router</li>
+<li><strong>React 19</strong> (Server Components by default)</li>
+<li><strong>TypeScript</strong> for type safety</li>
+<li><strong>Tailwind CSS</strong> for styling</li>
+</ul>
+<hr>
+<h2 id="app-router-explained">App Router Explained </h2>
+<p>The <strong>App Router</strong> (introduced in Next.js 13) uses the <code>src/app/</code> directory.</p>
+<h3 id="basic-rules">Basic Rules </h3>
+<table>
+<thead>
+<tr>
+<th>File/Folder</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>page.tsx</code></td>
+<td>The page component for that route</td>
+</tr>
+<tr>
+<td><code>layout.tsx</code></td>
+<td>Wraps all child routes (persists across navigation)</td>
+</tr>
+<tr>
+<td><code>loading.tsx</code></td>
+<td>Loading UI while page loads</td>
+</tr>
+<tr>
+<td><code>error.tsx</code></td>
+<td>Error boundary for that route</td>
+</tr>
+<tr>
+<td><code>not-found.tsx</code></td>
+<td>404 page</td>
+</tr>
+<tr>
+<td><code>route.ts</code></td>
+<td>API endpoint</td>
+</tr>
+<tr>
+<td><code>[slug]/</code></td>
+<td>Dynamic route segment</td>
+</tr>
+</tbody>
+</table>
+<h3 id="example-this-projects-routes">Example: This Project's Routes </h3>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>src/app/
+├── page.tsx              → /
+├── layout.tsx            → Root layout (wraps everything)
+├── globals.css           → Global styles
+│
+├── about/
+│   └── page.tsx          → /about
+│
+├── work/
+│   ├── page.tsx          → /work
+│   └── [slug]/
+│       └── page.tsx      → /work/project-name
+│
+├── case-studies/
+│   ├── page.tsx          → /case-studies
+│   └── [slug]/
+│       └── page.tsx      → /case-studies/project-name
+│
+├── contact/
+│   └── page.tsx          → /contact
+│
+├── arcade/
+│   └── page.tsx          → /arcade
+│
+└── api/
+    ├── contact/
+    │   └── route.ts      → POST /api/contact
+    └── analytics/
+        └── route.ts      → POST /api/analytics
+</code></pre><hr>
+<h2 id="server-vs-client-components">Server vs Client Components </h2>
+<h3 id="server-components-default">Server Components (Default) </h3>
+<p>By default, all components in <code>app/</code> are <strong>Server Components</strong>.</p>
+<pre data-role="codeBlock" data-info="tsx" class="language-tsx tsx"><code><span class="token comment">// This is a Server Component (no 'use client')</span>
+<span class="token keyword keyword-export">export</span> <span class="token keyword keyword-default">default</span> <span class="token keyword keyword-function">function</span> <span class="token function">AboutPage</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token comment">// ✅ Can access server-only resources</span>
+  <span class="token comment">// ✅ Can use async/await directly</span>
+  <span class="token comment">// ❌ Cannot use useState, useEffect</span>
+  <span class="token comment">// ❌ Cannot use event handlers</span>
+  <span class="token comment">// ❌ Cannot access browser APIs</span>
+  
+  <span class="token keyword keyword-return">return</span> <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span><span class="token punctuation">&gt;</span></span><span class="token plain-text">About content</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre><p><strong>Benefits:</strong></p>
+<ul>
+<li>Zero JavaScript sent to browser</li>
+<li>Can access databases directly</li>
+<li>Better SEO (fully rendered HTML)</li>
+</ul>
+<h3 id="client-components">Client Components </h3>
+<p>Add <code>'use client'</code> directive to make a component run in the browser.</p>
+<pre data-role="codeBlock" data-info="tsx" class="language-tsx tsx"><code><span class="token string">'use client'</span><span class="token punctuation">;</span>  <span class="token comment">// ← This makes it a Client Component</span>
+
+<span class="token keyword keyword-import">import</span> <span class="token imports"><span class="token punctuation">{</span> useState<span class="token punctuation">,</span> useEffect <span class="token punctuation">}</span></span> <span class="token keyword keyword-from">from</span> <span class="token string">'react'</span><span class="token punctuation">;</span>
+
+<span class="token keyword keyword-export">export</span> <span class="token keyword keyword-default">default</span> <span class="token keyword keyword-function">function</span> <span class="token function">InteractiveWidget</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token comment">// ✅ Can use hooks</span>
+  <span class="token comment">// ✅ Can use event handlers</span>
+  <span class="token comment">// ✅ Can access browser APIs</span>
+  <span class="token comment">// ❌ Cannot use async component</span>
+  
+  <span class="token keyword keyword-const">const</span> <span class="token punctuation">[</span>count<span class="token punctuation">,</span> setCount<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token function">useState</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  
+  <span class="token keyword keyword-return">return</span> <span class="token punctuation">(</span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span> <span class="token attr-name">onClick</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token arrow operator">=&gt;</span> <span class="token function">setCount</span><span class="token punctuation">(</span>c <span class="token arrow operator">=&gt;</span> c <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">}</span></span><span class="token punctuation">&gt;</span></span><span class="token plain-text">
+      Clicked </span><span class="token punctuation">{</span>count<span class="token punctuation">}</span><span class="token plain-text"> times
+    </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">&gt;</span></span>
+  <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre><h3 id="in-this-project">In This Project </h3>
+<p>Most components are Client Components because they need:</p>
+<ul>
+<li><strong>ThemeContext</strong> (user preferences)</li>
+<li><strong>GameModeContext</strong> (game state)</li>
+<li><strong>Animations</strong> (Framer Motion)</li>
+<li><strong>Event handlers</strong> (games, navigation)</li>
+</ul>
+<pre data-role="codeBlock" data-info="tsx" class="language-tsx tsx"><code><span class="token comment">// src/components/layout/LayoutClientShell.tsx</span>
+<span class="token string">'use client'</span><span class="token punctuation">;</span>  <span class="token comment">// ← Needed for interactivity</span>
+
+<span class="token keyword keyword-import">import</span> <span class="token imports"><span class="token punctuation">{</span> useState<span class="token punctuation">,</span> useCallback <span class="token punctuation">}</span></span> <span class="token keyword keyword-from">from</span> <span class="token string">'react'</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-import">import</span> <span class="token imports"><span class="token punctuation">{</span> usePathname <span class="token punctuation">}</span></span> <span class="token keyword keyword-from">from</span> <span class="token string">'next/navigation'</span><span class="token punctuation">;</span>
+<span class="token comment">// ...</span>
+
+<span class="token keyword keyword-export">export</span> <span class="token keyword keyword-default">default</span> <span class="token keyword keyword-function">function</span> <span class="token function">LayoutClientShell</span><span class="token punctuation">(</span><span class="token punctuation">{</span> children <span class="token punctuation">}</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-const">const</span> <span class="token punctuation">[</span>isGameActive<span class="token punctuation">,</span> setIsGameActive<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token function">useState</span><span class="token punctuation">(</span><span class="token boolean">false</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">// ...</span>
+<span class="token punctuation">}</span>
+</code></pre><h3 id="the-pattern-server-layout-client-shell">The Pattern: Server Layout, Client Shell </h3>
+<pre data-role="codeBlock" data-info="tsx" class="language-tsx tsx"><code><span class="token comment">// layout.tsx (Server Component)</span>
+<span class="token keyword keyword-export">export</span> <span class="token keyword keyword-default">default</span> <span class="token keyword keyword-function">function</span> <span class="token function">RootLayout</span><span class="token punctuation">(</span><span class="token punctuation">{</span> children <span class="token punctuation">}</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-return">return</span> <span class="token punctuation">(</span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>html</span><span class="token punctuation">&gt;</span></span><span class="token plain-text">
+      </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>body</span><span class="token punctuation">&gt;</span></span><span class="token plain-text">
+        </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">ThemeProvider</span></span><span class="token punctuation">&gt;</span></span><span class="token plain-text">         </span><span class="token punctuation">{</span><span class="token comment">/* Client Component */</span><span class="token punctuation">}</span><span class="token plain-text">
+          </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">GameModeProvider</span></span><span class="token punctuation">&gt;</span></span><span class="token plain-text">    </span><span class="token punctuation">{</span><span class="token comment">/* Client Component */</span><span class="token punctuation">}</span><span class="token plain-text">
+            </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">ClientShell</span></span><span class="token punctuation">&gt;</span></span><span class="token plain-text">       </span><span class="token punctuation">{</span><span class="token comment">/* Client Component */</span><span class="token punctuation">}</span><span class="token plain-text">
+              </span><span class="token punctuation">{</span>children<span class="token punctuation">}</span><span class="token plain-text">        </span><span class="token punctuation">{</span><span class="token comment">/* Page content */</span><span class="token punctuation">}</span><span class="token plain-text">
+            </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token class-name">ClientShell</span></span><span class="token punctuation">&gt;</span></span><span class="token plain-text">
+          </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token class-name">GameModeProvider</span></span><span class="token punctuation">&gt;</span></span><span class="token plain-text">
+        </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token class-name">ThemeProvider</span></span><span class="token punctuation">&gt;</span></span><span class="token plain-text">
+      </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>body</span><span class="token punctuation">&gt;</span></span><span class="token plain-text">
+    </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>html</span><span class="token punctuation">&gt;</span></span>
+  <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre><hr>
+<h2 id="routing-in-this-project">Routing in This Project </h2>
+<h3 id="static-routes">Static Routes </h3>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>src/app/about/page.tsx     → /about
+src/app/work/page.tsx      → /work
+src/app/contact/page.tsx   → /contact
+</code></pre><h3 id="dynamic-routes">Dynamic Routes </h3>
+<p>The <code>[slug]</code> folder creates a dynamic segment:</p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>src/app/work/[slug]/page.tsx → /work/anything-here
+</code></pre><pre data-role="codeBlock" data-info="tsx" class="language-tsx tsx"><code><span class="token comment">// src/app/work/[slug]/page.tsx</span>
+<span class="token keyword keyword-interface">interface</span> <span class="token class-name">Props</span> <span class="token punctuation">{</span>
+  params<span class="token operator">:</span> <span class="token punctuation">{</span> slug<span class="token operator">:</span> <span class="token builtin">string</span> <span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword keyword-export">export</span> <span class="token keyword keyword-default">default</span> <span class="token keyword keyword-function">function</span> <span class="token function">WorkPage</span><span class="token punctuation">(</span><span class="token punctuation">{</span> params <span class="token punctuation">}</span><span class="token operator">:</span> <span class="token maybe-class-name">Props</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token comment">// params.slug = "my-project" for /work/my-project</span>
+  <span class="token keyword keyword-return">return</span> <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span><span class="token punctuation">&gt;</span></span><span class="token plain-text">Project: </span><span class="token punctuation">{</span>params<span class="token punctuation">.</span><span class="token property-access">slug</span><span class="token punctuation">}</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre><h3 id="navigation">Navigation </h3>
+<p>Use the <code>Link</code> component (not <code>&lt;a&gt;</code>):</p>
+<pre data-role="codeBlock" data-info="tsx" class="language-tsx tsx"><code><span class="token keyword keyword-import">import</span> <span class="token imports"><span class="token maybe-class-name">Link</span></span> <span class="token keyword keyword-from">from</span> <span class="token string">'next/link'</span><span class="token punctuation">;</span>
+
+<span class="token keyword keyword-function">function</span> <span class="token function">Navigation</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-return">return</span> <span class="token punctuation">(</span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>nav</span><span class="token punctuation">&gt;</span></span><span class="token plain-text">
+      </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">Link</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>/<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span><span class="token plain-text">Home</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token class-name">Link</span></span><span class="token punctuation">&gt;</span></span><span class="token plain-text">
+      </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">Link</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>/about<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span><span class="token plain-text">About</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token class-name">Link</span></span><span class="token punctuation">&gt;</span></span><span class="token plain-text">
+      </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">Link</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>/work/my-project<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span><span class="token plain-text">Project</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token class-name">Link</span></span><span class="token punctuation">&gt;</span></span><span class="token plain-text">
+    </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>nav</span><span class="token punctuation">&gt;</span></span>
+  <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre><p>For programmatic navigation:</p>
+<pre data-role="codeBlock" data-info="tsx" class="language-tsx tsx"><code><span class="token string">'use client'</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-import">import</span> <span class="token imports"><span class="token punctuation">{</span> useRouter <span class="token punctuation">}</span></span> <span class="token keyword keyword-from">from</span> <span class="token string">'next/navigation'</span><span class="token punctuation">;</span>
+
+<span class="token keyword keyword-function">function</span> <span class="token function">Button</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-const">const</span> router <span class="token operator">=</span> <span class="token function">useRouter</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  
+  <span class="token keyword keyword-return">return</span> <span class="token punctuation">(</span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span> <span class="token attr-name">onClick</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token arrow operator">=&gt;</span> router<span class="token punctuation">.</span><span class="token method function property-access">push</span><span class="token punctuation">(</span><span class="token string">'/about'</span><span class="token punctuation">)</span><span class="token punctuation">}</span></span><span class="token punctuation">&gt;</span></span><span class="token plain-text">
+      Go to About
+    </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">&gt;</span></span>
+  <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre><hr>
+<h2 id="layouts-and-templates">Layouts and Templates </h2>
+<h3 id="layout-persists">Layout (Persists) </h3>
+<p>The <code>layout.tsx</code> wraps child routes and <strong>preserves state</strong> across navigation.</p>
+<pre data-role="codeBlock" data-info="tsx" class="language-tsx tsx"><code><span class="token comment">// src/app/layout.tsx</span>
+<span class="token keyword keyword-export">export</span> <span class="token keyword keyword-default">default</span> <span class="token keyword keyword-function">function</span> <span class="token function">RootLayout</span><span class="token punctuation">(</span><span class="token punctuation">{</span> children <span class="token punctuation">}</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-return">return</span> <span class="token punctuation">(</span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>html</span> <span class="token attr-name">lang</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>en<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span><span class="token plain-text">
+      </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>body</span><span class="token punctuation">&gt;</span></span><span class="token plain-text">
+        </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">ThemeProvider</span></span><span class="token punctuation">&gt;</span></span><span class="token plain-text">       </span><span class="token punctuation">{</span><span class="token comment">/* State preserved! */</span><span class="token punctuation">}</span><span class="token plain-text">
+          </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">GameModeProvider</span></span><span class="token punctuation">&gt;</span></span><span class="token plain-text">  </span><span class="token punctuation">{</span><span class="token comment">/* State preserved! */</span><span class="token punctuation">}</span><span class="token plain-text">
+            </span><span class="token punctuation">{</span>children<span class="token punctuation">}</span><span class="token plain-text">
+          </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token class-name">GameModeProvider</span></span><span class="token punctuation">&gt;</span></span><span class="token plain-text">
+        </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token class-name">ThemeProvider</span></span><span class="token punctuation">&gt;</span></span><span class="token plain-text">
+      </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>body</span><span class="token punctuation">&gt;</span></span><span class="token plain-text">
+    </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>html</span><span class="token punctuation">&gt;</span></span>
+  <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre><p>When you navigate from <code>/about</code> to <code>/work</code>:</p>
+<ul>
+<li>Layout does NOT re-mount</li>
+<li>Context state is preserved</li>
+<li>Only <code>{children}</code> changes</li>
+</ul>
+<h3 id="nested-layouts">Nested Layouts </h3>
+<p>You can have layouts at any level:</p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>src/app/
+├── layout.tsx          ← Root layout (all pages)
+├── work/
+│   ├── layout.tsx      ← Work section layout
+│   └── page.tsx
+</code></pre><hr>
+<h2 id="data-fetching">Data Fetching </h2>
+<h3 id="server-side-recommended-for-seo">Server-Side (Recommended for SEO) </h3>
+<pre data-role="codeBlock" data-info="tsx" class="language-tsx tsx"><code><span class="token comment">// This runs on the server</span>
+<span class="token keyword keyword-async">async</span> <span class="token keyword keyword-function">function</span> <span class="token function">getData</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-const">const</span> res <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> <span class="token function">fetch</span><span class="token punctuation">(</span><span class="token string">'https://api.example.com/data'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-return">return</span> res<span class="token punctuation">.</span><span class="token method function property-access">json</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword keyword-export">export</span> <span class="token keyword keyword-default">default</span> <span class="token keyword keyword-async">async</span> <span class="token keyword keyword-function">function</span> <span class="token function">Page</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-const">const</span> data <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> <span class="token function">getData</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// Runs on server!</span>
+  
+  <span class="token keyword keyword-return">return</span> <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span><span class="token punctuation">&gt;</span></span><span class="token punctuation">{</span>data<span class="token punctuation">.</span><span class="token property-access">title</span><span class="token punctuation">}</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre><h3 id="client-side-for-dynamic-data">Client-Side (For Dynamic Data) </h3>
+<pre data-role="codeBlock" data-info="tsx" class="language-tsx tsx"><code><span class="token string">'use client'</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-import">import</span> <span class="token imports"><span class="token punctuation">{</span> useState<span class="token punctuation">,</span> useEffect <span class="token punctuation">}</span></span> <span class="token keyword keyword-from">from</span> <span class="token string">'react'</span><span class="token punctuation">;</span>
+
+<span class="token keyword keyword-export">export</span> <span class="token keyword keyword-default">default</span> <span class="token keyword keyword-function">function</span> <span class="token function">Page</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-const">const</span> <span class="token punctuation">[</span>data<span class="token punctuation">,</span> setData<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token function">useState</span><span class="token punctuation">(</span><span class="token keyword keyword-null">null</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  
+  <span class="token function">useEffect</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token arrow operator">=&gt;</span> <span class="token punctuation">{</span>
+    <span class="token function">fetch</span><span class="token punctuation">(</span><span class="token string">'/api/data'</span><span class="token punctuation">)</span>
+      <span class="token punctuation">.</span><span class="token method function property-access">then</span><span class="token punctuation">(</span>res <span class="token arrow operator">=&gt;</span> res<span class="token punctuation">.</span><span class="token method function property-access">json</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+      <span class="token punctuation">.</span><span class="token method function property-access">then</span><span class="token punctuation">(</span>setData<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  
+  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>data<span class="token punctuation">)</span> <span class="token keyword keyword-return">return</span> <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span><span class="token punctuation">&gt;</span></span><span class="token plain-text">Loading...</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-return">return</span> <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span><span class="token punctuation">&gt;</span></span><span class="token punctuation">{</span>data<span class="token punctuation">.</span><span class="token property-access">title</span><span class="token punctuation">}</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre><h3 id="in-this-project-static-data">In This Project: Static Data </h3>
+<p>Most data is <strong>static</strong> (in TypeScript files), not fetched:</p>
+<pre data-role="codeBlock" data-info="tsx" class="language-tsx tsx"><code><span class="token comment">// Import static data directly</span>
+<span class="token keyword keyword-import">import</span> <span class="token imports"><span class="token punctuation">{</span> portfolioData <span class="token punctuation">}</span></span> <span class="token keyword keyword-from">from</span> <span class="token string">'@/data/portfolio-data'</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-import">import</span> <span class="token punctuation">{</span> <span class="token constant">PAGE_GAMES</span> <span class="token punctuation">}</span> <span class="token keyword keyword-from">from</span> <span class="token string">'@/data/game-navigation-data'</span><span class="token punctuation">;</span>
+
+<span class="token keyword keyword-function">function</span> <span class="token function">Page</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-return">return</span> <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span><span class="token punctuation">&gt;</span></span><span class="token punctuation">{</span>portfolioData<span class="token punctuation">.</span><span class="token property-access">personal</span><span class="token punctuation">.</span><span class="token property-access">name</span><span class="token punctuation">}</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre><p>This is efficient because:</p>
+<ul>
+<li>Data is bundled at build time</li>
+<li>No network request needed</li>
+<li>Type-safe with TypeScript</li>
+</ul>
+<hr>
+<h2 id="api-routes">API Routes </h2>
+<p>Create backend endpoints in <code>app/api/</code>:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// src/app/api/contact/route.ts</span>
+<span class="token keyword keyword-import">import</span> <span class="token punctuation">{</span> NextRequest<span class="token punctuation">,</span> NextResponse <span class="token punctuation">}</span> <span class="token keyword keyword-from">from</span> <span class="token string">'next/server'</span><span class="token punctuation">;</span>
+
+<span class="token comment">// Handle POST requests</span>
+<span class="token keyword keyword-export">export</span> <span class="token keyword keyword-async">async</span> <span class="token keyword keyword-function">function</span> <span class="token constant">POST</span><span class="token punctuation">(</span>request<span class="token operator">:</span> NextRequest<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-try">try</span> <span class="token punctuation">{</span>
+    <span class="token keyword keyword-const">const</span> body <span class="token operator">=</span> <span class="token keyword keyword-await">await</span> request<span class="token punctuation">.</span><span class="token function">json</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span> name<span class="token punctuation">,</span> email<span class="token punctuation">,</span> message <span class="token punctuation">}</span> <span class="token operator">=</span> body<span class="token punctuation">;</span>
+    
+    <span class="token comment">// Validate</span>
+    <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>email <span class="token operator">||</span> <span class="token operator">!</span>message<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword keyword-return">return</span> NextResponse<span class="token punctuation">.</span><span class="token function">json</span><span class="token punctuation">(</span>
+        <span class="token punctuation">{</span> error<span class="token operator">:</span> <span class="token string">'Missing fields'</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token punctuation">{</span> status<span class="token operator">:</span> <span class="token number">400</span> <span class="token punctuation">}</span>
+      <span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    
+    <span class="token comment">// Save to database, send email, etc.</span>
+    <span class="token comment">// await supabase.from('contacts').insert({ name, email, message });</span>
+    
+    <span class="token keyword keyword-return">return</span> NextResponse<span class="token punctuation">.</span><span class="token function">json</span><span class="token punctuation">(</span><span class="token punctuation">{</span> success<span class="token operator">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span> <span class="token keyword keyword-catch">catch</span> <span class="token punctuation">(</span>error<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword keyword-return">return</span> NextResponse<span class="token punctuation">.</span><span class="token function">json</span><span class="token punctuation">(</span>
+      <span class="token punctuation">{</span> error<span class="token operator">:</span> <span class="token string">'Server error'</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+      <span class="token punctuation">{</span> status<span class="token operator">:</span> <span class="token number">500</span> <span class="token punctuation">}</span>
+    <span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span class="token comment">// Handle GET requests</span>
+<span class="token keyword keyword-export">export</span> <span class="token keyword keyword-async">async</span> <span class="token keyword keyword-function">function</span> <span class="token constant">GET</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-return">return</span> NextResponse<span class="token punctuation">.</span><span class="token function">json</span><span class="token punctuation">(</span><span class="token punctuation">{</span> message<span class="token operator">:</span> <span class="token string">'Contact API'</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre><h3 id="api-routes-in-this-project">API Routes in This Project </h3>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>src/app/api/
+├── contact/route.ts      → Form submissions
+├── analytics/route.ts    → Track page views
+├── chat/route.ts         → AI chat endpoint
+├── github/route.ts       → GitHub integration
+└── portfolio-data/route.ts → Portfolio API
+</code></pre><hr>
+<h2 id="context--state-management">Context &amp; State Management </h2>
+<h3 id="react-context-pattern">React Context Pattern </h3>
+<p>This project uses <strong>React Context</strong> for global state:</p>
+<pre data-role="codeBlock" data-info="tsx" class="language-tsx tsx"><code><span class="token comment">// 1. Create context</span>
+<span class="token keyword keyword-const">const</span> <span class="token maybe-class-name">ThemeContext</span> <span class="token operator">=</span> <span class="token generic-function"><span class="token function">createContext</span><span class="token generic class-name"><span class="token operator">&lt;</span>ThemeContextType <span class="token operator">|</span> <span class="token keyword keyword-undefined">undefined</span><span class="token operator">&gt;</span></span></span><span class="token punctuation">(</span><span class="token keyword keyword-undefined">undefined</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// 2. Create provider</span>
+<span class="token keyword keyword-export">export</span> <span class="token keyword keyword-function">function</span> <span class="token function">ThemeProvider</span><span class="token punctuation">(</span><span class="token punctuation">{</span> children <span class="token punctuation">}</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-const">const</span> <span class="token punctuation">[</span>theme<span class="token punctuation">,</span> setTheme<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token function">useState</span><span class="token punctuation">(</span>defaultTheme<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  
+  <span class="token keyword keyword-const">const</span> value <span class="token operator">=</span> <span class="token punctuation">{</span> theme<span class="token punctuation">,</span> setTheme <span class="token punctuation">}</span><span class="token punctuation">;</span>
+  
+  <span class="token keyword keyword-return">return</span> <span class="token punctuation">(</span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">ThemeContext.Provider</span></span> <span class="token attr-name">value</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span>value<span class="token punctuation">}</span></span><span class="token punctuation">&gt;</span></span><span class="token plain-text">
+      </span><span class="token punctuation">{</span>children<span class="token punctuation">}</span><span class="token plain-text">
+    </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token class-name">ThemeContext.Provider</span></span><span class="token punctuation">&gt;</span></span>
+  <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token comment">// 3. Create hook for easy access</span>
+<span class="token keyword keyword-export">export</span> <span class="token keyword keyword-function">function</span> <span class="token function">useTheme</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-const">const</span> context <span class="token operator">=</span> <span class="token function">useContext</span><span class="token punctuation">(</span><span class="token maybe-class-name">ThemeContext</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>context<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword keyword-throw">throw</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">Error</span><span class="token punctuation">(</span><span class="token string">'useTheme must be used within ThemeProvider'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  <span class="token keyword keyword-return">return</span> context<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre><h3 id="contexts-in-this-project">Contexts in This Project </h3>
+<table>
+<thead>
+<tr>
+<th>Context</th>
+<th>Purpose</th>
+<th>File</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ThemeProvider</code></td>
+<td>Theme/era switching, CSS vars</td>
+<td><code>ThemeContext.tsx</code></td>
+</tr>
+<tr>
+<td><code>GameModeProvider</code></td>
+<td>Game progress, XP, mode</td>
+<td><code>GameModeContext.tsx</code></td>
+</tr>
+<tr>
+<td><code>DesignEraProvider</code></td>
+<td>Era-specific state</td>
+<td><code>DesignEraContext.tsx</code></td>
+</tr>
+<tr>
+<td><code>CursorProvider</code></td>
+<td>Custom cursor state</td>
+<td><code>CursorContext.tsx</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="using-contexts">Using Contexts </h3>
+<pre data-role="codeBlock" data-info="tsx" class="language-tsx tsx"><code><span class="token string">'use client'</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-import">import</span> <span class="token imports"><span class="token punctuation">{</span> useTheme <span class="token punctuation">}</span></span> <span class="token keyword keyword-from">from</span> <span class="token string">'@/contexts/ThemeContext'</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-import">import</span> <span class="token imports"><span class="token punctuation">{</span> useGameMode <span class="token punctuation">}</span></span> <span class="token keyword keyword-from">from</span> <span class="token string">'@/contexts/GameModeContext'</span><span class="token punctuation">;</span>
+
+<span class="token keyword keyword-function">function</span> <span class="token function">MyComponent</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span> currentTheme<span class="token punctuation">,</span> setTheme <span class="token punctuation">}</span> <span class="token operator">=</span> <span class="token function">useTheme</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span> progress<span class="token punctuation">,</span> completeLevel <span class="token punctuation">}</span> <span class="token operator">=</span> <span class="token function">useGameMode</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  
+  <span class="token keyword keyword-return">return</span> <span class="token punctuation">(</span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span><span class="token punctuation">&gt;</span></span><span class="token plain-text">
+      Current theme: </span><span class="token punctuation">{</span>currentTheme<span class="token punctuation">.</span><span class="token property-access">name</span><span class="token punctuation">}</span><span class="token plain-text">
+      XP: </span><span class="token punctuation">{</span>progress<span class="token punctuation">.</span><span class="token property-access">totalXP</span><span class="token punctuation">}</span><span class="token plain-text">
+    </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+  <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre><h3 id="persistence-with-localstorage">Persistence with localStorage </h3>
+<p>Contexts often sync with localStorage:</p>
+<pre data-role="codeBlock" data-info="tsx" class="language-tsx tsx"><code><span class="token comment">// Load on mount</span>
+<span class="token function">useEffect</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token arrow operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-const">const</span> saved <span class="token operator">=</span> <span class="token dom variable">localStorage</span><span class="token punctuation">.</span><span class="token method function property-access">getItem</span><span class="token punctuation">(</span><span class="token string">'portfolio-theme'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>saved<span class="token punctuation">)</span> <span class="token function">setTheme</span><span class="token punctuation">(</span>saved<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// Save on change</span>
+<span class="token function">useEffect</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token arrow operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token dom variable">localStorage</span><span class="token punctuation">.</span><span class="token method function property-access">setItem</span><span class="token punctuation">(</span><span class="token string">'portfolio-theme'</span><span class="token punctuation">,</span> currentTheme<span class="token punctuation">.</span><span class="token property-access">id</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">[</span>currentTheme<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><hr>
+<h2 id="styling">Styling </h2>
+<h3 id="global-styles">Global Styles </h3>
+<p><code>src/app/globals.css</code> contains:</p>
+<ul>
+<li>CSS custom properties (variables)</li>
+<li>Tailwind base styles</li>
+<li>Era-specific overrides</li>
+<li>Grid alignment utilities</li>
+</ul>
+<pre data-role="codeBlock" data-info="css" class="language-css css"><code><span class="token comment">/* CSS Variables */</span>
+<span class="token selector"><span class="token pseudo-class">:root</span></span> <span class="token punctuation">{</span>
+  <span class="token variable">--bg-main</span><span class="token punctuation">:</span> <span class="token hexcode color">#fdfbf7</span><span class="token punctuation">;</span>
+  <span class="token variable">--text-main</span><span class="token punctuation">:</span> <span class="token hexcode color">#1e293b</span><span class="token punctuation">;</span>
+  <span class="token variable">--accent-color</span><span class="token punctuation">:</span> <span class="token hexcode color">#0369a1</span><span class="token punctuation">;</span>
+  <span class="token variable">--grid-size</span><span class="token punctuation">:</span> <span class="token number">20</span><span class="token unit">px</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token comment">/* Era-specific overrides */</span>
+<span class="token selector">body<span class="token attribute"><span class="token punctuation">[</span><span class="token attr-name">data-era</span><span class="token operator">=</span><span class="token attr-value">"1970"</span><span class="token punctuation">]</span></span></span> <span class="token punctuation">{</span>
+  <span class="token variable">--bg-main</span><span class="token punctuation">:</span> <span class="token hexcode color">#000000</span><span class="token punctuation">;</span>
+  <span class="token variable">--text-main</span><span class="token punctuation">:</span> <span class="token hexcode color">#00ff00</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token comment">/* Grid alignment classes */</span>
+<span class="token selector"><span class="token class">.grid-p-1</span></span> <span class="token punctuation">{</span> <span class="token property">padding</span><span class="token punctuation">:</span> <span class="token number">20</span><span class="token unit">px</span><span class="token punctuation">;</span> <span class="token punctuation">}</span>
+<span class="token selector"><span class="token class">.grid-m-2</span></span> <span class="token punctuation">{</span> <span class="token property">margin</span><span class="token punctuation">:</span> <span class="token number">40</span><span class="token unit">px</span><span class="token punctuation">;</span> <span class="token punctuation">}</span>
+</code></pre><h3 id="tailwind-css">Tailwind CSS </h3>
+<p>Used for utility classes:</p>
+<pre data-role="codeBlock" data-info="tsx" class="language-tsx tsx"><code><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">className</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>flex items-center gap-4 p-5 bg-white rounded-lg shadow-md<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span><span class="token plain-text">
+  </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">className</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>text-lg font-bold text-gray-900<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span><span class="token plain-text">Title</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">&gt;</span></span><span class="token plain-text">
+</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+</code></pre><h3 id="css-variables-in-components">CSS Variables in Components </h3>
+<p>Components read CSS variables for theming:</p>
+<pre data-role="codeBlock" data-info="tsx" class="language-tsx tsx"><code><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> 
+  <span class="token attr-name">style</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span><span class="token punctuation">{</span> 
+    backgroundColor<span class="token operator">:</span> <span class="token string">'var(--bg-main)'</span><span class="token punctuation">,</span>
+    color<span class="token operator">:</span> <span class="token string">'var(--text-main)'</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">}</span></span>
+<span class="token punctuation">&gt;</span></span><span class="token plain-text">
+  Theme-aware content
+</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+</code></pre><p>Or via Tailwind:</p>
+<pre data-role="codeBlock" data-info="tsx" class="language-tsx tsx"><code><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">className</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>bg-[var(--bg-main)] text-[var(--text-main)]<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span><span class="token plain-text">
+  Theme-aware content
+</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+</code></pre><hr>
+<h2 id="common-patterns-used">Common Patterns Used </h2>
+<h3 id="1-dynamic-imports">1. Dynamic Imports </h3>
+<p>Heavy components are loaded lazily:</p>
+<pre data-role="codeBlock" data-info="tsx" class="language-tsx tsx"><code><span class="token keyword keyword-import">import</span> <span class="token imports">dynamic</span> <span class="token keyword keyword-from">from</span> <span class="token string">'next/dynamic'</span><span class="token punctuation">;</span>
+
+<span class="token keyword keyword-const">const</span> <span class="token maybe-class-name">NewspaperLayout</span> <span class="token operator">=</span> <span class="token function">dynamic</span><span class="token punctuation">(</span>
+  <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token arrow operator">=&gt;</span> <span class="token keyword keyword-import">import</span><span class="token punctuation">(</span><span class="token string">'@/components/layout/newspaper-layout'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token punctuation">{</span>
+    <span class="token function-variable function">loading</span><span class="token operator">:</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token arrow operator">=&gt;</span> <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span><span class="token punctuation">&gt;</span></span><span class="token plain-text">Loading...</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span><span class="token punctuation">,</span>
+    ssr<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>  <span class="token comment">// Keep SSR for SEO</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><h3 id="2-path-aliases">2. Path Aliases </h3>
+<p><code>@/</code> maps to <code>src/</code>:</p>
+<pre data-role="codeBlock" data-info="tsx" class="language-tsx tsx"><code><span class="token comment">// Instead of: import { useTheme } from '../../../contexts/ThemeContext';</span>
+<span class="token keyword keyword-import">import</span> <span class="token imports"><span class="token punctuation">{</span> useTheme <span class="token punctuation">}</span></span> <span class="token keyword keyword-from">from</span> <span class="token string">'@/contexts/ThemeContext'</span><span class="token punctuation">;</span>
+</code></pre><p>Configured in <code>tsconfig.json</code>:</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"compilerOptions"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"paths"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"@/*"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"./src/*"</span><span class="token punctuation">]</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><h3 id="3-barrel-exports">3. Barrel Exports </h3>
+<p><code>index.ts</code> files re-export modules:</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// src/components/ui/arcade/index.ts</span>
+<span class="token keyword keyword-export">export</span> <span class="token punctuation">{</span> GridArcade <span class="token punctuation">}</span> <span class="token keyword keyword-from">from</span> <span class="token string">'./GridArcade'</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-export">export</span> <span class="token punctuation">{</span> ArcadePlayButton <span class="token punctuation">}</span> <span class="token keyword keyword-from">from</span> <span class="token string">'./ArcadePlayButton'</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-export">export</span> <span class="token punctuation">{</span> useGridGameLoop <span class="token punctuation">}</span> <span class="token keyword keyword-from">from</span> <span class="token string">'./use-grid-game-loop'</span><span class="token punctuation">;</span>
+<span class="token comment">// ...</span>
+
+<span class="token comment">// Usage:</span>
+<span class="token keyword keyword-import">import</span> <span class="token punctuation">{</span> GridArcade<span class="token punctuation">,</span> ArcadePlayButton <span class="token punctuation">}</span> <span class="token keyword keyword-from">from</span> <span class="token string">'@/components/ui/arcade'</span><span class="token punctuation">;</span>
+</code></pre><h3 id="4-custom-hooks">4. Custom Hooks </h3>
+<p>Reusable logic extracted into hooks:</p>
+<pre data-role="codeBlock" data-info="tsx" class="language-tsx tsx"><code><span class="token comment">// src/hooks/useMissionTracker.ts</span>
+<span class="token keyword keyword-export">export</span> <span class="token keyword keyword-function">function</span> <span class="token function">useMissionTracker</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span> completeLevel<span class="token punctuation">,</span> isLevelCompleted <span class="token punctuation">}</span> <span class="token operator">=</span> <span class="token function">useGameMode</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  
+  <span class="token keyword keyword-const">const</span> trackInteraction <span class="token operator">=</span> <span class="token function">useCallback</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token arrow operator">=&gt;</span> <span class="token punctuation">{</span>
+    <span class="token comment">// Track logic</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  
+  <span class="token keyword keyword-return">return</span> <span class="token punctuation">{</span> trackInteraction <span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token comment">// Usage in components:</span>
+<span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span> trackInteraction <span class="token punctuation">}</span> <span class="token operator">=</span> <span class="token function">useMissionTracker</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><h3 id="5-conditional-rendering">5. Conditional Rendering </h3>
+<pre data-role="codeBlock" data-info="tsx" class="language-tsx tsx"><code><span class="token keyword keyword-function">function</span> <span class="token function">Page</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-const">const</span> pathname <span class="token operator">=</span> <span class="token function">usePathname</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-const">const</span> arcadeEnabled <span class="token operator">=</span> pathname <span class="token operator">===</span> <span class="token string">'/'</span> <span class="token operator">||</span> pathname <span class="token operator">===</span> <span class="token string">'/lab'</span><span class="token punctuation">;</span>
+  
+  <span class="token keyword keyword-return">return</span> <span class="token punctuation">(</span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span></span><span class="token punctuation">&gt;</span></span><span class="token plain-text">
+      </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">Navigation</span></span> <span class="token punctuation">/&gt;</span></span><span class="token plain-text">
+      </span><span class="token punctuation">{</span>arcadeEnabled <span class="token operator">&amp;&amp;</span> <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">GridArcade</span></span> <span class="token punctuation">/&gt;</span></span><span class="token punctuation">}</span><span class="token plain-text">
+      </span><span class="token punctuation">{</span>pathname <span class="token operator">!==</span> <span class="token string">'/'</span> <span class="token operator">&amp;&amp;</span> <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">TimeMachine</span></span> <span class="token punctuation">/&gt;</span></span><span class="token punctuation">}</span><span class="token plain-text">
+    </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span></span><span class="token punctuation">&gt;</span></span>
+  <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre><hr>
+<h2 id="key-nextjs-features-used">Key Next.js Features Used </h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Where Used</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>App Router</td>
+<td><code>src/app/</code></td>
+<td>File-based routing</td>
+</tr>
+<tr>
+<td>Server Components</td>
+<td><code>layout.tsx</code>, some pages</td>
+<td>SEO, initial render</td>
+</tr>
+<tr>
+<td>Client Components</td>
+<td>Most UI</td>
+<td>Interactivity</td>
+</tr>
+<tr>
+<td>Dynamic Imports</td>
+<td>Heavy components</td>
+<td>Code splitting</td>
+</tr>
+<tr>
+<td>API Routes</td>
+<td><code>api/</code> folder</td>
+<td>Backend endpoints</td>
+</tr>
+<tr>
+<td>Metadata</td>
+<td><code>layout.tsx</code></td>
+<td>SEO title, description</td>
+</tr>
+<tr>
+<td>CSS Modules</td>
+<td>Some components</td>
+<td>Scoped styles</td>
+</tr>
+<tr>
+<td>Path Aliases</td>
+<td>Everywhere</td>
+<td>Clean imports</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="development-workflow">Development Workflow </h2>
+<h3 id="start-development">Start Development </h3>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token function">npm</span> run dev
+</code></pre><p>Opens at <code>http://localhost:3000</code></p>
+<h3 id="build-for-production">Build for Production </h3>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token function">npm</span> run build
+<span class="token function">npm</span> run start
+</code></pre><h3 id="check-for-errors">Check for Errors </h3>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token function">npm</span> run lint
+</code></pre><h3 id="file-changes">File Changes </h3>
+<p>Next.js has <strong>hot reloading</strong>:</p>
+<ul>
+<li>Edit a file → Browser updates automatically</li>
+<li>No manual refresh needed</li>
+</ul>
+<hr>
+<h2 id="summary-how-it-all-connects">Summary: How It All Connects </h2>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>┌────────────────────────────────────────────────────────────────────┐
+│                         Browser Request                             │
+│                              │                                      │
+│                              ▼                                      │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │                     Next.js Server                           │   │
+│  │                              │                               │   │
+│  │     ┌────────────────────────┼────────────────────────┐     │   │
+│  │     │                        │                        │     │   │
+│  │     ▼                        ▼                        ▼     │   │
+│  │  layout.tsx              page.tsx              api/route.ts │   │
+│  │  (Server)                (Server/Client)       (Server)      │   │
+│  │     │                        │                               │   │
+│  │     └────────────┬───────────┘                               │   │
+│  │                  │                                           │   │
+│  │                  ▼                                           │   │
+│  │         Rendered HTML + JS                                   │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│                              │                                      │
+│                              ▼                                      │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │                       Browser                                │   │
+│  │                              │                               │   │
+│  │     1. Display HTML (instant)                                │   │
+│  │     2. Hydrate React (make interactive)                      │   │
+│  │     3. Load Contexts (Theme, GameMode)                       │   │
+│  │     4. Apply CSS Variables                                   │   │
+│  │     5. Initialize Games                                      │   │
+│  │                                                              │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│                                                                     │
+└────────────────────────────────────────────────────────────────────┘
+</code></pre><hr>
+<h2 id="further-reading">Further Reading </h2>
+<ul>
+<li><a href="https://nextjs.org/docs">Next.js Documentation</a></li>
+<li><a href="https://react.dev/reference/rsc/server-components">React 19 Server Components</a></li>
+<li><a href="https://nextjs.org/docs/app/building-your-application/upgrading/app-router-migration">App Router Migration Guide</a></li>
+</ul>
+<hr>
+<p>Happy coding! 🚀</p>
+
+      </div>
+      
+      
+    
+    
+    
+    
+    
+    
+  
+    </body></html>

@@ -9,7 +9,7 @@ interface VisualShowcaseProps {
   level: number;
 }
 
-export function VisualShowcase({ target, revealIndex, level }: VisualShowcaseProps) {
+export function VisualShowcase({ target, revealIndex, level: _level }: VisualShowcaseProps) {
   if (!target) return null;
   
   const work = target.workExperience;

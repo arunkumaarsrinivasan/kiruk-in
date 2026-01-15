@@ -168,6 +168,8 @@ export function CrosswordPuzzle({ onComplete }: CrosswordPuzzleProps) {
   const [isComplete, setIsComplete] = useState(false);
   const [revealedClues, setRevealedClues] = useState<Set<string>>(new Set());
   const [activeCell, setActiveCell] = useState<{ row: number; col: number } | null>(null);
+  const [revealCount, setRevealCount] = useState(0);
+  const [showRevealAllDialog, setShowRevealAllDialog] = useState(false);
   const cellRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
   // Get current answer from grid
@@ -451,13 +453,32 @@ export function CrosswordPuzzle({ onComplete }: CrosswordPuzzleProps) {
     const clueKey = `${activeClue.number}-${activeClue.direction}`;
     if (revealedClues.has(clueKey)) return;
     
+    // Check if this is the second or more reveal press
+    const newRevealCount = revealCount + 1;
+    setRevealCount(newRevealCount);
+    
+    // If user has pressed reveal more than once, ask if they want to reveal all
+    if (newRevealCount > 1) {
+      setShowRevealAllDialog(true);
+      return;
+    }
+    
+    // First reveal - proceed normally
+    performRevealClue(activeClue);
+  };
+
+  // Actually perform the reveal for a specific clue
+  const performRevealClue = (clue: Clue) => {
+    const clueKey = `${clue.number}-${clue.direction}`;
+    if (revealedClues.has(clueKey)) return;
+    
     const newGrid = grid.map(row => row.map(cell => ({ ...cell })));
-    const direction = activeClue.direction;
+    const direction = clue.direction;
     
     // Fill all cells with correct letters
-    for (let i = 0; i < activeClue.answer.length; i++) {
-      let row = activeClue.startRow;
-      let col = activeClue.startCol;
+    for (let i = 0; i < clue.answer.length; i++) {
+      let row = clue.startRow;
+      let col = clue.startCol;
       
       if (direction === 'across') {
         col += i;
@@ -466,12 +487,49 @@ export function CrosswordPuzzle({ onComplete }: CrosswordPuzzleProps) {
       }
       
       if (newGrid[row]?.[col] && newGrid[row][col].isFilled) {
-        newGrid[row][col].letter = activeClue.answer[i];
+        newGrid[row][col].letter = clue.answer[i];
       }
     }
     
     setGrid(newGrid);
     setRevealedClues(prev => new Set([...prev, clueKey]));
+    checkCompletion();
+  };
+
+  // Reveal all remaining clues
+  const revealAllClues = () => {
+    const newGrid = grid.map(row => row.map(cell => ({ ...cell })));
+    const newRevealedClues = new Set(revealedClues);
+    
+    // Reveal all clues that haven't been revealed yet
+    crosswordData.clues.forEach((clue) => {
+      const clueKey = `${clue.number}-${clue.direction}`;
+      if (!newRevealedClues.has(clueKey)) {
+        const direction = clue.direction;
+        
+        // Fill all cells with correct letters
+        for (let i = 0; i < clue.answer.length; i++) {
+          let row = clue.startRow;
+          let col = clue.startCol;
+          
+          if (direction === 'across') {
+            col += i;
+          } else {
+            row += i;
+          }
+          
+          if (newGrid[row]?.[col] && newGrid[row][col].isFilled) {
+            newGrid[row][col].letter = clue.answer[i];
+          }
+        }
+        
+        newRevealedClues.add(clueKey);
+      }
+    });
+    
+    setGrid(newGrid);
+    setRevealedClues(newRevealedClues);
+    setShowRevealAllDialog(false);
     checkCompletion();
   };
 
@@ -730,82 +788,130 @@ export function CrosswordPuzzle({ onComplete }: CrosswordPuzzleProps) {
                       );
                     })}
                   </div>
+
+                  {/* Hint, Reveal, and Clear buttons - only show when this clue is active */}
+                  {isActive && (
+                    <div className="flex items-center gap-2 flex-wrap mt-3">
+                      <motion.button
+                        type="button"
+                        onClick={showHint}
+                        className="wireframe-border px-4 py-2 font-mono text-xs uppercase"
+                        style={{
+                          backgroundColor: 'var(--bg-main)',
+                          color: 'var(--text-main)',
+                          imageRendering: 'pixelated' as any,
+                        }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        💡 HINT
+                      </motion.button>
+                      <motion.button
+                        type="button"
+                        onClick={revealClue}
+                        className="wireframe-border px-4 py-2 font-mono text-xs uppercase"
+                        style={{
+                          backgroundColor: 'var(--bg-main)',
+                          color: 'var(--text-main)',
+                          imageRendering: 'pixelated' as any,
+                        }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        disabled={revealedClues.has(`${clue.number}-${clue.direction}`)}
+                      >
+                        🔓 REVEAL
+                      </motion.button>
+                      <motion.button
+                        type="button"
+                        onClick={clearAnswer}
+                        className="wireframe-border px-4 py-2 font-mono text-xs uppercase"
+                        style={{
+                          backgroundColor: 'var(--bg-main)',
+                          color: 'var(--text-main)',
+                          imageRendering: 'pixelated' as any,
+                        }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        CLEAR
+                      </motion.button>
+                    </div>
+                  )}
                 </div>
               );
             })}
           </motion.div>
-
-          {/* Controls */}
-          <motion.div
-            className="wireframe-border p-4 mt-4"
-            style={{
-              backgroundColor: 'var(--bg-card)',
-              imageRendering: 'pixelated' as any,
-            }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <div className="space-y-3">
-              <div>
-                <p className="font-mono text-xs uppercase mb-2" style={{ color: 'var(--text-muted)' }}>
-                  {activeClue?.number}. {activeClue?.direction.toUpperCase()}: {activeClue?.text}
-                </p>
-                <p className="font-mono text-xs" style={{ color: 'var(--text-muted)' }}>
-                  Click on cells to type. Use arrow keys to navigate between cells.
-                </p>
-              </div>
-              
-              <div className="flex items-center gap-2 flex-wrap">
-                <motion.button
-                  type="button"
-                  onClick={showHint}
-                  className="wireframe-border px-4 py-2 font-mono text-xs uppercase"
-                  style={{
-                    backgroundColor: 'var(--bg-main)',
-                    color: 'var(--text-main)',
-                    imageRendering: 'pixelated' as any,
-                  }}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  💡 Hint
-                </motion.button>
-                <motion.button
-                  type="button"
-                  onClick={revealClue}
-                  className="wireframe-border px-4 py-2 font-mono text-xs uppercase"
-                  style={{
-                    backgroundColor: 'var(--bg-main)',
-                    color: 'var(--text-main)',
-                    imageRendering: 'pixelated' as any,
-                  }}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  disabled={revealedClues.has(`${activeClue?.number}-${activeClue?.direction}`)}
-                >
-                  🔓 Reveal
-                </motion.button>
-                <motion.button
-                  type="button"
-                  onClick={clearAnswer}
-                  className="wireframe-border px-4 py-2 font-mono text-xs uppercase"
-                  style={{
-                    backgroundColor: 'var(--bg-main)',
-                    color: 'var(--text-main)',
-                    imageRendering: 'pixelated' as any,
-                  }}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Clear
-                </motion.button>
-              </div>
-            </div>
-          </motion.div>
         </div>
 
       </div>
+
+      {/* Reveal All Confirmation Dialog */}
+      <AnimatePresence>
+        {showRevealAllDialog && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowRevealAllDialog(false)}
+          >
+            <motion.div
+              className="wireframe-border p-8 text-center max-w-md mx-4"
+              style={{
+                backgroundColor: 'var(--bg-card)',
+                imageRendering: 'pixelated' as any,
+              }}
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.5, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="font-mono text-xl font-bold uppercase mb-4" style={{ color: 'var(--accent-color)' }}>
+                Reveal All Clues?
+              </h3>
+              <p className="font-mono text-sm mb-6" style={{ color: 'var(--text-muted)' }}>
+                You've revealed {revealCount} clue{revealCount !== 1 ? 's' : ''}. Would you like to reveal all remaining clues at once?
+              </p>
+              <div className="flex items-center justify-center gap-4">
+                <motion.button
+                  type="button"
+                  onClick={revealAllClues}
+                  className="wireframe-border px-6 py-3 font-mono text-sm uppercase"
+                  style={{
+                    backgroundColor: 'var(--accent-color)',
+                    color: 'var(--bg-main)',
+                    imageRendering: 'pixelated' as any,
+                  }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Yes, Reveal All
+                </motion.button>
+                <motion.button
+                  type="button"
+                  onClick={() => {
+                    setShowRevealAllDialog(false);
+                    // Still reveal the current clue
+                    if (activeClue) {
+                      performRevealClue(activeClue);
+                    }
+                  }}
+                  className="wireframe-border px-6 py-3 font-mono text-sm uppercase"
+                  style={{
+                    backgroundColor: 'var(--bg-main)',
+                    color: 'var(--text-main)',
+                    imageRendering: 'pixelated' as any,
+                  }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Just This One
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Completion Message */}
       <AnimatePresence>

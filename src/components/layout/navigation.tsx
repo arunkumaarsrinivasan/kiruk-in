@@ -145,7 +145,7 @@ const PixelEye = ({ size = 52 }: { size?: number }) => {
 };
 
 // Section Label - Shows what each part is
-const SectionLabel = ({ label, position }: { label: string; position: 'left' | 'center' | 'right' }) => (
+const _SectionLabel = ({ label, position }: { label: string; position: 'left' | 'center' | 'right' }) => (
   <div 
     className={cn(
       "absolute -bottom-4 text-[7px] font-mono uppercase tracking-wider text-[var(--text-muted)] opacity-60",
@@ -622,33 +622,6 @@ const Navigation = () => {
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey || e.altKey || e.metaKey) return;
-      const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
-
-      const num = parseInt(e.key);
-      if (num >= 1 && num <= 7) {
-        const item = navItems[num - 1];
-        if (item) router.push(item.href);
-      }
-      if (e.key === 't' || e.key === 'T') {
-        setIsTimelineExpanded(prev => !prev);
-      }
-      if (e.key === 'n' || e.key === 'N') {
-        setIsNavExpanded(prev => !prev);
-      }
-      if (e.key === 'Escape') {
-        if (isTimelineExpanded) setIsTimelineExpanded(false);
-        if (!isNavExpanded) setIsNavExpanded(true);
-      }
-    };
-    globalThis.addEventListener('keydown', handleKeyDown);
-    return () => globalThis.removeEventListener('keydown', handleKeyDown);
-  }, [router, isTimelineExpanded, isNavExpanded]);
 
   const navItems = [
     { href: '/', label: 'Home', icon: 'home', shortcut: '1', hint: 'Start here' },

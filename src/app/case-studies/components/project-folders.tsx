@@ -11,6 +11,7 @@ type ProjectFolder = {
   url?: string;
   description: string;
   type: 'behance' | 'playbook' | 'github' | 'codepen' | 'figma' | 'case-study';
+  comingSoon?: boolean;
 };
 
 const folders: ProjectFolder[] = [
@@ -49,6 +50,7 @@ const folders: ProjectFolder[] = [
     url: 'https://codepen.io/arunkumaar',
     description: 'Frontend experiments and prototypes',
     type: 'codepen',
+    comingSoon: true,
   },
   {
     id: 'figma',
@@ -66,6 +68,7 @@ const folders: ProjectFolder[] = [
     color: '#14b8a6',
     description: 'Detailed project documentation',
     type: 'case-study',
+    comingSoon: true,
   },
 ];
 
@@ -75,6 +78,11 @@ type ProjectFoldersProps = {
 
 export function ProjectFolders({ onFolderClick }: ProjectFoldersProps) {
   const handleFolderClick = (folder: ProjectFolder) => {
+    // Don't handle clicks for coming soon items
+    if (folder.comingSoon) {
+      return;
+    }
+    
     if (folder.url && folder.type !== 'case-study') {
       window.open(folder.url, '_blank');
     } else if (folder.type === 'case-study') {
@@ -145,14 +153,17 @@ export function ProjectFolders({ onFolderClick }: ProjectFoldersProps) {
             <motion.button
               type="button"
               onClick={() => handleFolderClick(folder)}
-              className="w-full wireframe-border p-6 flex flex-col items-center justify-center gap-3 group"
+              disabled={folder.comingSoon}
+              className="w-full wireframe-border p-6 flex flex-col items-center justify-center gap-3 group relative"
               style={{
                 backgroundColor: 'var(--bg-card)',
                 imageRendering: 'pixelated' as any,
                 minHeight: '200px',
+                opacity: folder.comingSoon ? 0.6 : 1,
+                cursor: folder.comingSoon ? 'not-allowed' : 'pointer',
               }}
-              whileHover={{ scale: 1.05, y: -4 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={folder.comingSoon ? {} : { scale: 1.05, y: -4 }}
+              whileTap={folder.comingSoon ? {} : { scale: 0.95 }}
             >
               {/* Folder Icon - Pixel Icon */}
               <div
@@ -206,8 +217,26 @@ export function ProjectFolders({ onFolderClick }: ProjectFoldersProps) {
               />
             </motion.button>
 
+            {/* Coming Soon Badge */}
+            {folder.comingSoon && (
+              <div 
+                className="absolute top-2 right-2 wireframe-border px-2 py-1"
+                style={{
+                  backgroundColor: 'var(--accent-color)',
+                  imageRendering: 'pixelated' as any,
+                }}
+              >
+                <span 
+                  className="font-mono text-[8px] font-bold uppercase"
+                  style={{ color: 'var(--bg-main)' }}
+                >
+                  COMING SOON
+                </span>
+              </div>
+            )}
+
             {/* External Link Indicator */}
-            {folder.url && folder.type !== 'case-study' && (
+            {folder.url && folder.type !== 'case-study' && !folder.comingSoon && (
               <div className="absolute top-2 right-2">
                 <span className="text-xs">↗</span>
               </div>

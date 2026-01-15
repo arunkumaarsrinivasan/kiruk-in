@@ -131,7 +131,7 @@ const aiAnswers = [
   {
     patterns: [/(differentiator|what sets you apart|competitive advantage|unique)/i],
     answer: () => {
-      return `What sets me apart from other designers:\n\n${userInfo.differentiators.map((diff, i) => `• ${diff}`).join('\n')}`;
+      return `What sets me apart from other designers:\n\n${userInfo.differentiators.map((diff) => `• ${diff}`).join('\n')}`;
     }
   },
   {
@@ -345,7 +345,7 @@ const plugins: Array<(q: string, context: ConversationContext, history: string[]
   },
 
   // Professional enthusiasm plugin
-  (q, context, history) => {
+  (q, _context, _history) => {
     if (/(awesome|cool|great|impressive|nice|love|amazing|inspiring|brilliant|fantastic|interested)/i.test(q)) {
       const professionalResponses = [
         `Thank you! 🌟 I'm passionate about pushing the boundaries of what's possible with AI-driven design. What specific aspect excites you most?`,
@@ -357,7 +357,7 @@ const plugins: Array<(q: string, context: ConversationContext, history: string[]
       
       return {
         response: response,
-        followUp: context.userIntent === 'professional' ? 
+        followUp: _context.userIntent === 'professional' ? 
           'Ask me about measurable impacts from my projects or my unique approach to AI integration!' :
           'Feel free to explore my case studies, design philosophy, or collaboration style!',
         updateContext: { userSentiment: 'positive' }
@@ -367,7 +367,7 @@ const plugins: Array<(q: string, context: ConversationContext, history: string[]
   },
 
   // Recruitment/hiring inquiry plugin
-  (q, context, history) => {
+  (q, _context, _history) => {
     if (/(hire|recruit|job|opportunity|position|work together|collaborate|team|join|available)/i.test(q)) {
       return {
         response: `I'm excited about new opportunities! 💼 I bring a unique combination of deep UX expertise and AI technical knowledge that's rare in the market. My designs consistently deliver 40-60% improvements in key metrics.`,
@@ -379,7 +379,7 @@ const plugins: Array<(q: string, context: ConversationContext, history: string[]
   },
 
   // Value proposition plugin
-  (q, context, history) => {
+  (q, _context, _history) => {
     if (/(value|benefit|roi|impact|results|why choose|advantage|worth|investment)/i.test(q)) {
       return {
         response: `Here's the value I bring: 📈 My AI-enhanced designs have delivered measurable results - 45% faster decision-making, 55% engagement increases, and 80% user satisfaction scores. I don't just design interfaces; I create intelligent experiences that adapt and improve over time.`,
@@ -391,7 +391,7 @@ const plugins: Array<(q: string, context: ConversationContext, history: string[]
   },
 
   // Skills and expertise deep-dive plugin
-  (q, context, history) => {
+  (q, _context, _history) => {
     if (/(expert|expertise|skill|ability|knowledge|experience|specialization)/i.test(q)) {
       return {
         response: `My expertise spans the full spectrum from user research to AI implementation. 🎯 I'm one of the few designers who can both conceptualize AI-powered user experiences AND understand the technical constraints and possibilities. This bridge between design and technology is my superpower.`,
@@ -403,7 +403,7 @@ const plugins: Array<(q: string, context: ConversationContext, history: string[]
   },
 
   // Project portfolio plugin
-  (q, context, history) => {
+  (q, _context, _history) => {
     if (/(portfolio|case study|project|work|example|sample|show me)/i.test(q)) {
       return {
         response: `My portfolio showcases AI-driven solutions across different industries. 🎨 Each project demonstrates how I blend user-centered design with cutting-edge AI to solve real business problems. From analytics dashboards to voice interfaces, I've helped companies transform their user experiences.`,
@@ -415,7 +415,7 @@ const plugins: Array<(q: string, context: ConversationContext, history: string[]
   },
 
   // Future-focused and innovation plugin
-  (q, context, history) => {
+  (q, _context, _history) => {
     if (/(future|innovation|cutting edge|emerging|trends|next|evolution|advance)/i.test(q)) {
       return {
         response: `I'm passionate about the future of design! 🚀 I believe we're entering an era where AI will make interfaces more intuitive, personalized, and anticipatory. My work focuses on creating experiences that feel magical while maintaining human agency and ethical standards.`,
@@ -427,7 +427,7 @@ const plugins: Array<(q: string, context: ConversationContext, history: string[]
   },
 
   // Enhanced context-aware help plugin
-  (q, context, history) => {
+  (q, context, _history) => {
     if (/(help|stuck|don't know|what should|what can i ask|options|suggest|guide me)/i.test(q)) {
       const professionalSuggestions = {
         learning: [
@@ -470,7 +470,7 @@ const plugins: Array<(q: string, context: ConversationContext, history: string[]
   },
 
   // Enhanced unknown query handler with professional focus
-  (q, context, history) => {
+  (q, _context, _history) => {
     if (q.length > 0 && !aiAnswers.some(entry => entry.patterns.some(pat => pat.test(q)))) {
       const contextualResponses: { [key: string]: string } = {
         skills: `Interesting question! While I might not have that specific answer, I can relate it to my design and AI expertise. My unique skillset combines deep UX knowledge with technical AI implementation.`,
@@ -481,11 +481,11 @@ const plugins: Array<(q: string, context: ConversationContext, history: string[]
         general: `That's a thoughtful question! While I might not have the exact answer, I'm always eager to explore new ideas, especially around design and AI innovation.`
       };
       
-      const response = contextualResponses[context.lastTopicCategory ?? 'general'];
+      const response = contextualResponses[_context.lastTopicCategory ?? 'general'];
       
       return {
         response: response,
-        followUp: context.conversationDepth > 3 ? 
+        followUp: _context.conversationDepth > 3 ? 
           `Since we've been chatting for a while, feel free to ask about anything that interests you - my work, process, or how I can help with your goals!` :
           `Try asking about my projects, unique skills, or how I approach AI-driven design challenges!`,
         updateContext: { questionComplexity: 'medium' }
@@ -1192,7 +1192,7 @@ export function getConversationSummary(): {
 }
 
 // AI learning and improvement hooks
-export function recordConversationFeedback(feedback: {
+export function recordConversationFeedback(_feedback: {
   rating: 1 | 2 | 3 | 4 | 5;
   helpful: boolean;
   suggestions?: string;

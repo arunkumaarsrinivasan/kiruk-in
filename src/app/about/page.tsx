@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
-import { useCallback, useEffect, useState, useMemo } from "react";
+import { useCallback, useEffect, useState, useMemo, useRef } from "react";
 
 import { VlogGallery } from "@/modules/vlogs";
 // Removed unused import
@@ -32,119 +32,57 @@ type LifeEvent = {
 
 const lifeEvents: LifeEvent[] = [
 	{
-		id: "birth-2001",
-		year: 2001,
-		age: 0,
-		title: "Born into a Creative Clan",
-		location: "Salem, Tamil Nadu, India",
-		period: "11 Aug 2001",
-		description: "Opened my eyes inside a joint family of nearly 30 people where collaboration was the constant background score.",
-		icon: "👶",
-		details: "Aunties swapped crochet stitches, calligraphy strokes, and mural tricks while uncles—project managers, marketers, founders—workshopped ventures over chai.",
-		tags: ["Joint family", "Creative roots", "Entrepreneurial home"],
+		id: "present-2025",
+		year: 2025,
+		age: 24,
+		title: "Present Day - Kirukism in Motion",
+		location: "Bengaluru and Remote",
+		period: "2025",
+		description: "Switch between HP Print AI builds and sketching @kirukism; process journals keep the two worlds in dialogue.",
+		icon: "🌈",
+		details: "Weekends are for capturing tiny learnings, posting snippets, and chatting with builders who resonate.",
+		tags: ["Process journaling", "Kirukism sketches", "Builder conversations"],
+		milestone: true,
+		current: true,
+	},
+	{
+		id: "print-ai-2024",
+		year: 2024,
+		age: 23,
+		title: "HP Print AI Launch and Observability",
+		location: "HP Print AI, Bengaluru and Global",
+		period: "2024",
+		description: "Launch season felt like conducting a workshop—linking prompt tests, data reviews, and onboarding dry runs until flows sang.",
+		icon: "🚀",
+		details: "We diagrammed AI stack handoffs on paper before instrumenting anything, tuning observability with ops and writers at the table.",
+		tags: ["Prompt rehearsals", "Team dry runs", "Observability circles"],
 		milestone: true,
 		photoPlaceholder: true,
 	},
 	{
-		id: "family-collective-2008",
-		year: 2008,
-		age: 7,
-		title: "Family Studio Playground",
-		location: "Salem Joint Family Home",
-		period: "2008 - 2012",
-		description: "Watched my mom crochet masterpieces, an aunt letter scripts, another paint murals, and cousins doodle alongside me.",
-		icon: "🏡",
-		details: "Critique circles happened over tea; I learnt that every idea invites another perspective before it ships.",
-		tags: ["Crochet to calligraphy", "30 voices", "Shared critiques"],
-		photoPlaceholder: true,
-	},
-	{
-		id: "scribble-tester-2014",
-		year: 2014,
-		age: 13,
-		title: "Scribbles & Biryani QA",
-		location: "Uncle's Studio & School Notebooks",
-		period: "Class 6 - Class 10",
-		description: "Filled notebooks with sketches more than notes while moonlighting as a black-box tester for my uncle's ERP builds.",
-		icon: "📝",
-		details: "Regression checklists, bug logs, and biryani rewards made quality assurance feel like a family game.",
-		tags: ["ERP testing", "Biryani rewards", "Sketchy notebooks"],
-	},
-	{
-		id: "freelance-2018",
-		year: 2018,
-		age: 17,
-		title: "First Freelance Paycheck",
-		location: "Salem & Remote Clients",
-		period: "Summer 2018",
-		description: "Before college began I took on poster and illustration gigs sparked by family referrals and community buzz.",
-		icon: "💼",
-		details: "Learnt pricing, feedback loops, and the thrill of shipping imagination for my first paycheck.",
-		tags: ["Poster design", "Illustration gigs", "First pay"],
-		milestone: true,
-		photoPlaceholder: true,
-	},
-	{
-		id: "engineering-start-2019",
-		year: 2019,
-		age: 18,
-		title: "Engineering Journey Begins",
-		location: "Sona College of Technology",
-		period: "2019 - 2023",
-		description: "Carried family-fueled experimentation into Computer Science—code labs by day, sketch critiques by night.",
-		icon: "💻",
-		details: "The freelance hustle and QA drills primed me to blend storytelling with systems from the first semester.",
-		tags: ["Code + design blends", "Family influence"],
+		id: "sns-square-2024",
+		year: 2024,
+		age: 23,
+		title: "SNS Square - Freelance Design Lead",
+		location: "Squarebridge Platform (Remote)",
+		period: "Nov 2023 - Aug 2024",
+		description: "Designed alongside placement teams, stitching research calls, Miro maps, and system tokens into a living design kit.",
+		icon: "🧩",
+		details: "Working sprints began with listening sessions and ended with Loom walkthroughs for developers to trace the why.",
+		tags: ["Research sprints", "Design systems", "Async storytelling"],
 		milestone: true,
 	},
 	{
-		id: "campus-design-2020",
-		year: 2020,
-		age: 19,
-		title: "Campus Creative Lead",
-		location: "Sona Cultural Crew & Incubation Lab",
-		period: "2019 - 2021",
-		description: "Led the cultural design team, refreshed the college website, and shaped a medical incubation app alongside dev partners.",
-		icon: "🎭",
-		details: "Balanced stage branding, stakeholder reviews, and sprint rituals so the campus voice stayed playful yet clear.",
-		tags: ["Cultural design lead", "Website redesign", "Medical app UX"],
-		photoPlaceholder: true,
-	},
-	{
-		id: "pandemic-playlab-2020",
-		year: 2020,
-		age: 19,
-		title: "Pandemic Playlab",
-		location: "Home Studios & Play Store",
-		period: "2020",
-		description: "Teamed up with my cousin to ship mobile games and playful apps while refining illustration, UX, and asset pipelines.",
-		icon: "🕹️",
-		details: "Lockdown evenings turned into game art jams, motion experiments, freelance sprints, and internship case studies.",
-		tags: ["Game assets", "Play Store launch", "Lockdown experiments"],
-	},
-	{
-		id: "design-awakening-2021",
-		year: 2021,
-		age: 20,
-		title: "Design Systems Deep Dive",
-		location: "College Studio & Remote Clients",
-		period: "2020 - 2021",
-		description: "Documented UI kits, motion rules, and UX playbooks for campus apps and freelance teams, sharpening how I articulate craft.",
-		icon: "🎛️",
-		details: "Pattern libraries, accessibility checklists, and case study write-ups helped align engineers, mentors, and clients remotely.",
-		tags: ["Design systems", "UX playbooks", "Remote collaboration"],
-	},
-	{
-		id: "peoplegamez-2022",
-		year: 2022,
-		age: 21,
-		title: "Interaction Design Intern",
-		location: "PeopleGamez.com (Remote)",
-		period: "Nov 2022 - Jan 2023",
-		description: "Paired with product and engineering in FigJam and Notion, sketching playful loops before writing a single component.",
-		icon: "🎮",
-		details: "We ran weekly critique jams where prototypes changed in real-time as teammates reacted.",
-		tags: ["Gamified journeys", "Feedback jams", "Remote rituals"],
+		id: "hp-sde1-2023",
+		year: 2023,
+		age: 22,
+		title: "HP Inc - Software Systems Engineer 1",
+		location: "HP Print AI, Bengaluru",
+		period: "Aug 2023 - Present",
+		description: "I co-create print workflows with writers, QA, and ML folks—every release starts in Miro flows before it hits code.",
+		icon: "🖨️",
+		details: "Daily standups end with sketching the email journey; we experiment, test, and refactor together.",
+		tags: ["Cross-team co-creation", "Service design", "Print journaling"],
 		milestone: true,
 	},
 	{
@@ -162,58 +100,120 @@ const lifeEvents: LifeEvent[] = [
 		photoPlaceholder: true,
 	},
 	{
-		id: "hp-sde1-2023",
-		year: 2023,
-		age: 22,
-		title: "HP Inc - Software Systems Engineer 1",
-		location: "HP Print AI, Bengaluru",
-		period: "Aug 2023 - Present",
-		description: "I co-create print workflows with writers, QA, and ML folks—every release starts in Miro flows before it hits code.",
-		icon: "🖨️",
-		details: "Daily standups end with sketching the email journey; we experiment, test, and refactor together.",
-		tags: ["Cross-team co-creation", "Service design", "Print journaling"],
+		id: "peoplegamez-2022",
+		year: 2022,
+		age: 21,
+		title: "Interaction Design Intern",
+		location: "PeopleGamez.com (Remote)",
+		period: "Nov 2022 - Jan 2023",
+		description: "Paired with product and engineering in FigJam and Notion, sketching playful loops before writing a single component.",
+		icon: "🎮",
+		details: "We ran weekly critique jams where prototypes changed in real-time as teammates reacted.",
+		tags: ["Gamified journeys", "Feedback jams", "Remote rituals"],
 		milestone: true,
 	},
 	{
-		id: "sns-square-2024",
-		year: 2024,
-		age: 23,
-		title: "SNS Square - Freelance Design Lead",
-		location: "Squarebridge Platform (Remote)",
-		period: "Nov 2023 - Aug 2024",
-		description: "Designed alongside placement teams, stitching research calls, Miro maps, and system tokens into a living design kit.",
-		icon: "🧩",
-		details: "Working sprints began with listening sessions and ended with Loom walkthroughs for developers to trace the why.",
-		tags: ["Research sprints", "Design systems", "Async storytelling"],
+		id: "design-awakening-2021",
+		year: 2021,
+		age: 20,
+		title: "Design Systems Deep Dive",
+		location: "College Studio & Remote Clients",
+		period: "2020 - 2021",
+		description: "Documented UI kits, motion rules, and UX playbooks for campus apps and freelance teams, sharpening how I articulate craft.",
+		icon: "🎛️",
+		details: "Pattern libraries, accessibility checklists, and case study write-ups helped align engineers, mentors, and clients remotely.",
+		tags: ["Design systems", "UX playbooks", "Remote collaboration"],
+	},
+	{
+		id: "pandemic-playlab-2020",
+		year: 2020,
+		age: 19,
+		title: "Pandemic Playlab",
+		location: "Home Studios & Play Store",
+		period: "2020",
+		description: "Teamed up with my cousin to ship mobile games and playful apps while refining illustration, UX, and asset pipelines.",
+		icon: "🕹️",
+		details: "Lockdown evenings turned into game art jams, motion experiments, freelance sprints, and internship case studies.",
+		tags: ["Game assets", "Play Store launch", "Lockdown experiments"],
+	},
+	{
+		id: "campus-design-2020",
+		year: 2020,
+		age: 19,
+		title: "Campus Creative Lead",
+		location: "Sona Cultural Crew & Incubation Lab",
+		period: "2019 - 2021",
+		description: "Led the cultural design team, refreshed the college website, and shaped a medical incubation app alongside dev partners.",
+		icon: "🎭",
+		details: "Balanced stage branding, stakeholder reviews, and sprint rituals so the campus voice stayed playful yet clear.",
+		tags: ["Cultural design lead", "Website redesign", "Medical app UX"],
+		photoPlaceholder: true,
+	},
+	{
+		id: "engineering-start-2019",
+		year: 2019,
+		age: 18,
+		title: "Engineering Journey Begins",
+		location: "Sona College of Technology",
+		period: "2019 - 2023",
+		description: "Carried family-fueled experimentation into Computer Science—code labs by day, sketch critiques by night.",
+		icon: "💻",
+		details: "The freelance hustle and QA drills primed me to blend storytelling with systems from the first semester.",
+		tags: ["Code + design blends", "Family influence"],
 		milestone: true,
 	},
 	{
-		id: "print-ai-2024",
-		year: 2024,
-		age: 23,
-		title: "HP Print AI Launch and Observability",
-		location: "HP Print AI, Bengaluru and Global",
-		period: "2024",
-		description: "Launch season felt like conducting a workshop—linking prompt tests, data reviews, and onboarding dry runs until flows sang.",
-		icon: "🚀",
-		details: "We diagrammed AI stack handoffs on paper before instrumenting anything, tuning observability with ops and writers at the table.",
-		tags: ["Prompt rehearsals", "Team dry runs", "Observability circles"],
+		id: "freelance-2018",
+		year: 2018,
+		age: 17,
+		title: "First Freelance Paycheck",
+		location: "Salem & Remote Clients",
+		period: "Summer 2018",
+		description: "Before college began I took on poster and illustration gigs sparked by family referrals and community buzz.",
+		icon: "💼",
+		details: "Learnt pricing, feedback loops, and the thrill of shipping imagination for my first paycheck.",
+		tags: ["Poster design", "Illustration gigs", "First pay"],
 		milestone: true,
 		photoPlaceholder: true,
 	},
 	{
-		id: "present-2025",
-		year: 2025,
-		age: 24,
-		title: "Present Day - Kirukism in Motion",
-		location: "Bengaluru and Remote",
-		period: "2025",
-		description: "Switch between HP Print AI builds and sketching @kirukism; process journals keep the two worlds in dialogue.",
-		icon: "🌈",
-		details: "Weekends are for capturing tiny learnings, posting snippets, and chatting with builders who resonate.",
-		tags: ["Process journaling", "Kirukism sketches", "Builder conversations"],
+		id: "scribble-tester-2014",
+		year: 2014,
+		age: 13,
+		title: "Scribbles & Biryani QA",
+		location: "Uncle's Studio & School Notebooks",
+		period: "Class 6 - Class 10",
+		description: "Filled notebooks with sketches more than notes while moonlighting as a black-box tester for my uncle's ERP builds.",
+		icon: "📝",
+		details: "Regression checklists, bug logs, and biryani rewards made quality assurance feel like a family game.",
+		tags: ["ERP testing", "Biryani rewards", "Sketchy notebooks"],
+	},
+	{
+		id: "family-collective-2008",
+		year: 2008,
+		age: 7,
+		title: "Family Studio Playground",
+		location: "Salem Joint Family Home",
+		period: "2008 - 2012",
+		description: "Watched my mom crochet masterpieces, an aunt letter scripts, another paint murals, and cousins doodle alongside me.",
+		icon: "🏡",
+		details: "Critique circles happened over tea; I learnt that every idea invites another perspective before it ships.",
+		tags: ["Crochet to calligraphy", "30 voices", "Shared critiques"],
+		photoPlaceholder: true,
+	},
+	{
+		id: "birth-2001",
+		year: 2001,
+		age: 0,
+		title: "Born into a Creative Clan",
+		location: "Salem, Tamil Nadu, India",
+		period: "11 Aug 2001",
+		description: "Opened my eyes inside a joint family of nearly 30 people where collaboration was the constant background score.",
+		icon: "👶",
+		details: "Aunties swapped crochet stitches, calligraphy strokes, and mural tricks while uncles—project managers, marketers, founders—workshopped ventures over chai.",
+		tags: ["Joint family", "Creative roots", "Entrepreneurial home"],
 		milestone: true,
-		current: true,
+		photoPlaceholder: true,
 	},
 ];
 
@@ -262,8 +262,6 @@ function PixelCollectible({ type }: { type: string }) {
 
 export default function About() {
 	const [showIntro, setShowIntro] = useState(true);
-	const [selectedEvent, setSelectedEvent] = useState<LifeEvent | null>(null);
-	const [showEventModal, setShowEventModal] = useState(false);
 	
 	const levels = lifeEvents.map((event) => ({
 		year: event.year,
@@ -272,17 +270,25 @@ export default function About() {
 	
 	const { mode: gameMode } = useGameMode();
 	
+	const nextLevelRef = useRef<(() => void) | null>(null);
+	
 	const { gameState, startGame, jump, setMoving, togglePause, nextLevel, goToLevel, restartLevel } = useGameEngine({
 		levels,
 		events: lifeEvents.map(e => ({ id: e.id, year: e.year, title: e.title, tags: e.tags, icon: e.icon })),
 		gameMode: gameMode || 'normal',
 		worldWidth: 2000,
 		onLevelComplete: (level) => {
-			// Show event details when level completes
-			setSelectedEvent(lifeEvents[level]);
-			setShowEventModal(true);
+			// Automatically continue to next timeline event without modal
+			if (level < lifeEvents.length - 1 && nextLevelRef.current) {
+				setTimeout(() => nextLevelRef.current?.(), 100);
+			}
 		},
 	});
+	
+	// Store nextLevel in ref so callback can access it
+	useEffect(() => {
+		nextLevelRef.current = nextLevel;
+	}, [nextLevel]);
 	
 	const currentEvent = lifeEvents[gameState.level];
 	const characterStage = getStageFromAge(currentEvent?.age || 0);
@@ -300,34 +306,9 @@ export default function About() {
 		startGame();
 	}, [startGame]);
 	
-	const handleContinue = useCallback(() => {
-		setShowEventModal(false);
-		setSelectedEvent(null);
-		nextLevel();
-	}, [nextLevel]);
-
-	// Keyboard support: Space to continue to next level when modal is open
-	useEffect(() => {
-		const handleKeyDown = (e: KeyboardEvent) => {
-			// Only handle Space when modal is open and level is complete
-			if ((e.code === "Space" || e.code === "Enter") && showEventModal && gameState.isLevelComplete) {
-				e.preventDefault();
-				// Only continue if there are more levels
-				if (gameState.level < lifeEvents.length - 1) {
-					handleContinue();
-				}
-			}
-		};
-
-		globalThis.addEventListener("keydown", handleKeyDown);
-		return () => {
-			globalThis.removeEventListener("keydown", handleKeyDown);
-		};
-	}, [showEventModal, gameState.isLevelComplete, gameState.level, handleContinue]);
-	
-	const handleLevelSelect = useCallback((level: number) => {
+	const handleTimelineSelect = useCallback((timelineIndex: number) => {
 		setShowIntro(false);
-		goToLevel(level);
+		goToLevel(timelineIndex);
 	}, [goToLevel]);
 
 	// Touch controls for mobile
@@ -346,28 +327,28 @@ export default function About() {
 				} else {
 					jump();
 				}
-			} else if (gameState.isLevelComplete && showEventModal) {
-				handleContinue();
-			} else if (gameState.isGameOver) {
-				restartLevel();
-			} else if (showIntro) {
-				handleStartGame();
-			}
-		};
-		
-		const handleTouchEnd = () => {
-			if (gameState.isPlaying && !gameState.isPaused) {
-				setMoving('none');
-			}
-		};
-		
-		globalThis.addEventListener("touchstart", handleTouch);
-		globalThis.addEventListener("touchend", handleTouchEnd);
-		return () => {
-			globalThis.removeEventListener("touchstart", handleTouch);
-			globalThis.removeEventListener("touchend", handleTouchEnd);
-		};
-	}, [gameState.isPlaying, gameState.isPaused, gameState.isLevelComplete, gameState.isGameOver, showIntro, showEventModal, jump, setMoving, handleContinue, restartLevel, handleStartGame]);
+		} else if (gameState.isLevelComplete) {
+			// Auto-continue handled by onLevelComplete callback
+		} else if (gameState.isGameOver) {
+			restartLevel();
+		} else if (showIntro) {
+			handleStartGame();
+		}
+	};
+	
+	const handleTouchEnd = () => {
+		if (gameState.isPlaying && !gameState.isPaused) {
+			setMoving('none');
+		}
+	};
+	
+	globalThis.addEventListener("touchstart", handleTouch);
+	globalThis.addEventListener("touchend", handleTouchEnd);
+	return () => {
+		globalThis.removeEventListener("touchstart", handleTouch);
+		globalThis.removeEventListener("touchend", handleTouchEnd);
+	};
+}, [gameState.isPlaying, gameState.isPaused, gameState.isLevelComplete, gameState.isGameOver, showIntro, jump, setMoving, restartLevel, handleStartGame]);
 
 	return (
 		<main className="min-h-screen overflow-hidden relative" style={{ backgroundColor: "var(--bg-main)" }}>
@@ -379,10 +360,10 @@ export default function About() {
 						<h1 className="text-xl font-mono" style={{ color: "var(--text-main)" }}>
 							KIRUK&apos;S JOURNEY
 						</h1>
-						{!showIntro && (
+							{!showIntro && (
 							<div className="flex items-center gap-2 font-mono text-sm">
 								<span className="px-2 py-1 border" style={{ backgroundColor: "var(--bg-card)", borderColor: "var(--accent-color)", color: "var(--accent-color)" }}>
-									LEVEL {gameState.level + 1}/{lifeEvents.length}
+									{currentEvent?.year || 2025} ({gameState.level + 1}/{lifeEvents.length})
 								</span>
 								<span className="px-2 py-1 border" style={{ backgroundColor: "var(--bg-card)", borderColor: "var(--border-color)", color: "var(--text-main)" }}>
 									SCORE: {gameState.score}
@@ -456,9 +437,9 @@ export default function About() {
 								animate={{ y: 0, opacity: 1 }}
 								transition={{ delay: 0.6 }}
 							>
-								Guide Kiruk through {lifeEvents.length} levels of life adventures!
+								Journey through {lifeEvents.length} timeline events from 2025 to 2001!
 								<br />
-								<span style={{ color: "var(--accent-color)" }}>Move left/right</span> and jump over obstacles to reach the goal.
+								<span style={{ color: "var(--accent-color)" }}>Move left/right</span> to travel through the timeline.
 							</motion.p>
 							
 							<motion.div
@@ -484,19 +465,19 @@ export default function About() {
 								</div>
 							</motion.div>
 							
-							{/* Level Select */}
+							{/* Timeline Select */}
 							<motion.div
 								className="mt-8"
 								initial={{ y: 20, opacity: 0 }}
 								animate={{ y: 0, opacity: 1 }}
 								transition={{ delay: 1 }}
 							>
-								<p className="font-mono text-sm mb-3" style={{ color: "var(--text-muted)" }}>Or select a level:</p>
+								<p className="font-mono text-sm mb-3" style={{ color: "var(--text-muted)" }}>Or select a timeline event:</p>
 								<div className="flex flex-wrap justify-center gap-2 max-w-xl mx-auto">
 									{lifeEvents.map((event, idx) => (
 										<button
 											key={event.id}
-											onClick={() => handleLevelSelect(idx)}
+											onClick={() => handleTimelineSelect(idx)}
 											className="w-10 h-10 font-mono text-sm border transition-colors flex items-center justify-center hover:opacity-80"
 											style={{ 
 												backgroundColor: "var(--bg-card)", 
@@ -670,7 +651,7 @@ export default function About() {
 										GAME OVER
 									</h2>
 									<p className="font-mono mb-2" style={{ color: "var(--text-main)" }}>
-										Level: {gameState.level + 1} | Score: {gameState.score}
+										Timeline: {currentEvent?.year || 2025} | Score: {gameState.score}
 									</p>
 									<p className="font-mono text-sm mb-6" style={{ color: "var(--text-muted)" }}>
 										{currentEvent?.title}
@@ -706,200 +687,6 @@ export default function About() {
 				</div>
 			)}
 			
-			{/* Level Complete Modal - Timeline Era Design */}
-			<AnimatePresence>
-				{showEventModal && selectedEvent && (
-					<motion.div
-						className="fixed inset-0 z-50 flex items-center justify-center p-4"
-						style={{ backgroundColor: "rgba(0,0,0,0.95)" }}
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						exit={{ opacity: 0 }}
-					>
-						<motion.div
-							className="max-w-lg w-full font-mono relative"
-							style={{
-								backgroundColor: "var(--bg-main)",
-								border: "2px solid var(--border-color)",
-								imageRendering: "pixelated",
-							}}
-							initial={{ scale: 0.9, opacity: 0 }}
-							animate={{ scale: 1, opacity: 1 }}
-							exit={{ scale: 0.9, opacity: 0 }}
-						>
-							<GridBackground opacity={0.2} scanlinesOpacity={0.1} />
-							
-							{/* Header - Terminal Style */}
-							<div 
-								className="p-4 border-b-2"
-								style={{ 
-									borderColor: "var(--border-color)",
-									backgroundColor: "var(--bg-card)",
-								}}
-							>
-								<div className="flex items-center gap-3">
-									<span className="text-3xl">{selectedEvent.icon}</span>
-									<div className="flex-1">
-										<div 
-											className="text-xs uppercase tracking-wider mb-1"
-											style={{ color: "var(--text-muted)" }}
-										>
-											LEVEL_{String(selectedEvent.year).slice(-2)} COMPLETE
-										</div>
-										<div 
-											className="text-lg font-bold"
-											style={{ color: "var(--accent-color)" }}
-										>
-											{selectedEvent.year}
-										</div>
-										<div 
-											className="text-sm"
-											style={{ color: "var(--text-main)" }}
-										>
-											{selectedEvent.title}
-										</div>
-									</div>
-								</div>
-							</div>
-							
-							{/* Content - Terminal Style */}
-							<div className="p-6 relative z-10">
-								{/* Score Display */}
-								<div className="mb-6">
-									<div 
-										className="text-xs uppercase tracking-wider mb-2"
-										style={{ color: "var(--text-muted)" }}
-									>
-										SCORE UPDATE
-									</div>
-									<div className="flex items-baseline gap-3 mb-1">
-										<span 
-											className="text-2xl font-bold"
-											style={{ color: "var(--accent-color)" }}
-										>
-											+100
-										</span>
-										<span 
-											className="text-sm"
-											style={{ color: "var(--text-main)" }}
-										>
-											POINTS
-										</span>
-									</div>
-									<div 
-										className="text-sm"
-										style={{ color: "var(--text-muted)" }}
-									>
-										TOTAL: {gameState.score.toLocaleString()}
-									</div>
-								</div>
-								
-								{/* Progress Stats */}
-								<div className="grid grid-cols-2 gap-4 mb-6">
-									<div 
-										className="p-3 border"
-										style={{ 
-											borderColor: "var(--border-color)",
-											backgroundColor: "var(--bg-card)",
-										}}
-									>
-										<div 
-											className="text-[10px] uppercase tracking-wider mb-1 opacity-60"
-											style={{ color: "var(--text-muted)" }}
-										>
-											CURRENT
-										</div>
-										<div 
-											className="text-xl font-bold"
-											style={{ color: "var(--accent-color)" }}
-										>
-											LEVEL {gameState.level + 1}
-										</div>
-									</div>
-									<div 
-										className="p-3 border"
-										style={{ 
-											borderColor: "var(--border-color)",
-											backgroundColor: "var(--bg-card)",
-										}}
-									>
-										<div 
-											className="text-[10px] uppercase tracking-wider mb-1 opacity-60"
-											style={{ color: "var(--text-muted)" }}
-										>
-											PROGRESS
-										</div>
-										<div 
-											className="text-xl font-bold"
-											style={{ color: "var(--accent-color)" }}
-										>
-											{gameState.level + 1}/{lifeEvents.length}
-										</div>
-									</div>
-								</div>
-								
-								{/* Terminal Prompt */}
-								<div 
-									className="text-xs mb-4"
-									style={{ color: "var(--text-muted)" }}
-								>
-									<span style={{ color: "var(--accent-color)" }}>{'>'}</span> MISSION STATUS: COMPLETE
-								</div>
-							</div>
-							
-							{/* Actions - Terminal Style */}
-							<div 
-								className="p-4 border-t-2 flex justify-center"
-								style={{ 
-									borderColor: "var(--border-color)",
-									backgroundColor: "var(--bg-card)",
-								}}
-							>
-								{gameState.level < lifeEvents.length - 1 ? (
-									<button
-										onClick={handleContinue}
-										className="px-6 py-2 font-mono text-sm border-2 transition-all hover:opacity-80"
-										style={{ 
-											backgroundColor: "var(--accent-color)",
-											color: "var(--bg-main)",
-											borderColor: "var(--accent-color)",
-										}}
-									>
-										▶ CONTINUE TO NEXT LEVEL
-										<span className="ml-2 text-xs opacity-70">(Press SPACE)</span>
-									</button>
-								) : (
-									<div className="text-center">
-										<div 
-											className="text-lg font-bold mb-3"
-											style={{ color: "var(--accent-color)" }}
-										>
-											🎉 JOURNEY COMPLETE 🎉
-										</div>
-										<div 
-											className="text-sm mb-4"
-											style={{ color: "var(--text-muted)" }}
-										>
-											All levels completed!
-										</div>
-										<Link
-											href="/progress"
-											className="inline-block px-6 py-2 font-mono text-sm border-2 transition-all hover:opacity-80"
-											style={{ 
-												backgroundColor: "var(--accent-color)",
-												color: "var(--bg-main)",
-												borderColor: "var(--accent-color)",
-											}}
-										>
-											▶ VIEW PROGRESS
-										</Link>
-									</div>
-								)}
-							</div>
-						</motion.div>
-					</motion.div>
-				)}
-			</AnimatePresence>
 
 			{/* Vlog Gallery Section - Outside game area */}
 			{!showIntro && !gameState.isPlaying && gameState.isLevelComplete && gameState.level >= lifeEvents.length - 1 && (

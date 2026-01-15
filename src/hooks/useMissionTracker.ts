@@ -3,7 +3,7 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { useGameMode } from '@/contexts/GameModeContext';
-import { PAGE_GAMES, GameLevel } from '@/data/game-navigation-data';
+import { PAGE_GAMES } from '@/data/game-navigation-data';
 
 interface MissionStats {
   scrollPercentage: number;
@@ -18,7 +18,7 @@ interface MissionStats {
  */
 export function useMissionTracker() {
   const pathname = usePathname();
-  const { progress, completeLevel, isLevelCompleted } = useGameMode();
+  const { completeLevel, isLevelCompleted } = useGameMode();
   const statsRef = useRef<MissionStats>({
     scrollPercentage: 0,
     timeSpent: 0,

@@ -239,9 +239,9 @@ export const PAGE_GAMES: PageGame[] = [
   {
     id: 'work',
     path: '/work',
-    title: 'EVIDENCE LOCKER',
+    title: 'EXPERIENCE ARENA',
     subtitle: 'The Target',
-    description: 'Examine the evidence locker. Target projects that interest you and gather clues.',
+    description: 'Examine the experience arena. Target projects that interest you and gather clues.',
     icon: 'grid',
     gameType: 'shooter',
     primaryColor: '#FF6B6B',
@@ -252,7 +252,7 @@ export const PAGE_GAMES: PageGame[] = [
       {
         id: 'work-enter',
         name: 'Enter Locker',
-        description: 'Enter the evidence locker',
+        description: 'Enter the experience arena',
         xpReward: 10,
         completionType: 'view',
       },
@@ -605,7 +605,7 @@ export const createInitialProgress = (): GameProgress => ({
 
 // Game type pixel icons for visual variety
 export const GAME_TYPE_ICONS: Record<PageGame['gameType'], string> = {
-  arcade: 'play',
+  arcade: 'flag-checkered',
   runner: 'bolt',
   shooter: 'eye',
   puzzle: 'sparkles',

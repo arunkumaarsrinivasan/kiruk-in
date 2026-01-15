@@ -84,7 +84,7 @@ export class TemplateGame extends BaseGridGame {
    * Called every frame with delta time (ms).
    * Update game logic, physics, spawning, etc.
    */
-  protected onUpdate(dt: number): void {
+  protected onUpdate(_dt: number): void {
     // Example: Update game state
     // this.moveThings(dt);
     // this.checkCollisions();
@@ -97,7 +97,7 @@ export class TemplateGame extends BaseGridGame {
    * Called when cursor moves to a new cell.
    * Handle cursor-based interactions here.
    */
-  protected onCursorMove(cell: GridCell): void {
+  protected onCursorMove(_cell: GridCell): void {
     // Example: Check if cursor hits something
     // if (this.cellsEqual(cell, this.target)) {
     //   this.addScore(10);
@@ -108,7 +108,7 @@ export class TemplateGame extends BaseGridGame {
    * Called for each cell along cursor path (interpolated).
    * Useful for drawing/painting mechanics.
    */
-  protected onCursorPath(cell: GridCell): void {
+  protected onCursorPath(_cell: GridCell): void {
     // Example: Paint cells as cursor moves
     // this.paintedCells.add(this.cellKey(cell));
   }

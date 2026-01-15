@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
@@ -43,7 +42,7 @@ interface ThemedCardProps {
   isCollapsed?: boolean;
 }
 
-export function ThemedCard({ theme, children, className, onClick, isCollapsed }: ThemedCardProps) {
+export function ThemedCard({ theme, children, className, onClick, isCollapsed: _isCollapsed }: ThemedCardProps) {
   // Global wireframe enforcement: uses era-based CSS variables
   const baseClasses = "relative overflow-hidden transition-all duration-300 group rounded-none wireframe-border";
   

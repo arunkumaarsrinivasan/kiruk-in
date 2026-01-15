@@ -182,7 +182,6 @@ export function useShootingGame({
     
     // Create bullet with physics
     const bulletId = `bullet-${Date.now()}-${Math.random()}`;
-    const bulletSpeed = 0.5 + power * 0.3; // Bullet speed based on power
     const bullet = {
       id: bulletId,
       x: gameState.crosshairX,
@@ -199,13 +198,19 @@ export function useShootingGame({
       
       // Check if shot hits any target
       const updatedTargets = prev.targets.map((target) => {
-        // Calculate distance from crosshair to target center (both in percentage)
+        // Calculate distance from crosshair to target center
+        // Both crosshair and target positions are in percentage coordinates:
+        // - X: percentage of viewport width (both use full viewport)
+        // - Y: percentage of container height (viewport height - TOP_PADDING)
+        // This ensures consistent coordinate system
         const dx = prev.crosshairX - target.x;
         const dy = prev.crosshairY - target.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         
-        // target.radius is already in percentage, use it directly
-        // shotRadius is also in percentage
+        // target.radius is in percentage of viewport width
+        // shotRadius is also in percentage of viewport width  
+        // Hit detection: distance from center must be within shot radius + target radius
+        // Using consistent percentage-based distance calculation
         if (distance <= shotRadius + target.radius) {
           // Increment hit count for progressive reveal
           const newHitCount = target.hitCount + 1;
@@ -304,7 +309,7 @@ export function useShootingGame({
         bullets: [...prev.bullets, bullet], // Add bullet
       };
     });
-  }, [gameState.isPlaying, gameState.isPaused, gameState.crosshairX, gameState.crosshairY, generateTargets, onTargetHit]);
+  }, [gameState.isPlaying, gameState.isPaused, gameState.crosshairX, gameState.crosshairY, generateTargets, onTargetHit, onLevelComplete, workExperiences.length]);
 
   // Game loop
   useEffect(() => {
@@ -386,9 +391,15 @@ export function useShootingGame({
       const containerHeight = globalThis.innerHeight - TOP_PADDING;
       const containerTop = TOP_PADDING;
       
-      // Calculate position relative to container
+      // Calculate position relative to container - ensure we use the full viewport for X
+      // This matches how targets are positioned (full viewport width)
       let x = (e.clientX / containerWidth) * 100;
+      // For Y, account for the top padding
       let y = ((e.clientY - containerTop) / containerHeight) * 100;
+      
+      // Clamp values to ensure they're within valid range
+      x = Math.max(0, Math.min(100, x));
+      y = Math.max(0, Math.min(100, y));
       
       // Check if cursor is inside any target
       const target = gameState.targets.find(t => !t.hit);
@@ -405,6 +416,9 @@ export function useShootingGame({
           const randomOffsetY = (Math.random() - 0.5) * 0.3;
           x += randomOffsetX;
           y += randomOffsetY;
+          // Re-clamp after random offset
+          x = Math.max(0, Math.min(100, x));
+          y = Math.max(0, Math.min(100, y));
         }
       }
       
@@ -418,8 +432,15 @@ export function useShootingGame({
         const containerHeight = globalThis.innerHeight - TOP_PADDING;
         const containerTop = TOP_PADDING;
         
+        // Calculate position relative to container - ensure we use the full viewport for X
+        // This matches how targets are positioned (full viewport width)
         let x = (e.touches[0].clientX / containerWidth) * 100;
+        // For Y, account for the top padding
         let y = ((e.touches[0].clientY - containerTop) / containerHeight) * 100;
+        
+        // Clamp values to ensure they're within valid range
+        x = Math.max(0, Math.min(100, x));
+        y = Math.max(0, Math.min(100, y));
         
         // Check if cursor is inside any target
         const target = gameState.targets.find(t => !t.hit);
@@ -435,6 +456,9 @@ export function useShootingGame({
             const randomOffsetY = (Math.random() - 0.5) * 0.3;
             x += randomOffsetX;
             y += randomOffsetY;
+            // Re-clamp after random offset
+            x = Math.max(0, Math.min(100, x));
+            y = Math.max(0, Math.min(100, y));
           }
         }
         

@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>&#x1f3d7;&#xfe0f; Kiruk Portfolio Architecture - Complete Guide</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <h1 id="️-kiruk-portfolio-architecture---complete-guide">🏗️ Kiruk Portfolio Architecture - Complete Guide</h1>
+<blockquote>
+<p>A comprehensive guide to understanding the data-driven, gamified portfolio built with Next.js</p>
+</blockquote>
+<hr>
+<h2 id="-table-of-contents">📖 Table of Contents</h2>
+<ol>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#core-concepts">Core Concepts</a></li>
+<li><a href="#project-structure">Project Structure</a></li>
+<li><a href="#data-driven-design-system">Data-Driven Design System</a></li>
+<li><a href="#the-game-system">The Game System</a></li>
+<li><a href="#theme-system-time-travel">Theme System (Time Travel)</a></li>
+<li><a href="#component-architecture">Component Architecture</a></li>
+<li><a href="#nextjs-fundamentals">Next.js Fundamentals</a></li>
+<li><a href="#how-to-make-changes">How to Make Changes</a></li>
+<li><a href="#creating-new-features">Creating New Features</a></li>
+<li><a href="#grid-arcade-games">Grid Arcade Games</a></li>
+<li><a href="#best-practices">Best Practices</a></li>
+</ol>
+<hr>
+<h2 id="-overview">🎯 Overview</h2>
+<p>This portfolio is a <strong>gamified, data-driven web experience</strong> that transforms a traditional portfolio into an interactive detective game. Key characteristics:</p>
+<ul>
+<li><strong>Data-Driven</strong>: All content comes from centralized data files, not hardcoded in components</li>
+<li><strong>Theme-able</strong>: 20+ design eras from 1970 to 2025, each with unique visual styles</li>
+<li><strong>Gamified</strong>: XP system, levels, missions, and unlockable content</li>
+<li><strong>Grid-Based</strong>: 20px × 20px alignment system with playable mini-games</li>
+</ul>
+<h3 id="the-three-pillars">The Three Pillars</h3>
+<pre><code>┌─────────────────────────────────────────────────────────────────────┐
+│                         KIRUK PORTFOLIO                              │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│   ┌──────────────┐    ┌──────────────┐    ┌──────────────┐          │
+│   │    DATA      │    │   THEMES     │    │    GAMES     │          │
+│   │   LAYER      │    │   SYSTEM     │    │   SYSTEM     │          │
+│   ├──────────────┤    ├──────────────┤    ├──────────────┤          │
+│   │ portfolio-   │    │ ThemeContext │    │ GameMode     │          │
+│   │ data.ts      │    │              │    │ Context      │          │
+│   │              │    │ design-      │    │              │          │
+│   │ game-nav-    │    │ systems.ts   │    │ game-nav-    │          │
+│   │ data.ts      │    │              │    │ data.ts      │          │
+│   │              │    │ 20+ eras     │    │              │          │
+│   │ help-bot-    │    │ definable    │    │ Mini-games   │          │
+│   │ data.ts      │    │              │    │ arcade       │          │
+│   └──────────────┘    └──────────────┘    └──────────────┘          │
+│                                                                      │
+└─────────────────────────────────────────────────────────────────────┘
+</code></pre>
+<hr>
+<h2 id="-core-concepts">🧠 Core Concepts</h2>
+<h3 id="1-data-driven-philosophy">1. Data-Driven Philosophy</h3>
+<p>Instead of hardcoding content in components:</p>
+<pre><code class="language-tsx"><span class="hljs-comment">// ❌ BAD: Hardcoded content</span>
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">AboutPage</span>(<span class="hljs-params"></span>) {
+  <span class="hljs-keyword">return</span> <span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">h1</span>&gt;</span>Hi, I&#x27;m Arun<span class="hljs-tag">&lt;/<span class="hljs-name">h1</span>&gt;</span></span>;
+}
+
+<span class="hljs-comment">// ✅ GOOD: Data-driven</span>
+<span class="hljs-keyword">import</span> { portfolioData } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;@/data/portfolio-data&#x27;</span>;
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">AboutPage</span>(<span class="hljs-params"></span>) {
+  <span class="hljs-keyword">return</span> <span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">h1</span>&gt;</span>Hi, I&#x27;m {portfolioData.personal.name}<span class="hljs-tag">&lt;/<span class="hljs-name">h1</span>&gt;</span></span>;
+}
+</code></pre>
+<h3 id="2-separation-of-concerns">2. Separation of Concerns</h3>
+<pre><code>src/
+├── data/           ← WHAT (content, configuration)
+├── components/     ← HOW (rendering, interaction)
+├── contexts/       ← STATE (global state management)
+├── hooks/          ← BEHAVIOR (reusable logic)
+└── lib/            ← UTILITIES (helpers, external services)
+</code></pre>
+<h3 id="3-the-detective-metaphor">3. The Detective Metaphor</h3>
+<p>The entire portfolio is framed as a detective investigation:</p>
+<table>
+<thead>
+<tr>
+<th>Portfolio Section</th>
+<th>Detective Theme</th>
+<th>Game Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Home</td>
+<td>Detective HQ</td>
+<td>Arcade</td>
+</tr>
+<tr>
+<td>About</td>
+<td>Case File: Origin</td>
+<td>Runner</td>
+</tr>
+<tr>
+<td>Work</td>
+<td>Evidence Locker</td>
+<td>Shooter</td>
+</tr>
+<tr>
+<td>Case Studies</td>
+<td>Deep Investigation</td>
+<td>Puzzle</td>
+</tr>
+<tr>
+<td>Progress</td>
+<td>Detective Skills</td>
+<td>Builder</td>
+</tr>
+<tr>
+<td>Arcade</td>
+<td>Training Ground</td>
+<td>Explorer</td>
+</tr>
+<tr>
+<td>Contact</td>
+<td>Final Transmission</td>
+<td>Collector</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="-project-structure">📁 Project Structure</h2>
+<pre><code>kiruk-in/
+├── src/
+│   ├── app/                    # Next.js App Router
+│   │   ├── layout.tsx          # Root layout with providers
+│   │   ├── page.tsx            # Home page
+│   │   ├── globals.css         # Global styles &amp; CSS variables
+│   │   ├── about/              # About route
+│   │   ├── work/               # Work route
+│   │   ├── case-studies/       # Case studies route
+│   │   ├── contact/            # Contact route
+│   │   ├── arcade/             # Arcade route
+│   │   └── api/                # API routes
+│   │
+│   ├── components/             # Shared components
+│   │   ├── layout/             # Layout components
+│   │   │   ├── LayoutClientShell.tsx  # Main client wrapper
+│   │   │   ├── SimpleGameNav.tsx      # Game navigation
+│   │   │   ├── newspaper-layout.tsx   # Home page layout
+│   │   │   └── GameMenuOverlay.tsx    # Full-screen menu
+│   │   ├── ui/                 # UI primitives
+│   │   │   ├── arcade/         # 🎮 Grid arcade system
+│   │   │   ├── HelpBot.tsx     # AI assistant
+│   │   │   ├── TimeMachine.tsx # Era switcher
+│   │   │   └── PixelIcon.tsx   # Icon component
+│   │   └── themed/             # Theme-aware components
+│   │
+│   ├── contexts/               # React Contexts
+│   │   ├── ThemeContext.tsx    # Theme/era management
+│   │   ├── GameModeContext.tsx # Game state &amp; progress
+│   │   └── DesignEraContext.tsx
+│   │
+│   ├── data/                   # 📊 DATA LAYER (Key!)
+│   │   ├── portfolio-data.ts   # Personal/project data
+│   │   ├── design-systems.ts   # Theme tokens
+│   │   ├── game-navigation-data.ts  # Game/level definitions
+│   │   ├── help-bot-data.ts    # FAQ &amp; help content
+│   │   └── page-info.ts        # Page metadata
+│   │
+│   ├── hooks/                  # Custom hooks
+│   │   ├── useMissionTracker.ts
+│   │   ├── useGridAlignment.ts
+│   │   └── useResponsiveGrid.ts
+│   │
+│   ├── lib/                    # Utilities &amp; services
+│   │   ├── utils.ts            # Grid utilities
+│   │   ├── supabase.ts         # Database
+│   │   └── arcjet.ts           # Security
+│   │
+│   ├── modules/                # Feature modules
+│   │   ├── portfolio/
+│   │   ├── work/
+│   │   └── vlogs/
+│   │
+│   └── types/                  # TypeScript types
+│       └── index.ts
+│
+├── public/                     # Static assets
+│   ├── icons/                  # 448 pixel icons
+│   └── images/
+│
+└── docs/                       # Documentation (you are here!)
+</code></pre>
+<hr>
+<h2 id="-data-driven-design-system">🎨 Data-Driven Design System</h2>
+<h3 id="overview">Overview</h3>
+<p>The design system has 3 style modes with 20+ era-specific variations:</p>
+<pre><code>┌─────────────────────────────────────────────────────────────────────┐
+│                    DESIGN SYSTEM ARCHITECTURE                        │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│   ┌────────────────────────────────────────────────────────────┐    │
+│   │                    ThemeConfig (Era)                        │    │
+│   │  id, name, colors, fonts, style: 'sketch'|'minimal'|'absurd'│    │
+│   └────────────────────────────────────────────────────────────┘    │
+│                              │                                       │
+│                              ▼                                       │
+│   ┌────────────────────────────────────────────────────────────┐    │
+│   │                  DesignSystemTokens                         │    │
+│   │  ┌──────────┐  ┌──────────┐  ┌──────────┐                  │    │
+│   │  │ Surface  │  │  Cards   │  │Components│                  │    │
+│   │  │ Tokens   │  │  Tokens  │  │  Tokens  │                  │    │
+│   │  └──────────┘  └──────────┘  └──────────┘                  │    │
+│   └────────────────────────────────────────────────────────────┘    │
+│                              │                                       │
+│                              ▼                                       │
+│   ┌────────────────────────────────────────────────────────────┐    │
+│   │                    CSS Variables                            │    │
+│   │  --bg-main, --text-main, --accent-color, etc.              │    │
+│   └────────────────────────────────────────────────────────────┘    │
+│                                                                      │
+└─────────────────────────────────────────────────────────────────────┘
+</code></pre>
+<h3 id="key-files">Key Files</h3>
+<h4 id="1-srcdataportfolio-datats">1. <code>src/data/portfolio-data.ts</code></h4>
+<p>Contains all personal/portfolio data AND theme configurations:</p>
+<pre><code class="language-typescript"><span class="hljs-comment">// Theme Configuration Interface</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">ThemeConfig</span> {
+  <span class="hljs-attr">id</span>: <span class="hljs-built_in">string</span>;           <span class="hljs-comment">// e.g., &#x27;2025&#x27;, &#x27;1970&#x27;</span>
+  <span class="hljs-attr">name</span>: <span class="hljs-built_in">string</span>;         <span class="hljs-comment">// Display name</span>
+  <span class="hljs-attr">era</span>: <span class="hljs-built_in">string</span>;          <span class="hljs-comment">// Era description</span>
+  <span class="hljs-attr">description</span>: <span class="hljs-built_in">string</span>;  <span class="hljs-comment">// Era philosophy</span>
+  <span class="hljs-attr">lesson</span>: <span class="hljs-built_in">string</span>;       <span class="hljs-comment">// Design lesson</span>
+  <span class="hljs-attr">heritage</span>: <span class="hljs-built_in">string</span>;     <span class="hljs-comment">// Legacy impact</span>
+  <span class="hljs-attr">keyElements</span>: <span class="hljs-built_in">string</span>[];
+  <span class="hljs-attr">preview</span>: <span class="hljs-built_in">string</span>;      <span class="hljs-comment">// Preview image path</span>
+  <span class="hljs-attr">colors</span>: {
+    <span class="hljs-attr">primary</span>: <span class="hljs-built_in">string</span>;
+    <span class="hljs-attr">secondary</span>: <span class="hljs-built_in">string</span>;
+    <span class="hljs-attr">accent</span>: <span class="hljs-built_in">string</span>;
+    <span class="hljs-attr">background</span>: <span class="hljs-built_in">string</span>;
+    <span class="hljs-attr">text</span>: <span class="hljs-built_in">string</span>;
+  };
+  <span class="hljs-attr">fonts</span>: {
+    <span class="hljs-attr">primary</span>: <span class="hljs-built_in">string</span>;
+    <span class="hljs-attr">secondary</span>: <span class="hljs-built_in">string</span>;
+    <span class="hljs-attr">accent</span>: <span class="hljs-built_in">string</span>;
+  };
+  <span class="hljs-attr">style</span>: <span class="hljs-string">&#x27;sketch&#x27;</span> | <span class="hljs-string">&#x27;minimal&#x27;</span> | <span class="hljs-string">&#x27;absurd&#x27;</span>;  <span class="hljs-comment">// Base style</span>
+}
+
+<span class="hljs-comment">// 20+ themes available</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> <span class="hljs-attr">AVAILABLE_THEMES</span>: <span class="hljs-title class_">ThemeConfig</span>[] = [
+  { <span class="hljs-attr">id</span>: <span class="hljs-string">&#x27;1970&#x27;</span>, <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;Terminal &amp; ASCII&#x27;</span>, <span class="hljs-attr">style</span>: <span class="hljs-string">&#x27;minimal&#x27;</span>, ... },
+  { <span class="hljs-attr">id</span>: <span class="hljs-string">&#x27;1995&#x27;</span>, <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;GeoCities Wild Web&#x27;</span>, <span class="hljs-attr">style</span>: <span class="hljs-string">&#x27;absurd&#x27;</span>, ... },
+  { <span class="hljs-attr">id</span>: <span class="hljs-string">&#x27;2025&#x27;</span>, <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;Spatial Web&#x27;</span>, <span class="hljs-attr">style</span>: <span class="hljs-string">&#x27;sketch&#x27;</span>, ... },
+  <span class="hljs-comment">// ... 17 more themes</span>
+];
+</code></pre>
+<h4 id="2-srcdatadesign-systemsts">2. <code>src/data/design-systems.ts</code></h4>
+<p>Maps themes to design tokens:</p>
+<pre><code class="language-typescript"><span class="hljs-comment">// Token categories</span>
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">DesignSystemTokens</span> {
+  <span class="hljs-attr">style</span>: <span class="hljs-string">&#x27;sketch&#x27;</span> | <span class="hljs-string">&#x27;minimal&#x27;</span> | <span class="hljs-string">&#x27;absurd&#x27;</span>;
+  <span class="hljs-attr">vars</span>: {
+    <span class="hljs-attr">surface</span>: <span class="hljs-title class_">SurfaceTokens</span>;  <span class="hljs-comment">// Background patterns</span>
+    <span class="hljs-attr">cards</span>: <span class="hljs-title class_">CardVariableTokens</span>;  <span class="hljs-comment">// Card styles</span>
+  };
+  <span class="hljs-attr">components</span>: {
+    <span class="hljs-attr">cards</span>: <span class="hljs-title class_">CardComponentTokens</span>;
+    <span class="hljs-attr">stickyNotes</span>: <span class="hljs-title class_">StickyNoteComponentTokens</span>;
+    <span class="hljs-attr">buttons</span>: <span class="hljs-title class_">ButtonComponentTokens</span>;
+    <span class="hljs-attr">toolbar</span>: <span class="hljs-title class_">ToolbarComponentTokens</span>;
+  };
+}
+
+<span class="hljs-comment">// Three base systems</span>
+<span class="hljs-keyword">const</span> <span class="hljs-attr">sketchBase</span>: <span class="hljs-title class_">DesignSystemTokens</span> = { ... };   <span class="hljs-comment">// Hand-drawn look</span>
+<span class="hljs-keyword">const</span> <span class="hljs-attr">minimalBase</span>: <span class="hljs-title class_">DesignSystemTokens</span> = { ... };  <span class="hljs-comment">// Clean, modern</span>
+<span class="hljs-keyword">const</span> <span class="hljs-attr">absurdBase</span>: <span class="hljs-title class_">DesignSystemTokens</span> = { ... };   <span class="hljs-comment">// Bold, chaotic</span>
+
+<span class="hljs-comment">// Era-specific overrides</span>
+<span class="hljs-keyword">const</span> <span class="hljs-variable constant_">ERA_OVERRIDES</span> = {
+  <span class="hljs-string">&#x27;1970&#x27;</span>: { <span class="hljs-comment">/* terminal-specific overrides */</span> },
+  <span class="hljs-string">&#x27;1995&#x27;</span>: { <span class="hljs-comment">/* geocities-specific overrides */</span> },
+  <span class="hljs-string">&#x27;2025&#x27;</span>: { <span class="hljs-comment">/* spatial-specific overrides */</span> },
+};
+
+<span class="hljs-comment">// Get tokens for any theme</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> getDesignSystemForTheme = (<span class="hljs-attr">theme</span>: <span class="hljs-title class_">ThemeConfig</span>): <span class="hljs-title class_">DesignSystemTokens</span>
+</code></pre>
+<h4 id="3-srccontextsthemecontexttsx">3. <code>src/contexts/ThemeContext.tsx</code></h4>
+<p>Manages theme state and applies CSS variables:</p>
+<pre><code class="language-typescript"><span class="hljs-keyword">interface</span> <span class="hljs-title class_">ThemeContextType</span> {
+  <span class="hljs-attr">currentTheme</span>: <span class="hljs-title class_">ThemeConfig</span>;
+  <span class="hljs-attr">setTheme</span>: <span class="hljs-function">(<span class="hljs-params">themeId: <span class="hljs-built_in">string</span></span>) =&gt;</span> <span class="hljs-built_in">void</span>;
+  <span class="hljs-attr">availableThemes</span>: <span class="hljs-title class_">ThemeConfig</span>[];
+  <span class="hljs-attr">designSystem</span>: <span class="hljs-title class_">DesignSystemTokens</span>;
+  <span class="hljs-attr">showThemeSelector</span>: <span class="hljs-built_in">boolean</span>;
+}
+
+<span class="hljs-comment">// Usage in components:</span>
+<span class="hljs-keyword">const</span> { currentTheme, setTheme, designSystem } = <span class="hljs-title function_">useTheme</span>();
+</code></pre>
+<h3 id="how-theming-works">How Theming Works</h3>
+<ol>
+<li><strong>User selects an era</strong> (via TimeMachine or theme selector)</li>
+<li><strong>ThemeContext updates</strong> <code>currentTheme</code></li>
+<li><strong>CSS variables get set</strong> on <code>document.documentElement</code></li>
+<li><strong>Design tokens recalculate</strong> via <code>getDesignSystemForTheme()</code></li>
+<li><strong>Components re-render</strong> with new tokens</li>
+</ol>
+<pre><code class="language-tsx"><span class="hljs-comment">// In ThemeContext.tsx - how CSS variables are applied</span>
+<span class="hljs-title function_">useEffect</span>(<span class="hljs-function">() =&gt;</span> {
+  <span class="hljs-keyword">const</span> root = <span class="hljs-variable language_">document</span>.<span class="hljs-property">documentElement</span>;
+  root.<span class="hljs-property">style</span>.<span class="hljs-title function_">setProperty</span>(<span class="hljs-string">&#x27;--theme-primary&#x27;</span>, theme.<span class="hljs-property">colors</span>.<span class="hljs-property">primary</span>);
+  root.<span class="hljs-property">style</span>.<span class="hljs-title function_">setProperty</span>(<span class="hljs-string">&#x27;--bg-main&#x27;</span>, theme.<span class="hljs-property">colors</span>.<span class="hljs-property">background</span>);
+  <span class="hljs-comment">// ... etc</span>
+  <span class="hljs-variable language_">document</span>.<span class="hljs-property">body</span>.<span class="hljs-title function_">setAttribute</span>(<span class="hljs-string">&#x27;data-era&#x27;</span>, theme.<span class="hljs-property">id</span>);
+  <span class="hljs-variable language_">document</span>.<span class="hljs-property">body</span>.<span class="hljs-title function_">setAttribute</span>(<span class="hljs-string">&#x27;data-style&#x27;</span>, theme.<span class="hljs-property">style</span>);
+}, [currentTheme]);
+</code></pre>
+<hr>
+<h2 id="-the-game-system">🎮 The Game System</h2>
+<h3 id="architecture">Architecture</h3>
+<pre><code>┌─────────────────────────────────────────────────────────────────────┐
+│                       GAME SYSTEM FLOW                               │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│   ┌──────────────┐        ┌──────────────┐        ┌──────────────┐  │
+│   │ PAGE_GAMES   │        │ GameMode     │        │ Mission      │  │
+│   │ (data)       │◄──────►│ Context      │◄──────►│ Tracker      │  │
+│   └──────────────┘        └──────────────┘        └──────────────┘  │
+│          │                       │                        │          │
+│          │                       │                        │          │
+│          ▼                       ▼                        ▼          │
+│   ┌──────────────────────────────────────────────────────────────┐  │
+│   │                         UI LAYER                              │  │
+│   │  ┌────────────┐  ┌────────────┐  ┌────────────┐              │  │
+│   │  │ SimpleGame │  │ GameMenu   │  │ Progress   │              │  │
+│   │  │ Nav        │  │ Overlay    │  │ Indicator  │              │  │
+│   │  └────────────┘  └────────────┘  └────────────┘              │  │
+│   └──────────────────────────────────────────────────────────────┘  │
+│                                                                      │
+└─────────────────────────────────────────────────────────────────────┘
+</code></pre>
+<h3 id="data-structure-srcdatagame-navigation-datats">Data Structure (<code>src/data/game-navigation-data.ts</code>)</h3>
+<pre><code class="language-typescript"><span class="hljs-comment">// Game Modes</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">type</span> <span class="hljs-title class_">GameMode</span> = <span class="hljs-string">&#x27;god&#x27;</span> | <span class="hljs-string">&#x27;devil&#x27;</span> | <span class="hljs-string">&#x27;normal&#x27;</span>;
+
+<span class="hljs-comment">// Each page is a &quot;game&quot;</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">PageGame</span> {
+  <span class="hljs-attr">id</span>: <span class="hljs-built_in">string</span>;           <span class="hljs-comment">// &#x27;home&#x27;, &#x27;about&#x27;, &#x27;work&#x27;, etc.</span>
+  <span class="hljs-attr">path</span>: <span class="hljs-built_in">string</span>;         <span class="hljs-comment">// Route path</span>
+  <span class="hljs-attr">title</span>: <span class="hljs-built_in">string</span>;        <span class="hljs-comment">// Detective-themed title</span>
+  <span class="hljs-attr">subtitle</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">description</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">icon</span>: <span class="hljs-built_in">string</span>;         <span class="hljs-comment">// Pixel icon name</span>
+  <span class="hljs-attr">gameType</span>: <span class="hljs-string">&#x27;arcade&#x27;</span> | <span class="hljs-string">&#x27;runner&#x27;</span> | <span class="hljs-string">&#x27;shooter&#x27;</span> | <span class="hljs-string">&#x27;puzzle&#x27;</span> | <span class="hljs-string">&#x27;explorer&#x27;</span> | <span class="hljs-string">&#x27;builder&#x27;</span> | <span class="hljs-string">&#x27;collector&#x27;</span>;
+  <span class="hljs-attr">primaryColor</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">levels</span>: <span class="hljs-title class_">GameLevel</span>[];  <span class="hljs-comment">// Missions within this page</span>
+  requiredGameId?: <span class="hljs-built_in">string</span>;  <span class="hljs-comment">// Prerequisite</span>
+  requiredXP?: <span class="hljs-built_in">number</span>;
+  <span class="hljs-attr">order</span>: <span class="hljs-built_in">number</span>;
+  <span class="hljs-attr">shortcut</span>: <span class="hljs-built_in">string</span>;     <span class="hljs-comment">// Keyboard shortcut</span>
+}
+
+<span class="hljs-comment">// Each page has multiple levels/missions</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">GameLevel</span> {
+  <span class="hljs-attr">id</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">name</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">description</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">xpReward</span>: <span class="hljs-built_in">number</span>;
+  <span class="hljs-attr">completionType</span>: <span class="hljs-string">&#x27;view&#x27;</span> | <span class="hljs-string">&#x27;scroll&#x27;</span> | <span class="hljs-string">&#x27;interact&#x27;</span> | <span class="hljs-string">&#x27;time&#x27;</span> | <span class="hljs-string">&#x27;score&#x27;</span>;
+  completionTarget?: <span class="hljs-built_in">number</span>;
+}
+
+<span class="hljs-comment">// Example: Home page game</span>
+<span class="hljs-keyword">const</span> <span class="hljs-attr">homeGame</span>: <span class="hljs-title class_">PageGame</span> = {
+  <span class="hljs-attr">id</span>: <span class="hljs-string">&#x27;home&#x27;</span>,
+  <span class="hljs-attr">path</span>: <span class="hljs-string">&#x27;/&#x27;</span>,
+  <span class="hljs-attr">title</span>: <span class="hljs-string">&#x27;DETECTIVE HQ&#x27;</span>,
+  <span class="hljs-attr">levels</span>: [
+    { <span class="hljs-attr">id</span>: <span class="hljs-string">&#x27;home-intro&#x27;</span>, <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;Open Case&#x27;</span>, <span class="hljs-attr">completionType</span>: <span class="hljs-string">&#x27;view&#x27;</span>, <span class="hljs-attr">xpReward</span>: <span class="hljs-number">10</span> },
+    { <span class="hljs-attr">id</span>: <span class="hljs-string">&#x27;home-snake&#x27;</span>, <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;Follow Trail&#x27;</span>, <span class="hljs-attr">completionType</span>: <span class="hljs-string">&#x27;score&#x27;</span>, <span class="hljs-attr">target</span>: <span class="hljs-number">5</span>, <span class="hljs-attr">xpReward</span>: <span class="hljs-number">25</span> },
+    <span class="hljs-comment">// ...more levels</span>
+  ]
+};
+</code></pre>
+<h3 id="progress-tracking-srccontextsgamemodecontexttsx">Progress Tracking (<code>src/contexts/GameModeContext.tsx</code>)</h3>
+<pre><code class="language-typescript"><span class="hljs-keyword">interface</span> <span class="hljs-title class_">GameProgress</span> {
+  <span class="hljs-attr">completedLevels</span>: <span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">string</span>[]&gt;;  <span class="hljs-comment">// gameId -&gt; levelIds[]</span>
+  <span class="hljs-attr">currentGameId</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">totalXP</span>: <span class="hljs-built_in">number</span>;
+  <span class="hljs-attr">lastPlayedAt</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">gamesUnlocked</span>: <span class="hljs-built_in">string</span>[];
+  <span class="hljs-attr">achievements</span>: <span class="hljs-built_in">string</span>[];
+}
+
+<span class="hljs-comment">// Context provides:</span>
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">GameModeContextType</span> {
+  <span class="hljs-attr">mode</span>: <span class="hljs-title class_">GameMode</span>;
+  <span class="hljs-attr">progress</span>: <span class="hljs-title class_">GameProgress</span>;
+  <span class="hljs-attr">completeLevel</span>: <span class="hljs-function">(<span class="hljs-params">gameId: <span class="hljs-built_in">string</span>, levelId: <span class="hljs-built_in">string</span></span>) =&gt;</span> <span class="hljs-built_in">void</span>;
+  <span class="hljs-attr">isGameUnlocked</span>: <span class="hljs-function">(<span class="hljs-params">gameId: <span class="hljs-built_in">string</span></span>) =&gt;</span> <span class="hljs-built_in">boolean</span>;
+  <span class="hljs-attr">isLevelUnlocked</span>: <span class="hljs-function">(<span class="hljs-params">gameId: <span class="hljs-built_in">string</span>, levelId: <span class="hljs-built_in">string</span></span>) =&gt;</span> <span class="hljs-built_in">boolean</span>;
+  <span class="hljs-attr">getGameProgress</span>: <span class="hljs-function">(<span class="hljs-params">gameId: <span class="hljs-built_in">string</span></span>) =&gt;</span> <span class="hljs-built_in">number</span>;  <span class="hljs-comment">// percentage</span>
+  <span class="hljs-attr">totalPossibleXP</span>: <span class="hljs-built_in">number</span>;
+  <span class="hljs-attr">currentXPPercentage</span>: <span class="hljs-built_in">number</span>;
+}
+</code></pre>
+<h3 id="mission-auto-tracking-srchooksusemissiontrackerts">Mission Auto-Tracking (<code>src/hooks/useMissionTracker.ts</code>)</h3>
+<p>Automatically tracks completion based on user actions:</p>
+<pre><code class="language-typescript"><span class="hljs-keyword">export</span> <span class="hljs-keyword">function</span> <span class="hljs-title function_">useMissionTracker</span>(<span class="hljs-params"></span>) {
+  <span class="hljs-comment">// Tracks:</span>
+  <span class="hljs-comment">// - Page views (completionType: &#x27;view&#x27;)</span>
+  <span class="hljs-comment">// - Scroll percentage (completionType: &#x27;scroll&#x27;)</span>
+  <span class="hljs-comment">// - Time spent (completionType: &#x27;time&#x27;)</span>
+  <span class="hljs-comment">// - Interactions (completionType: &#x27;interact&#x27;)</span>
+  <span class="hljs-comment">// - Game scores (completionType: &#x27;score&#x27;)</span>
+
+  <span class="hljs-keyword">return</span> {
+    trackInteraction,  <span class="hljs-comment">// Call from components</span>
+    trackScore,        <span class="hljs-comment">// Call when scores change</span>
+    stats,             <span class="hljs-comment">// Current stats</span>
+  };
+}
+</code></pre>
+<hr>
+<h2 id="-theme-system-time-travel">⏰ Theme System (Time Travel)</h2>
+<h3 id="how-it-works">How It Works</h3>
+<pre><code>┌─────────────────────────────────────────────────────────────────────┐
+│                      TIME MACHINE FLOW                               │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  1. User clicks era in TimeMachine                                   │
+│     ┌──────────────────────────┐                                    │
+│     │  1970 ● 1981 ● ... 2025  │                                    │
+│     └──────────────────────────┘                                    │
+│                   │                                                  │
+│                   ▼                                                  │
+│  2. setTheme(eraId) called                                          │
+│     ┌──────────────────────────┐                                    │
+│     │  ThemeContext.setTheme() │                                    │
+│     └──────────────────────────┘                                    │
+│                   │                                                  │
+│                   ▼                                                  │
+│  3. CSS Variables updated                                            │
+│     ┌──────────────────────────────────────────────────────────┐    │
+│     │  --bg-main: #000000                                       │    │
+│     │  --text-main: #00ff00                                     │    │
+│     │  --accent-color: #00ff00                                  │    │
+│     │  document.body.dataset.era = '1970'                       │    │
+│     │  document.body.dataset.style = 'minimal'                  │    │
+│     └──────────────────────────────────────────────────────────┘    │
+│                   │                                                  │
+│                   ▼                                                  │
+│  4. Components react to CSS variables                                │
+│     ┌──────────────────────────────────────────────────────────┐    │
+│     │  [All components re-render with new colors/fonts]         │    │
+│     └──────────────────────────────────────────────────────────┘    │
+│                                                                      │
+└─────────────────────────────────────────────────────────────────────┘
+</code></pre>
+<h3 id="css-variable-system">CSS Variable System</h3>
+<p>In <code>globals.css</code>, styles respond to <code>data-era</code> attribute:</p>
+<pre><code class="language-css"><span class="hljs-comment">/* Default (2025 Spatial) */</span>
+<span class="hljs-selector-pseudo">:root</span> {
+  <span class="hljs-attr">--bg-main</span>: <span class="hljs-number">#fdfbf7</span>;
+  <span class="hljs-attr">--text-main</span>: <span class="hljs-number">#1e293b</span>;
+  <span class="hljs-attr">--accent-color</span>: <span class="hljs-number">#0369a1</span>;
+}
+
+<span class="hljs-comment">/* 1970 Terminal override */</span>
+<span class="hljs-selector-tag">body</span><span class="hljs-selector-attr">[data-era=<span class="hljs-string">&quot;1970&quot;</span>]</span> {
+  <span class="hljs-attr">--bg-main</span>: <span class="hljs-number">#000000</span>;
+  <span class="hljs-attr">--text-main</span>: <span class="hljs-number">#00ff00</span>;
+  <span class="hljs-attr">--accent-color</span>: <span class="hljs-number">#00ff00</span>;
+  <span class="hljs-attr">--font-main</span>: <span class="hljs-string">&#x27;Courier New&#x27;</span>, monospace;
+}
+
+<span class="hljs-comment">/* 1995 GeoCities override */</span>
+<span class="hljs-selector-tag">body</span><span class="hljs-selector-attr">[data-era=<span class="hljs-string">&quot;1995&quot;</span>]</span> {
+  <span class="hljs-attr">--bg-main</span>: <span class="hljs-number">#0b0025</span>;
+  <span class="hljs-attr">--text-main</span>: <span class="hljs-number">#fdfd96</span>;
+  <span class="hljs-attr">--accent-color</span>: <span class="hljs-number">#ff00ff</span>;
+}
+</code></pre>
+<hr>
+<h2 id="-component-architecture">🧩 Component Architecture</h2>
+<h3 id="layout-hierarchy">Layout Hierarchy</h3>
+<pre><code>┌─────────────────────────────────────────────────────────────────────┐
+│                         RootLayout                                   │
+│  (layout.tsx - Server Component)                                     │
+│  ├── ThemeProvider                                                   │
+│  │   ├── DesignEraProvider                                          │
+│  │   │   ├── GameModeProvider                                       │
+│  │   │   │   ├── ThemeLayout                                        │
+│  │   │   │   │   ├── CursorProvider                                 │
+│  │   │   │   │   │   ├── CustomCursor                               │
+│  │   │   │   │   │   ├── AnalyticsTracker                           │
+│  │   │   │   │   │   ├── LayoutClientShell  ◄─── Main Client Shell  │
+│  │   │   │   │   │   │   ├── SimpleGameNav                          │
+│  │   │   │   │   │   │   ├── DetectiveStoryWrapper                  │
+│  │   │   │   │   │   │   │   └── {children}  ◄─── Page Content      │
+│  │   │   │   │   │   │   ├── MissionCompletionNotification          │
+│  │   │   │   │   │   │   ├── HelpBot                                │
+│  │   │   │   │   │   │   └── TimeMachine (when not home)            │
+└─────────────────────────────────────────────────────────────────────┘
+</code></pre>
+<h3 id="key-component-files">Key Component Files</h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>File</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>LayoutClientShell</code></td>
+<td><code>components/layout/LayoutClientShell.tsx</code></td>
+<td>Main client wrapper, game state coordination</td>
+</tr>
+<tr>
+<td><code>SimpleGameNav</code></td>
+<td><code>components/layout/SimpleGameNav.tsx</code></td>
+<td>Top navigation with XP bar</td>
+</tr>
+<tr>
+<td><code>GameMenuOverlay</code></td>
+<td><code>components/layout/GameMenuOverlay.tsx</code></td>
+<td>Full-screen game menu</td>
+</tr>
+<tr>
+<td><code>TimeMachine</code></td>
+<td><code>components/ui/TimeMachine.tsx</code></td>
+<td>Era/theme selector</td>
+</tr>
+<tr>
+<td><code>HelpBot</code></td>
+<td><code>components/ui/HelpBot.tsx</code></td>
+<td>AI assistant with FAQ</td>
+</tr>
+<tr>
+<td><code>GridArcade</code></td>
+<td><code>components/ui/arcade/GridArcade.tsx</code></td>
+<td>Mini-games container</td>
+</tr>
+<tr>
+<td><code>NewspaperLayout</code></td>
+<td><code>components/layout/newspaper-layout.tsx</code></td>
+<td>Home page layout</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="-nextjs-fundamentals">📚 Next.js Fundamentals</h2>
+<h3 id="app-router-basics">App Router Basics</h3>
+<pre><code>src/app/
+├── layout.tsx       # Root layout (server component)
+├── page.tsx         # Home page (/)
+├── globals.css      # Global styles
+├── about/
+│   └── page.tsx     # About page (/about)
+├── work/
+│   ├── page.tsx     # Work list (/work)
+│   └── [slug]/
+│       └── page.tsx # Dynamic work detail (/work/project-name)
+└── api/
+    └── contact/
+        └── route.ts # API route (/api/contact)
+</code></pre>
+<h3 id="server-vs-client-components">Server vs Client Components</h3>
+<pre><code class="language-tsx"><span class="hljs-comment">// SERVER COMPONENT (default) - Runs on server only</span>
+<span class="hljs-comment">// Can&#x27;t use hooks, event handlers, or browser APIs</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-keyword">function</span> <span class="hljs-title function_">ServerPage</span>(<span class="hljs-params"></span>) {
+  <span class="hljs-keyword">return</span> <span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">div</span>&gt;</span>Server rendered<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></span>;
+}
+
+<span class="hljs-comment">// CLIENT COMPONENT - Runs on client</span>
+<span class="hljs-comment">// Add &#x27;use client&#x27; directive at top</span>
+<span class="hljs-string">&#x27;use client&#x27;</span>;
+<span class="hljs-keyword">import</span> { useState } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;react&#x27;</span>;
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-keyword">function</span> <span class="hljs-title function_">ClientPage</span>(<span class="hljs-params"></span>) {
+  <span class="hljs-keyword">const</span> [count, setCount] = <span class="hljs-title function_">useState</span>(<span class="hljs-number">0</span>);
+  <span class="hljs-keyword">return</span> <span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">button</span> <span class="hljs-attr">onClick</span>=<span class="hljs-string">{()</span> =&gt;</span> setCount(c =&gt; c + 1)}&gt;{count}<span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span></span>;
+}
+</code></pre>
+<h3 id="dynamic-imports">Dynamic Imports</h3>
+<pre><code class="language-tsx"><span class="hljs-comment">// Lazy load heavy client components</span>
+<span class="hljs-keyword">import</span> dynamic <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;next/dynamic&#x27;</span>;
+
+<span class="hljs-keyword">const</span> <span class="hljs-title class_">NewspaperLayout</span> = <span class="hljs-title function_">dynamic</span>(
+  <span class="hljs-function">() =&gt;</span> <span class="hljs-title function_">import</span>(<span class="hljs-string">&#x27;@/components/layout/newspaper-layout&#x27;</span>),
+  {
+    <span class="hljs-attr">loading</span>: <span class="hljs-function">() =&gt;</span> <span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">div</span>&gt;</span>Loading...<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></span>,
+    <span class="hljs-attr">ssr</span>: <span class="hljs-literal">true</span>, <span class="hljs-comment">// Keep SSR for SEO</span>
+  }
+);
+</code></pre>
+<h3 id="layouts-and-routing">Layouts and Routing</h3>
+<pre><code class="language-tsx"><span class="hljs-comment">// layout.tsx - Wraps all children</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-keyword">function</span> <span class="hljs-title function_">RootLayout</span>(<span class="hljs-params">{ children }</span>) {
+  <span class="hljs-keyword">return</span> (
+    <span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">html</span>&gt;</span>
+      <span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">ThemeProvider</span>&gt;</span>
+          <span class="hljs-tag">&lt;<span class="hljs-name">GameModeProvider</span>&gt;</span>
+            {children}  {/* Page content injected here */}
+          <span class="hljs-tag">&lt;/<span class="hljs-name">GameModeProvider</span>&gt;</span>
+        <span class="hljs-tag">&lt;/<span class="hljs-name">ThemeProvider</span>&gt;</span>
+      <span class="hljs-tag">&lt;/<span class="hljs-name">body</span>&gt;</span>
+    <span class="hljs-tag">&lt;/<span class="hljs-name">html</span>&gt;</span></span>
+  );
+}
+</code></pre>
+<h3 id="api-routes">API Routes</h3>
+<pre><code class="language-typescript"><span class="hljs-comment">// src/app/api/contact/route.ts</span>
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">NextRequest</span>, <span class="hljs-title class_">NextResponse</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;next/server&#x27;</span>;
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">async</span> <span class="hljs-keyword">function</span> <span class="hljs-title function_">POST</span>(<span class="hljs-params">request: NextRequest</span>) {
+  <span class="hljs-keyword">const</span> body = <span class="hljs-keyword">await</span> request.<span class="hljs-title function_">json</span>();
+  <span class="hljs-comment">// Handle form submission</span>
+  <span class="hljs-keyword">return</span> <span class="hljs-title class_">NextResponse</span>.<span class="hljs-title function_">json</span>({ <span class="hljs-attr">success</span>: <span class="hljs-literal">true</span> });
+}
+</code></pre>
+<hr>
+<h2 id="️-how-to-make-changes">🛠️ How to Make Changes</h2>
+<h3 id="changing-portfolio-content">Changing Portfolio Content</h3>
+<p><strong>File:</strong> <code>src/data/portfolio-data.ts</code></p>
+<pre><code class="language-typescript"><span class="hljs-comment">// Modify personal info</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> <span class="hljs-attr">portfolioData</span>: <span class="hljs-title class_">PortfolioData</span> = {
+  <span class="hljs-attr">personal</span>: {
+    <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;KIRUK&#x27;</span>,
+    <span class="hljs-attr">title</span>: <span class="hljs-string">&#x27;Full-Stack Developer &amp; Designer&#x27;</span>,
+    <span class="hljs-comment">// Change these values...</span>
+  },
+  <span class="hljs-attr">skills</span>: [...],
+  <span class="hljs-attr">projects</span>: [...],
+};
+</code></pre>
+<h3 id="adding-a-new-page">Adding a New Page</h3>
+<ol>
+<li><strong>Create route folder:</strong></li>
+</ol>
+<pre><code>src/app/new-page/page.tsx
+</code></pre>
+<ol start="2">
+<li><strong>Add to game data:</strong></li>
+</ol>
+<pre><code class="language-typescript"><span class="hljs-comment">// src/data/game-navigation-data.ts</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> <span class="hljs-attr">PAGE_GAMES</span>: <span class="hljs-title class_">PageGame</span>[] = [
+  <span class="hljs-comment">// ... existing pages</span>
+  {
+    <span class="hljs-attr">id</span>: <span class="hljs-string">&#x27;new-page&#x27;</span>,
+    <span class="hljs-attr">path</span>: <span class="hljs-string">&#x27;/new-page&#x27;</span>,
+    <span class="hljs-attr">title</span>: <span class="hljs-string">&#x27;NEW PAGE&#x27;</span>,
+    <span class="hljs-attr">levels</span>: [...],
+    <span class="hljs-attr">order</span>: <span class="hljs-number">9</span>,  <span class="hljs-comment">// After existing pages</span>
+  }
+];
+</code></pre>
+<ol start="3">
+<li><strong>Add help content:</strong></li>
+</ol>
+<pre><code class="language-typescript"><span class="hljs-comment">// src/data/help-bot-data.ts</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> <span class="hljs-attr">PAGE_HELP_DATA</span>: <span class="hljs-title class_">PageHelp</span>[] = [
+  <span class="hljs-comment">// ... existing</span>
+  {
+    <span class="hljs-attr">path</span>: <span class="hljs-string">&#x27;/new-page&#x27;</span>,
+    <span class="hljs-attr">title</span>: <span class="hljs-string">&#x27;New Page&#x27;</span>,
+    <span class="hljs-attr">instructions</span>: [...],
+  }
+];
+</code></pre>
+<h3 id="adding-a-new-theme">Adding a New Theme</h3>
+<pre><code class="language-typescript"><span class="hljs-comment">// src/data/portfolio-data.ts</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> <span class="hljs-attr">AVAILABLE_THEMES</span>: <span class="hljs-title class_">ThemeConfig</span>[] = [
+  <span class="hljs-comment">// ... existing themes</span>
+  {
+    <span class="hljs-attr">id</span>: <span class="hljs-string">&#x27;future&#x27;</span>,
+    <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;2030: Holographic UI&#x27;</span>,
+    <span class="hljs-attr">era</span>: <span class="hljs-string">&#x27;Future Web&#x27;</span>,
+    <span class="hljs-attr">description</span>: <span class="hljs-string">&#x27;Holographic interfaces and neural design&#x27;</span>,
+    <span class="hljs-attr">colors</span>: {
+      <span class="hljs-attr">primary</span>: <span class="hljs-string">&#x27;#00ffff&#x27;</span>,
+      <span class="hljs-attr">secondary</span>: <span class="hljs-string">&#x27;#ff00ff&#x27;</span>,
+      <span class="hljs-attr">accent</span>: <span class="hljs-string">&#x27;#00ff00&#x27;</span>,
+      <span class="hljs-attr">background</span>: <span class="hljs-string">&#x27;#0a0a0a&#x27;</span>,
+      <span class="hljs-attr">text</span>: <span class="hljs-string">&#x27;#ffffff&#x27;</span>,
+    },
+    <span class="hljs-attr">fonts</span>: {
+      <span class="hljs-attr">primary</span>: <span class="hljs-string">&#x27;Inter&#x27;</span>,
+      <span class="hljs-attr">secondary</span>: <span class="hljs-string">&#x27;Space Grotesk&#x27;</span>,
+      <span class="hljs-attr">accent</span>: <span class="hljs-string">&#x27;Inter&#x27;</span>,
+    },
+    <span class="hljs-attr">style</span>: <span class="hljs-string">&#x27;absurd&#x27;</span>,
+    <span class="hljs-comment">// ...other fields</span>
+  }
+];
+</code></pre>
+<h3 id="modifying-component-styles">Modifying Component Styles</h3>
+<p>Components use the design system tokens:</p>
+<pre><code class="language-tsx"><span class="hljs-keyword">const</span> { designSystem } = <span class="hljs-title function_">useTheme</span>();
+
+<span class="hljs-comment">// Use token classes</span>
+<span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">className</span>=<span class="hljs-string">{designSystem.components.cards.base}</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">span</span> <span class="hljs-attr">className</span>=<span class="hljs-string">{designSystem.components.cards.tag}</span>&gt;</span>Tag<span class="hljs-tag">&lt;/<span class="hljs-name">span</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></span>
+</code></pre>
+<hr>
+<h2 id="-grid-arcade-games">🎮 Grid Arcade Games</h2>
+<h3 id="system-overview">System Overview</h3>
+<pre><code>┌─────────────────────────────────────────────────────────────────────┐
+│                    ARCADE GAME ARCHITECTURE                          │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│   ┌─────────────────────────────────────────────────────────────┐   │
+│   │                     GAME REGISTRY                            │   │
+│   │   snake ──► SnakeGame                                        │   │
+│   │   painter ──► PainterGame                                    │   │
+│   │   collector ──► CollectorGame                                │   │
+│   │   ... (12 total games)                                       │   │
+│   └─────────────────────────────────────────────────────────────┘   │
+│                            │                                         │
+│                            ▼                                         │
+│   ┌─────────────────────────────────────────────────────────────┐   │
+│   │                    BASE GRID GAME                            │   │
+│   │   - Grid initialization                                      │   │
+│   │   - Pointer event handling                                   │   │
+│   │   - Path interpolation                                       │   │
+│   │   - Score management                                         │   │
+│   │   - Render state generation                                  │   │
+│   └─────────────────────────────────────────────────────────────┘   │
+│                            │                                         │
+│                            ▼                                         │
+│   ┌─────────────────────────────────────────────────────────────┐   │
+│   │                    GAME CONFIGS                              │   │
+│   │   - Visual settings (colors)                                 │   │
+│   │   - Gameplay parameters                                      │   │
+│   │   - Score labels                                             │   │
+│   └─────────────────────────────────────────────────────────────┘   │
+│                                                                      │
+└─────────────────────────────────────────────────────────────────────┘
+</code></pre>
+<h3 id="creating-a-new-game">Creating a New Game</h3>
+<p><strong>Step 1: Add Config (<code>game-configs.ts</code>)</strong></p>
+<pre><code class="language-typescript"><span class="hljs-keyword">export</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">MyGameConfig</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">BaseGameConfig</span> {
+  <span class="hljs-attr">myCustomSetting</span>: <span class="hljs-built_in">number</span>;
+}
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> <span class="hljs-attr">MY_GAME_CONFIG</span>: <span class="hljs-title class_">MyGameConfig</span> = {
+  <span class="hljs-attr">id</span>: <span class="hljs-string">&#x27;mygame&#x27;</span>,
+  <span class="hljs-attr">label</span>: <span class="hljs-string">&#x27;My Game&#x27;</span>,
+  <span class="hljs-attr">description</span>: <span class="hljs-string">&#x27;Description here&#x27;</span>,
+  <span class="hljs-attr">primaryColor</span>: <span class="hljs-string">&#x27;var(--text-main)&#x27;</span>,
+  <span class="hljs-attr">secondaryColor</span>: <span class="hljs-string">&#x27;var(--accent-color)&#x27;</span>,
+  <span class="hljs-attr">scoreLabel</span>: <span class="hljs-string">&#x27;Points&#x27;</span>,
+  <span class="hljs-attr">myCustomSetting</span>: <span class="hljs-number">10</span>,
+};
+
+<span class="hljs-comment">// Add to ALL_GAME_CONFIGS</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> <span class="hljs-variable constant_">ALL_GAME_CONFIGS</span> = {
+  <span class="hljs-comment">// ...existing</span>
+  <span class="hljs-attr">mygame</span>: <span class="hljs-variable constant_">MY_GAME_CONFIG</span>,
+};
+</code></pre>
+<p><strong>Step 2: Create Game Class (<code>games/my-game.ts</code>)</strong></p>
+<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { <span class="hljs-title class_">BaseGridGame</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../base-grid-game&#x27;</span>;
+<span class="hljs-keyword">import</span> { <span class="hljs-variable constant_">MY_GAME_CONFIG</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../game-configs&#x27;</span>;
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">GridCell</span>, <span class="hljs-title class_">GridSegment</span>, <span class="hljs-title class_">GridFood</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../types&#x27;</span>;
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">MyGame</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_ inherited__">BaseGridGame</span> {
+  <span class="hljs-keyword">readonly</span> id = <span class="hljs-variable constant_">MY_GAME_CONFIG</span>.<span class="hljs-property">id</span>;
+  <span class="hljs-keyword">readonly</span> label = <span class="hljs-variable constant_">MY_GAME_CONFIG</span>.<span class="hljs-property">label</span>;
+  <span class="hljs-keyword">readonly</span> description = <span class="hljs-variable constant_">MY_GAME_CONFIG</span>.<span class="hljs-property">description</span>;
+
+  <span class="hljs-keyword">private</span> config = <span class="hljs-variable constant_">MY_GAME_CONFIG</span>;
+  <span class="hljs-keyword">private</span> <span class="hljs-attr">gameData</span>: <span class="hljs-title class_">GridCell</span>[] = [];
+
+  <span class="hljs-keyword">protected</span> <span class="hljs-title function_">onReset</span>(): <span class="hljs-built_in">void</span> {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">gameData</span> = [];
+    <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">setScore</span>(<span class="hljs-number">0</span>);
+  }
+
+  <span class="hljs-keyword">protected</span> <span class="hljs-title function_">onUpdate</span>(<span class="hljs-attr">dt</span>: <span class="hljs-built_in">number</span>): <span class="hljs-built_in">void</span> {
+    <span class="hljs-comment">// Game logic every frame</span>
+  }
+
+  <span class="hljs-keyword">protected</span> <span class="hljs-title function_">onCursorMove</span>(<span class="hljs-attr">cell</span>: <span class="hljs-title class_">GridCell</span>): <span class="hljs-built_in">void</span> {
+    <span class="hljs-comment">// Handle cursor movement</span>
+  }
+
+  <span class="hljs-keyword">protected</span> <span class="hljs-title function_">getSegments</span>(): <span class="hljs-title class_">GridSegment</span>[] {
+    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">gameData</span>.<span class="hljs-title function_">map</span>(<span class="hljs-function"><span class="hljs-params">cell</span> =&gt;</span> ({
+      <span class="hljs-attr">x</span>: cell.<span class="hljs-property">x</span>,
+      <span class="hljs-attr">y</span>: cell.<span class="hljs-property">y</span>,
+      <span class="hljs-attr">color</span>: <span class="hljs-variable language_">this</span>.<span class="hljs-property">config</span>.<span class="hljs-property">primaryColor</span>,
+      <span class="hljs-attr">opacity</span>: <span class="hljs-number">1</span>,
+    }));
+  }
+
+  <span class="hljs-keyword">protected</span> <span class="hljs-title function_">getFood</span>(): <span class="hljs-title class_">GridFood</span>[] {
+    <span class="hljs-keyword">return</span> [];
+  }
+}
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">function</span> <span class="hljs-title function_">createMyGame</span>(<span class="hljs-params"></span>) {
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">MyGame</span>();
+}
+</code></pre>
+<p><strong>Step 3: Register Game (<code>game-registry.ts</code>)</strong></p>
+<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { createMyGame } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./games&#x27;</span>;
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> <span class="hljs-variable constant_">GAME_REGISTRY</span> = {
+  <span class="hljs-comment">// ...existing</span>
+  <span class="hljs-attr">mygame</span>: {
+    <span class="hljs-attr">id</span>: <span class="hljs-variable constant_">ALL_GAME_CONFIGS</span>.<span class="hljs-property">mygame</span>.<span class="hljs-property">id</span>,
+    <span class="hljs-attr">label</span>: <span class="hljs-variable constant_">ALL_GAME_CONFIGS</span>.<span class="hljs-property">mygame</span>.<span class="hljs-property">label</span>,
+    <span class="hljs-attr">description</span>: <span class="hljs-variable constant_">ALL_GAME_CONFIGS</span>.<span class="hljs-property">mygame</span>.<span class="hljs-property">description</span>,
+    <span class="hljs-attr">createEngine</span>: createMyGame,
+  },
+};
+</code></pre>
+<p><strong>Step 4: Export from Index (<code>games/index.ts</code>)</strong></p>
+<pre><code class="language-typescript"><span class="hljs-keyword">export</span> { <span class="hljs-title class_">MyGame</span>, createMyGame } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./my-game&#x27;</span>;
+</code></pre>
+<hr>
+<h2 id="-best-practices">✅ Best Practices</h2>
+<h3 id="1-grid-alignment">1. Grid Alignment</h3>
+<p>Always use 20px multiples:</p>
+<pre><code class="language-tsx"><span class="hljs-comment">// ✅ Good</span>
+&lt;div style={{ <span class="hljs-attr">width</span>: <span class="hljs-string">&#x27;200px&#x27;</span>, <span class="hljs-attr">padding</span>: <span class="hljs-string">&#x27;20px&#x27;</span> }}&gt;
+
+<span class="hljs-comment">// Or use CSS classes</span>
+<span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">className</span>=<span class="hljs-string">&quot;grid-w-10 grid-p-1&quot;</span>&gt;</span>
+</span></code></pre>
+<h3 id="2-data-driven-content">2. Data-Driven Content</h3>
+<p>Never hardcode content:</p>
+<pre><code class="language-tsx"><span class="hljs-comment">// ❌ Bad</span>
+&lt;h1&gt;<span class="hljs-title class_">About</span> <span class="hljs-title class_">Me</span>&lt;/h1&gt;
+
+<span class="hljs-comment">// ✅ Good</span>
+<span class="hljs-keyword">import</span> { portfolioData } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;@/data/portfolio-data&#x27;</span>;
+<span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">h1</span>&gt;</span>About {portfolioData.personal.name}<span class="hljs-tag">&lt;/<span class="hljs-name">h1</span>&gt;</span></span>
+</code></pre>
+<h3 id="3-use-design-tokens">3. Use Design Tokens</h3>
+<pre><code class="language-tsx"><span class="hljs-keyword">const</span> { designSystem } = <span class="hljs-title function_">useTheme</span>();
+
+<span class="hljs-comment">// ❌ Bad</span>
+&lt;div className=&quot;bg-white border rounded-lg&quot;&gt;
+
+// ✅ Good
+&lt;div className={designSystem.components.cards.base}&gt;
+</code></pre>
+<h3 id="4-track-missions">4. Track Missions</h3>
+<pre><code class="language-tsx"><span class="hljs-keyword">const</span> { trackInteraction, trackScore } = <span class="hljs-title function_">useMissionTracker</span>();
+
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">handleClick</span>(<span class="hljs-params"></span>) {
+  <span class="hljs-title function_">trackInteraction</span>();  <span class="hljs-comment">// Track user interaction</span>
+}
+
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">handleScore</span>(<span class="hljs-params">newScore: number</span>) {
+  <span class="hljs-title function_">trackScore</span>(newScore);  <span class="hljs-comment">// Track score achievements</span>
+}
+</code></pre>
+<h3 id="5-theme-aware-components">5. Theme-Aware Components</h3>
+<pre><code class="language-tsx"><span class="hljs-keyword">const</span> { currentTheme, designSystem } = <span class="hljs-title function_">useTheme</span>();
+
+<span class="hljs-comment">// Adapt to current era</span>
+<span class="hljs-keyword">const</span> isRetro = [<span class="hljs-string">&#x27;1970&#x27;</span>, <span class="hljs-string">&#x27;1981&#x27;</span>, <span class="hljs-string">&#x27;1991&#x27;</span>].<span class="hljs-title function_">includes</span>(currentTheme.<span class="hljs-property">id</span>);
+</code></pre>
+<hr>
+<h2 id="-quick-reference">🚀 Quick Reference</h2>
+<h3 id="common-commands">Common Commands</h3>
+<pre><code class="language-bash">npm run dev      <span class="hljs-comment"># Start development server</span>
+npm run build    <span class="hljs-comment"># Production build</span>
+npm run lint     <span class="hljs-comment"># Check for errors</span>
+</code></pre>
+<h3 id="key-hooks">Key Hooks</h3>
+<pre><code class="language-tsx"><span class="hljs-title function_">useTheme</span>()          <span class="hljs-comment">// Theme state and functions</span>
+<span class="hljs-title function_">useGameMode</span>()       <span class="hljs-comment">// Game progress and mode</span>
+<span class="hljs-title function_">useMissionTracker</span>() <span class="hljs-comment">// Auto-track user actions</span>
+<span class="hljs-title function_">useDesignSystem</span>()   <span class="hljs-comment">// Get current design tokens</span>
+</code></pre>
+<h3 id="key-data-files">Key Data Files</h3>
+<pre><code>src/data/portfolio-data.ts      # Personal info, themes
+src/data/design-systems.ts      # Design tokens
+src/data/game-navigation-data.ts # Games &amp; levels
+src/data/help-bot-data.ts       # FAQ &amp; help
+</code></pre>
+<h3 id="key-context-providers">Key Context Providers</h3>
+<pre><code class="language-tsx">&lt;<span class="hljs-title class_">ThemeProvider</span>&gt;      <span class="hljs-comment">// Theme switching</span>
+&lt;<span class="hljs-title class_">GameModeProvider</span>&gt;   <span class="hljs-comment">// Game state</span>
+&lt;<span class="hljs-title class_">CursorProvider</span>&gt;     <span class="hljs-comment">// Custom cursor</span>
+</code></pre>
+<hr>
+<h2 id="-need-help">📞 Need Help?</h2>
+<ul>
+<li>Check <code>src/data/help-bot-data.ts</code> for FAQ</li>
+<li>Review component source files for implementation details</li>
+<li>Use the in-app HelpBot for guidance</li>
+</ul>
+<p>Happy coding! 🎮✨</p>
+
+            
+            
+        </body>
+        </html>

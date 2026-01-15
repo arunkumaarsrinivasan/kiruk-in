@@ -7,8 +7,7 @@ interface GameStatsProps {
   currentTarget?: WorkTarget | null;
 }
 
-export function GameStats({ gameState, currentTarget }: GameStatsProps) {
-  const currentWork = currentTarget?.workExperience || gameState.targets[0]?.workExperience;
+export function GameStats({ gameState, currentTarget: _currentTarget }: GameStatsProps) {
   
   return (
     <div

@@ -12,7 +12,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FullPageGridArcade } from './FullPageGridArcade';
 import { getRandomGameId, getDefaultGameId, getGameEntry, getGameIds } from './game-registry';
-import { GRID_SIZE, cn } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { useGameMode } from '@/contexts/GameModeContext';
 import { PixelIcon } from '@/components/ui/PixelIcon';
 

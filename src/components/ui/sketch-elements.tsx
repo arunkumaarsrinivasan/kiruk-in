@@ -94,7 +94,7 @@ export const SketchBorder = ({ className = '' }: { className?: string }) => {
 export const SketchCard = ({ 
   children, 
   className = '',
-  tilt = 'left' 
+  tilt: _tilt = 'left' 
 }: {
   children: React.ReactNode;
   className?: string;

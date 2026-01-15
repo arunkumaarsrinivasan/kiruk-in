@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
     };
 
     // Save to Supabase database
-    const { data, error } = await supabaseAdmin
+    const { data: _data, error } = await supabaseAdmin
       .from('contact_submissions')
       .insert([submissionData])
       .select()

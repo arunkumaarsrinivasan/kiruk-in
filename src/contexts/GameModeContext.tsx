@@ -7,7 +7,6 @@ import {
   PageGame,
   GameLevel,
   PAGE_GAMES,
-  GAME_MODES,
   createInitialProgress,
   getGameById,
   getGameProgress,
@@ -67,7 +66,7 @@ const STORAGE_KEYS = {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export function GameModeProvider({ children }: { children: ReactNode }) {
-  const [mode, setModeState] = useState<GameMode>('normal');
+  const [mode, setModeState] = useState<GameMode>('god');
   const [progress, setProgress] = useState<GameProgress>(createInitialProgress);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
@@ -160,7 +159,7 @@ export function GameModeProvider({ children }: { children: ReactNode }) {
 
       // Check if game is now complete, unlock next
       const gameComplete = newCompleted.length === game.levels.length;
-      let newGamesUnlocked = [...prev.gamesUnlocked];
+      const newGamesUnlocked = [...prev.gamesUnlocked];
       
       if (gameComplete) {
         const nextGame = getNextGame(gameId);

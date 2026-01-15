@@ -240,7 +240,6 @@ export class MemoryGame extends BaseGridGame {
   protected getFood(): GridFood[] {
     const food: GridFood[] = [];
     const cardWidth = 8;
-    const cardHeight = 5;
     
     // Title
     food.push({

@@ -12,9 +12,9 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PixelIcon } from './PixelIcon';
-import { cn, GRID_SIZE } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { useGameMode } from '@/contexts/GameModeContext';
-import { FAQ_DATA, getPageHelp, searchFAQ, type FAQItem } from '@/data/help-bot-data';
+import { FAQ_DATA, getPageHelp, type FAQItem } from '@/data/help-bot-data';
 import { getGameById } from '@/data/game-navigation-data';
 
 interface Message {
@@ -110,6 +110,35 @@ export function HelpBot() {
     };
   }, [isCelebrating, characterEmotion]);
 
+  const celebrateAchievement = useCallback((achievement: { title: string; message: string }) => {
+    setIsCelebrating(true);
+    setCharacterEmotion('celebrate');
+    
+    // Show speech bubble
+    setSpeechBubble({
+      id: `bubble-${Date.now()}`,
+      message: achievement.message,
+      duration: 4000,
+    });
+
+    // Add to chat if open
+    if (isChatOpen) {
+      const celebrationMessage: Message = {
+        id: `celebration-${Date.now()}`,
+        type: 'bot',
+        content: `🎉 **${achievement.title}**\n\n${achievement.message}`,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, celebrationMessage]);
+    }
+
+    // Return to happy after celebration
+    setTimeout(() => {
+      setCharacterEmotion('happy');
+      setIsCelebrating(false);
+    }, 3000);
+  }, [isChatOpen]);
+
   // Detect achievements and celebrate
   useEffect(() => {
     const prevProgress = prevProgressRef.current;
@@ -180,36 +209,7 @@ export function HelpBot() {
 
     prevProgressRef.current = progress;
     prevCompletedGamesRef.current = completedGamesCount;
-  }, [progress, completedGamesCount, currentXPPercentage]);
-
-  const celebrateAchievement = useCallback((achievement: { title: string; message: string }) => {
-    setIsCelebrating(true);
-    setCharacterEmotion('celebrate');
-    
-    // Show speech bubble
-    setSpeechBubble({
-      id: `bubble-${Date.now()}`,
-      message: achievement.message,
-      duration: 4000,
-    });
-
-    // Add to chat if open
-    if (isChatOpen) {
-      const celebrationMessage: Message = {
-        id: `celebration-${Date.now()}`,
-        type: 'bot',
-        content: `🎉 **${achievement.title}**\n\n${achievement.message}`,
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, celebrationMessage]);
-    }
-
-    // Return to happy after celebration
-    setTimeout(() => {
-      setCharacterEmotion('happy');
-      setIsCelebrating(false);
-    }, 3000);
-  }, [isChatOpen]);
+  }, [progress, completedGamesCount, currentXPPercentage, celebrateAchievement]);
 
   const addMessage = useCallback((content: string, type: 'bot' | 'user' = 'user') => {
     const message: Message = {

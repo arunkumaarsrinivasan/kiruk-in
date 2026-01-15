@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { GRID_SIZE, alignToGrid } from '@/lib/utils';
+import { GRID_SIZE } from '@/lib/utils';
 
 interface GridAlignment {
   containerPaddingX: number;
@@ -27,7 +27,6 @@ export function useResponsiveGrid(): GridAlignment {
   useEffect(() => {
     const calculateAlignment = () => {
       const width = window.innerWidth;
-      const height = window.innerHeight;
 
       // Calculate grid-aligned padding based on screen size
       // Mobile: 1 grid unit (20px), Tablet: 2 grid units (40px), Desktop: 2-3 grid units (40-60px)

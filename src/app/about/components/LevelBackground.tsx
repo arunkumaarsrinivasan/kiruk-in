@@ -35,7 +35,7 @@ const GRID_SIZE = 20;
 export function LevelBackground({ 
   year, 
   title, 
-  description, 
+  description: _description, 
   children, 
   className,
   playerX = 0,

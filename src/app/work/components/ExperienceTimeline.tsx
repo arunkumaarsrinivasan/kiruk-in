@@ -12,7 +12,7 @@ interface ExperienceTimelineProps {
 export function ExperienceTimeline({ 
   workExperiences, 
   gameState, 
-  currentTarget 
+  currentTarget: _currentTarget 
 }: ExperienceTimelineProps) {
   // Calculate progress for each experience
   const getExperienceProgress = (index: number) => {

@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { GridArcade } from '@/components/ui/arcade';
 import { getDefaultGameId } from '@/components/ui/arcade/game-registry';
 import { GridBackground } from '@/components/ui/GridBackground';
 
 export default function LabPage() {
-  const [gameId, setGameId] = useState(getDefaultGameId());
+  const [gameId] = useState(getDefaultGameId());
 
   return (
     <main className="fixed inset-0 overflow-hidden relative" style={{ backgroundColor: 'var(--bg-main)' }}>

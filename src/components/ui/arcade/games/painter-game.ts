@@ -37,7 +37,7 @@ export class PainterGame extends BaseGridGame {
     this.updateStatus();
   }
 
-  protected onUpdate(dt: number): void {
+  protected onUpdate(_dt: number): void {
     const now = Date.now();
     const { fadeTime, minOpacity } = this.config;
 

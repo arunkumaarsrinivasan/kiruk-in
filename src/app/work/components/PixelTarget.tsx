@@ -22,11 +22,12 @@ export function PixelTarget({ target }: PixelTargetProps) {
       const containerHeight = window.innerHeight - TOP_PADDING;
       
       // Calculate target size based on radius percentage
-      // target.radius is the hit detection radius in percentage
+      // target.radius is the hit detection radius in percentage of viewport width
       // Visual target diameter should be radius * 2 to match hit detection
-      // Use container width (not full viewport) to match hit detection calculations
+      // Use viewport width to match hit detection calculations (targets use full viewport)
       const targetDiameterPercent = target.radius * 2;
-      const targetSizePx = (targetDiameterPercent / 100) * containerWidth;
+      const viewportWidth = window.innerWidth;
+      const targetSizePx = (targetDiameterPercent / 100) * viewportWidth;
       
       // Apply constraints to ensure it fits and looks good
       // Use container dimensions (already accounts for top padding)

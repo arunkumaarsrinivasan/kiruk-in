@@ -292,7 +292,6 @@ function calculateGridLayout(viewportWidth: number, viewportHeight: number): Gri
   const leftOffset = 6; // TimeMachine area
   const rightOffset = 2;
   
-  const usableWidth = cols - leftOffset - rightOffset;
   const usableHeight = rows - topOffset - bottomOffset;
   
   // Calculate responsive card sizes

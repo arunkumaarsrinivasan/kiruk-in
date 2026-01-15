@@ -139,7 +139,7 @@ export class PersonalJourneyProvider {
   }
 
   // For future Instagram integration when you're ready
-  static async integrateWithInstagram(accountHandle: string = '@arunum.avan.seyalum'): Promise<PersonalPost[]> {
+  static async integrateWithInstagram(_accountHandle: string = '@arunum.avan.seyalum'): Promise<PersonalPost[]> {
     // This could be expanded later to include actual Instagram integration
     // For now, returns manual content
 

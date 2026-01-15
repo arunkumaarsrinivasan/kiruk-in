@@ -13,11 +13,11 @@
  * - Playful microcopy that feels like a game UI
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn, GRID_SIZE } from '@/lib/utils';
-import { getGameEntry, getGameIds } from './game-registry';
+import { getGameEntry } from './game-registry';
 import { getPageInfo } from '@/data/page-info';
 import { PlayerArchetypeSelector } from './PlayerArchetypeSelector';
 import { PixelIcon } from '@/components/ui/PixelIcon';
@@ -170,8 +170,6 @@ export const ArcadePlayButton: React.FC<ArcadePlayButtonProps> = ({
   const gameEntry = getGameEntry(gameId);
   const gameName = gameEntry?.label || 'Game';
   const pageInfo = getPageInfo(pathname);
-  const gameIds = getGameIds();
-  const currentGameIndex = gameIds.indexOf(gameId);
   
   // Collapsible state
   const [isExpanded, setIsExpanded] = useState(true);

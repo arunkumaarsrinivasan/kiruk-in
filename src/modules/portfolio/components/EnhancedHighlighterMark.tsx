@@ -13,7 +13,7 @@ interface EnhancedHighlighterMarkProps {
 export const EnhancedHighlighterMark: React.FC<EnhancedHighlighterMarkProps> = ({
   id,
   initialPosition,
-  color = '#000000',
+  color: _color = '#000000',
   width = 100,
   onPositionChange,
   className = '',

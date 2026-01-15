@@ -38,6 +38,15 @@ const TimeTravelSlider: React.FC = () => {
     setSliderIndex(activeIndex === -1 ? 0 : activeIndex);
   }, [eras, currentEraId]);
 
+  const navigateEra = useCallback((direction: number) => {
+    const newIndex = Math.max(0, Math.min(eras.length - 1, sliderIndex + direction));
+    const nextEra = eras[newIndex];
+    if (nextEra && newIndex !== sliderIndex) {
+      setSliderIndex(newIndex);
+      setEra(nextEra.id);
+    }
+  }, [sliderIndex, eras, setEra]);
+
   // Keyboard navigation when expanded
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -54,16 +63,7 @@ const TimeTravelSlider: React.FC = () => {
     
     globalThis.addEventListener('keydown', handleKeyDown);
     return () => globalThis.removeEventListener('keydown', handleKeyDown);
-  }, [sliderIndex, eras, isExpanded]);
-
-  const navigateEra = useCallback((direction: number) => {
-    const newIndex = Math.max(0, Math.min(eras.length - 1, sliderIndex + direction));
-    const nextEra = eras[newIndex];
-    if (nextEra && newIndex !== sliderIndex) {
-      setSliderIndex(newIndex);
-      setEra(nextEra.id);
-    }
-  }, [sliderIndex, eras, setEra]);
+  }, [sliderIndex, eras, isExpanded, navigateEra]);
 
   const handleTickClick = (index: number) => {
     const nextEra = eras[index];

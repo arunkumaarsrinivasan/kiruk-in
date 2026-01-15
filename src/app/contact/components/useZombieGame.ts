@@ -131,7 +131,6 @@ export function useZombieGame({
 
   // Spawn a zombie (away from center where form is)
   const spawnZombie = useCallback((): Zombie => {
-    const types: Array<'walker' | 'runner' | 'boss'> = ['walker', 'runner', 'boss'];
     // More walkers, fewer bosses
     const typeWeights = [0.6, 0.3, 0.1]; // walker, runner, boss
     const rand = Math.random();
@@ -264,7 +263,7 @@ export function useZombieGame({
         ammo: prev.ammo - 1,
       };
     });
-  }, [gameState.isPlaying, gameState.isPaused]);
+  }, [gameState.isPlaying, gameState.isPaused, gameState.ammo]);
 
   // Kill zombie (called when clicked or hit by bullet)
   const killZombie = useCallback((zombieId: string) => {
@@ -348,7 +347,7 @@ export function useZombieGame({
       
       setGameState((prev) => {
         // Update timer
-        let newTimeRemaining = Math.max(0, prev.timeRemaining - deltaTime);
+        const newTimeRemaining = Math.max(0, prev.timeRemaining - deltaTime);
         const newSurvivalTime = prev.survivalTime + deltaTime;
         
         // Red Light, Green Light: Update player activity tracking
@@ -429,7 +428,7 @@ export function useZombieGame({
           .filter((b): b is Bullet => b !== null);
 
         // Update power-ups and check collection
-        let collectedPowerUp: PowerUp | null = null;
+        let _collectedPowerUp: PowerUp | null = null;
         let powerUpEffect: { type: 'time' | 'field' | 'ammo'; field?: 'name' | 'email' | 'message' } | null = null;
         
         const updatedPowerUps = prev.powerUps
@@ -445,7 +444,7 @@ export function useZombieGame({
             const distance = Math.sqrt(dx * dx + dy * dy);
 
             if (distance < 5) {
-              collectedPowerUp = powerUp;
+              _collectedPowerUp = powerUp;
               if (powerUp.type === 'field') {
                 const fields = ['name', 'email', 'message'] as const;
                 const randomField = fields[Math.floor(Math.random() * fields.length)];
@@ -560,7 +559,7 @@ export function useZombieGame({
         cancelAnimationFrame(gameLoopRef.current);
       }
     };
-  }, [gameState.isPlaying, gameState.isPaused, gameState.isGameOver, gameState.isVictory, gameDuration, updateFieldVisibility, onGameOver, killZombie]);
+  }, [gameState.isPlaying, gameState.isPaused, gameState.isGameOver, gameState.isVictory, gameDuration, updateFieldVisibility, onGameOver, killZombie, spawnZombie]);
 
   // Victory condition (form submitted successfully)
   const triggerVictory = useCallback(() => {

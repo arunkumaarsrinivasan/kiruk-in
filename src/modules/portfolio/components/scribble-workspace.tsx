@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { motion, useDragControls, PanInfo, AnimatePresence } from 'framer-motion';
+import { motion, PanInfo, AnimatePresence } from 'framer-motion';
 import seedrandom from 'seedrandom';
 import { EnhancedHighlighterMark } from './EnhancedHighlighterMark';
 import { snapPositionToGrid } from '@/lib/utils';
@@ -115,9 +115,9 @@ export const EnhancedInkBlot: React.FC<{
   onPositionChange?: (id: string, position: { x: number; y: number }) => void;
   enablePhysics?: boolean;
   className?: string;
-}> = ({ id, initialPosition, color = '#000000', size = 35, onPositionChange, enablePhysics, className = '' }) => {
-  const [velocity, setVelocity] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
+}> = ({ id, initialPosition, color: _color = '#000000', size = 35, onPositionChange, enablePhysics, className = '' }) => {
+  const [_velocity, setVelocity] = useState({ x: 0, y: 0 });
+  const [_isDragging, setIsDragging] = useState(false);
 
   const handleDragEnd = (event: any, info: PanInfo) => {
     setIsDragging(false);
@@ -150,7 +150,7 @@ export const EnhancedInkBlot: React.FC<{
           width: size,
           height: size,
           clipPath: 'polygon(10% 20%, 90% 5%, 95% 80%, 85% 95%, 5% 85%)',
-          backgroundColor: color !== '#000000' ? color : 'var(--text-main)'
+          backgroundColor: _color !== '#000000' ? _color : 'var(--text-main)'
         }}
       />
     </motion.div>
@@ -210,7 +210,7 @@ export const EnhancedPaperClip: React.FC<{
   color?: string;
   onPositionChange?: (id: string, position: { x: number; y: number }) => void;
   className?: string;
-}> = ({ id, initialPosition, color = '#000000', onPositionChange, className = '' }) => {
+}> = ({ id, initialPosition, color: _color = '#000000', onPositionChange, className = '' }) => {
   const handleDragEnd = (event: any, info: PanInfo) => {
     onPositionChange?.(id, {
       x: initialPosition.x + info.offset.x,
@@ -248,7 +248,7 @@ export const StickyArrow: React.FC<{
   color?: string;
   onPositionChange?: (id: string, position: { x: number; y: number }) => void;
   className?: string;
-}> = ({ id, initialPosition, direction = 'right', color = '#000000', onPositionChange, className = '' }) => {
+}> = ({ id, initialPosition, direction = 'right', color: _color = '#000000', onPositionChange, className = '' }) => {
   const handleDragEnd = (event: any, info: PanInfo) => {
     onPositionChange?.(id, {
       x: initialPosition.x + info.offset.x,
@@ -294,7 +294,7 @@ export const WashiTape: React.FC<{
   length?: number;
   onPositionChange?: (id: string, position: { x: number; y: number }) => void;
   className?: string;
-}> = ({ id, initialPosition, pattern = 'stripes', color = '#000000', length = 80, onPositionChange, className = '' }) => {
+}> = ({ id, initialPosition, pattern = 'stripes', color: _color = '#000000', length = 80, onPositionChange, className = '' }) => {
   const handleDragEnd = (event: any, info: PanInfo) => {
     onPositionChange?.(id, {
       x: initialPosition.x + info.offset.x,
@@ -387,7 +387,7 @@ export const DrawingCanvas: React.FC<{
   strokeWidth: number;
   isDrawing: boolean;
   onDrawingChange: (drawing: boolean) => void;
-}> = ({ width, height, paths, onPathComplete, tool, color, strokeWidth, isDrawing, onDrawingChange }) => {
+}> = ({ width: _width, height: _height, paths, onPathComplete, tool, color: _color, strokeWidth, isDrawing: _isDrawing, onDrawingChange }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [currentPath, setCurrentPath] = useState<DrawingPath | null>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
@@ -421,7 +421,7 @@ export const DrawingCanvas: React.FC<{
     const newPath: DrawingPath = {
       id: `path-${Date.now()}`,
       points: [{ x: e.clientX - rect.left, y: e.clientY - rect.top }],
-      color: tool === 'eraser' ? 'transparent' : color,
+      color: tool === 'eraser' ? 'transparent' : _color,
       strokeWidth,
       tool,
       timestamp: Date.now()
@@ -573,7 +573,7 @@ const ScribbleWorkspace: React.FC<{
   enableDrawing = false,
   enableGestures = false,
   theme = 'light',
-  showMinimap = false,
+  showMinimap: _showMinimap = false,
   externalDrawingTool,
   externalDrawingColor,
   externalStrokeWidth
@@ -598,7 +598,7 @@ const ScribbleWorkspace: React.FC<{
   const activeStrokeWidth = externalStrokeWidth || strokeWidth;
   
   const [isDrawing, setIsDrawing] = useState(false);
-  const [viewportPosition, setViewportPosition] = useState({ x: 0, y: 0 });
+  const [viewportPosition] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [animationPresets] = useState<AnimationPreset[]>([
@@ -610,21 +610,47 @@ const ScribbleWorkspace: React.FC<{
 
   const workspaceRef = useRef<HTMLDivElement>(null);
 
-  // Voice commands setup
-  const voiceCommands: VoiceCommand[] = [
-    { command: 'add note', action: () => addItem('paper-scrap'), description: 'Add a new paper scrap note' },
-    { command: 'add photo', action: () => addItem('polaroid'), description: 'Add a polaroid photo' },
-    { command: 'add arrow', action: () => addItem('sticky-arrow'), description: 'Add a sticky arrow' },
-    { command: 'clear workspace', action: () => setItems([]), description: 'Clear all items' },
-    { command: 'enable physics', action: () => {/* Toggle physics */}, description: 'Enable physics simulation' },
-    { command: 'zoom in', action: () => setZoom(prev => Math.min(prev * 1.2, 3)), description: 'Zoom in' },
-    { command: 'zoom out', action: () => setZoom(prev => Math.max(prev / 1.2, 0.5)), description: 'Zoom out' },
-    { command: 'select all', action: () => setSelectedItems(items.map(item => item.id)), description: 'Select all items' }
-  ];
+  const addItem = useCallback((type: EnhancedScribbleDragItem['type']) => {
+    const newItem: EnhancedScribbleDragItem = {
+      id: `scribble-${Date.now()}-${getDeterministicValue(`item-id-${Date.now()}`, 0, 1).toString().substring(2, 11)}`,
+      type,
+      position: snapPositionToGrid({ 
+        x: getDeterministicValue(`item-x-${type}-${Date.now()}`, 50, 450), 
+        y: getDeterministicValue(`item-y-${type}-${Date.now()}`, 50, 350) 
+      }),
+      rotation: getDeterministicValue(`item-rotation-${type}-${Date.now()}`, -15, 15),
+      content: type === 'paper-scrap' ? 'Your note here...' : 
+               type === 'text-bubble' ? 'Speech bubble text' : undefined,
+      size: type === 'coffee-stain' ? getDeterministicValue(`item-size-${Date.now()}`, 30, 60) : 
+            type === 'ink-blot' ? getDeterministicValue(`item-size-${Date.now()}`, 20, 60) : undefined,
+      color: type === 'highlighter-mark' ? ['#fbbf24', '#10b981', '#f59e0b', '#ec4899'][getDeterministicIndex(`item-color-${Date.now()}`, 4)] : 
+             type === 'sticky-arrow' ? ['#f59e0b', '#ef4444', '#3b82f6', '#10b981'][getDeterministicIndex(`item-color-${Date.now()}`, 4)] :
+             type === 'washi-tape' ? ['#ec4899', '#8b5cf6', '#06b6d4', '#84cc16'][getDeterministicIndex(`item-color-${Date.now()}`, 4)] : undefined,
+      author: enableCollaboration ? 'You' : undefined,
+      timestamp: Date.now(),
+      layer: items.length
+    };
+
+    setItems(prev => [...prev, newItem]);
+    setShowMenu(false);
+    setShowAdvancedMenu(false);
+  }, [items, enableCollaboration]);
 
   // Voice recognition effect
   useEffect(() => {
     if (!enableVoiceCommands || !isListening) return;
+
+    // Voice commands setup - moved inside useEffect to avoid dependency issues
+    const voiceCommands: VoiceCommand[] = [
+      { command: 'add note', action: () => addItem('paper-scrap'), description: 'Add a new paper scrap note' },
+      { command: 'add photo', action: () => addItem('polaroid'), description: 'Add a polaroid photo' },
+      { command: 'add arrow', action: () => addItem('sticky-arrow'), description: 'Add a sticky arrow' },
+      { command: 'clear workspace', action: () => setItems([]), description: 'Clear all items' },
+      { command: 'enable physics', action: () => {/* Toggle physics */}, description: 'Enable physics simulation' },
+      { command: 'zoom in', action: () => setZoom(prev => Math.min(prev * 1.2, 3)), description: 'Zoom in' },
+      { command: 'zoom out', action: () => setZoom(prev => Math.max(prev / 1.2, 0.5)), description: 'Zoom out' },
+      { command: 'select all', action: () => setSelectedItems(items.map(item => item.id)), description: 'Select all items' }
+    ];
 
     let recognition: any;    try {
       const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
@@ -659,7 +685,7 @@ const ScribbleWorkspace: React.FC<{
         recognition.stop();
       }
     };
-  }, [isListening, enableVoiceCommands, voiceCommands, items]);
+  }, [isListening, enableVoiceCommands, items, addItem, setItems, setZoom, setSelectedItems]);
 
   // Simulated collaboration effect
   useEffect(() => {
@@ -670,7 +696,7 @@ const ScribbleWorkspace: React.FC<{
       const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57'];
       
       // Simulate cursor movement
-      setCollaborators(prev => {        const updated = prev.map((collaborator, index) => ({
+      setCollaborators(prev => {        const updated = prev.map((collaborator) => ({
           ...collaborator,
           position: {
             x: collaborator.position.x + getDeterministicValue(`${collaborator.id}-move-x-${Date.now()}`, -50, 50),
@@ -777,33 +803,8 @@ const ScribbleWorkspace: React.FC<{
       item.id === id ? { ...item, position: snapped } : item
     ));
   }, []);
-  const addItem = (type: EnhancedScribbleDragItem['type']) => {
-    const newItem: EnhancedScribbleDragItem = {
-      id: `scribble-${Date.now()}-${getDeterministicValue(`item-id-${Date.now()}`, 0, 1).toString().substring(2, 11)}`,
-      type,
-      position: snapPositionToGrid({ 
-        x: getDeterministicValue(`item-x-${type}-${Date.now()}`, 50, 450), 
-        y: getDeterministicValue(`item-y-${type}-${Date.now()}`, 50, 350) 
-      }),
-      rotation: getDeterministicValue(`item-rotation-${type}-${Date.now()}`, -15, 15),
-      content: type === 'paper-scrap' ? 'Your note here...' : 
-               type === 'text-bubble' ? 'Speech bubble text' : undefined,
-      size: type === 'coffee-stain' ? getDeterministicValue(`item-size-${Date.now()}`, 30, 60) : 
-            type === 'ink-blot' ? getDeterministicValue(`item-size-${Date.now()}`, 20, 60) : undefined,
-      color: type === 'highlighter-mark' ? ['#fbbf24', '#10b981', '#f59e0b', '#ec4899'][getDeterministicIndex(`item-color-${Date.now()}`, 4)] : 
-             type === 'sticky-arrow' ? ['#f59e0b', '#ef4444', '#3b82f6', '#10b981'][getDeterministicIndex(`item-color-${Date.now()}`, 4)] :
-             type === 'washi-tape' ? ['#ec4899', '#8b5cf6', '#06b6d4', '#84cc16'][getDeterministicIndex(`item-color-${Date.now()}`, 4)] : undefined,
-      author: enableCollaboration ? 'You' : undefined,
-      timestamp: Date.now(),
-      layer: items.length
-    };
 
-    setItems(prev => [...prev, newItem]);
-    setShowMenu(false);
-    setShowAdvancedMenu(false);
-  };
-
-  const applyAnimationToSelected = (preset: AnimationPreset) => {
+  const applyAnimationToSelected = (_preset: AnimationPreset) => {
     // This would trigger animations on selected items
     // Implementation would depend on the animation system used
     // Applying animation to selected items

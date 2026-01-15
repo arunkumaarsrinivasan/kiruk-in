@@ -13,19 +13,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, usePathname } from 'next/navigation';
-import Link from 'next/link';
 import { GRID_SIZE, cn } from '@/lib/utils';
-import { useDesignEra, DesignEra } from '@/contexts/DesignEraContext';
+import { useDesignEra } from '@/contexts/DesignEraContext';
 import { useGameMode, PAGE_GAMES, GAME_TYPE_ICONS } from '@/contexts/GameModeContext';
 import { PixelIcon } from '@/components/ui/PixelIcon';
 import { AVAILABLE_THEMES, ThemeConfig } from '@/data/portfolio-data';
 import { GameMenuOverlay } from './GameMenuOverlay';
-import { getPageInfo, PAGE_INFO } from '@/data/page-info';
+import { getPageInfo } from '@/data/page-info';
+import { getNextGame } from '@/data/game-navigation-data';
 
-const TE_TIMING = {
-  instant: 0.08,
-  quick: 0.15,
-};
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // PIXEL EYE COMPONENT - Reusable eye with era-based styling
@@ -356,7 +352,6 @@ const EyeTimelineOverlay: React.FC<EyeTimelineOverlayProps> = ({
 }) => {
   const overlayRef = useRef<HTMLDivElement>(null);
   const [hoveredEra, setHoveredEra] = useState<string | null>(null);
-  const [scrollIndex, setScrollIndex] = useState(0);
   const displayEraId = hoveredEra || currentEraId;
 
   // Get current era index
@@ -592,11 +587,11 @@ interface SimpleGameNavProps {
 }
 
 const SimpleGameNav: React.FC<SimpleGameNavProps> = ({
-  isGameActive = false,
-  currentGameId = 'snake',
-  currentGameName = 'SNAKE TRAIL',
-  currentGameIcon = 'bolt',
-  onToggleGame,
+  isGameActive: _isGameActive = false,
+  currentGameId: _currentGameId = 'snake',
+  currentGameName: _currentGameName = 'SNAKE TRAIL',
+  currentGameIcon: _currentGameIcon = 'bolt',
+  onToggleGame: _onToggleGame,
 }) => {
   const { currentEraId, setEra } = useDesignEra();
   const { 
@@ -606,8 +601,6 @@ const SimpleGameNav: React.FC<SimpleGameNavProps> = ({
     isLevelCompleted,
     totalPossibleXP,
     currentXPPercentage,
-    completedGamesCount,
-    totalGamesCount
   } = useGameMode();
   const pathname = usePathname();
   const [isTimelineOpen, setIsTimelineOpen] = useState(false);
@@ -626,8 +619,9 @@ const SimpleGameNav: React.FC<SimpleGameNavProps> = ({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  const router = useRouter();
   const handleEraSelect = (eraId: string) => {
-    setEra(eraId as DesignEra);
+    setEra(eraId);
   };
 
   // Get current page game/mission
@@ -636,7 +630,25 @@ const SimpleGameNav: React.FC<SimpleGameNavProps> = ({
   const gameProgress = currentGame ? getGameProgress(currentGame.id) : 0;
   const completedLevels = currentGame ? (progress.completedLevels[currentGame.id] || []) : [];
   const totalLevels = currentGame ? currentGame.levels.length : 0;
-  const gameTypeIcon = currentGame ? GAME_TYPE_ICONS[currentGame.gameType] : 'play';
+  const gameTypeIcon = currentGame ? GAME_TYPE_ICONS[currentGame.gameType] : 'flag-checkered';
+
+  // Calculate current level index (first incomplete level, or last completed + 1)
+  const currentLevelIndex = currentGame
+    ? currentGame.levels.findIndex(level => !completedLevels.includes(level.id))
+    : -1;
+  const effectiveLevelIndex = currentLevelIndex >= 0 ? currentLevelIndex : totalLevels - 1;
+  const _currentLevel = currentGame && effectiveLevelIndex >= 0 && effectiveLevelIndex < totalLevels
+    ? currentGame.levels[effectiveLevelIndex]
+    : null;
+
+  // Get next/previous games (pages) for navigation
+  const nextGame = currentGame ? getNextGame(currentGame.id) : null;
+  const previousGame = currentGame && currentGame.order > 1
+    ? PAGE_GAMES.find(game => game.order === currentGame.order - 1)
+    : null;
+  
+  const hasNextGame = nextGame !== null;
+  const hasPreviousGame = previousGame !== null;
 
   return (
     <>
@@ -651,21 +663,48 @@ const SimpleGameNav: React.FC<SimpleGameNavProps> = ({
       >
         {/* Top Row: Main Navigation */}
         <div className="flex items-center justify-between h-full" style={{ height: BAR_HEIGHT }}>
-          {/* LEFT: Eye Logo */}
-          <motion.button
-            onClick={() => setIsTimelineOpen(true)}
-            className="flex items-center justify-center border-r border-b border-[var(--border-color)] bg-[var(--bg-card)] hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] transition-colors duration-150"
-            style={{ 
-              height: BAR_HEIGHT,
-              width: BAR_HEIGHT,
-              padding: '8px',
-            }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            aria-label="Open design era timeline"
-          >
-            <PixelEye size={36} eraId={currentEraId} />
-          </motion.button>
+          {/* LEFT: Eye Logo + Previous Button (merged) */}
+          <div className="flex">
+            <motion.button
+              onClick={() => setIsTimelineOpen(true)}
+              className="flex items-center justify-center border-r border-b border-[var(--border-color)] bg-[var(--bg-card)] hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] transition-colors duration-150"
+              style={{ 
+                height: BAR_HEIGHT,
+                width: BAR_HEIGHT,
+                padding: '8px',
+              }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              aria-label="Open design era timeline"
+            >
+              <PixelEye size={36} eraId={currentEraId} />
+            </motion.button>
+            
+            {/* Previous Game Button - Merged with Eye Logo */}
+            {currentGame && (
+              <motion.button
+                onClick={() => {
+                  if (previousGame) {
+                    router.push(previousGame.path);
+                  }
+                }}
+                disabled={!hasPreviousGame}
+                className={cn(
+                  'flex items-center justify-center border-l border-r border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-main)] hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] transition-colors duration-150 font-mono text-lg',
+                  !hasPreviousGame && 'opacity-30 cursor-not-allowed'
+                )}
+                style={{ 
+                  height: BAR_HEIGHT,
+                  width: BAR_HEIGHT,
+                }}
+                whileHover={hasPreviousGame ? { scale: 1.05 } : {}}
+                whileTap={hasPreviousGame ? { scale: 0.95 } : {}}
+                aria-label="Previous game"
+              >
+                ←
+              </motion.button>
+            )}
+          </div>
 
           {/* CENTER: Mission Info */}
           <motion.div
@@ -713,10 +752,37 @@ const SimpleGameNav: React.FC<SimpleGameNavProps> = ({
             )}
           </motion.div>
 
-          {/* RIGHT: XP & Menu Button */}
-          <div className="flex items-center gap-1 sm:gap-2">
+          {/* RIGHT: Next Button + XP Display + Menu Button (merged) */}
+          <div className="flex">
+            {/* Next Game Button - Merged with XP Display */}
+            {currentGame && (
+              <motion.button
+                onClick={() => {
+                  if (nextGame) {
+                    router.push(nextGame.path);
+                  }
+                }}
+                disabled={!hasNextGame}
+                className={cn(
+                  'flex items-center justify-center border-l border-r border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-main)] hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] transition-colors duration-150 font-mono text-lg',
+                  !hasNextGame && 'opacity-30 cursor-not-allowed'
+                )}
+                style={{ 
+                  height: BAR_HEIGHT,
+                  width: BAR_HEIGHT,
+                }}
+                whileHover={hasNextGame ? { scale: 1.05 } : {}}
+                whileTap={hasNextGame ? { scale: 0.95 } : {}}
+                aria-label="Next game"
+              >
+                →
+              </motion.button>
+            )}
+
             {/* XP Display - Hidden on very small screens */}
-            <div className="hidden sm:flex flex-col items-end px-2 border-r border-[var(--border-color)]">
+            <div className="hidden sm:flex flex-col items-end justify-center px-2 border-r border-b border-[var(--border-color)] bg-[var(--bg-card)]"
+              style={{ height: BAR_HEIGHT }}
+            >
               <div className="text-[10px] font-mono text-[var(--text-muted)] uppercase">XP</div>
               <div className="text-xs font-mono font-bold text-[var(--accent-color)]">
                 {progress.totalXP}/{totalPossibleXP}
@@ -734,7 +800,7 @@ const SimpleGameNav: React.FC<SimpleGameNavProps> = ({
             {/* Menu Button */}
             <motion.button
               onClick={toggleMenu}
-              className="flex items-center justify-center border-l border-[var(--border-color)] bg-[var(--bg-card)] hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] transition-colors duration-150"
+              className="flex items-center justify-center border-l border-b border-[var(--border-color)] bg-[var(--bg-card)] hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] transition-colors duration-150"
               style={{ 
                 height: BAR_HEIGHT,
                 width: BAR_HEIGHT,

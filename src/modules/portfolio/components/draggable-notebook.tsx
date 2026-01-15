@@ -94,7 +94,7 @@ const DraggableNotebookItem: React.FC<{
     });
   };
 
-  const handleDragEnd = (event: any, info: any) => {
+  const handleDragEnd = (_event: any, _info: any) => {
     setIsDragging(false);
     setDroppingCursor(); // Show dropping animation briefly
     

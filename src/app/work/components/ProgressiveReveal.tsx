@@ -10,7 +10,7 @@ interface ProgressiveRevealProps {
   level: number;
 }
 
-export function ProgressiveReveal({ target, revealIndex, level }: ProgressiveRevealProps) {
+export function ProgressiveReveal({ target, revealIndex, level: _level }: ProgressiveRevealProps) {
   if (!target) return null;
   
   const work = target.workExperience;

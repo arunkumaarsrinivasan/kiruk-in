@@ -32,9 +32,6 @@ export function SkillsVisualization({ gameState, workExperiences }: SkillsVisual
   // Calculate total projects
   const totalProjects = hitExperiences.reduce((sum, work) => sum + (work.projects?.length || 0), 0);
   
-  // Calculate total metrics
-  const totalMetrics = hitExperiences.reduce((sum, work) => sum + (work.metrics?.length || 0), 0);
-  
   return (
     <div
       className="fixed top-20 right-4 z-40 border-4 border-black bg-white shadow-[4px_4px_0_#000] p-4"
