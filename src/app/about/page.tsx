@@ -260,8 +260,30 @@ function PixelCollectible({ type }: { type: string }) {
 	);
 }
 
+function getTimelinePhase(age: number) {
+	if (age <= 6) return "Kid";
+	if (age <= 12) return "Child";
+	if (age <= 17) return "School";
+	if (age <= 22) return "College";
+	return "Work";
+}
+
 export default function About() {
 	const [showIntro, setShowIntro] = useState(true);
+	const [showRoadmap, setShowRoadmap] = useState(false);
+	const groupedLifeEvents = useMemo(() => {
+		const groups: { phase: string; items: { event: LifeEvent; index: number }[] }[] = [];
+		lifeEvents.forEach((event, index) => {
+			const phase = getTimelinePhase(event.age);
+			const lastGroup = groups[groups.length - 1];
+			if (lastGroup?.phase === phase) {
+				lastGroup.items.push({ event, index });
+			} else {
+				groups.push({ phase, items: [{ event, index }] });
+			}
+		});
+		return groups;
+	}, []);
 	
 	const levels = lifeEvents.map((event) => ({
 		year: event.year,
@@ -303,11 +325,13 @@ export default function About() {
 	
 	const handleStartGame = useCallback(() => {
 		setShowIntro(false);
+		setShowRoadmap(false);
 		startGame();
 	}, [startGame]);
 	
 	const handleTimelineSelect = useCallback((timelineIndex: number) => {
 		setShowIntro(false);
+		setShowRoadmap(false);
 		goToLevel(timelineIndex);
 	}, [goToLevel]);
 
@@ -407,7 +431,7 @@ export default function About() {
 					>
 						<GridBackground opacity={0.3} />
 						
-						<div className="text-center max-w-2xl px-4 relative z-10">
+						<div className="text-center max-w-2xl px-4 relative z-10 max-h-screen overflow-y-auto">
 							<motion.div
 								initial={{ scale: 0 }}
 								animate={{ scale: 1 }}
@@ -431,15 +455,15 @@ export default function About() {
 							</motion.h1>
 							
 							<motion.p
-								className="text-lg font-mono mb-8"
+								className="text-lg font-mono mb-6"
 								style={{ color: "var(--text-muted)" }}
 								initial={{ y: 20, opacity: 0 }}
 								animate={{ y: 0, opacity: 1 }}
 								transition={{ delay: 0.6 }}
 							>
-								Journey through {lifeEvents.length} timeline events from 2025 to 2001!
+								{lifeEvents.length} moments from 2025 → 2001.
 								<br />
-								<span style={{ color: "var(--accent-color)" }}>Move left/right</span> to travel through the timeline.
+								<span style={{ color: "var(--accent-color)" }}>Move left/right</span> to explore.
 							</motion.p>
 							
 							<motion.div
@@ -459,10 +483,17 @@ export default function About() {
 								>
 									▶ START GAME
 								</button>
-								
-								<div className="text-sm font-mono" style={{ color: "var(--text-muted)" }}>
-									← → to move | SPACE to jump | ↓ to duck
-								</div>
+								<button
+									onClick={() => setShowRoadmap((prev) => !prev)}
+									className="px-6 py-2 font-mono text-sm border-2 transition-all hover:opacity-80"
+									style={{ 
+										backgroundColor: "var(--bg-card)", 
+										borderColor: "var(--border-color)", 
+										color: "var(--text-main)" 
+									}}
+								>
+									{showRoadmap ? "HIDE ROADMAP" : "VIEW ROADMAP LIST"}
+								</button>
 							</motion.div>
 							
 							{/* Timeline Select */}
@@ -472,25 +503,72 @@ export default function About() {
 								animate={{ y: 0, opacity: 1 }}
 								transition={{ delay: 1 }}
 							>
-								<p className="font-mono text-sm mb-3" style={{ color: "var(--text-muted)" }}>Or select a timeline event:</p>
-								<div className="flex flex-wrap justify-center gap-2 max-w-xl mx-auto">
-									{lifeEvents.map((event, idx) => (
-										<button
-											key={event.id}
-											onClick={() => handleTimelineSelect(idx)}
-											className="w-10 h-10 font-mono text-sm border transition-colors flex items-center justify-center hover:opacity-80"
-											style={{ 
-												backgroundColor: "var(--bg-card)", 
-												borderColor: "var(--border-color)", 
-												color: "var(--text-main)" 
-											}}
-											title={`${event.year}: ${event.title}`}
-										>
-											{idx + 1}
-										</button>
-									))}
+								<p className="font-mono text-sm mb-3" style={{ color: "var(--text-muted)" }}>
+									Jump to a phase:
+								</p>
+								<div className="flex flex-wrap justify-center gap-2 max-w-2xl mx-auto">
+									{groupedLifeEvents.map((group) => {
+										const first = group.items[0];
+										return (
+											<button
+												key={group.phase}
+												onClick={() => handleTimelineSelect(first.index)}
+												className="px-3 py-2 font-mono text-xs border transition-colors flex items-center gap-2 hover:opacity-80"
+												style={{ 
+													backgroundColor: "var(--bg-card)", 
+													borderColor: "var(--border-color)", 
+													color: "var(--text-main)" 
+												}}
+												title={`${group.phase}: ${first.event.title}`}
+											>
+												<span style={{ color: "var(--accent-color)" }}>{group.phase}</span>
+												<span>{first.event.year}</span>
+											</button>
+										);
+									})}
 								</div>
 							</motion.div>
+							
+							{/* Roadmap List */}
+							{showRoadmap && (
+								<motion.div
+									className="mt-8 max-w-3xl mx-auto text-left"
+									initial={{ opacity: 0, y: 10 }}
+									animate={{ opacity: 1, y: 0 }}
+									transition={{ delay: 0.1 }}
+								>
+									<div className="border-2 p-4 space-y-5" style={{ backgroundColor: "var(--bg-card)", borderColor: "var(--border-color)" }}>
+										{groupedLifeEvents.map((group) => (
+											<div key={`roadmap-${group.phase}`} className="space-y-3">
+												<div className="font-mono text-xs uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
+													{group.phase}
+												</div>
+												{group.items.map(({ event, index }) => (
+													<button
+														key={`roadmap-${event.id}`}
+														onClick={() => handleTimelineSelect(index)}
+														className="w-full text-left font-mono text-sm border px-3 py-3 transition-colors hover:opacity-80"
+														style={{ backgroundColor: "var(--bg-main)", borderColor: "var(--border-color)", color: "var(--text-main)" }}
+													>
+														<div className="flex items-center justify-between gap-3">
+															<span style={{ color: "var(--accent-color)" }}>
+																{event.year}
+															</span>
+															<span className="text-xs" style={{ color: "var(--text-muted)" }}>
+																{event.period || event.year}
+															</span>
+														</div>
+														<div className="mt-1 text-base">{event.title}</div>
+														<div className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
+															{event.location}
+														</div>
+													</button>
+												))}
+											</div>
+										))}
+									</div>
+								</motion.div>
+							)}
 						</div>
 					</motion.div>
 				)}

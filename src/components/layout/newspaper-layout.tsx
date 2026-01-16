@@ -6,27 +6,41 @@ import Image from 'next/image';
 import { PixelIcon } from '@/components/ui/PixelIcon';
 import { useGameMode } from '@/contexts/GameModeContext';
 import { useDesignEra } from '@/contexts/DesignEraContext';
-import { PAGE_GAMES } from '@/data/game-navigation-data';
+import { PAGE_GAMES, GAME_TYPE_ICONS } from '@/data/game-navigation-data';
+import { usePathname } from 'next/navigation';
 import { GridBackground } from '@/components/ui/GridBackground';
 import { useResponsiveGrid } from '@/hooks/useResponsiveGrid';
 import Link from 'next/link';
 import { portfolioData } from '@/data/portfolio-data';
+import { FixedCharacterHelper } from './FixedCharacterHelper';
+import { SectionCharacter } from '@/components/characters';
+import { PixelEmote } from '@/components/ui/PixelEmote';
+import { PixelMemoNote } from '@/components/ui/PixelMemoNote';
+import { PixelSkillBadge } from '@/components/ui/PixelSkillBadge';
+import { PixelStatCard } from '@/components/ui/PixelStatCard';
 
 export default function NewspaperLayout() {
   const { progress, mode } = useGameMode();
   const { currentEra } = useDesignEra();
   const gridAlignment = useResponsiveGrid();
+  const pathname = usePathname();
   const [_isStampAnimating, setIsStampAnimating] = useState(false);
   const [expandedExperiences, setExpandedExperiences] = useState<Set<string>>(new Set());
   const [activeHat, setActiveHat] = useState<'designer' | 'developer' | 'bridge' | null>(null);
   const [isBridgeHovered, setIsBridgeHovered] = useState(false);
   const [pixels, setPixels] = useState<Array<{ id: number; x: number; y: number; angle: number; color: string }>>([]);
+  const [isClient, setIsClient] = useState(false);
   
   // Check if bridge is active (super powered mode)
   const isSuperPowered = activeHat === 'bridge';
   
   // Check if we're in content mode (non-gamified)
   const isContentMode = mode === 'god';
+
+  // Ensure we're on the client side before animating
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // Convert hex color to rgba
   const hexToRgba = (hex: string, alpha: number) => {
@@ -141,31 +155,46 @@ export default function NewspaperLayout() {
 
   return (
     <div 
-      className="min-h-screen bg-[var(--bg-main)] relative"
-      style={{ padding: '40px' }}
+      className="snap-scroll-container bg-[var(--bg-main)] relative"
     >
-      {/* Grid Background */}
-      <GridBackground 
-        opacity={0.15} 
-        scanlinesOpacity={0.03}
-        offsetX={0}
-        offsetY={0}
-      />
+      {/* Grid Background - Behind everything, extends with content */}
+      <div 
+        className="absolute inset-0 z-0" 
+        style={{ 
+          minHeight: '100%',
+          height: '100%',
+          width: '100%',
+        }}
+      >
+        <div style={{ minHeight: '100%', height: '100%', width: '100%' }}>
+          <GridBackground 
+            opacity={0.15} 
+            scanlinesOpacity={0.03}
+            offsetX={0}
+            offsetY={0}
+          />
+        </div>
+      </div>
 
       {/* Content Container */}
       <div 
-        className="mx-auto relative z-10"
+        className="mx-auto relative z-10 w-full"
         style={{
           maxWidth: `${gridAlignment.maxContentWidth}px`,
+          width: '100%',
+          minHeight: '100%',
         }}
       >
-        {/* === DOCUMENT HEADER === */}
-        <motion.header
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="grid-mb-3 relative"
-        >
+        {/* === HEADER SECTION (Snap) === */}
+        <div className="snap-section">
+          <div className="snap-section-content" style={{ padding: '40px' }}>
+            {/* === DOCUMENT HEADER === */}
+            <motion.header
+              initial={isClient ? { opacity: 0, y: -20 } : { opacity: 1, y: 0 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={isClient ? { duration: 0.6 } : { duration: 0 }}
+              className="grid-mb-3 relative"
+            >
             {/* Top Bar - Classification (hidden in content mode) */}
             {!isContentMode && (
               <div 
@@ -194,14 +223,13 @@ export default function NewspaperLayout() {
             )}
 
           {/* 8-Bit Figure with Multiple Hats - Designer & Developer Bridge */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
+            <div
               className="border-2 grid-p-4 grid-mb-2 relative overflow-hidden"
               style={{ 
                 borderColor: 'var(--accent-color)',
                 backgroundColor: 'var(--bg-main)',
+                opacity: 1,
+                transform: 'translateY(0)',
               }}
             >
               {/* Animated background grid pattern */}
@@ -224,9 +252,9 @@ export default function NewspaperLayout() {
                   <motion.h2 
                     className="text-4xl md:text-5xl font-mono font-black uppercase mb-2"
                     style={{ color: 'var(--accent-color)' }}
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={isClient ? { opacity: 0, y: 20 } : { opacity: 1, y: 0 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
+                    transition={isClient ? { delay: 0.2 } : { duration: 0 }}
                   >
                     Hey, I'm Arun
                   </motion.h2>
@@ -515,33 +543,33 @@ export default function NewspaperLayout() {
                 {/* Role Description - Below Figure */}
                 <div className="flex flex-col items-center gap-4 max-w-lg text-center">
                   <div>
-                    <motion.h3 
-                      className="text-2xl md:text-3xl font-mono font-black uppercase mb-2"
-                      style={{ color: 'var(--text-main)' }}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.4 }}
-                    >
-                      WEARING MULTIPLE HATS
-                    </motion.h3>
-                    <motion.p 
-                      className="text-sm font-mono leading-relaxed"
-                      style={{ color: 'var(--text-muted)' }}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.5 }}
-                    >
-                      I speak both design and code fluently, bridging the gap between creative vision and technical execution.
-                    </motion.p>
+                  <motion.h3 
+                    className="text-2xl md:text-3xl font-mono font-black uppercase mb-2"
+                    style={{ color: 'var(--text-main)' }}
+                    initial={isClient ? { opacity: 0, y: 20 } : { opacity: 1, y: 0 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={isClient ? { delay: 0.4 } : { duration: 0 }}
+                  >
+                    WEARING MULTIPLE HATS
+                  </motion.h3>
+                  <motion.p 
+                    className="text-sm font-mono leading-relaxed"
+                    style={{ color: 'var(--text-muted)' }}
+                    initial={isClient ? { opacity: 0, y: 20 } : { opacity: 1, y: 0 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={isClient ? { delay: 0.5 } : { duration: 0 }}
+                  >
+                    I speak both design and code fluently, bridging the gap between creative vision and technical execution.
+                  </motion.p>
                   </div>
 
                   {/* Clickable Hat Instruction */}
                   <motion.p
                     className="text-[10px] font-mono uppercase tracking-wider"
                     style={{ color: 'var(--text-muted)' }}
-                    initial={{ opacity: 0 }}
+                    initial={isClient ? { opacity: 0 } : { opacity: 1 }}
                     animate={{ opacity: 1 }}
-                    transition={{ delay: 0.6 }}
+                    transition={isClient ? { delay: 0.6 } : { duration: 0 }}
                   >
                     Click a hat to try it on
                   </motion.p>
@@ -555,9 +583,9 @@ export default function NewspaperLayout() {
                         backgroundColor: activeHat === 'designer' ? 'rgba(233, 30, 99, 0.2)' : 'rgba(233, 30, 99, 0.05)',
                         boxShadow: activeHat === 'designer' ? '0 0 15px rgba(233, 30, 99, 0.3)' : 'none'
                       }}
-                      initial={{ opacity: 0, scale: 0.8 }}
+                      initial={isClient ? { opacity: 0, scale: 0.8 } : { opacity: 1, scale: 1 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.6 }}
+                      transition={isClient ? { delay: 0.6 } : { duration: 0 }}
                       whileHover={{ scale: 1.05, y: -2 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => {
@@ -593,9 +621,9 @@ export default function NewspaperLayout() {
                         backgroundColor: activeHat === 'bridge' ? hexToRgba(isSuperPowered ? '#FFD700' : currentEra.colors.accent, 0.2) : hexToRgba(currentEra.colors.accent, 0.05),
                         boxShadow: activeHat === 'bridge' ? `0 0 15px ${hexToRgba(isSuperPowered ? '#FFD700' : currentEra.colors.accent, isSuperPowered ? 0.6 : 0.3)}` : 'none'
                       }}
-                      initial={{ opacity: 0, scale: 0.8 }}
+                      initial={isClient ? { opacity: 0, scale: 0.8 } : { opacity: 1, scale: 1 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.7 }}
+                      transition={isClient ? { delay: 0.7 } : { duration: 0 }}
                       whileHover={{ scale: 1.05, y: -2 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={handleBridgeClick}
@@ -631,9 +659,9 @@ export default function NewspaperLayout() {
                         backgroundColor: activeHat === 'developer' ? 'rgba(33, 150, 243, 0.2)' : 'rgba(33, 150, 243, 0.05)',
                         boxShadow: activeHat === 'developer' ? '0 0 15px rgba(33, 150, 243, 0.3)' : 'none'
                       }}
-                      initial={{ opacity: 0, scale: 0.8 }}
+                      initial={isClient ? { opacity: 0, scale: 0.8 } : { opacity: 1, scale: 1 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.8 }}
+                      transition={isClient ? { delay: 0.8 } : { duration: 0 }}
                       whileHover={{ scale: 1.05, y: -2 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => {
@@ -675,7 +703,6 @@ export default function NewspaperLayout() {
                       href="#work"
                       className="px-6 py-3 border-2 font-mono font-bold uppercase text-sm cursor-pointer"
                       style={{ 
-                        borderColor: 'var(--accent-color)',
                         backgroundColor: 'var(--accent-color)',
                         color: 'var(--bg-main)'
                       }}
@@ -700,11 +727,14 @@ export default function NewspaperLayout() {
                   </motion.div>
                 </div>
               </div>
-            </motion.div>
+            </div>
         </motion.header>
+          </div>
+        </div>
 
         {/* === SUBJECT PROFILE BRIEF === */}
         <motion.section
+          id="subject-profile"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
@@ -873,6 +903,7 @@ export default function NewspaperLayout() {
 
         {/* === WORK EXPERIENCE === */}
         <motion.section
+          id="work-experience"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.15 }}
@@ -1135,6 +1166,7 @@ export default function NewspaperLayout() {
 
         {/* === CASE STUDIES === */}
         <motion.section
+          id="case-studies"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
@@ -1342,6 +1374,7 @@ export default function NewspaperLayout() {
 
         {/* === CONTACT === */}
         <motion.section
+          id="contact"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.25 }}
@@ -1814,6 +1847,9 @@ export default function NewspaperLayout() {
           </div>
         </motion.footer>
       </div>
+      
+      {/* Fixed Bottom Right Character */}
+      <FixedCharacterHelper />
     </div>
   );
 }
