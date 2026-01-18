@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 import LayoutClientShell from "@/components/layout/LayoutClientShell";
-import CustomCursor from "@/components/ui/CustomCursor";
 import { CursorProvider } from "@/components/ui/CursorContext";
 import AnalyticsTracker from "@/components/analytics/AnalyticsTracker";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -10,7 +9,6 @@ import { Analytics } from "@vercel/analytics/react";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { DesignEraProvider } from "@/contexts/DesignEraContext";
 import { GameModeProvider } from "@/contexts/GameModeContext";
-import ThemeLayout from "@/components/layout/ThemeLayout";
 
 export const metadata: Metadata = {
   title: "Kiruk | AI + UX Designer Portfolio",
@@ -41,15 +39,12 @@ export default function RootLayout({
         <ThemeProvider>
           <DesignEraProvider>
             <GameModeProvider>
-              <ThemeLayout>
-                <CursorProvider>
-                  <CustomCursor />
-                  <AnalyticsTracker />
-                  <LayoutClientShell>
-                    {children}
-                  </LayoutClientShell>
-                </CursorProvider>
-              </ThemeLayout>
+              <CursorProvider>
+                <AnalyticsTracker />
+                <LayoutClientShell>
+                  {children}
+                </LayoutClientShell>
+              </CursorProvider>
             </GameModeProvider>
           </DesignEraProvider>
         </ThemeProvider>
@@ -59,3 +54,4 @@ export default function RootLayout({
     </html>
   );
 }
+

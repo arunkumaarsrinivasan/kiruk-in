@@ -5,15 +5,24 @@ import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { PixelIcon } from '@/components/ui/PixelIcon';
 import { GridBackground } from '@/components/ui/GridBackground';
+import '@/app/work/styles/observatory.css';
 
-// Lazy load constellation view
-const ConstellationView = dynamic(
+// Lazy load observatory view
+const ObservatoryView = dynamic(
   () =>
-    import('./components/ConstellationView').then(
-      (mod) => ({ default: mod.ConstellationView })
+    import('./components/ObservatoryView').then(
+      (mod) => ({ default: mod.ObservatoryView })
     ),
   {
     ssr: false,
+    loading: () => (
+      <div
+        className="min-h-screen flex items-center justify-center font-mono"
+        style={{ color: 'var(--text-muted)' }}
+      >
+        Loading Observatory...
+      </div>
+    ),
   }
 );
 
@@ -36,7 +45,7 @@ export default function Work() {
               className="text-xl font-mono flex items-center gap-2"
               style={{ color: 'var(--text-main)' }}
             >
-              <PixelIcon name="star" size={20} /> MY SKILL PIN BOARD
+              <PixelIcon name="star" size={20} /> SKILLS OBSERVATORY
             </h1>
           </div>
         </div>
@@ -56,15 +65,15 @@ export default function Work() {
 
             <div className="text-center max-w-2xl px-4 relative z-10">
               <motion.h1
-                className="text-4xl md:text-6xl font-mono mb-4 flex items-center justify-center gap-3"
+                className="text-4xl md:text-5xl font-mono mb-4 flex items-center justify-center gap-3"
                 style={{ color: 'var(--text-main)' }}
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.2 }}
               >
                 <PixelIcon name="star" size={48} className="md:hidden" />
-                <PixelIcon name="star" size={64} className="hidden md:inline" />
-                STARGAZING THROUGH MY EXPERTISE
+                <PixelIcon name="star" size={56} className="hidden md:inline" />
+                SKILLS OBSERVATORY
               </motion.h1>
 
               <motion.p
@@ -74,7 +83,7 @@ export default function Work() {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.3 }}
               >
-                Explore the celestial map of my skills!
+                Explore my professional journey through the stars
               </motion.p>
 
               <motion.p
@@ -84,13 +93,14 @@ export default function Work() {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.4 }}
               >
-                where each constellation tells a story of expertise and growth.
+                Each star represents a skill plotted by{' '}
+                <span style={{ color: 'var(--accent-color)' }}>years of experience</span>
+                {' '}and{' '}
+                <span style={{ color: 'var(--accent-color)' }}>mastery level</span>.
                 <br />
-                Navigate the cosmos of my expertise • Hover over pins to discover their power.
+                Hover over stars to discover where each skill was learned.
                 <br />
-                <span style={{ color: 'var(--accent-color)' }}>
-                  Click stars to discover details
-                </span>
+                Click on jobs to see the skills I used there.
               </motion.p>
 
               <motion.div
@@ -101,7 +111,7 @@ export default function Work() {
               >
                 <button
                   onClick={() => setShowIntro(false)}
-                  className="px-8 py-4 font-mono text-2xl transition-all hover:opacity-80 wireframe-btn"
+                  className="px-8 py-4 font-mono text-xl transition-all hover:opacity-80 wireframe-btn"
                   style={{
                     borderWidth: 'var(--border-width)',
                     borderColor: 'var(--border-color)',
@@ -109,14 +119,14 @@ export default function Work() {
                       'var(--shadow-offset-x) var(--shadow-offset-y) var(--shadow-blur) var(--shadow-color)',
                   }}
                 >
-                  <PixelIcon name="play" size={24} /> EXPLORE CONSTELLATION
+                  <PixelIcon name="play" size={24} /> ENTER OBSERVATORY
                 </button>
 
                 <div
                   className="text-sm font-mono"
                   style={{ color: 'var(--text-muted)' }}
                 >
-                  Drag to pan | Scroll to zoom | Click stars for details
+                  Hover stars for details • Click jobs to expand • Filter by constellation
                 </div>
               </motion.div>
             </div>
@@ -124,12 +134,13 @@ export default function Work() {
         )}
       </AnimatePresence>
 
-      {/* Constellation View */}
+      {/* Observatory View */}
       {!showIntro && (
         <div className="pt-16">
-          <ConstellationView />
+          <ObservatoryView />
         </div>
       )}
     </main>
   );
 }
+

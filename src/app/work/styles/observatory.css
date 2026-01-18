@@ -1,0 +1,263 @@
+/**
+ * Observatory Styles
+ * 
+ * Theme-aligned styles for the Skills Constellation feature.
+ * Uses CSS variables from the global theme system.
+ */
+
+/* === Constellation Color Variables === */
+:root {
+  --constellation-design: var(--theme-primary, #ef4444);
+  --constellation-dev: var(--theme-secondary, #3b82f6);
+  --constellation-lead: #f59e0b;
+  --constellation-tools: #8b5cf6;
+  --constellation-infra: #22c55e;
+}
+
+/* === Grid Lines === */
+.observatory-grid-major {
+  stroke: var(--border-color);
+  stroke-width: 1px;
+}
+
+.observatory-grid-minor {
+  stroke: var(--text-muted);
+  stroke-width: 0.5px;
+  opacity: 0.4;
+}
+
+/* === Star Styling === */
+.skill-star {
+  transition: transform 0.2s ease-out, filter 0.2s ease-out;
+}
+
+.skill-star:hover {
+  transform: scale(1.1);
+}
+
+.skill-star-glow {
+  filter: drop-shadow(0 0 4px var(--accent-color));
+}
+
+.skill-star-glow-active {
+  filter: drop-shadow(0 0 8px var(--accent-color));
+}
+
+/* === Pixel-perfect Rendering === */
+.pixel-render {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* === Card Styling === */
+.observation-card {
+  border: 2px solid var(--border-color);
+  background: var(--bg-card);
+  font-family: monospace;
+  transition: border-color 0.2s ease-out;
+}
+
+.observation-card:hover {
+  border-color: var(--accent-color);
+}
+
+.observation-card-expanded {
+  border-color: var(--accent-color);
+}
+
+/* === Corner Bracket Decorations === */
+.corner-bracket {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  pointer-events: none;
+}
+
+.corner-bracket::before,
+.corner-bracket::after {
+  content: '';
+  position: absolute;
+  background: var(--accent-color);
+}
+
+.corner-bracket-tl::before {
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 100%;
+}
+
+.corner-bracket-tl::after {
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+}
+
+.corner-bracket-tr::before {
+  top: 0;
+  right: 0;
+  width: 2px;
+  height: 100%;
+}
+
+.corner-bracket-tr::after {
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 2px;
+}
+
+.corner-bracket-bl::before {
+  bottom: 0;
+  left: 0;
+  width: 2px;
+  height: 100%;
+}
+
+.corner-bracket-bl::after {
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+}
+
+.corner-bracket-br::before {
+  bottom: 0;
+  right: 0;
+  width: 2px;
+  height: 100%;
+}
+
+.corner-bracket-br::after {
+  bottom: 0;
+  right: 0;
+  width: 100%;
+  height: 2px;
+}
+
+/* === Timeline Card Transitions === */
+.timeline-card-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.timeline-card-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+
+.timeline-card-exit {
+  opacity: 1;
+}
+
+.timeline-card-exit-active {
+  opacity: 0;
+  transition: opacity 0.2s ease-out;
+}
+
+/* === Connection Line Styling === */
+.connection-line {
+  stroke: var(--border-color);
+  stroke-width: 0.2px;
+  opacity: 0.3;
+  transition: stroke 0.2s ease-out, stroke-width 0.2s ease-out, opacity 0.2s ease-out;
+}
+
+.connection-line-highlighted {
+  stroke: var(--accent-color);
+  stroke-width: 0.4px;
+  opacity: 0.8;
+}
+
+/* === Skill Tag Styling === */
+.skill-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-family: monospace;
+  border: 1px solid;
+  transition: all 0.2s ease-out;
+}
+
+.skill-tag:hover {
+  transform: translateY(-1px);
+}
+
+/* === Tooltip Styling === */
+.skill-tooltip {
+  position: absolute;
+  z-index: 50;
+  min-width: 140px;
+  max-width: 220px;
+  background: var(--bg-card);
+  border: 2px solid var(--accent-color);
+  font-family: monospace;
+  pointer-events: none;
+}
+
+/* === Filter Button Styling === */
+.filter-btn {
+  padding: 4px 12px;
+  font-size: 11px;
+  font-family: monospace;
+  border: 2px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease-out;
+}
+
+.filter-btn:hover {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
+.filter-btn-active {
+  background: var(--accent-color);
+  color: var(--bg-main);
+  border-color: var(--accent-color);
+}
+
+/* === Observatory Container === */
+.observatory-container {
+  min-height: 100vh;
+  background: var(--bg-main);
+}
+
+/* === Responsive Adjustments === */
+@media (max-width: 1024px) {
+  .observatory-grid {
+    aspect-ratio: 1 / 1;
+  }
+  
+  .skill-tooltip {
+    min-width: 120px;
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 640px) {
+  .skill-star-label {
+    font-size: 8px;
+  }
+  
+  .filter-btn {
+    padding: 2px 8px;
+    font-size: 10px;
+  }
+}
+
+/* === Reduced Motion === */
+@media (prefers-reduced-motion: reduce) {
+  .skill-star,
+  .observation-card,
+  .connection-line,
+  .skill-tag,
+  .filter-btn {
+    transition: none;
+  }
+}
