@@ -629,8 +629,7 @@ const Navigation = () => {
     { href: '/work', label: 'Work', icon: 'grid', shortcut: '3', hint: 'Things I made' },
     { href: '/case-studies', label: 'Projects', icon: 'folder', shortcut: '4', hint: 'Deep dives' },
     { href: '/progress', label: 'Progress', icon: 'chart', shortcut: '5', hint: 'Journey log' },
-    { href: '/arcade', label: 'Arcade', icon: 'globe', shortcut: '6', hint: 'Play mini games' },
-    { href: '/contact', label: 'Contact', icon: 'envelope', shortcut: '7', hint: 'Say hello' },
+    { href: '/contact', label: 'Contact', icon: 'envelope', shortcut: '6', hint: 'Say hello' },
   ];
 
   const BAR_HEIGHT = GRID_SIZE * 3;

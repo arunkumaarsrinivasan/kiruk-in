@@ -80,18 +80,6 @@ const DETECTIVE_STORIES: Record<string, StorySegment> = {
     ],
     clue: "Skills are tools - understand them to solve the case."
   },
-  '/arcade': {
-    id: 'arcade-discovery',
-    title: 'The Arcade Discovery',
-    dialogue: [
-      "You've found the arcade.",
-      "These mini-games are training exercises.",
-      "Complete them to sharpen your detective skills.",
-      "Each game teaches you something new.",
-      "Master them to unlock new abilities."
-    ],
-    clue: "Games are training - practice makes perfect."
-  },
   '/contact': {
     id: 'transmission',
     title: 'The Transmission',
@@ -103,18 +91,6 @@ const DETECTIVE_STORIES: Record<string, StorySegment> = {
       "Your mission is almost complete."
     ],
     clue: "Communication is the final piece of the puzzle."
-  },
-  '/lab': {
-    id: 'lab-experiments',
-    title: 'The Lab Experiments',
-    dialogue: [
-      "You've entered the experimental lab.",
-      "These are interactive experiments.",
-      "Play, explore, and experiment.",
-      "Each experiment reveals new insights.",
-      "Use them to enhance your detective skills."
-    ],
-    clue: "Experiments are tests - pass them to progress."
   }
 };
 

@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useMemo, useState, useId, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, useId, useCallback, type CSSProperties, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { GRID_SIZE } from '@/lib/utils'
 import { GridBackground } from '@/components/ui/GridBackground'
 import { PixelIcon } from '@/components/ui/PixelIcon'
+import { useContextBar } from '@/contexts/ContextBarContext'
 
 interface GitHubCommit {
   sha: string
@@ -161,6 +162,7 @@ function calculatePlayerStats(
 }
 
 type ChartCardProps = {
+  id?: string
   title: string
   description: string
   accentColor: string
@@ -537,9 +539,10 @@ function TerminalOutput({ commits }: { commits: GitHubCommit[] }) {
 }
 
 // Terminal-style card for Commit Stream - Pixel grid style
-function TerminalCard({ title, description, children, className }: ChartCardProps) {
+function TerminalCard({ id, title, description, children, className }: ChartCardProps) {
   return (
     <motion.section
+      id={id}
       className={`relative wireframe-border ${className ?? ''}`}
       style={{ 
         imageRendering: "pixelated" as any,
@@ -687,9 +690,10 @@ function TodoList({ items, type }: { items: (LifeGoal | BucketListItem | Monthly
 }
 
 // Notebook-style card for Notion Boards - Pixel grid style
-function NotebookCard({ title, description, children, className }: ChartCardProps) {
+function NotebookCard({ id, title, description, children, className }: ChartCardProps) {
   return (
     <motion.section
+      id={id}
       className={`relative wireframe-border ${className ?? ''}`}
       style={{ 
         imageRendering: "pixelated" as any,
@@ -719,9 +723,10 @@ function NotebookCard({ title, description, children, className }: ChartCardProp
 }
 
 // Strategy board-style card for Goal Strategy - Pixel grid style
-function StrategyCard({ title, description, children, className }: ChartCardProps) {
+function StrategyCard({ id, title, description, children, className }: ChartCardProps) {
   return (
     <motion.section
+      id={id}
       className={`relative wireframe-border ${className ?? ''}`}
       style={{ 
         imageRendering: "pixelated" as any,
@@ -780,9 +785,10 @@ function StrategyCard({ title, description, children, className }: ChartCardProp
 }
 
 // Map-style card for Adventure Timeline - Pixel grid style
-function MapCard({ title, description, children, className }: ChartCardProps) {
+function MapCard({ id, title, description, children, className }: ChartCardProps) {
   return (
     <motion.section
+      id={id}
       className={`relative wireframe-border ${className ?? ''}`}
       style={{ 
         imageRendering: "pixelated" as any,
@@ -819,9 +825,10 @@ function MapCard({ title, description, children, className }: ChartCardProps) {
 }
 
 // Calendar-style card for Monthly Cadence - Pixel grid style
-function CalendarCard({ title, description, children, className }: ChartCardProps) {
+function CalendarCard({ id, title, description, children, className }: ChartCardProps) {
   return (
     <motion.section
+      id={id}
       className={`relative wireframe-border ${className ?? ''}`}
       style={{ 
         imageRendering: "pixelated" as any,
@@ -864,9 +871,10 @@ function CalendarCard({ title, description, children, className }: ChartCardProp
 }
 
 // Default card
-function DefaultCard({ title, description, children, footer, className }: ChartCardProps) {
+function DefaultCard({ id, title, description, children, footer, className }: ChartCardProps) {
   return (
     <motion.section
+      id={id}
       className={`relative wireframe-border ${className ?? ''}`}
       style={{ imageRendering: "pixelated" as any }}
       initial={{ opacity: 0, y: 30, scale: 0.95 }}
@@ -889,8 +897,8 @@ function DefaultCard({ title, description, children, footer, className }: ChartC
   )
 }
 
-function ChartCard({ title, description, accentColor, children, footer, className, variant = 'default' }: ChartCardProps) {
-  const props = { title, description, accentColor, children, footer, className }
+function ChartCard({ id, title, description, accentColor, children, footer, className, variant = 'default' }: ChartCardProps) {
+  const props = { id, title, description, accentColor, children, footer, className }
   
   switch (variant) {
     case 'terminal':
@@ -1149,6 +1157,9 @@ export default function UnifiedProgress() {
   const [loading, setLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null)
+  
+  // Import context bar hook
+  const { setProgressData, setProgressSectionHandler } = useContextBar()
 
   const [timelineView, setTimelineView] = useState<'dev' | 'monthly'>('dev')
   const [timelineHighlight, setTimelineHighlight] = useState<number | null>(null)
@@ -1156,6 +1167,74 @@ export default function UnifiedProgress() {
   const [timelineSpan, setTimelineSpan] = useState(12)
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null)
   const [activeNotebook, setActiveNotebook] = useState<'lifeGoals' | 'bucketList' | 'monthlyGoals'>('lifeGoals')
+  
+  // Handler for section navigation from context bar
+  const handleSectionClick = useCallback((section: 'monthly' | 'bucket' | 'goals') => {
+    const notebookMap: Record<'monthly' | 'bucket' | 'goals', 'lifeGoals' | 'bucketList' | 'monthlyGoals'> = {
+      monthly: 'monthlyGoals',
+      bucket: 'bucketList',
+      goals: 'lifeGoals',
+    };
+    setActiveNotebook(notebookMap[section]);
+    
+    // Scroll to the Notion Boards section (which contains all three tabs)
+    const element = document.getElementById('notion-boards');
+    if (element) {
+      const headerOffset = 100; // nav + context bar
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth',
+      });
+    }
+  }, []);
+
+  // Register section handler with context bar
+  useEffect(() => {
+    if (setProgressSectionHandler) {
+      setProgressSectionHandler(handleSectionClick);
+    }
+    // Only register when handleSectionClick changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [handleSectionClick]);
+  
+  // Update context bar with progress data
+  useEffect(() => {
+    if (loading) return;
+    
+    const monthlyData = monthlyGoals
+      .slice()
+      .sort((a, b) => new Date(b.year, b.month - 1).getTime() - new Date(a.year, a.month - 1).getTime())
+      .slice(0, 3)
+      .map((entry) => {
+        const total = entry.goals.length || 1;
+        const done = entry.goals.filter((goal) => goal.completed).length;
+        return {
+          month: `${entry.year}-${String(entry.month).padStart(2, '0')}`,
+          completion: Math.round((done / total) * 100),
+        };
+      });
+    
+    const bucketData = bucketList.slice(0, 5).map((item) => ({
+      id: item._id,
+      title: item.title,
+      status: item.status,
+    }));
+    
+    const goalsData = lifeGoals.slice(0, 5).map((goal) => ({
+      id: goal._id,
+      title: goal.title,
+      priority: goal.priority,
+    }));
+    
+    setProgressData({
+      monthlyGoals: monthlyData,
+      bucketList: bucketData,
+      lifeGoals: goalsData,
+      activeSection: activeNotebook === 'lifeGoals' ? 'goals' : activeNotebook === 'bucketList' ? 'bucket' : 'monthly',
+    });
+  }, [loading, monthlyGoals, bucketList, lifeGoals, activeNotebook, setProgressData]);
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -1820,6 +1899,7 @@ export default function UnifiedProgress() {
           </ChartCard>
 
           <ChartCard
+            id="notion-boards"
             title="📋 Notion Boards"
             description="Glide through the original databases pulled straight from Notion. Each tab surfaces a different playbook."
             accentColor="bg-sky-50"

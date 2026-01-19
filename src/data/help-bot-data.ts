@@ -168,26 +168,9 @@ export const PAGE_HELP_DATA: PageHelp[] = [
     tips: [
       'This page shows your growth and progress',
       'Check back regularly to see updates',
-      'Completing this unlocks the Arcade page',
+      'Completing this unlocks the Contact page',
     ],
     shortcuts: ['5 - Jump to progress'],
-  },
-  {
-    path: '/arcade',
-    title: 'Arcade - Training Ground',
-    description: 'Sharpen your detective skills with training exercises. Play mini-games and complete objectives.',
-    instructions: [
-      'Select a mini-game to play',
-      'Reach 50 points to complete a game',
-      'Try different games to earn more XP',
-      'Complete all games for the master achievement',
-    ],
-    tips: [
-      'Each game has different controls - read the instructions',
-      'Practice makes perfect!',
-      'Completing games unlocks the Contact page',
-    ],
-    shortcuts: ['6 - Jump to arcade'],
   },
   {
     path: '/contact',

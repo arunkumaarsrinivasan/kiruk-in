@@ -12,6 +12,7 @@ import {
     EXPERIENCE_DATES,
 } from '@/data/observatory-data';
 import { Experience } from '@/data/portfolio-data';
+import { useContextBar } from '@/contexts/ContextBarContext';
 
 /**
  * ObservatoryView - Enhanced Skills Constellation
@@ -32,6 +33,8 @@ export function ObservatoryView() {
         experiences,
         getConnectionLines,
     } = useObservatoryData();
+
+    const { setWorkExperienceHandler } = useContextBar();
 
     // Core state
     const [selectedSkillId, setSelectedSkillId] = useState<string | null>(null);
@@ -128,6 +131,13 @@ export function ObservatoryView() {
         if (isMobile) setShowMobilePanel(true);
     }, [isMobile]);
 
+    // Register handler with context bar
+    useEffect(() => {
+        if (setWorkExperienceHandler) {
+            setWorkExperienceHandler(handleExperienceSelect);
+        }
+    }, [handleExperienceSelect, setWorkExperienceHandler]);
+
     const handleConstellationClick = useCallback((constellationId: string) => {
         setConstellationFilter(prev => prev === constellationId ? null : constellationId);
     }, []);
@@ -147,7 +157,7 @@ export function ObservatoryView() {
     const isDetailOpen = selectedSkillId !== null || selectedExperienceId !== null;
 
     return (
-        <div className="w-full h-[calc(100vh-64px)] relative overflow-hidden flex" style={{ backgroundColor: 'var(--bg-main)' }}>
+        <div className="w-full h-[calc(100vh-100px)] relative overflow-hidden flex" style={{ backgroundColor: 'var(--bg-main)' }}>
 
             {/* LEFT: Unified Control Panel (Desktop) */}
             {!isMobile && (
@@ -186,7 +196,7 @@ export function ObservatoryView() {
                         <rect x="2" y="2" width="96" height="96" fill="none" stroke="var(--border-color)" strokeWidth="0.2" opacity="0.3" />
 
                         {/* Concentric circles */}
-                        {gridConfig.yAxis.levels.map((level, i) => {
+                        {gridConfig.yAxis.levels.map((level, _i) => {
                             const r = maxRadius * (0.2 + (1 - level.position / 100) * 0.8);
                             return <circle key={level.id} cx={cx} cy={cy} r={r} fill="none" stroke="var(--border-color)" strokeWidth="0.1" opacity="0.3" />;
                         })}
@@ -425,15 +435,13 @@ export function ObservatoryView() {
 // ============================================
 
 function ControlPanel({
-    constellationCounts,
-    activeConstellation,
     onConstellationClick,
     stats,
     hoveredSkill,
     totalSkills,
 }: {
-    constellationCounts: Record<string, { total: number; visible: number }>;
-    activeConstellation: string | null;
+    constellationCounts?: Record<string, { total: number; visible: number }>;
+    activeConstellation?: string | null;
     onConstellationClick: (id: string) => void;
     stats: { skillsExplored: Set<string>; constellationsVisited: Set<string>; logsReviewed: number; startTime: number };
     hoveredSkill: PositionedSkillNode | null | undefined;
@@ -672,7 +680,7 @@ function TimelineSlider({
             <div className="relative h-16 mb-2">
                 {/* Year grid lines */}
                 <div className="absolute inset-0 flex">
-                    {years.map((year, i) => (
+                    {years.map((year) => (
                         <div key={year} className="flex-1 border-l" style={{ borderColor: 'var(--border-color)', opacity: 0.3 }}>
                             <span className="text-[9px] ml-1" style={{ color: 'var(--text-muted)' }}>{year}</span>
                         </div>

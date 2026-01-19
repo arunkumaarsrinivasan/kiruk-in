@@ -9,11 +9,9 @@ import { useMemo } from 'react';
 import { useExperience } from './usePortfolioData';
 import { Experience } from '@/data/portfolio-data';
 import {
-    SKILL_NODES,
     CONSTELLATIONS,
     GRID_CONFIG,
     PositionedSkillNode,
-    SkillNode,
     ConstellationConfig,
     ObservatoryGridConfig,
     getPositionedSkillNodes,

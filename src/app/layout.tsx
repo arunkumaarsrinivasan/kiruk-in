@@ -9,6 +9,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { DesignEraProvider } from "@/contexts/DesignEraContext";
 import { GameModeProvider } from "@/contexts/GameModeContext";
+import { ContextBarProvider } from "@/contexts/ContextBarContext";
 
 export const metadata: Metadata = {
   title: "Kiruk | AI + UX Designer Portfolio",
@@ -39,12 +40,14 @@ export default function RootLayout({
         <ThemeProvider>
           <DesignEraProvider>
             <GameModeProvider>
-              <CursorProvider>
-                <AnalyticsTracker />
-                <LayoutClientShell>
-                  {children}
-                </LayoutClientShell>
-              </CursorProvider>
+              <ContextBarProvider>
+                <CursorProvider>
+                  <AnalyticsTracker />
+                  <LayoutClientShell>
+                    {children}
+                  </LayoutClientShell>
+                </CursorProvider>
+              </ContextBarProvider>
             </GameModeProvider>
           </DesignEraProvider>
         </ThemeProvider>

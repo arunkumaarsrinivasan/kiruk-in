@@ -106,73 +106,6 @@ export function HeroWithHatSwitching({
                     {/* Content */}
                     <div className="relative z-10 flex flex-col items-center gap-6 py-4">
 
-                        {/* === USER INSIGHT SECTION === */}
-                        <motion.div
-                            className="w-full max-w-2xl mb-4"
-                            initial={isClient ? { opacity: 0, y: 20 } : { opacity: 1, y: 0 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={isClient ? { delay: 0.1 } : { duration: 0 }}
-                        >
-                            {/* Insight Header */}
-                            <div className="flex items-center gap-2 mb-4">
-                                <span className="text-lg">🔍</span>
-                                <span
-                                    className="text-[10px] font-mono uppercase tracking-widest px-2 py-1 border"
-                                    style={{ borderColor: 'var(--accent-color)', color: 'var(--accent-color)' }}
-                                >
-                                    User Insight
-                                </span>
-                            </div>
-
-                            {/* Pain Points Grid */}
-                            <div className="grid md:grid-cols-2 gap-3 mb-4">
-                                <div
-                                    className="border p-3"
-                                    style={{ borderColor: 'var(--border-color)' }}
-                                >
-                                    <div className="text-[10px] font-mono uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>
-                                        ⚡ Pain Point
-                                    </div>
-                                    <p className="text-xs font-mono" style={{ color: 'var(--text-main)' }}>
-                                        Design-to-development handoff causes friction, delays, and lost context
-                                    </p>
-                                </div>
-                                <div
-                                    className="border p-3"
-                                    style={{ borderColor: 'var(--border-color)' }}
-                                >
-                                    <div className="text-[10px] font-mono uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>
-                                        📊 Market Gap
-                                    </div>
-                                    <p className="text-xs font-mono" style={{ color: 'var(--text-main)' }}>
-                                        Teams need hybrid talent who can design AND implement
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* The Bridge - You */}
-                            <div
-                                className="border-2 p-4"
-                                style={{ borderColor: 'var(--accent-color)', backgroundColor: 'rgba(var(--accent-color-rgb), 0.05)' }}
-                            >
-                                <div className="flex items-center gap-2 mb-2">
-                                    <span className="text-lg">🌉</span>
-                                    <span
-                                        className="text-[10px] font-mono uppercase tracking-widest font-bold"
-                                        style={{ color: 'var(--accent-color)' }}
-                                    >
-                                        The Bridge
-                                    </span>
-                                </div>
-                                <p className="text-sm font-mono font-bold" style={{ color: 'var(--text-main)' }}>
-                                    I am a Design Engineer who speaks both languages fluently.
-                                </p>
-                                <p className="text-xs font-mono mt-1" style={{ color: 'var(--text-muted)' }}>
-                                    From Figma to Production • From Research to Release
-                                </p>
-                            </div>
-                        </motion.div>
-
                         {/* Introduction */}
                         <motion.h2
                             className="text-4xl md:text-5xl font-mono font-black uppercase text-center"
@@ -368,37 +301,18 @@ export function HeroWithHatSwitching({
                             </motion.div>
                         </div>
 
+                        <motion.p
+                            className="text-[10px] font-mono uppercase tracking-wider"
+                            style={{ color: 'var(--text-muted)' }}
+                            initial={isClient ? { opacity: 0 } : { opacity: 1 }}
+                            animate={{ opacity: 1 }}
+                            transition={isClient ? { delay: 0.6 } : { duration: 0 }}
+                        >
+                            Tap a hat to explore the mix
+                        </motion.p>
+
                         {/* Role Description */}
                         <div className="flex flex-col items-center gap-4 max-w-lg text-center">
-                            <motion.h3
-                                className="text-2xl md:text-3xl font-mono font-black uppercase"
-                                style={{ color: 'var(--text-main)' }}
-                                initial={isClient ? { opacity: 0, y: 20 } : { opacity: 1, y: 0 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={isClient ? { delay: 0.4 } : { duration: 0 }}
-                            >
-                                WEARING MULTIPLE HATS
-                            </motion.h3>
-                            <motion.p
-                                className="text-sm font-mono leading-relaxed"
-                                style={{ color: 'var(--text-muted)' }}
-                                initial={isClient ? { opacity: 0, y: 20 } : { opacity: 1, y: 0 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={isClient ? { delay: 0.5 } : { duration: 0 }}
-                            >
-                                I speak both design and code fluently, bridging the gap between creative vision and technical execution.
-                            </motion.p>
-
-                            <motion.p
-                                className="text-[10px] font-mono uppercase tracking-wider"
-                                style={{ color: 'var(--text-muted)' }}
-                                initial={isClient ? { opacity: 0 } : { opacity: 1 }}
-                                animate={{ opacity: 1 }}
-                                transition={isClient ? { delay: 0.6 } : { duration: 0 }}
-                            >
-                                Click a hat to try it on
-                            </motion.p>
-
                             {/* Hat Selection Buttons */}
                             <div className="flex flex-wrap justify-center gap-3">
                                 {/* Designer Button */}
@@ -486,6 +400,25 @@ export function HeroWithHatSwitching({
                                     {activeHat === 'developer' && <span className="text-xs">✓</span>}
                                 </motion.button>
                             </div>
+
+                            <motion.h3
+                                className="text-2xl md:text-3xl font-mono font-black uppercase"
+                                style={{ color: 'var(--text-main)' }}
+                                initial={isClient ? { opacity: 0, y: 20 } : { opacity: 1, y: 0 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={isClient ? { delay: 0.4 } : { duration: 0 }}
+                            >
+                                DESIGNER WHO SHIPS
+                            </motion.h3>
+                            <motion.p
+                                className="text-sm font-mono leading-relaxed"
+                                style={{ color: 'var(--text-muted)' }}
+                                initial={isClient ? { opacity: 0, y: 20 } : { opacity: 1, y: 0 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={isClient ? { delay: 0.5 } : { duration: 0 }}
+                            >
+                                I blend product design and front-end engineering to deliver usable, beautiful experiences without translation loss.
+                            </motion.p>
 
                             {/* CTA Buttons */}
                             <motion.div

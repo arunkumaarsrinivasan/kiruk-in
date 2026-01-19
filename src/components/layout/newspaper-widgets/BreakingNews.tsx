@@ -20,7 +20,7 @@ const breakingNewsItems = [
   {
     id: 3,
     headline: 'EXPLORE PAGES: Each Page Has Interactive Elements',
-    summary: 'Navigate to /about for an interactive life journey, /work for project showcases, /arcade for more games, and /contact for a bomb defusal challenge. Every page is a new adventure!',
+    summary: 'Navigate to /about for an interactive life journey, /work for project showcases, and /contact for a bomb defusal challenge. Every page is a new adventure!',
     category: 'NAVIGATION',
     time: '5 min ago'
   },

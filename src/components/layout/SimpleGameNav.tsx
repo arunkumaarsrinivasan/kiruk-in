@@ -10,17 +10,18 @@
  * - Era selection changes eyeball design and theme
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, usePathname } from 'next/navigation';
 import { GRID_SIZE, cn } from '@/lib/utils';
 import { useDesignEra } from '@/contexts/DesignEraContext';
-import { useGameMode, PAGE_GAMES, GAME_TYPE_ICONS } from '@/contexts/GameModeContext';
-import { PixelIcon } from '@/components/ui/PixelIcon';
+import { useGameMode, PAGE_GAMES } from '@/contexts/GameModeContext';
 import { AVAILABLE_THEMES, ThemeConfig } from '@/data/portfolio-data';
 import { GameMenuOverlay } from './GameMenuOverlay';
 import { getPageInfo } from '@/data/page-info';
 import { getNextGame } from '@/data/game-navigation-data';
+import { DesignSystemLab } from '@/components/ui/TimeMachine/components/DesignSystemLab';
+import { DesignLabEditor, type LabDesignTokens } from '@/components/ui/TimeMachine/components/DesignLabEditor';
 
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -38,7 +39,7 @@ const PixelEye: React.FC<PixelEyeProps> = ({ size = 52, eraId, onClick, classNam
   const [pupilPos, setPupilPos] = useState({ x: 0, y: 0 });
   const [isBlinking, setIsBlinking] = useState(false);
   const eyeRef = useRef<HTMLDivElement>(null);
-  
+
   const cols = 13;
   const rows = 9;
   const pixelSize = Math.floor(size / cols);
@@ -60,9 +61,14 @@ const PixelEye: React.FC<PixelEyeProps> = ({ size = 52, eraId, onClick, classNam
       const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
       const maxMove = pixelSize * 2;
       const moveAmount = Math.min(distance / 10, maxMove);
-      setPupilPos({
-        x: Math.cos(angle) * moveAmount,
-        y: Math.sin(angle) * moveAmount,
+      setPupilPos((prev) => {
+        const newX = Math.cos(angle) * moveAmount;
+        const newY = Math.sin(angle) * moveAmount;
+        // Only update if position actually changed to prevent unnecessary re-renders
+        if (Math.abs(prev.x - newX) < 0.1 && Math.abs(prev.y - newY) < 0.1) {
+          return prev;
+        }
+        return { x: newX, y: newY };
       });
     };
     globalThis.addEventListener('mousemove', handleMouseMove);
@@ -107,31 +113,31 @@ const PixelEye: React.FC<PixelEyeProps> = ({ size = 52, eraId, onClick, classNam
   const currentPattern = isBlinking ? blinkPattern : eyePattern;
 
   return (
-    <div 
+    <div
       ref={eyeRef}
       className={cn('relative cursor-pointer', className)}
       onClick={onClick}
       style={{ width: cols * pixelSize, height: rows * pixelSize }}
     >
-      <div 
+      <div
         className="absolute inset-0 grid"
-        style={{ 
+        style={{
           gridTemplateColumns: `repeat(${cols}, ${pixelSize}px)`,
           gridTemplateRows: `repeat(${rows}, ${pixelSize}px)`,
         }}
       >
         {currentPattern.flat().map((pixel, i) => (
-          <div 
-            key={i} 
-            style={{ 
+          <div
+            key={i}
+            style={{
               backgroundColor: pixel === 1 ? eyeColor : 'transparent',
               width: pixelSize,
               height: pixelSize,
-            }} 
+            }}
           />
         ))}
       </div>
-      
+
       {!isBlinking && (
         <motion.div
           className="absolute"
@@ -177,10 +183,10 @@ interface EyeTimelineOverlayProps {
 const getEraPupilDesign = (eraId: string): number[][] => {
   const era = AVAILABLE_THEMES.find(t => t.id === eraId);
   if (!era) return [[1, 1], [1, 1]]; // Default 2x2 pupil
-  
+
   // Different pupil patterns for different eras
   const year = parseInt(eraId);
-  
+
   if (year < 1980) {
     // 1970s: Simple square (terminal style)
     return [[1, 1], [1, 1]];
@@ -203,11 +209,12 @@ const getEraPupilDesign = (eraId: string): number[][] => {
 };
 
 // Full-screen pixel eye with era-specific pupil
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const FullScreenPixelEye: React.FC<{ eraId: string; size: number }> = ({ eraId, size }) => {
   const [pupilPos, setPupilPos] = useState({ x: 0, y: 0 });
   const [isBlinking, setIsBlinking] = useState(false);
   const eyeRef = useRef<HTMLDivElement>(null);
-  
+
   const cols = 13;
   const rows = 9;
   const pixelSize = Math.floor(size / cols);
@@ -232,9 +239,14 @@ const FullScreenPixelEye: React.FC<{ eraId: string; size: number }> = ({ eraId, 
       const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
       const maxMove = pixelSize * 3;
       const moveAmount = Math.min(distance / 15, maxMove);
-      setPupilPos({
-        x: Math.cos(angle) * moveAmount,
-        y: Math.sin(angle) * moveAmount,
+      setPupilPos((prev) => {
+        const newX = Math.cos(angle) * moveAmount;
+        const newY = Math.sin(angle) * moveAmount;
+        // Only update if position actually changed to prevent unnecessary re-renders
+        if (Math.abs(prev.x - newX) < 0.1 && Math.abs(prev.y - newY) < 0.1) {
+          return prev;
+        }
+        return { x: newX, y: newY };
       });
     };
     globalThis.addEventListener('mousemove', handleMouseMove);
@@ -279,14 +291,14 @@ const FullScreenPixelEye: React.FC<{ eraId: string; size: number }> = ({ eraId, 
   const currentPattern = isBlinking ? blinkPattern : eyePattern;
 
   return (
-    <div 
+    <div
       ref={eyeRef}
       className="relative w-full h-full flex items-center justify-center"
       style={{ width: '100vw', height: '100vh' }}
     >
-      <div 
+      <div
         className="absolute inset-0 grid"
-        style={{ 
+        style={{
           gridTemplateColumns: `repeat(${cols}, ${pixelSize}px)`,
           gridTemplateRows: `repeat(${rows}, ${pixelSize}px)`,
           width: cols * pixelSize,
@@ -297,17 +309,17 @@ const FullScreenPixelEye: React.FC<{ eraId: string; size: number }> = ({ eraId, 
         }}
       >
         {currentPattern.flat().map((pixel, i) => (
-          <div 
-            key={i} 
-            style={{ 
+          <div
+            key={i}
+            style={{
               backgroundColor: pixel === 1 ? eyeColor : 'transparent',
               width: pixelSize,
               height: pixelSize,
-            }} 
+            }}
           />
         ))}
       </div>
-      
+
       {!isBlinking && (
         <motion.div
           className="absolute"
@@ -344,15 +356,16 @@ const FullScreenPixelEye: React.FC<{ eraId: string; size: number }> = ({ eraId, 
   );
 };
 
-const EyeTimelineOverlay: React.FC<EyeTimelineOverlayProps> = ({ 
-  isOpen, 
-  onClose, 
+const EyeTimelineOverlay: React.FC<EyeTimelineOverlayProps> = ({
+  isOpen,
+  onClose,
   currentEraId,
-  onEraSelect 
+  onEraSelect
 }) => {
   const overlayRef = useRef<HTMLDivElement>(null);
   const [hoveredEra, setHoveredEra] = useState<string | null>(null);
-  const displayEraId = hoveredEra || currentEraId;
+  const [isLabEditorOpen, setIsLabEditorOpen] = useState(false);
+  const _displayEraId = hoveredEra || currentEraId;
 
   // Get current era index
   const currentEraIndex = AVAILABLE_THEMES.findIndex(e => e.id === currentEraId);
@@ -385,7 +398,7 @@ const EyeTimelineOverlay: React.FC<EyeTimelineOverlayProps> = ({
   };
 
   // Stats calculations
-  const totalDecades = new Set(AVAILABLE_THEMES.map(e => `${Math.floor(parseInt(e.id) / 10) * 10}s`)).size;
+  const _totalDecades = new Set(AVAILABLE_THEMES.map(e => `${Math.floor(parseInt(e.id) / 10) * 10}s`)).size;
   const currentDecade = `${Math.floor(parseInt(currentEraId) / 10) * 10}s`;
 
   return (
@@ -400,15 +413,66 @@ const EyeTimelineOverlay: React.FC<EyeTimelineOverlayProps> = ({
             transition={{ duration: 0.3 }}
             className="fixed inset-0 bg-black/90 backdrop-blur-sm z-[100] pointer-events-none"
           />
-          
+
           {/* Full Screen Eye Container */}
           <div
             ref={overlayRef}
             className="fixed inset-0 z-[101] pointer-events-none"
           >
-            {/* Full Screen Eye - Positioned to leave space for minimal timeline */}
-            <div className="absolute inset-0 flex items-center justify-center" style={{ paddingBottom: '120px' }}>
-              <FullScreenPixelEye eraId={displayEraId} size={typeof globalThis !== 'undefined' ? Math.min(globalThis.innerWidth, globalThis.innerHeight) * 0.8 : 600} />
+            {/* Design System Lab / Lab Editor */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-auto" style={{ paddingBottom: '180px', paddingTop: '80px' }}>
+              <div className="w-full max-w-3xl h-full max-h-[550px] p-4">
+                {isLabEditorOpen ? (
+                  <DesignLabEditor
+                    era={currentEra}
+                    onApply={(tokens: LabDesignTokens) => {
+                      // Apply custom tokens to CSS variables
+                      const root = document.documentElement;
+
+                      // Set CSS variables directly
+                      root.style.setProperty('--bg-main', tokens.colors.background);
+                      root.style.setProperty('--bg-card', tokens.colors.secondary);
+                      root.style.setProperty('--text-main', tokens.colors.text);
+                      root.style.setProperty('--text-muted', `${tokens.colors.text}99`);
+                      root.style.setProperty('--accent-color', tokens.colors.accent);
+                      root.style.setProperty('--border-color', `${tokens.colors.text}33`);
+                      root.style.setProperty('--font-main', tokens.fonts.primary);
+                      root.style.setProperty('--font-heading', tokens.fonts.secondary);
+
+                      // Save to localStorage for persistence
+                      const customEra = {
+                        id: 'custom',
+                        name: 'Lab Design',
+                        bgMain: tokens.colors.background,
+                        bgCard: tokens.colors.secondary,
+                        textMain: tokens.colors.text,
+                        textMuted: `${tokens.colors.text}99`,
+                        accentColor: tokens.colors.accent,
+                        borderColor: `${tokens.colors.text}33`,
+                        gridColor: tokens.colors.primary,
+                        fontMain: tokens.fonts.primary,
+                        fontHeading: tokens.fonts.secondary,
+                        gridSize: 20,
+                        gridOpacity: 50,
+                      };
+                      localStorage.setItem('kiruk-custom-era', JSON.stringify(customEra));
+                      localStorage.setItem('portfolio-theme', 'custom');
+
+                      // Update body data attribute
+                      document.body.setAttribute('data-era', 'custom');
+
+                      console.log('✅ Applied custom design tokens:', tokens);
+                      setIsLabEditorOpen(false);
+                    }}
+                    onClose={() => setIsLabEditorOpen(false)}
+                  />
+                ) : (
+                  <DesignSystemLab
+                    era={currentEra}
+                    onOpenLabEditor={() => setIsLabEditorOpen(true)}
+                  />
+                )}
+              </div>
             </div>
 
             {/* Top Left: Close Button */}
@@ -424,143 +488,143 @@ const EyeTimelineOverlay: React.FC<EyeTimelineOverlayProps> = ({
               ×
             </motion.button>
 
-            {/* Top Right: Stats */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="absolute top-4 right-4 pointer-events-auto bg-[var(--bg-card)]/95 backdrop-blur-md border-2 border-[var(--border-color)] p-4 z-50"
-            >
-              <div className="space-y-2">
-                <div className="text-xs font-mono text-[var(--text-muted)] uppercase">Stats</div>
-                <div className="text-sm font-mono font-bold text-[var(--text-main)]">
-                  {currentEraIndex + 1} / {totalEras}
-                </div>
-                <div className="text-xs font-mono text-[var(--text-muted)]">
-                  {totalDecades} Decades
-                </div>
-                <div className="text-xs font-mono text-[var(--accent-color)]">
-                  {currentDecade}
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Top Right: Chips - Below Stats */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="absolute top-4 right-4 pointer-events-auto bg-[var(--bg-card)]/95 backdrop-blur-md border-2 border-[var(--border-color)] p-4 z-50 max-w-xs"
-              style={{ marginTop: '120px' }}
-            >
-              <div className="text-xs font-mono text-[var(--text-muted)] uppercase mb-2">Key Elements</div>
-              <div className="flex flex-wrap gap-1.5">
-                {currentEra.keyElements && currentEra.keyElements.map((element, idx) => (
-                  <span
-                    key={idx}
-                    className="px-2 py-1 text-[10px] font-mono uppercase border border-[var(--accent-color)] text-[var(--accent-color)] bg-[var(--accent-color)]/10"
-                  >
-                    {element}
-                  </span>
-                ))}
-              </div>
-            </motion.div>
-
-            {/* Minimal Playable Timeline - Bottom */}
+            {/* Redesigned Timeline Navigation - Bottom */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
               transition={{ delay: 0.2 }}
-              className="absolute bottom-0 left-0 right-0 pointer-events-auto bg-[var(--bg-card)]/95 backdrop-blur-md border-t-2 border-[var(--border-color)] p-4 z-50"
+              className="absolute bottom-0 left-0 right-0 pointer-events-auto bg-[var(--bg-card)]/98 backdrop-blur-md border-t-2 border-[var(--border-color)] z-50"
             >
-              {/* Timeline Visualization Bar - Clickable */}
-              <div className="relative h-4 bg-[var(--bg-secondary)] border border-[var(--border-color)] mb-4 cursor-pointer">
-                {AVAILABLE_THEMES.map((era) => {
-                  const position = getEraPosition(era);
-                  const isActive = era.id === currentEraId;
-                  return (
-                    <motion.div
-                      key={era.id}
-                      className="absolute top-0 h-full cursor-pointer group"
-                      style={{
-                        left: `${position}%`,
-                        width: `${100 / totalEras}%`,
-                      }}
-                      onClick={() => handleEraClick(era.id)}
-                      onMouseEnter={() => setHoveredEra(era.id)}
-                      onMouseLeave={() => setHoveredEra(null)}
-                      whileHover={{ scaleY: 1.8 }}
-                    >
-                      <div
-                        className={cn(
-                          'w-full h-full transition-colors',
-                          isActive ? 'bg-[var(--accent-color)]' : 'bg-[var(--text-muted)]/50 group-hover:bg-[var(--text-muted)]'
-                        )}
-                      />
-                      {/* Era label on hover */}
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-[var(--bg-card)] border border-[var(--border-color)] text-[10px] font-mono text-[var(--text-main)] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                        {era.id}
-                      </div>
-                    </motion.div>
-                  );
-                })}
+              {/* Wireframe-style Header with Instructions */}
+              <div className="flex items-center justify-between px-4 py-2 border-b border-[var(--border-color)]/50">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 rounded-full bg-[var(--accent-color)] animate-pulse" />
+                  <span className="text-[10px] font-mono uppercase text-[var(--text-muted)] tracking-wider">
+                    {/* TIME_MACHINE.v1 */}
+                  </span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="text-[10px] font-mono text-[var(--text-muted)]">
+                    ← → Navigate • Click to Select • Design System Preview Above
+                  </span>
+                  <span className="text-[10px] font-mono font-bold text-[var(--accent-color)]">
+                    {currentEraIndex + 1}/{totalEras} ERAS
+                  </span>
+                </div>
               </div>
-              
-              {/* Minimal Era Info with Navigation */}
-              <div className="flex items-center justify-between gap-4">
+
+              {/* Timeline Slider with Year Labels */}
+              <div className="px-4 pt-3 pb-2">
+                {/* Year Range Labels */}
+                <div className="flex justify-between mb-1">
+                  <span className="text-[9px] font-mono text-[var(--text-muted)]">1970</span>
+                  <span className="text-[9px] font-mono text-[var(--text-muted)]">1980</span>
+                  <span className="text-[9px] font-mono text-[var(--text-muted)]">1990</span>
+                  <span className="text-[9px] font-mono text-[var(--text-muted)]">2000</span>
+                  <span className="text-[9px] font-mono text-[var(--text-muted)]">2010</span>
+                  <span className="text-[9px] font-mono text-[var(--text-muted)]">2020</span>
+                </div>
+
+                {/* Timeline Bar */}
+                <div className="relative h-3 bg-[var(--bg-main)] border border-[var(--border-color)] cursor-pointer">
+                  {/* Progress Fill */}
+                  <div
+                    className="absolute top-0 left-0 h-full bg-[var(--accent-color)]/20 transition-all"
+                    style={{ width: `${(currentEraIndex / (totalEras - 1)) * 100}%` }}
+                  />
+                  {/* Era Markers */}
+                  {AVAILABLE_THEMES.map((era) => {
+                    const position = getEraPosition(era);
+                    const isActive = era.id === currentEraId;
+                    const isHovered = era.id === hoveredEra;
+                    return (
+                      <motion.div
+                        key={era.id}
+                        className="absolute top-0 h-full cursor-pointer"
+                        style={{
+                          left: `${position}%`,
+                          width: `${100 / totalEras}%`,
+                        }}
+                        onClick={() => handleEraClick(era.id)}
+                        onMouseEnter={() => setHoveredEra(era.id)}
+                        onMouseLeave={() => setHoveredEra(null)}
+                      >
+                        <div
+                          className={cn(
+                            'w-full h-full transition-all border-r border-[var(--border-color)]/30',
+                            isActive ? 'bg-[var(--accent-color)]' : isHovered ? 'bg-[var(--text-main)]/40' : 'bg-transparent hover:bg-[var(--text-main)]/20'
+                          )}
+                        />
+                      </motion.div>
+                    );
+                  })}
+                  {/* Current Position Marker */}
+                  <motion.div
+                    className="absolute top-1/2 -translate-y-1/2 w-3 h-3 border-2 border-[var(--accent-color)] bg-[var(--bg-main)] z-10"
+                    style={{ left: `calc(${(currentEraIndex / (totalEras - 1)) * 100}% - 6px)` }}
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
+                </div>
+              </div>
+
+              {/* Current Era Info + Navigation */}
+              <div className="flex items-center gap-4 px-4 pb-3">
                 {/* Previous Button */}
                 <motion.button
                   onClick={navigatePrevious}
                   disabled={currentEraIndex === 0}
                   className={cn(
-                    'w-10 h-10 border-2 border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-main)] flex items-center justify-center font-mono text-lg hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] transition-colors flex-shrink-0',
-                    currentEraIndex === 0 && 'opacity-30 cursor-not-allowed'
+                    'w-10 h-10 border-2 border-[var(--border-color)] bg-[var(--bg-main)] text-[var(--text-main)] flex items-center justify-center font-mono text-lg transition-all flex-shrink-0',
+                    currentEraIndex === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-[var(--accent-color)] hover:text-[var(--bg-main)] hover:border-[var(--accent-color)]'
                   )}
-                  whileHover={currentEraIndex > 0 ? { scale: 1.1 } : {}}
-                  whileTap={currentEraIndex > 0 ? { scale: 0.9 } : {}}
+                  whileHover={currentEraIndex > 0 ? { scale: 1.05 } : {}}
+                  whileTap={currentEraIndex > 0 ? { scale: 0.95 } : {}}
                 >
                   ←
                 </motion.button>
 
-                {/* Current Era Info - Minimal */}
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={currentEraId}
-                    initial={{ opacity: 0, x: 10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -10 }}
-                    transition={{ duration: 0.2 }}
-                    className="flex-1 text-center cursor-pointer"
-                    onClick={() => {
-                      // Cycle through eras on click
-                      if (currentEraIndex < AVAILABLE_THEMES.length - 1) {
-                        navigateNext();
-                      } else {
-                        onEraSelect(AVAILABLE_THEMES[0].id);
-                      }
-                    }}
-                  >
-                    <div className="text-xs font-mono text-[var(--text-muted)] uppercase mb-1">
-                      {currentDecade}
-                    </div>
-                    <div className="font-mono font-bold text-base text-[var(--text-main)] mb-1">
-                      {currentEra.name}
-                    </div>
-                    <div className="text-xs font-mono text-[var(--text-muted)]">
-                      {currentEra.era}
-                    </div>
-                  </motion.div>
-                </AnimatePresence>
+                {/* Current Era Display */}
+                <div className="flex-1 bg-[var(--bg-main)] border border-[var(--border-color)] p-3">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={currentEraId}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                      className="flex items-center justify-between"
+                    >
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-[10px] font-mono text-[var(--accent-color)] uppercase">{currentDecade}</span>
+                          <span className="text-[9px] font-mono text-[var(--text-muted)]">{currentEra.style.toUpperCase()}</span>
+                        </div>
+                        <div className="font-mono font-bold text-sm text-[var(--text-main)]">
+                          {currentEra.name}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-[9px] font-mono text-[var(--text-muted)] uppercase">{currentEra.era}</div>
+                        <div className="text-[10px] font-mono text-[var(--accent-color)]">
+                          "{currentEra.lesson?.substring(0, 30)}..."
+                        </div>
+                      </div>
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
 
                 {/* Next Button */}
                 <motion.button
                   onClick={navigateNext}
                   disabled={currentEraIndex === AVAILABLE_THEMES.length - 1}
                   className={cn(
-                    'w-10 h-10 border-2 border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-main)] flex items-center justify-center font-mono text-lg hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] transition-colors flex-shrink-0',
-                    currentEraIndex === AVAILABLE_THEMES.length - 1 && 'opacity-30 cursor-not-allowed'
+                    'w-10 h-10 border-2 border-[var(--border-color)] bg-[var(--bg-main)] text-[var(--text-main)] flex items-center justify-center font-mono text-lg transition-all flex-shrink-0',
+                    currentEraIndex === AVAILABLE_THEMES.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-[var(--accent-color)] hover:text-[var(--bg-main)] hover:border-[var(--accent-color)]'
                   )}
-                  whileHover={currentEraIndex < AVAILABLE_THEMES.length - 1 ? { scale: 1.1 } : {}}
-                  whileTap={currentEraIndex < AVAILABLE_THEMES.length - 1 ? { scale: 0.9 } : {}}
+                  whileHover={currentEraIndex < AVAILABLE_THEMES.length - 1 ? { scale: 1.05 } : {}}
+                  whileTap={currentEraIndex < AVAILABLE_THEMES.length - 1 ? { scale: 0.95 } : {}}
                 >
                   →
                 </motion.button>
@@ -594,30 +658,13 @@ const SimpleGameNav: React.FC<SimpleGameNavProps> = ({
   onToggleGame: _onToggleGame,
 }) => {
   const { currentEraId, setEra } = useDesignEra();
-  const { 
-    toggleMenu, 
-    progress, 
-    getGameProgress, 
-    isLevelCompleted,
-    totalPossibleXP,
-    currentXPPercentage,
+  const {
+    toggleMenu,
   } = useGameMode();
   const pathname = usePathname();
   const [isTimelineOpen, setIsTimelineOpen] = useState(false);
-  const [showMissionDetails, setShowMissionDetails] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  
-  const BAR_HEIGHT = GRID_SIZE * 3;
 
-  // Check if mobile
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  const BAR_HEIGHT = GRID_SIZE * 3;
 
   const router = useRouter();
   const handleEraSelect = (eraId: string) => {
@@ -625,30 +672,42 @@ const SimpleGameNav: React.FC<SimpleGameNavProps> = ({
   };
 
   // Get current page game/mission
-  const currentGame = PAGE_GAMES.find(game => game.path === pathname);
-  const pageInfo = getPageInfo(pathname);
-  const gameProgress = currentGame ? getGameProgress(currentGame.id) : 0;
-  const completedLevels = currentGame ? (progress.completedLevels[currentGame.id] || []) : [];
-  const totalLevels = currentGame ? currentGame.levels.length : 0;
-  const gameTypeIcon = currentGame ? GAME_TYPE_ICONS[currentGame.gameType] : 'flag-checkered';
-
-  // Calculate current level index (first incomplete level, or last completed + 1)
-  const currentLevelIndex = currentGame
-    ? currentGame.levels.findIndex(level => !completedLevels.includes(level.id))
-    : -1;
-  const effectiveLevelIndex = currentLevelIndex >= 0 ? currentLevelIndex : totalLevels - 1;
-  const _currentLevel = currentGame && effectiveLevelIndex >= 0 && effectiveLevelIndex < totalLevels
-    ? currentGame.levels[effectiveLevelIndex]
-    : null;
+  const currentGame = useMemo(() => PAGE_GAMES.find(game => game.path === pathname), [pathname]);
+  const pageInfo = useMemo(() => getPageInfo(pathname), [pathname]);
 
   // Get next/previous games (pages) for navigation
-  const nextGame = currentGame ? getNextGame(currentGame.id) : null;
-  const previousGame = currentGame && currentGame.order > 1
-    ? PAGE_GAMES.find(game => game.order === currentGame.order - 1)
-    : null;
-  
+  const nextGame = useMemo(() => currentGame ? getNextGame(currentGame.id) : null, [currentGame]);
+  const previousGame = useMemo(() => {
+    if (!currentGame || currentGame.order <= 1) return null;
+    return PAGE_GAMES.find(game => game.order === currentGame.order - 1) || null;
+  }, [currentGame]);
+
   const hasNextGame = nextGame !== null;
   const hasPreviousGame = previousGame !== null;
+
+  // Extract stable primitive values for dependencies - ensure they're always defined
+  const currentGameId = currentGame?.id ?? null;
+  const currentGameOrder = currentGame?.order ?? null;
+  const nextGameId = nextGame?.id ?? null;
+  const nextGamePath = nextGame?.path ?? null;
+  const nextGameOrder = nextGame?.order ?? null;
+
+  // Debug: Log navigation state (can be removed in production)
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development' && pathname === '/about') {
+      console.log('[SimpleGameNav] About page navigation state:', {
+        pathname,
+        currentGame: currentGameId,
+        currentGameOrder,
+        nextGame: nextGameId,
+        nextGamePath,
+        nextGameOrder,
+        hasNextGame,
+        allGames: PAGE_GAMES.map(g => ({ id: g.id, path: g.path, order: g.order })),
+      });
+    }
+    // Using stable primitive values only - array size will always be constant
+  }, [pathname, currentGameId, currentGameOrder, nextGameId, nextGamePath, nextGameOrder, hasNextGame]);
 
   return (
     <>
@@ -656,8 +715,8 @@ const SimpleGameNav: React.FC<SimpleGameNavProps> = ({
       <header
         id="navigation"
         className="fixed top-0 left-0 right-0 z-50 border-b-2 border-[var(--border-color)] bg-[var(--bg-card)]/95 backdrop-blur-md"
-        style={{ 
-          height: BAR_HEIGHT * 2,
+        style={{
+          height: BAR_HEIGHT,
         }}
         role="banner"
       >
@@ -668,7 +727,7 @@ const SimpleGameNav: React.FC<SimpleGameNavProps> = ({
             <motion.button
               onClick={() => setIsTimelineOpen(true)}
               className="flex items-center justify-center border-r border-b border-[var(--border-color)] bg-[var(--bg-card)] hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] transition-colors duration-150"
-              style={{ 
+              style={{
                 height: BAR_HEIGHT,
                 width: BAR_HEIGHT,
                 padding: '8px',
@@ -679,7 +738,7 @@ const SimpleGameNav: React.FC<SimpleGameNavProps> = ({
             >
               <PixelEye size={36} eraId={currentEraId} />
             </motion.button>
-            
+
             {/* Previous Game Button - Merged with Eye Logo */}
             {currentGame && (
               <motion.button
@@ -690,10 +749,10 @@ const SimpleGameNav: React.FC<SimpleGameNavProps> = ({
                 }}
                 disabled={!hasPreviousGame}
                 className={cn(
-                  'flex items-center justify-center border-l border-r border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-main)] hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] transition-colors duration-150 font-mono text-lg',
+                  'flex items-center justify-center border-l border-r border-b border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-main)] hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] transition-colors duration-150 font-mono text-lg',
                   !hasPreviousGame && 'opacity-30 cursor-not-allowed'
                 )}
-                style={{ 
+                style={{
                   height: BAR_HEIGHT,
                   width: BAR_HEIGHT,
                 }}
@@ -706,102 +765,52 @@ const SimpleGameNav: React.FC<SimpleGameNavProps> = ({
             )}
           </div>
 
-          {/* CENTER: Mission Info */}
+          {/* CENTER: Simple Title */}
           <motion.div
-            className="flex-1 flex items-center justify-center gap-2 sm:gap-3 px-2 sm:px-4 min-w-0"
-            onHoverStart={() => setShowMissionDetails(true)}
-            onHoverEnd={() => setShowMissionDetails(false)}
+            className="flex-1 flex items-center justify-center px-2 sm:px-4 min-w-0"
           >
-            {currentGame ? (
-              <>
-                <PixelIcon name={gameTypeIcon} size={24} className="flex-shrink-0" />
-                <div className="flex flex-col items-center min-w-0">
-                  <div className="text-[10px] sm:text-xs font-mono text-[var(--text-muted)] uppercase tracking-wider truncate w-full text-center">
-                    MISSION: {currentGame.title}
-                  </div>
-                  <div className="text-[9px] sm:text-[10px] font-mono text-[var(--accent-color)] truncate w-full text-center">
-                    {currentGame.subtitle}
-                  </div>
-                </div>
-                <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-                  <div className="text-[10px] sm:text-xs font-mono text-[var(--text-main)]">
-                    {completedLevels.length}/{totalLevels}
-                  </div>
-                  <div className="w-12 sm:w-20 h-1.5 bg-[var(--bg-secondary)] border border-[var(--border-color)] relative overflow-hidden">
-                    <motion.div
-                      className="absolute inset-y-0 left-0 bg-[var(--accent-color)]"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${gameProgress}%` }}
-                      transition={{ duration: 0.5 }}
-                    />
-                  </div>
-                </div>
-              </>
-            ) : (
-              <>
-                <span className="text-lg sm:text-xl flex-shrink-0">📍</span>
-                <div className="flex flex-col items-center min-w-0">
-                  <div className="text-[10px] sm:text-xs font-mono text-[var(--text-muted)] uppercase tracking-wider truncate w-full text-center">
-                    {pageInfo.title}
-                  </div>
-                  <div className="text-[9px] sm:text-[10px] font-mono text-[var(--text-muted)] truncate w-full text-center hidden sm:block">
-                    {pageInfo.description}
-                  </div>
-                </div>
-              </>
-            )}
+            <div className="text-xs sm:text-sm font-mono text-[var(--text-main)] uppercase tracking-wider text-center">
+              {pageInfo.title}
+            </div>
           </motion.div>
 
-          {/* RIGHT: Next Button + XP Display + Menu Button (merged) */}
+          {/* RIGHT: Next Button + Menu Button */}
           <div className="flex">
-            {/* Next Game Button - Merged with XP Display */}
+            {/* Next Game Button */}
             {currentGame && (
               <motion.button
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   if (nextGame) {
                     router.push(nextGame.path);
+                  } else {
+                    console.warn('[SimpleGameNav] No next game found for:', currentGame.id);
                   }
                 }}
                 disabled={!hasNextGame}
                 className={cn(
-                  'flex items-center justify-center border-l border-r border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-main)] hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] transition-colors duration-150 font-mono text-lg',
+                  'flex items-center justify-center border-l border-r border-b border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-main)] hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] transition-colors duration-150 font-mono text-lg',
                   !hasNextGame && 'opacity-30 cursor-not-allowed'
                 )}
-                style={{ 
+                style={{
                   height: BAR_HEIGHT,
                   width: BAR_HEIGHT,
                 }}
                 whileHover={hasNextGame ? { scale: 1.05 } : {}}
                 whileTap={hasNextGame ? { scale: 0.95 } : {}}
-                aria-label="Next game"
+                aria-label={`Next game: ${nextGame?.title || 'None'}`}
+                type="button"
               >
                 →
               </motion.button>
             )}
 
-            {/* XP Display - Hidden on very small screens */}
-            <div className="hidden sm:flex flex-col items-end justify-center px-2 border-r border-b border-[var(--border-color)] bg-[var(--bg-card)]"
-              style={{ height: BAR_HEIGHT }}
-            >
-              <div className="text-[10px] font-mono text-[var(--text-muted)] uppercase">XP</div>
-              <div className="text-xs font-mono font-bold text-[var(--accent-color)]">
-                {progress.totalXP}/{totalPossibleXP}
-              </div>
-              <div className="w-16 h-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] relative overflow-hidden">
-                <motion.div
-                  className="absolute inset-y-0 left-0 bg-[var(--accent-color)]"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${currentXPPercentage}%` }}
-                  transition={{ duration: 0.5 }}
-                />
-              </div>
-            </div>
-            
             {/* Menu Button */}
             <motion.button
               onClick={toggleMenu}
-              className="flex items-center justify-center border-l border-b border-[var(--border-color)] bg-[var(--bg-card)] hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] transition-colors duration-150"
-              style={{ 
+              className="flex items-center justify-center border-l border-b border-[var(--border-color)] bg-[var(--text-main)] text-[var(--bg-main)] hover:bg-[var(--bg-card)] hover:text-[var(--text-main)] transition-colors duration-150 font-mono"
+              style={{
                 height: BAR_HEIGHT,
                 width: BAR_HEIGHT,
               }}
@@ -809,55 +818,10 @@ const SimpleGameNav: React.FC<SimpleGameNavProps> = ({
               whileTap={{ scale: 0.95 }}
               aria-label="Toggle navigation menu"
             >
-              <span className="text-lg font-mono">☰</span>
+              <span className="text-[10px] font-mono uppercase">MENU</span>
             </motion.button>
           </div>
         </div>
-
-        {/* Bottom Row: Mission Checklist */}
-        {currentGame && (
-          <motion.div
-            className="flex items-center gap-1 sm:gap-2 px-1 sm:px-2 border-t border-[var(--border-color)] bg-[var(--bg-secondary)]/50"
-            style={{ height: BAR_HEIGHT }}
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: showMissionDetails ? 1 : 0.7, y: 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            <div className="text-[9px] sm:text-[10px] font-mono text-[var(--text-muted)] uppercase flex-shrink-0 hidden sm:block">
-              OBJECTIVES:
-            </div>
-            <div className="flex-1 flex items-center gap-1 sm:gap-1.5 overflow-x-auto scrollbar-hide">
-              {currentGame.levels.slice(0, isMobile ? 3 : 5).map((level, idx) => {
-                const isCompleted = isLevelCompleted(currentGame.id, level.id);
-                return (
-                  <motion.div
-                    key={level.id}
-                    className={cn(
-                      "flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 border text-[8px] sm:text-[9px] font-mono whitespace-nowrap flex-shrink-0",
-                      isCompleted
-                        ? "bg-[var(--accent-color)]/20 border-[var(--accent-color)] text-[var(--accent-color)]"
-                        : "bg-[var(--bg-card)] border-[var(--border-color)] text-[var(--text-muted)]"
-                    )}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: idx * 0.05 }}
-                  >
-                    <span>{isCompleted ? '✓' : '○'}</span>
-                    <span className="truncate max-w-[60px] sm:max-w-[80px]">{level.name}</span>
-                  </motion.div>
-                );
-              })}
-              {currentGame.levels.length > (isMobile ? 3 : 5) && (
-                <div className="text-[8px] sm:text-[9px] font-mono text-[var(--text-muted)] px-1 sm:px-2">
-                  +{currentGame.levels.length - (isMobile ? 3 : 5)} more
-                </div>
-              )}
-            </div>
-            <div className="text-[9px] sm:text-[10px] font-mono text-[var(--accent-color)] flex-shrink-0">
-              {gameProgress}%
-            </div>
-          </motion.div>
-        )}
       </header>
 
       {/* Game Menu Overlay - Gamified Navigation */}

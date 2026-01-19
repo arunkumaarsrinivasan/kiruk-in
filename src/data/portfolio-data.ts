@@ -199,6 +199,8 @@ export interface PortfolioData {
   certifications: Certification[];
   blog: BlogPost[];
   testimonials: Testimonial[];
+  impactMetrics: ImpactMetric[];
+  whyUXDesignEngineer: WhyUXDesignEngineer;
   metadata: {
     version: string;
     lastUpdated: string;
@@ -209,6 +211,24 @@ export interface PortfolioData {
       ogImage: string;
     };
   };
+}
+
+// Impact Metrics - quantified outcomes for Results section
+export interface ImpactMetric {
+  id: string;
+  value: string;        // "45%", "12+", "60%"
+  label: string;        // "engagement increase"
+  category: 'performance' | 'delivery' | 'scale' | 'impact';
+  icon: string;
+  context?: string;     // "on HP design system"
+}
+
+// Why UX Design Engineer narrative
+export interface WhyUXDesignEngineer {
+  hook: string;         // Opening line
+  painPoint: string;    // The problem
+  solution: string;     // Your value proposition
+  tagline: string;      // Memorable close
 }
 
 // Available Themes
@@ -1401,6 +1421,46 @@ export const portfolioData: PortfolioData = {
   certifications: [],
   blog: [],
   testimonials: [],
+  impactMetrics: [
+    {
+      id: 'engagement',
+      value: '45%',
+      label: 'engagement increase',
+      category: 'performance',
+      icon: '📈',
+      context: 'HP Design System components'
+    },
+    {
+      id: 'delivery',
+      value: '60%',
+      label: 'faster design-to-prod',
+      category: 'delivery',
+      icon: '⚡',
+      context: 'workflow optimization'
+    },
+    {
+      id: 'products',
+      value: '12+',
+      label: 'products shipped',
+      category: 'scale',
+      icon: '🚀',
+      context: 'enterprise & startups'
+    },
+    {
+      id: 'users',
+      value: '500K+',
+      label: 'users impacted',
+      category: 'impact',
+      icon: '👥',
+      context: 'across platforms'
+    }
+  ],
+  whyUXDesignEngineer: {
+    hook: 'Design-led thinking with engineering-grade execution.',
+    painPoint: 'When strategy, design, and code live apart, teams lose speed and intent.',
+    solution: 'I translate vision into production UI, design systems, and measurable outcomes.',
+    tagline: 'One workflow. One owner. Better launches.'
+  },
   metadata: {
     version: '1.0.0',
     lastUpdated: new Date().toISOString(),

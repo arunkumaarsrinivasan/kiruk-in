@@ -5,6 +5,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { GRID_SIZE, cn } from '@/lib/utils';
 import { useDesignEra } from '@/contexts/DesignEraContext';
 import type { ThemeConfig } from '@/data/portfolio-data';
+import { TimelineVisualization } from '@/components/ui/TimeMachine/components/TimelineVisualization';
+import { EraDetailsPanel } from '@/components/ui/TimeMachine/components/EraDetailsPanel';
+import { NavigationControls } from '@/components/ui/TimeMachine/components/NavigationControls';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -68,11 +71,11 @@ const ReactorSwitch = ({
         'relative flex items-center justify-center',
         'bg-[var(--bg-card)] border-2 transition-all',
         'shadow-lg hover:shadow-xl',
-        isOn 
-          ? 'border-[var(--accent-color)]' 
+        isOn
+          ? 'border-[var(--accent-color)]'
           : 'border-[var(--border-color)]'
       )}
-      style={{ 
+      style={{
         width: 'var(--tm-lever-w, 80px)',
         height: 'var(--tm-lever-w, 80px)',
       }}
@@ -111,7 +114,7 @@ const ReactorSwitch = ({
                 ? 'border-[var(--accent-color)] bg-[var(--accent-color)]/10'
                 : 'border-[var(--border-color)] bg-transparent'
             )}
-            animate={isOn ? { 
+            animate={isOn ? {
               boxShadow: [
                 '0 0 0px rgba(0,255,136,0)',
                 '0 0 20px rgba(0,255,136,0.4)',
@@ -163,12 +166,12 @@ const ReactorSwitch = ({
 // PIXEL SCAN LINE TRANSITION
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const PixelTransition = ({ 
-  isActive, 
+const PixelTransition = ({
+  isActive,
   onComplete,
-  targetEra 
-}: { 
-  isActive: boolean; 
+  targetEra
+}: {
+  isActive: boolean;
   onComplete: () => void;
   targetEra: string;
 }) => {
@@ -182,7 +185,7 @@ const PixelTransition = ({
   return (
     <AnimatePresence>
       {isActive && (
-        <motion.div 
+        <motion.div
           className="fixed inset-0 z-[9999] pointer-events-none overflow-hidden flex flex-col"
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -194,11 +197,11 @@ const PixelTransition = ({
                 key={i}
                 className="flex-1 bg-[var(--accent-color)] border-r border-[var(--bg-main)]"
                 initial={{ height: '0%' }}
-                animate={{ 
+                animate={{
                   height: ['0%', '100%', '100%', '0%'],
                   y: ['0%', '0%', '0%', '100%']
                 }}
-                transition={{ 
+                transition={{
                   duration: 0.8,
                   times: [0, 0.4, 0.6, 1],
                   delay: Math.random() * 0.2,
@@ -207,7 +210,7 @@ const PixelTransition = ({
               />
             ))}
           </div>
-          
+
           {/* Center era text */}
           <motion.div
             className="absolute inset-0 flex items-center justify-center z-10"
@@ -420,7 +423,7 @@ const EraPreview = ({ era }: { era: ThemeConfig }) => {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 5, scale: 0.9 }}
     >
-      <div 
+      <div
         className="w-48 bg-[var(--bg-card)] border-2 border-[var(--accent-color)] p-2 shadow-xl"
       >
         {/* Mini Window Header */}
@@ -471,13 +474,13 @@ const EraPreview = ({ era }: { era: ThemeConfig }) => {
             />
           </div>
         </div>
-        
+
         <div className="mt-2 flex justify-between text-[8px] font-mono text-[var(--text-muted)]">
           <span>ID: {era.id}</span>
           <span>VER: 1.0</span>
         </div>
       </div>
-      
+
       {/* Connector Line */}
       <div className="absolute left-1/2 -translate-x-1/2 top-full h-4 w-px bg-[var(--accent-color)]" />
       <div className="absolute left-1/2 -translate-x-1/2 top-full w-2 h-2 bg-[var(--accent-color)] rounded-full -mt-1" />
@@ -489,11 +492,12 @@ const EraPreview = ({ era }: { era: ThemeConfig }) => {
 // HORIZONTAL ERA STRIP (RESPONSIVE)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const HorizontalEraStrip = ({ 
-  onSelectEra, 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const HorizontalEraStrip = ({
+  onSelectEra,
   onOpenCustom,
   currentEraId,
-}: { 
+}: {
   onSelectEra: (eraId: string) => void;
   onOpenCustom: () => void;
   currentEraId: string;
@@ -502,7 +506,7 @@ const HorizontalEraStrip = ({
   const [hoveredEra, setHoveredEra] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const touchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  
+
   useEffect(() => {
     if (scrollRef.current) {
       const currentIndex = eras.findIndex(e => e.id === currentEraId);
@@ -521,19 +525,19 @@ const HorizontalEraStrip = ({
       className="overflow-visible"
       style={{ transformOrigin: 'left center' }}
     >
-      <div 
+      <div
         className="flex items-stretch bg-[var(--bg-card)] border-2 border-l-0 border-t-0 border-[var(--border-color)] shadow-2xl"
         style={{ height: GRID_SIZE * 6, width: 'calc(100vw - var(--tm-lever-w, 60px))' }}
       >
         {/* Scrollable era list - Responsive Width */}
-        <div 
+        <div
           ref={scrollRef}
           className="flex flex-1 items-center gap-1 overflow-x-auto scrollbar-hide px-2"
         >
           {eras.map((era, index) => {
             const isActive = era.id === currentEraId;
             const isHovered = hoveredEra === era.id;
-            
+
             return (
               <div key={era.id} className="relative group">
                 <AnimatePresence>
@@ -560,7 +564,7 @@ const HorizontalEraStrip = ({
                       ? 'bg-[var(--accent-color)] text-[var(--bg-main)] border-[var(--accent-color)]'
                       : 'bg-[var(--bg-main)] border-[var(--border-color)] hover:border-[var(--text-main)]'
                   )}
-                  style={{ 
+                  style={{
                     width: 60,
                     height: GRID_SIZE * 6 - 16,
                   }}
@@ -571,20 +575,20 @@ const HorizontalEraStrip = ({
                   whileTap={{ scale: 0.95 }}
                 >
                   {/* Background Grid Pattern for Button */}
-                  <div className="absolute inset-0 opacity-10 pointer-events-none" 
-                       style={{ backgroundImage: 'radial-gradient(circle, currentColor 1px, transparent 1px)', backgroundSize: '4px 4px' }} 
+                  <div className="absolute inset-0 opacity-10 pointer-events-none"
+                    style={{ backgroundImage: 'radial-gradient(circle, currentColor 1px, transparent 1px)', backgroundSize: '4px 4px' }}
                   />
-                  
+
                   <span className="text-xs font-black z-10">{era.id}</span>
                   <span className="text-[6px] opacity-60 uppercase z-10 mt-1 truncate max-w-[52px]">
                     {era.name.split(':')[0]}
                   </span>
-                  
+
                   {/* Active Indicator */}
                   {isActive && (
-                    <motion.div 
+                    <motion.div
                       layoutId="activeIndicator"
-                      className="absolute bottom-0 left-0 right-0 h-1 bg-[var(--bg-main)]" 
+                      className="absolute bottom-0 left-0 right-0 h-1 bg-[var(--bg-main)]"
                     />
                   )}
                 </motion.button>
@@ -592,10 +596,10 @@ const HorizontalEraStrip = ({
             );
           })}
         </div>
-        
+
         {/* Separator */}
         <div className="w-0.5 bg-[var(--border-color)] mx-1" />
-        
+
         {/* Custom era button */}
         <motion.button
           onClick={onOpenCustom}
@@ -621,12 +625,12 @@ const HorizontalEraStrip = ({
 // GAME CUSTOMIZATION PANEL
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const GameCustomizationPanel = ({ 
-  customEra, 
+const GameCustomizationPanel = ({
+  customEra,
   onUpdate,
   onApply,
   onClose,
-}: { 
+}: {
   customEra: CustomEra;
   onUpdate: (era: CustomEra) => void;
   onApply: () => void;
@@ -654,7 +658,7 @@ const GameCustomizationPanel = ({
       className="fixed left-[80px] top-1/2 -translate-y-1/2 z-50"
     >
       <div className="bg-[var(--bg-main)] border-2 border-[var(--accent-color)] p-1 shadow-[0_0_40px_-10px_rgba(0,0,0,0.5)] w-[80vw] max-w-[600px] max-h-[80vh] overflow-y-auto scrollbar-hide">
-        
+
         {/* Header */}
         <div className="flex justify-between items-center bg-[var(--accent-color)] p-2 mb-4">
           <h2 className="text-[var(--bg-main)] font-mono font-black text-lg uppercase tracking-widest flex items-center gap-2">
@@ -666,16 +670,16 @@ const GameCustomizationPanel = ({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4">
-          
+
           {/* Left Column: Controls */}
           <div className="space-y-6">
-            
+
             {/* Color Section */}
             <div className="space-y-3">
               <h3 className="text-[10px] font-mono text-[var(--text-muted)] uppercase border-b border-[var(--border-color)] pb-1">
                 {'// CHROMATIC_ABERRATION'}
               </h3>
-              
+
               <div className="grid grid-cols-2 gap-3">
                 {colorItems.map((item) => (
                   <div key={item.key} className="flex items-center justify-between bg-[var(--bg-card)] p-2 border border-[var(--border-color)]">
@@ -719,25 +723,25 @@ const GameCustomizationPanel = ({
 
           {/* Right Column: Preview & Stats */}
           <div className="space-y-6">
-            
+
             {/* Live Preview Box */}
             <div className="border-2 border-[var(--border-color)] h-48 relative overflow-hidden group">
-              <div 
+              <div
                 className="absolute inset-0 transition-colors duration-300"
                 style={{ backgroundColor: customEra.bgMain }}
               >
                 {/* Grid Preview */}
-                <div 
+                <div
                   className="absolute inset-0 opacity-30"
                   style={{
                     backgroundImage: `linear-gradient(${customEra.gridColor} 1px, transparent 1px), linear-gradient(90deg, ${customEra.gridColor} 1px, transparent 1px)`,
                     backgroundSize: `${customEra.gridSize}px ${customEra.gridSize}px`,
                   }}
                 />
-                
+
                 {/* Content Preview */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
-                  <h1 
+                  <h1
                     className="text-2xl font-bold mb-2"
                     style={{ color: customEra.textMain, fontFamily: customEra.fontMain }}
                   >
@@ -745,8 +749,8 @@ const GameCustomizationPanel = ({
                   </h1>
                   <button
                     className="px-4 py-2 text-xs font-bold border-2"
-                    style={{ 
-                      color: customEra.bgMain, 
+                    style={{
+                      color: customEra.bgMain,
                       backgroundColor: customEra.accentColor,
                       borderColor: customEra.accentColor,
                       fontFamily: customEra.fontMain
@@ -756,7 +760,7 @@ const GameCustomizationPanel = ({
                   </button>
                 </div>
               </div>
-              
+
               <div className="absolute top-0 left-0 bg-[var(--accent-color)] text-[var(--bg-main)] text-[8px] font-bold px-2 py-1">
                 LIVE_FEED
               </div>
@@ -771,7 +775,7 @@ const GameCustomizationPanel = ({
               <div className="w-full bg-[var(--bg-main)] h-1 mb-3">
                 <div className="w-[85%] h-full bg-[var(--accent-color)]" />
               </div>
-              
+
               <div className="flex justify-between mb-1">
                 <span className="text-[var(--text-muted)]">RETRO FACTOR</span>
                 <span className="text-[var(--accent-color)]">92%</span>
@@ -810,6 +814,7 @@ export const TimeMachine = () => {
   const [targetEraId, setTargetEraId] = useState('');
   const [targetEraLabel, setTargetEraLabel] = useState('');
   const [customEra, setCustomEra] = useState<CustomEra>(DEFAULT_CUSTOM_ERA);
+  const [selectedEraId, setSelectedEraId] = useState<string | null>(null);
 
   // Load custom era from localStorage
   useEffect(() => {
@@ -837,12 +842,87 @@ export const TimeMachine = () => {
   }, [isExpanded, showCustomPanel]);
 
   const handleSelectEra = useCallback((eraId: string) => {
-    if (eraId === currentEraId) return;
-    const era = eras.find((e) => e.id === eraId);
-    setTargetEraId(eraId);
-    setTargetEraLabel(era?.name ?? eraId);
+    // Just select for preview, don't apply yet
+    setSelectedEraId(eraId);
+  }, []);
+
+  const handleApplyEra = useCallback(() => {
+    if (!selectedEraId || selectedEraId === currentEraId) return;
+    const era = eras.find((e) => e.id === selectedEraId);
+    setTargetEraId(selectedEraId);
+    setTargetEraLabel(era?.name ?? selectedEraId);
     setIsTransitioning(true);
-  }, [currentEraId, eras]);
+  }, [selectedEraId, currentEraId, eras]);
+
+  const handleNavigatePrevious = useCallback(() => {
+    const currentIndex = selectedEraId
+      ? eras.findIndex((e) => e.id === selectedEraId)
+      : eras.findIndex((e) => e.id === currentEraId);
+    if (currentIndex > 0) {
+      setSelectedEraId(eras[currentIndex - 1].id);
+    }
+  }, [selectedEraId, currentEraId, eras]);
+
+  const handleNavigateNext = useCallback(() => {
+    const currentIndex = selectedEraId
+      ? eras.findIndex((e) => e.id === selectedEraId)
+      : eras.findIndex((e) => e.id === currentEraId);
+    if (currentIndex < eras.length - 1) {
+      setSelectedEraId(eras[currentIndex + 1].id);
+    }
+  }, [selectedEraId, currentEraId, eras]);
+
+  const handleJumpToDecade = useCallback(
+    (decade: string) => {
+      const firstEra = eras.find((era) => {
+        const yearNum = Number.parseInt(era.id, 10);
+        const eraDecade = `${Math.floor(yearNum / 10) * 10}s`;
+        return eraDecade === decade;
+      });
+      if (firstEra) {
+        setSelectedEraId(firstEra.id);
+      }
+    },
+    [eras]
+  );
+
+  // Set selected era to current era when expanded
+  useEffect(() => {
+    if (isExpanded && !selectedEraId) {
+      setSelectedEraId(currentEraId);
+    }
+  }, [isExpanded, currentEraId, selectedEraId]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    if (!isExpanded || showCustomPanel) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        handleNavigatePrevious();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        handleNavigateNext();
+      } else if (e.key === 'Enter' && selectedEraId) {
+        e.preventDefault();
+        handleApplyEra();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        setIsExpanded(false);
+      }
+    };
+
+    globalThis.addEventListener('keydown', handleKeyDown);
+    return () => globalThis.removeEventListener('keydown', handleKeyDown);
+  }, [
+    isExpanded,
+    showCustomPanel,
+    selectedEraId,
+    handleNavigatePrevious,
+    handleNavigateNext,
+    handleApplyEra,
+  ]);
 
   const handleTransitionComplete = useCallback(() => {
     if (targetEraId) {
@@ -853,6 +933,7 @@ export const TimeMachine = () => {
     setShowCustomPanel(false);
     setTargetEraId('');
     setTargetEraLabel('');
+    setSelectedEraId(null);
   }, [targetEraId, setEra]);
 
   const handleOpenCustom = useCallback(() => {
@@ -872,7 +953,7 @@ export const TimeMachine = () => {
   return (
     <>
       {/* Time Machine - Fixed top left */}
-      <div 
+      <div
         className="fixed left-0 top-0 z-40"
         style={
           {
@@ -887,19 +968,94 @@ export const TimeMachine = () => {
           <ReactorSwitch isOn={isExpanded || showCustomPanel} onToggle={handleToggle} />
         </div>
 
-        {/* Horizontal Era Strip OR Custom Panel - appears below header */}
+        {/* New Timeline Panel OR Custom Panel - appears below header */}
         <AnimatePresence mode="wait">
           {isExpanded && !showCustomPanel && (
-            <div className="grid-my-3">
-              <HorizontalEraStrip
-                key="era-strip"
-                onSelectEra={handleSelectEra}
-                onOpenCustom={handleOpenCustom}
-                currentEraId={currentEraId}
-              />
-            </div>
+            <motion.div
+              key="timeline-panel"
+              initial={{ opacity: 0, scale: 0.95, y: -10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -10 }}
+              transition={{ duration: 0.3 }}
+              className="grid-my-3"
+            >
+              <div
+                className="bg-[var(--bg-main)] border-2 border-l-0 border-t-0 border-[var(--border-color)] shadow-2xl"
+                style={{
+                  width: 'calc(100vw - var(--tm-lever-w, 60px))',
+                  maxWidth: '1200px',
+                  height: 'clamp(600px, 80vh, 800px)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                {/* Panel Header */}
+                <div className="flex items-center justify-between p-3 lg:p-4 border-b-2 border-[var(--border-color)] bg-[var(--bg-card)] flex-shrink-0">
+                  <div className="min-w-0 flex-1">
+                    <h2 className="font-mono text-sm lg:text-lg font-bold uppercase text-[var(--text-main)]">
+                      TIME MACHINE
+                    </h2>
+                    <p className="font-mono text-[10px] lg:text-xs text-[var(--text-muted)] mt-1">
+                      Travel through design history: 1970 → 2025
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <button
+                      onClick={handleOpenCustom}
+                      className="px-2 lg:px-3 py-1 lg:py-1.5 font-mono text-[10px] lg:text-xs border-2 border-dashed border-[var(--accent-color)] text-[var(--accent-color)] hover:bg-[var(--accent-color)] hover:text-[var(--bg-main)] transition-all"
+                    >
+                      + CRAFT
+                    </button>
+                    <button
+                      onClick={handleToggle}
+                      className="px-2 lg:px-3 py-1 lg:py-1.5 font-mono text-[10px] lg:text-xs border-2 border-[var(--border-color)] text-[var(--text-main)] hover:border-[var(--text-main)] transition-all"
+                    >
+                      ×
+                    </button>
+                  </div>
+                </div>
+
+                {/* Split Panel Content - Responsive */}
+                <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+                  {/* Left: Timeline */}
+                  <div className="w-full lg:w-80 flex-shrink-0 border-b-2 lg:border-b-0 lg:border-r-2 border-[var(--border-color)]">
+                    <TimelineVisualization
+                      eras={eras}
+                      currentEraId={currentEraId}
+                      selectedEraId={selectedEraId}
+                      onSelectEra={handleSelectEra}
+                      onHoverEra={() => { }}
+                    />
+                  </div>
+
+                  {/* Right: Era Details */}
+                  <div className="flex-1 flex flex-col min-w-0">
+                    <div className="flex-1 overflow-hidden">
+                      <EraDetailsPanel
+                        era={
+                          selectedEraId
+                            ? eras.find((e) => e.id === selectedEraId) || null
+                            : null
+                        }
+                        onApply={handleApplyEra}
+                      />
+                    </div>
+
+                    {/* Bottom: Navigation Controls */}
+                    <NavigationControls
+                      eras={eras}
+                      currentEraId={currentEraId}
+                      selectedEraId={selectedEraId}
+                      onPrevious={handleNavigatePrevious}
+                      onNext={handleNavigateNext}
+                      onJumpToDecade={handleJumpToDecade}
+                    />
+                  </div>
+                </div>
+              </div>
+            </motion.div>
           )}
-          
+
           {showCustomPanel && (
             <div className="grid-my-3">
               <GameCustomizationPanel

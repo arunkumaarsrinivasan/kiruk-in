@@ -21,121 +21,63 @@ export function WireframeSection({
     children,
     className = ''
 }: WireframeSectionProps) {
-    const cornerSize = 24;
-    const rulerExtend = 40;
+    const _cornerSize = 24;
+    const _rulerExtend = 40;
 
     return (
         <section
             id={id}
             className={`relative py-16 px-6 ${className}`}
         >
-            {/* Corner rulers extending outward */}
+            {/* Border lines extending to viewport edges */}
 
-            {/* Top-left corner */}
-            <div className="absolute top-0 left-0 pointer-events-none">
-                {/* Vertical line extending up */}
-                <div
-                    className="absolute left-6 w-px"
-                    style={{
-                        top: -rulerExtend,
-                        height: rulerExtend + cornerSize,
-                        backgroundColor: 'var(--accent-color)',
-                        opacity: 0.4
-                    }}
-                />
-                {/* Horizontal line extending left */}
-                <div
-                    className="absolute top-0 h-px"
-                    style={{
-                        left: -rulerExtend + 24,
-                        width: rulerExtend + cornerSize,
-                        backgroundColor: 'var(--accent-color)',
-                        opacity: 0.4
-                    }}
-                />
-                {/* Corner bracket */}
-                <div className="absolute top-0 left-6">
-                    <div className="w-px h-6" style={{ backgroundColor: 'var(--accent-color)' }} />
-                    <div className="absolute top-0 left-0 w-6 h-px" style={{ backgroundColor: 'var(--accent-color)' }} />
-                </div>
+            {/* Top border - extends full width */}
+            <div
+                className="absolute top-0 left-0 right-0 h-px pointer-events-none"
+                style={{ backgroundColor: 'var(--accent-color)', opacity: 0.15 }}
+            />
+
+            {/* Bottom border - extends full width */}
+            <div
+                className="absolute bottom-0 left-0 right-0 h-px pointer-events-none"
+                style={{ backgroundColor: 'var(--accent-color)', opacity: 0.15 }}
+            />
+
+            {/* Left border - extends full height */}
+            <div
+                className="absolute top-0 bottom-0 left-6 w-px pointer-events-none"
+                style={{ backgroundColor: 'var(--accent-color)', opacity: 0.15 }}
+            />
+
+            {/* Right border - extends full height */}
+            <div
+                className="absolute top-0 bottom-0 right-6 w-px pointer-events-none"
+                style={{ backgroundColor: 'var(--accent-color)', opacity: 0.15 }}
+            />
+
+            {/* Corner accents - solid color */}
+            {/* Top-left */}
+            <div className="absolute top-0 left-6 pointer-events-none">
+                <div className="w-px h-6" style={{ backgroundColor: 'var(--accent-color)' }} />
+                <div className="absolute top-0 left-0 w-6 h-px" style={{ backgroundColor: 'var(--accent-color)' }} />
             </div>
 
-            {/* Top-right corner */}
-            <div className="absolute top-0 right-0 pointer-events-none">
-                <div
-                    className="absolute right-6 w-px"
-                    style={{
-                        top: -rulerExtend,
-                        height: rulerExtend + cornerSize,
-                        backgroundColor: 'var(--accent-color)',
-                        opacity: 0.4
-                    }}
-                />
-                <div
-                    className="absolute top-0 h-px"
-                    style={{
-                        right: -rulerExtend + 24,
-                        width: rulerExtend + cornerSize,
-                        backgroundColor: 'var(--accent-color)',
-                        opacity: 0.4
-                    }}
-                />
-                <div className="absolute top-0 right-6">
-                    <div className="w-px h-6" style={{ backgroundColor: 'var(--accent-color)' }} />
-                    <div className="absolute top-0 right-0 w-6 h-px" style={{ backgroundColor: 'var(--accent-color)' }} />
-                </div>
+            {/* Top-right */}
+            <div className="absolute top-0 right-6 pointer-events-none">
+                <div className="w-px h-6" style={{ backgroundColor: 'var(--accent-color)' }} />
+                <div className="absolute top-0 right-0 w-6 h-px" style={{ backgroundColor: 'var(--accent-color)' }} />
             </div>
 
-            {/* Bottom-left corner */}
-            <div className="absolute bottom-0 left-0 pointer-events-none">
-                <div
-                    className="absolute left-6 w-px"
-                    style={{
-                        bottom: -rulerExtend,
-                        height: rulerExtend + cornerSize,
-                        backgroundColor: 'var(--accent-color)',
-                        opacity: 0.4
-                    }}
-                />
-                <div
-                    className="absolute bottom-0 h-px"
-                    style={{
-                        left: -rulerExtend + 24,
-                        width: rulerExtend + cornerSize,
-                        backgroundColor: 'var(--accent-color)',
-                        opacity: 0.4
-                    }}
-                />
-                <div className="absolute bottom-0 left-6">
-                    <div className="w-px h-6" style={{ backgroundColor: 'var(--accent-color)' }} />
-                    <div className="absolute bottom-0 left-0 w-6 h-px" style={{ backgroundColor: 'var(--accent-color)' }} />
-                </div>
+            {/* Bottom-left */}
+            <div className="absolute bottom-0 left-6 pointer-events-none">
+                <div className="w-px h-6" style={{ backgroundColor: 'var(--accent-color)' }} />
+                <div className="absolute bottom-0 left-0 w-6 h-px" style={{ backgroundColor: 'var(--accent-color)' }} />
             </div>
 
-            {/* Bottom-right corner */}
-            <div className="absolute bottom-0 right-0 pointer-events-none">
-                <div
-                    className="absolute right-6 w-px"
-                    style={{
-                        bottom: -rulerExtend,
-                        height: rulerExtend + cornerSize,
-                        backgroundColor: 'var(--accent-color)',
-                        opacity: 0.4
-                    }}
-                />
-                <div
-                    className="absolute bottom-0 h-px"
-                    style={{
-                        right: -rulerExtend + 24,
-                        width: rulerExtend + cornerSize,
-                        backgroundColor: 'var(--accent-color)',
-                        opacity: 0.4
-                    }}
-                />
-                <div className="absolute bottom-0 right-6">
-                    <div className="w-px h-6" style={{ backgroundColor: 'var(--accent-color)' }} />
-                    <div className="absolute bottom-0 right-0 w-6 h-px" style={{ backgroundColor: 'var(--accent-color)' }} />
-                </div>
+            {/* Bottom-right */}
+            <div className="absolute bottom-0 right-6 pointer-events-none">
+                <div className="w-px h-6" style={{ backgroundColor: 'var(--accent-color)' }} />
+                <div className="absolute bottom-0 right-0 w-6 h-px" style={{ backgroundColor: 'var(--accent-color)' }} />
             </div>
 
             {/* Edge ruler labels */}
@@ -150,7 +92,7 @@ export function WireframeSection({
             <div className="relative z-10">
                 {/* Section header */}
                 {title && (
-                    <div className="mb-8">
+                    <div className="mb-8 pl-8">
                         <h2
                             className="text-3xl md:text-4xl font-mono font-black uppercase tracking-tight"
                             style={{ color: 'var(--text-main)' }}
@@ -165,18 +107,43 @@ export function WireframeSection({
                                 {subtitle}
                             </p>
                         )}
-                        {/* Underline with measurement marks */}
-                        <div className="flex items-center gap-2 mt-4">
+                        {/* Underline with measurement marks - extends full viewport width */}
+                        <div className="relative mt-4" style={{ height: '12px' }}>
+                            {/* Horizontal line extending full viewport width */}
                             <div
-                                className="h-px flex-1"
-                                style={{ backgroundColor: 'var(--border-color)' }}
+                                className="absolute h-px pointer-events-none"
+                                style={{
+                                    backgroundColor: 'var(--accent-color)',
+                                    left: 'calc(50% - 50vw)',
+                                    width: '100vw',
+                                    top: '50%',
+                                    transform: 'translateY(-50%)'
+                                }}
                             />
-                            <span
-                                className="text-[9px] font-mono"
-                                style={{ color: 'var(--text-muted)' }}
-                            >
-                                100%
-                            </span>
+                            {/* Left end marker (crosshair) - at viewport left edge */}
+                            <div
+                                className="absolute pointer-events-none"
+                                style={{
+                                    left: 'calc(50% - 50vw)',
+                                    top: '50%',
+                                    transform: 'translateY(-50%)',
+                                    width: '1px',
+                                    height: '12px',
+                                    backgroundColor: 'var(--accent-color)'
+                                }}
+                            />
+                            {/* Right end marker (crosshair) - at viewport right edge */}
+                            <div
+                                className="absolute pointer-events-none"
+                                style={{
+                                    left: 'calc(50% + 50vw - 1px)',
+                                    top: '50%',
+                                    transform: 'translateY(-50%)',
+                                    width: '1px',
+                                    height: '12px',
+                                    backgroundColor: 'var(--accent-color)'
+                                }}
+                            />
                         </div>
                     </div>
                 )}

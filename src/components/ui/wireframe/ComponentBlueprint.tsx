@@ -14,6 +14,8 @@ interface ComponentBlueprintProps {
     rulerLabelTop?: string;
     /** Semantic label for left ruler (e.g., "Level 9/10") - defaults to height in px */
     rulerLabelLeft?: string;
+    /** Hide title in header - useful when title should be rendered in children */
+    hideTitleInHeader?: boolean;
 }
 
 /**
@@ -29,7 +31,8 @@ export function ComponentBlueprint({
     showRulers = true,
     className = '',
     rulerLabelTop,
-    rulerLabelLeft
+    rulerLabelLeft,
+    hideTitleInHeader = false
 }: ComponentBlueprintProps) {
     const [isHovered, setIsHovered] = useState(false);
     const [showCode, setShowCode] = useState(false);
@@ -67,23 +70,28 @@ export function ComponentBlueprint({
             {/* Blueprint label */}
             <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                    <span
-                        className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 border"
-                        style={{
-                            borderColor: isHovered ? 'var(--accent-color)' : 'var(--border-color)',
-                            color: isHovered ? 'var(--accent-color)' : 'var(--text-muted)',
-                            backgroundColor: 'transparent',
-                            transition: 'all 0.15s ease'
-                        }}
-                    >
-                        {componentType}
-                    </span>
-                    <h3
-                        className="text-sm font-mono font-bold uppercase tracking-wider"
-                        style={{ color: isHovered ? 'var(--accent-color)' : 'var(--text-main)', transition: 'color 0.15s ease' }}
-                    >
-                        {title}
-                    </h3>
+                    {/* Only show type badge if different from title or if title is hidden */}
+                    {(componentType.toLowerCase() !== title.toLowerCase() || hideTitleInHeader) && (
+                        <span
+                            className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 border"
+                            style={{
+                                borderColor: isHovered ? 'var(--accent-color)' : 'var(--border-color)',
+                                color: isHovered ? 'var(--accent-color)' : 'var(--text-muted)',
+                                backgroundColor: 'transparent',
+                                transition: 'all 0.15s ease'
+                            }}
+                        >
+                            {componentType}
+                        </span>
+                    )}
+                    {!hideTitleInHeader && (
+                        <h3
+                            className="text-sm font-mono font-bold uppercase tracking-wider"
+                            style={{ color: isHovered ? 'var(--accent-color)' : 'var(--text-main)', transition: 'color 0.15s ease' }}
+                        >
+                            {title}
+                        </h3>
+                    )}
                 </div>
                 {code && (
                     <button

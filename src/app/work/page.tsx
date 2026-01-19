@@ -1,10 +1,12 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { PixelIcon } from '@/components/ui/PixelIcon';
 import { GridBackground } from '@/components/ui/GridBackground';
+import { useContextBar } from '@/contexts/ContextBarContext';
+import { useExperience } from '@/hooks/usePortfolioData';
 import '@/app/work/styles/observatory.css';
 
 // Lazy load observatory view
@@ -28,28 +30,53 @@ const ObservatoryView = dynamic(
 
 export default function Work() {
   const [showIntro, setShowIntro] = useState(true);
+  const { setWorkData } = useContextBar();
+  const experiencesData = useExperience(); // Get real experience data
+
+  // Update context bar with work experience data (data-driven approach)
+  useEffect(() => {
+    if (!experiencesData || experiencesData.length === 0) return;
+
+    // Map Experience data to context bar format
+    const experiences = experiencesData.map((exp) => ({
+      id: exp.id,
+      company: exp.company,
+      start: exp.startDate,
+      end: exp.endDate,
+      current: exp.current,
+    }));
+
+    const currentExp = experiencesData.find((e) => e.current);
+
+    setWorkData({
+      experiences,
+      currentExperienceId: currentExp?.id || experiencesData[0]?.id,
+    });
+  }, [experiencesData, setWorkData]);
 
   return (
     <main
       className="min-h-screen overflow-hidden relative"
       style={{ backgroundColor: 'var(--bg-main)' }}
     >
-      {/* Header */}
-      <div
-        className="fixed top-0 left-0 right-0 z-30 border-b-4 border-black p-3"
-        style={{ backgroundColor: 'var(--bg-card)' }}
-      >
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <h1
-              className="text-xl font-mono flex items-center gap-2"
-              style={{ color: 'var(--text-main)' }}
-            >
-              <PixelIcon name="star" size={20} /> SKILLS OBSERVATORY
-            </h1>
+      {/* Header - Only show when intro is visible, otherwise main nav handles it */}
+      {showIntro && (
+        <div
+          className="fixed top-0 left-0 right-0 z-30 border-b-4 border-black p-3"
+          style={{ backgroundColor: 'var(--bg-card)' }}
+        >
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <h1
+                className="text-xl font-mono flex items-center gap-2"
+                style={{ color: 'var(--text-main)' }}
+              >
+                <PixelIcon name="star" size={20} /> SKILLS OBSERVATORY
+              </h1>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Intro Screen */}
       <AnimatePresence>
@@ -136,9 +163,7 @@ export default function Work() {
 
       {/* Observatory View */}
       {!showIntro && (
-        <div className="pt-16">
-          <ObservatoryView />
-        </div>
+        <ObservatoryView />
       )}
     </main>
   );

@@ -12,6 +12,7 @@ import { LevelBackground } from "./components/LevelBackground";
 import { useGameEngine } from "./components/useGameEngine";
 import { useGameMode } from "@/contexts/GameModeContext";
 import { GridBackground } from "@/components/ui/GridBackground";
+import { useContextBar } from "@/contexts/ContextBarContext";
 
 // Life events data with timeline
 type LifeEvent = {
@@ -271,6 +272,8 @@ function getTimelinePhase(age: number) {
 export default function About() {
 	const [showIntro, setShowIntro] = useState(true);
 	const [showRoadmap, setShowRoadmap] = useState(false);
+	const { setAboutData, setAboutPhaseHandler } = useContextBar();
+	
 	const groupedLifeEvents = useMemo(() => {
 		const groups: { phase: string; items: { event: LifeEvent; index: number }[] }[] = [];
 		lifeEvents.forEach((event, index) => {
@@ -313,6 +316,24 @@ export default function About() {
 	}, [nextLevel]);
 	
 	const currentEvent = lifeEvents[gameState.level];
+	
+	// Update context bar with timeline phases (moved after currentEvent is defined)
+	useEffect(() => {
+		const phases = groupedLifeEvents.map((group, index) => ({
+			phase: group.phase,
+			year: group.items[0]?.event.year || 2001,
+			index,
+		}));
+		
+		// Find current phase based on current event
+		const currentEventPhase = currentEvent ? getTimelinePhase(currentEvent.age) : groupedLifeEvents[0]?.phase;
+		
+		setAboutData({
+			phases,
+			currentPhase: currentEventPhase,
+			currentYear: currentEvent?.year || lifeEvents[0]?.year,
+		});
+	}, [groupedLifeEvents, currentEvent, setAboutData]);
 	const characterStage = getStageFromAge(currentEvent?.age || 0);
 	const characterAction = gameState.isPlaying 
 		? (gameState.isDucking ? "idle" : gameState.isJumping ? "jump" : gameState.isMovingRight || gameState.isMovingLeft ? "walk" : getActionFromAge(currentEvent?.age || 0))
@@ -334,6 +355,25 @@ export default function About() {
 		setShowRoadmap(false);
 		goToLevel(timelineIndex);
 	}, [goToLevel]);
+
+	// Handler for phase navigation from context bar
+	const handlePhaseClick = useCallback((phase: string) => {
+		// Find the first event in the phase
+		const phaseGroup = groupedLifeEvents.find(group => group.phase === phase);
+		if (phaseGroup && phaseGroup.items.length > 0) {
+			const firstIndex = phaseGroup.items[0].index;
+			handleTimelineSelect(firstIndex);
+		}
+	}, [groupedLifeEvents, handleTimelineSelect]);
+
+	// Register phase handler with context bar
+	useEffect(() => {
+		if (setAboutPhaseHandler) {
+			setAboutPhaseHandler(handlePhaseClick);
+		}
+		// Only register when handlePhaseClick or setAboutPhaseHandler changes
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [handlePhaseClick]);
 
 	// Touch controls for mobile
 	useEffect(() => {

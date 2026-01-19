@@ -55,14 +55,6 @@ export const PAGE_INFO: Record<string, PageInfo> = {
     hint: 'View milestones',
     icon: 'chart',
   },
-  '/arcade': {
-    path: '/arcade',
-    title: 'MINI GAMES',
-    subtitle: "What's this page",
-    description: 'Play interactive grid games. Reach 50 points to complete each mini game.',
-    hint: 'Press PLAY to start',
-    icon: 'globe',
-  },
   '/contact': {
     path: '/contact',
     title: 'CONTACT',

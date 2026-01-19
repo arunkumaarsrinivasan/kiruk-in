@@ -3,8 +3,8 @@
 import { useState, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 import SimpleGameNav from "./SimpleGameNav";
+import DynamicContextBar from "./DynamicContextBar";
 import AppLoader from "@/components/ui/app-loader";
-import { GridArcade } from "@/components/ui/arcade";
 import { getRandomGameId, getDefaultGameId, getGameEntry } from "@/components/ui/arcade/game-registry";
 import TimeMachine from "@/components/ui/TimeMachine";
 import { MissionCompletionNotification } from "./MissionCompletionNotification";
@@ -19,7 +19,7 @@ interface LayoutClientShellProps {
 export default function LayoutClientShell({ children }: Readonly<LayoutClientShellProps>) {
   const pathname = usePathname();
   // Keep the global layout stable; only show the gamified header + grid on chosen pages.
-  const arcadeEnabled = pathname === '/' || pathname === '/lab' || pathname === '/arcade';
+  const arcadeEnabled = pathname === '/';
   
   // Game state lifted up for coordination between nav and arcade
   const [isGameActive, setIsGameActive] = useState(false);
@@ -99,11 +99,18 @@ export default function LayoutClientShell({ children }: Readonly<LayoutClientShe
         onToggleGame={arcadeEnabled ? handleToggleGame : undefined}
       />
       
+      {/* Dynamic Context Bar - shows page-specific timeline and shortcuts */}
+      <DynamicContextBar />
+      
       <DetectiveStoryWrapper>
         <main 
           id="main-content" 
           tabIndex={-1}
-          style={{ paddingTop: '120px' }} // 6 * 20px - Account for taller header (BAR_HEIGHT * 2 = 60px * 2)
+          style={{ 
+            paddingTop: ['/about', '/work', '/progress'].includes(pathname) 
+              ? '100px' // 60px (main nav) + 40px (context bar) = 100px
+              : '60px'  // 60px (main nav only, no context bar)
+          }}
         >
           {children}
         </main>
@@ -114,13 +121,6 @@ export default function LayoutClientShell({ children }: Readonly<LayoutClientShe
       
       {/* Help Bot - Available on all pages */}
       <HelpBot />
-      
-      {/* Grid Arcade - only on home and lab pages */}
-      {arcadeEnabled && pathname === '/lab' && (
-        <GridArcade 
-          defaultGameId={gameId}
-        />
-      )}
       
       {/* Time Machine - Era Switcher - Available on all pages except home */}
       {pathname !== '/' && <TimeMachine />}

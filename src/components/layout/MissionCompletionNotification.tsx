@@ -59,9 +59,15 @@ export function MissionCompletionNotification() {
   // Remove notifications after 3 seconds
   useEffect(() => {
     const timer = setInterval(() => {
-      setNotifications(prev => {
+      setNotifications((prev) => {
+        if (prev.length === 0) return prev;
         const now = Date.now();
-        return prev.filter(n => now - n.timestamp < 3000);
+        const filtered = prev.filter(n => now - n.timestamp < 3000);
+        // Only update if something was actually removed
+        if (filtered.length === prev.length) {
+          return prev;
+        }
+        return filtered;
       });
     }, 100);
 

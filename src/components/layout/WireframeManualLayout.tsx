@@ -100,10 +100,10 @@ export default function WireframeManualLayout() {
                                 KIRUK
                             </span>
                             <span
-                                className="text-[10px] font-mono uppercase"
+                                className="text-[10px] font-mono"
                                 style={{ color: 'var(--text-muted)' }}
                             >
-                                Design Engineer
+                                UX design engineer
                             </span>
                         </div>
 
@@ -133,6 +133,63 @@ export default function WireframeManualLayout() {
                     currentEra={currentEra}
                     isClient={isClient}
                 />
+
+                {/* === WHY UX DESIGN ENGINEER === */}
+                <WireframeSection
+                    id="why-ux-design-engineer"
+                    title="Why Kiruk"
+                    subtitle={portfolioData.whyUXDesignEngineer.hook}
+                >
+                    <div className="max-w-2xl mx-auto space-y-6">
+                        {/* Pain Points Grid */}
+                        <div className="grid md:grid-cols-2 gap-3 mb-4">
+                            <div
+                                className="border p-3"
+                                style={{ borderColor: 'var(--border-color)' }}
+                            >
+                                <div className="text-[10px] font-mono uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>
+                                    ⚡ Handoff Friction
+                                </div>
+                                <p className="text-xs font-mono" style={{ color: 'var(--text-main)' }}>
+                                    Great ideas stall when design and engineering split the work.
+                                </p>
+                            </div>
+                            <div
+                                className="border p-3"
+                                style={{ borderColor: 'var(--border-color)' }}
+                            >
+                                <div className="text-[10px] font-mono uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>
+                                    📊 What Teams Need
+                                </div>
+                                <p className="text-xs font-mono" style={{ color: 'var(--text-main)' }}>
+                                    A designer who can also ship production-ready UI.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* The Bridge */}
+                        <div
+                            className="border-2 p-4"
+                            style={{ borderColor: 'var(--accent-color)', backgroundColor: 'rgba(var(--accent-color-rgb), 0.05)' }}
+                        >
+                            <div className="flex items-center gap-2 mb-2">
+                                <span className="text-lg">🌉</span>
+                                <span
+                                    className="text-[10px] font-mono uppercase tracking-widest font-bold"
+                                    style={{ color: 'var(--accent-color)' }}
+                                >
+                                    The Bridge
+                                </span>
+                            </div>
+                            <p className="text-sm font-mono font-bold" style={{ color: 'var(--text-main)' }}>
+                                I design, prototype, and build—so the vision survives to launch.
+                            </p>
+                            <p className="text-xs font-mono mt-1" style={{ color: 'var(--text-muted)' }}>
+                                Research → Interaction → Production
+                            </p>
+                        </div>
+                    </div>
+                </WireframeSection>
 
                 {/* === ABOUT/PROFILE - PERSONA FORMAT === */}
                 <WireframeSection
@@ -345,19 +402,45 @@ export default function WireframeManualLayout() {
                                 rulerLabelTop="Technologies"
                                 rulerLabelLeft="Stack"
                             >
-                                <div className="space-y-3">
-                                    <div className="flex flex-wrap gap-2">
-                                        {portfolioData.skills.filter(s => s.category === 'frontend' || s.category === 'backend').slice(0, 6).map(skill => (
-                                            <div
-                                                key={skill.id}
-                                                className="flex items-center gap-1 text-xs font-mono px-2 py-1 border"
-                                                style={{ borderColor: 'var(--border-color)', color: 'var(--text-main)' }}
-                                            >
-                                                <span>{skill.icon}</span>
-                                                {skill.name}
-                                            </div>
-                                        ))}
-                                    </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {/* Priority skills: nextjs, figma, blender, mongodb, splunk */}
+                                    {portfolioData.skills.filter(s => 
+                                        s.id === 'nextjs' || 
+                                        s.id === 'figma' || 
+                                        s.id === 'blender' || 
+                                        s.id === 'splunk'
+                                    ).map(skill => (
+                                        <span
+                                            key={skill.id}
+                                            className="text-[10px] font-mono px-2 py-1 border"
+                                            style={{ borderColor: 'var(--border-color)', color: 'var(--text-muted)' }}
+                                        >
+                                            {skill.icon} {skill.name}
+                                        </span>
+                                    ))}
+                                    {/* MongoDB */}
+                                    <span
+                                        className="text-[10px] font-mono px-2 py-1 border"
+                                        style={{ borderColor: 'var(--border-color)', color: 'var(--text-muted)' }}
+                                    >
+                                        🍃 MongoDB
+                                    </span>
+                                    {/* Other relevant skills */}
+                                    {portfolioData.skills.filter(s => 
+                                        (s.category === 'tools' || s.category === 'frontend' || s.category === 'backend') &&
+                                        s.id !== 'nextjs' && 
+                                        s.id !== 'figma' && 
+                                        s.id !== 'blender' && 
+                                        s.id !== 'splunk'
+                                    ).slice(0, 8).map(skill => (
+                                        <span
+                                            key={skill.id}
+                                            className="text-[10px] font-mono px-2 py-1 border"
+                                            style={{ borderColor: 'var(--border-color)', color: 'var(--text-muted)' }}
+                                        >
+                                            {skill.icon} {skill.name}
+                                        </span>
+                                    ))}
                                 </div>
                             </ComponentBlueprint>
 
@@ -383,19 +466,6 @@ export default function WireframeManualLayout() {
                                     </li>
                                 </ul>
                             </ComponentBlueprint>
-                        </div>
-
-                        {/* Tools Row */}
-                        <div className="flex flex-wrap gap-2 pt-4">
-                            {portfolioData.skills.filter(s => s.category === 'tools').slice(0, 6).map(skill => (
-                                <span
-                                    key={skill.id}
-                                    className="text-[10px] font-mono px-2 py-1 border"
-                                    style={{ borderColor: 'var(--border-color)', color: 'var(--text-muted)' }}
-                                >
-                                    {skill.icon} {skill.name}
-                                </span>
-                            ))}
                         </div>
                     </div>
                 </WireframeSection>
@@ -533,6 +603,69 @@ export default function WireframeManualLayout() {
                                 </div>
                             ))}
                         </div>
+                    </div>
+                </WireframeSection>
+
+                {/* === RESULTS & IMPACT === */}
+                <WireframeSection
+                    id="impact"
+                    title="Results & Impact"
+                    subtitle="Quantified outcomes"
+                >
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
+                        {portfolioData.impactMetrics.map((metric, index) => (
+                            <ComponentBlueprint
+                                key={metric.id}
+                                title={metric.label}
+                                componentType={metric.category}
+                                hideTitleInHeader={true}
+                            >
+                                <div className="flex flex-col items-center space-y-3 text-center h-full">
+                                    {/* Title - positioned right under the badge */}
+                                    <h3
+                                        className="text-sm font-mono font-bold uppercase tracking-wider flex-shrink-0 -mt-2"
+                                        style={{ color: 'var(--text-main)' }}
+                                    >
+                                        {metric.label}
+                                    </h3>
+
+                                    {/* Icon */}
+                                    <span className="text-2xl flex-shrink-0">{metric.icon}</span>
+
+                                    {/* Value */}
+                                    <div
+                                        className="text-3xl font-mono font-black flex-shrink-0"
+                                        style={{ color: 'var(--accent-color)' }}
+                                    >
+                                        {metric.value}
+                                    </div>
+
+                                    {/* Context */}
+                                    {metric.context && (
+                                        <p
+                                            className="text-[10px] font-mono flex-shrink-0"
+                                            style={{ color: 'var(--text-muted)' }}
+                                        >
+                                            {metric.context}
+                                        </p>
+                                    )}
+
+                                    {/* Progress bar visualization */}
+                                    <div
+                                        className="h-1 w-full mx-auto mt-auto"
+                                        style={{ backgroundColor: 'var(--border-color)' }}
+                                    >
+                                        <div
+                                            className="h-full transition-all duration-500"
+                                            style={{
+                                                backgroundColor: 'var(--accent-color)',
+                                                width: `${(index + 1) * 25}%`
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            </ComponentBlueprint>
+                        ))}
                     </div>
                 </WireframeSection>
 
