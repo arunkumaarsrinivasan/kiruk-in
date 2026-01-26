@@ -21,8 +21,8 @@ export function WireframeSection({
     children,
     className = ''
 }: WireframeSectionProps) {
-    const _cornerSize = 24;
-    const _rulerExtend = 40;
+    const cornerSize = 24;
+    const rulerExtend = 40;
 
     return (
         <section
@@ -112,7 +112,7 @@ export function WireframeSection({
                             {/* Horizontal line extending full viewport width */}
                             <div
                                 className="absolute h-px pointer-events-none"
-                                style={{
+                                style={{ 
                                     backgroundColor: 'var(--accent-color)',
                                     left: 'calc(50% - 50vw)',
                                     width: '100vw',

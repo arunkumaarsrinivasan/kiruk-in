@@ -8,6 +8,7 @@ import type { ThemeConfig } from '@/data/portfolio-data';
 import { TimelineVisualization } from '@/components/ui/TimeMachine/components/TimelineVisualization';
 import { EraDetailsPanel } from '@/components/ui/TimeMachine/components/EraDetailsPanel';
 import { NavigationControls } from '@/components/ui/TimeMachine/components/NavigationControls';
+import { ComponentBlueprint } from '@/components/ui/wireframe/ComponentBlueprint';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -669,6 +670,35 @@ const GameCustomizationPanel = ({
           </button>
         </div>
 
+        <div className="px-4 mb-4">
+          <div className="border border-[var(--accent-color)] bg-[var(--accent-color)]/5 p-4 relative overflow-hidden group">
+            {/* Corner Markers */}
+            <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-[var(--accent-color)]" />
+            <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-[var(--accent-color)]" />
+            <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-[var(--accent-color)]" />
+            <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-[var(--accent-color)]" />
+
+            {/* Header Labels */}
+            <div className="flex justify-between items-center mb-2 text-[10px] font-mono text-[var(--accent-color)] border-b border-[var(--accent-color)]/30 pb-1">
+              <span>DESIGN_LAB_PROTOCOL</span>
+              <span>CUSTOMIZATION_MODE</span>
+            </div>
+
+            <div className="flex gap-4 items-center">
+              <div className="hidden sm:block text-2xl opacity-50">🛠️</div>
+              <div className="space-y-1">
+                <p className="text-xs font-mono font-bold" style={{ color: 'var(--accent-color)' }}>
+                  // SYSTEM OVERRIDE ACTIVE
+                </p>
+                <p className="text-[10px] font-mono leading-tight" style={{ color: 'var(--text-main)' }}>
+                  Adjust chromatic aberration, typography matrix, and grid opacity to craft a unique era.
+                  Click 'INITIALIZE ERA' to save and apply your configuration.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4">
 
           {/* Left Column: Controls */}
@@ -1016,6 +1046,45 @@ export const TimeMachine = () => {
                 </div>
 
                 {/* Split Panel Content - Responsive */}
+                <div className="px-4 py-2 flex-shrink-0">
+                  <ComponentBlueprint
+                    title="CHRONO_GUIDE"
+                    componentType="SYSTEM_MANUAL"
+                    rulerLabelTop="TIME_TRAVEL_PROTOCOL"
+                    rulerLabelLeft="INSTRUCTIONS"
+                    className="mb-2"
+                  >
+                    <div className="flex gap-4 items-start">
+                      <div className="hidden sm:block text-4xl p-2 opacity-50">
+                        🕰️
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-xs font-mono font-bold" style={{ color: 'var(--accent-color)' }}>
+                          // WELCOME TO THE ARCHIVE
+                        </p>
+                        <p className="text-xs font-mono" style={{ color: 'var(--text-main)' }}>
+                          This observatory tracks the evolution of design across decades.
+                          Select an era to preview its aesthetic, or initialize the reactor to time-travel.
+                        </p>
+                        <div className="flex gap-4 text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>
+                          <span className="flex items-center gap-1">
+                            <span className="w-2 h-2 rounded-full border border-[var(--accent-color)]" />
+                            PREVIEW
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <span className="w-2 h-2 rounded-full bg-[var(--accent-color)]" />
+                            ACTIVE
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <span className="w-2 h-2 border border-dashed border-[var(--text-muted)]" />
+                            FUTURE
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </ComponentBlueprint>
+                </div>
+
                 <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
                   {/* Left: Timeline */}
                   <div className="w-full lg:w-80 flex-shrink-0 border-b-2 lg:border-b-0 lg:border-r-2 border-[var(--border-color)]">

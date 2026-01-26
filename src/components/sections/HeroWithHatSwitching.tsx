@@ -428,7 +428,7 @@ export function HeroWithHatSwitching({
                                 transition={{ delay: 0.9 }}
                             >
                                 <motion.a
-                                    href="#about"
+                                    href="/portfolio"
                                     className="px-6 py-3 border-2 font-mono font-bold uppercase text-sm cursor-pointer"
                                     style={{
                                         backgroundColor: 'var(--accent-color)',
