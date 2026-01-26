@@ -688,7 +688,7 @@ const GameCustomizationPanel = ({
               <div className="hidden sm:block text-2xl opacity-50">🛠️</div>
               <div className="space-y-1">
                 <p className="text-xs font-mono font-bold" style={{ color: 'var(--accent-color)' }}>
-                  // SYSTEM OVERRIDE ACTIVE
+                  {'// SYSTEM OVERRIDE ACTIVE'}
                 </p>
                 <p className="text-[10px] font-mono leading-tight" style={{ color: 'var(--text-main)' }}>
                   Adjust chromatic aberration, typography matrix, and grid opacity to craft a unique era.
@@ -1060,7 +1060,7 @@ export const TimeMachine = () => {
                       </div>
                       <div className="space-y-2">
                         <p className="text-xs font-mono font-bold" style={{ color: 'var(--accent-color)' }}>
-                          // WELCOME TO THE ARCHIVE
+                          {'// WELCOME TO THE ARCHIVE'}
                         </p>
                         <p className="text-xs font-mono" style={{ color: 'var(--text-main)' }}>
                           This observatory tracks the evolution of design across decades.

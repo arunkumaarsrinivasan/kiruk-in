@@ -21,9 +21,6 @@ export function WireframeSection({
     children,
     className = ''
 }: WireframeSectionProps) {
-    const cornerSize = 24;
-    const rulerExtend = 40;
-
     return (
         <section
             id={id}
