@@ -14,11 +14,11 @@ import { TrekTimeline } from '@/components/progress/TrekTimeline'
 import { MusicVibeSection } from '@/components/progress/MusicVibeSection'
 
 // Data imports
-import { 
-  getBookStats, 
-  getGameStats, 
-  getTravelStats, 
-  getTrekStats 
+import {
+  getBookStats,
+  getGameStats,
+  getTravelStats,
+  getTrekStats
 } from '@/data/life-progress-data'
 
 // Types for Notion data (keeping for Bucket List & Monthly Goals)
@@ -92,10 +92,10 @@ export default function LifeProgressPage() {
   const [loading, setLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null)
-  
+
   // Active section for navigation
   const [activeSection, setActiveSection] = useState<SectionType>('overview')
-  
+
   // Context bar integration
   const { setProgressData, setProgressSectionHandler } = useContextBar()
 
@@ -106,7 +106,7 @@ export default function LifeProgressPage() {
   const trekStats = useMemo(() => getTrekStats(), [])
 
   // Section navigation handler
-  const handleSectionClick = useCallback((section: 'monthly' | 'bucket' | 'goals') => {
+  const handleSectionClick = useCallback((_section: 'monthly' | 'bucket' | 'goals') => {
     setActiveSection('goals')
     // Scroll to goals section
     const element = document.getElementById('goals-section')
@@ -131,7 +131,7 @@ export default function LifeProgressPage() {
   // Update context bar with progress data
   useEffect(() => {
     if (loading) return
-    
+
     const monthlyData = monthlyGoals
       .slice()
       .sort((a, b) => new Date(b.year, b.month - 1).getTime() - new Date(a.year, a.month - 1).getTime())
@@ -144,19 +144,19 @@ export default function LifeProgressPage() {
           completion: Math.round((done / total) * 100),
         }
       })
-    
+
     const bucketData = bucketList.slice(0, 5).map((item) => ({
       id: item._id,
       title: item.title,
       status: item.status,
     }))
-    
+
     const goalsData = lifeGoals.slice(0, 5).map((goal) => ({
       id: goal._id,
       title: goal.title,
       priority: goal.priority,
     }))
-    
+
     setProgressData({
       monthlyGoals: monthlyData,
       bucketList: bucketData,
@@ -217,16 +217,16 @@ export default function LifeProgressPage() {
         <GridBackground />
         <motion.div
           className="px-8 py-4 relative z-10"
-          style={{ 
+          style={{
             backgroundColor: 'var(--bg-card)',
             border: 'var(--border-width) solid var(--border-color)',
           }}
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
         >
-          <div 
-            className="animate-spin h-8 w-8 border-b-2 mx-auto mb-4" 
-            style={{ borderColor: 'var(--accent-color)' }} 
+          <div
+            className="animate-spin h-8 w-8 border-b-2 mx-auto mb-4"
+            style={{ borderColor: 'var(--accent-color)' }}
           />
           <p className="font-mono text-sm" style={{ color: 'var(--accent-color)' }}>
             Loading Life Progress...
@@ -239,7 +239,7 @@ export default function LifeProgressPage() {
   return (
     <main className="min-h-screen py-8 relative" style={pageStyle}>
       <GridBackground opacity={0.3} scanlinesOpacity={0.05} />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Page Header */}
         <motion.div
@@ -248,13 +248,13 @@ export default function LifeProgressPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <h1 
+          <h1
             className="text-4xl md:text-5xl font-mono font-bold mb-2"
             style={{ color: 'var(--text-main)' }}
           >
             Life Progress
           </h1>
-          <p 
+          <p
             className="text-lg font-mono"
             style={{ color: 'var(--text-muted)' }}
           >
@@ -379,7 +379,7 @@ export default function LifeProgressPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.0 }}
           >
-            <GoalsSection 
+            <GoalsSection
               lifeGoals={lifeGoals}
               bucketList={bucketList}
               monthlyGoals={monthlyGoals}
@@ -397,17 +397,17 @@ export default function LifeProgressPage() {
             animate={{ opacity: 1 }}
             transition={{ delay: 1.2 }}
           >
-            <span 
+            <span
               className="font-mono text-xs uppercase tracking-wider px-4 py-2 inline-block"
-              style={{ 
+              style={{
                 color: 'var(--text-muted)',
                 backgroundColor: 'var(--bg-card)',
                 border: '1px solid var(--border-color)',
               }}
             >
-              Notion synced · {new Date(lastSyncedAt).toLocaleTimeString('en-US', { 
-                hour: 'numeric', 
-                minute: '2-digit' 
+              Notion synced · {new Date(lastSyncedAt).toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit'
               })}
             </span>
           </motion.div>
@@ -420,21 +420,21 @@ export default function LifeProgressPage() {
 // Quick Stat Component
 function QuickStat({ icon, value, label }: { icon: string; value: number | string; label: string }) {
   return (
-    <div 
+    <div
       className="p-4 text-center"
-      style={{ 
+      style={{
         backgroundColor: 'var(--bg-card)',
         border: 'var(--border-width) solid var(--border-color)',
       }}
     >
       <div className="text-2xl mb-1">{icon}</div>
-      <div 
+      <div
         className="text-xl font-mono font-bold"
         style={{ color: 'var(--accent-color)' }}
       >
         {value}
       </div>
-      <div 
+      <div
         className="text-xs font-mono uppercase"
         style={{ color: 'var(--text-muted)' }}
       >
@@ -445,13 +445,13 @@ function QuickStat({ icon, value, label }: { icon: string; value: number | strin
 }
 
 // Goals Section (Notion Data)
-function GoalsSection({ 
-  lifeGoals, 
-  bucketList, 
+function GoalsSection({
+  lifeGoals,
+  bucketList,
   monthlyGoals,
   errorMessage,
-  lastSyncedAt,
-}: { 
+  lastSyncedAt: _lastSyncedAt,
+}: {
   lifeGoals: LifeGoal[]
   bucketList: BucketListItem[]
   monthlyGoals: MonthlyGoal[]
@@ -461,7 +461,7 @@ function GoalsSection({
   const [activeTab, setActiveTab] = useState<'life' | 'bucket' | 'monthly'>('life')
 
   return (
-    <div 
+    <div
       className="p-6"
       style={{
         backgroundColor: 'var(--bg-card)',
@@ -473,13 +473,13 @@ function GoalsSection({
         <div className="flex items-center gap-3">
           <span className="text-3xl">🎯</span>
           <div>
-            <h2 
+            <h2
               className="text-2xl font-mono uppercase tracking-wider"
               style={{ color: 'var(--text-main)' }}
             >
               Goals & Dreams
             </h2>
-            <p 
+            <p
               className="text-sm font-mono mt-1"
               style={{ color: 'var(--text-muted)' }}
             >
@@ -491,9 +491,9 @@ function GoalsSection({
 
       {/* Error Message */}
       {errorMessage && (
-        <div 
+        <div
           className="mb-6 p-4 font-mono text-sm"
-          style={{ 
+          style={{
             backgroundColor: 'var(--bg-main)',
             border: '1px solid var(--accent-color)',
             color: 'var(--accent-color)',
@@ -579,9 +579,9 @@ function LifeGoalsList({ goals }: { goals: LifeGoal[] }) {
         >
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
-              <h4 
+              <h4
                 className="font-mono font-bold"
-                style={{ 
+                style={{
                   color: goal.status === 'completed' ? 'var(--text-muted)' : 'var(--text-main)',
                   textDecoration: goal.status === 'completed' ? 'line-through' : 'none',
                 }}
@@ -589,7 +589,7 @@ function LifeGoalsList({ goals }: { goals: LifeGoal[] }) {
                 {goal.title}
               </h4>
               {goal.description && (
-                <p 
+                <p
                   className="text-sm mt-1"
                   style={{ color: 'var(--text-muted)' }}
                 >
@@ -598,9 +598,9 @@ function LifeGoalsList({ goals }: { goals: LifeGoal[] }) {
               )}
               <div className="flex flex-wrap gap-2 mt-2">
                 {goal.category && (
-                  <span 
+                  <span
                     className="px-2 py-0.5 text-xs font-mono"
-                    style={{ 
+                    style={{
                       backgroundColor: 'var(--bg-card)',
                       color: 'var(--text-muted)',
                     }}
@@ -608,9 +608,9 @@ function LifeGoalsList({ goals }: { goals: LifeGoal[] }) {
                     {goal.category}
                   </span>
                 )}
-                <span 
+                <span
                   className="px-2 py-0.5 text-xs font-mono uppercase"
-                  style={{ 
+                  style={{
                     backgroundColor: goal.status === 'completed' ? '#10B98120' : 'var(--accent-color)20',
                     color: goal.status === 'completed' ? '#10B981' : 'var(--accent-color)',
                   }}
@@ -620,7 +620,7 @@ function LifeGoalsList({ goals }: { goals: LifeGoal[] }) {
               </div>
             </div>
             <div className="text-right">
-              <span 
+              <span
                 className="text-2xl font-mono font-bold"
                 style={{ color: 'var(--accent-color)' }}
               >
@@ -629,13 +629,13 @@ function LifeGoalsList({ goals }: { goals: LifeGoal[] }) {
             </div>
           </div>
           {/* Progress bar */}
-          <div 
+          <div
             className="mt-3 h-2"
             style={{ backgroundColor: 'var(--border-color)' }}
           >
-            <div 
+            <div
               className="h-full transition-all"
-              style={{ 
+              style={{
                 backgroundColor: 'var(--accent-color)',
                 width: `${goal.progress ?? 0}%`,
               }}
@@ -677,9 +677,9 @@ function BucketListSection({ items }: { items: BucketListItem[] }) {
               style={{ accentColor: 'var(--accent-color)' }}
             />
             <div className="flex-1">
-              <h4 
+              <h4
                 className="font-mono font-bold"
-                style={{ 
+                style={{
                   color: item.status === 'completed' ? 'var(--text-muted)' : 'var(--text-main)',
                   textDecoration: item.status === 'completed' ? 'line-through' : 'none',
                 }}
@@ -687,7 +687,7 @@ function BucketListSection({ items }: { items: BucketListItem[] }) {
                 {item.title}
               </h4>
               {item.location && (
-                <p 
+                <p
                   className="text-sm mt-1"
                   style={{ color: 'var(--text-muted)' }}
                 >
@@ -695,7 +695,7 @@ function BucketListSection({ items }: { items: BucketListItem[] }) {
                 </p>
               )}
               {item.description && (
-                <p 
+                <p
                   className="text-sm mt-1"
                   style={{ color: 'var(--text-muted)' }}
                 >
@@ -705,10 +705,10 @@ function BucketListSection({ items }: { items: BucketListItem[] }) {
               {item.tags && item.tags.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-2">
                   {item.tags.map((tag) => (
-                    <span 
+                    <span
                       key={tag}
                       className="px-2 py-0.5 text-xs font-mono"
-                      style={{ 
+                      style={{
                         backgroundColor: 'var(--bg-card)',
                         color: 'var(--text-muted)',
                       }}
@@ -720,7 +720,7 @@ function BucketListSection({ items }: { items: BucketListItem[] }) {
               )}
             </div>
             {item.targetDate && (
-              <span 
+              <span
                 className="text-sm font-mono"
                 style={{ color: 'var(--accent-color)' }}
               >
@@ -769,14 +769,14 @@ function MonthlyGoalsList({ goals }: { goals: MonthlyGoal[] }) {
           >
             <div className="flex items-start justify-between gap-4 mb-3">
               <div>
-                <h4 
+                <h4
                   className="font-mono font-bold text-lg"
                   style={{ color: 'var(--text-main)' }}
                 >
                   {entry.title || `${entry.month}/${entry.year}`}
                 </h4>
                 {entry.description && (
-                  <p 
+                  <p
                     className="text-sm mt-1"
                     style={{ color: 'var(--text-muted)' }}
                   >
@@ -785,13 +785,13 @@ function MonthlyGoalsList({ goals }: { goals: MonthlyGoal[] }) {
                 )}
               </div>
               <div className="text-right">
-                <span 
+                <span
                   className="text-2xl font-mono font-bold"
                   style={{ color: 'var(--accent-color)' }}
                 >
                   {percent}%
                 </span>
-                <p 
+                <p
                   className="text-xs font-mono"
                   style={{ color: 'var(--text-muted)' }}
                 >
@@ -803,12 +803,12 @@ function MonthlyGoalsList({ goals }: { goals: MonthlyGoal[] }) {
             {/* Goals checklist */}
             <div className="space-y-2">
               {entry.goals.slice(0, 5).map((goal, index) => (
-                <div 
+                <div
                   key={index}
                   className="flex items-center gap-2 text-sm font-mono"
                 >
                   <span>{goal.completed ? '✅' : '⬜️'}</span>
-                  <span style={{ 
+                  <span style={{
                     color: goal.completed ? 'var(--text-muted)' : 'var(--text-main)',
                     textDecoration: goal.completed ? 'line-through' : 'none',
                   }}>
@@ -817,7 +817,7 @@ function MonthlyGoalsList({ goals }: { goals: MonthlyGoal[] }) {
                 </div>
               ))}
               {entry.goals.length > 5 && (
-                <p 
+                <p
                   className="text-xs font-mono"
                   style={{ color: 'var(--text-muted)' }}
                 >
@@ -829,7 +829,7 @@ function MonthlyGoalsList({ goals }: { goals: MonthlyGoal[] }) {
             {/* Achievements */}
             {entry.achievements && entry.achievements.length > 0 && (
               <div className="mt-4 pt-3" style={{ borderTop: '1px solid var(--border-color)' }}>
-                <p 
+                <p
                   className="text-xs font-mono uppercase mb-2"
                   style={{ color: 'var(--accent-color)' }}
                 >
@@ -837,7 +837,7 @@ function MonthlyGoalsList({ goals }: { goals: MonthlyGoal[] }) {
                 </p>
                 <div className="space-y-1">
                   {entry.achievements.slice(0, 3).map((win, index) => (
-                    <p 
+                    <p
                       key={index}
                       className="text-sm"
                       style={{ color: 'var(--text-main)' }}

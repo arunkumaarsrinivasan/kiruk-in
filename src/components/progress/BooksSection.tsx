@@ -14,16 +14,11 @@ const statusColors: Record<BookStatus, string> = {
   dropped: '#EF4444',
 };
 
-const statusLabels: Record<BookStatus, string> = {
-  reading: 'Currently Reading',
-  completed: 'Completed',
-  'to-read': 'To Read',
-  dropped: 'Dropped',
-};
+
 
 export function BooksSection({ className = '' }: BooksSectionProps) {
   const stats = useMemo(() => getBookStats(), []);
-  
+
   // Group books by status
   const groupedBooks = useMemo(() => {
     const groups: Record<BookStatus, Book[]> = {
@@ -39,7 +34,7 @@ export function BooksSection({ className = '' }: BooksSectionProps) {
   }, []);
 
   return (
-    <div 
+    <div
       className={`p-6 ${className}`}
       style={{
         backgroundColor: 'var(--bg-card)',
@@ -51,13 +46,13 @@ export function BooksSection({ className = '' }: BooksSectionProps) {
         <div className="flex items-center gap-3">
           <span className="text-3xl">📚</span>
           <div>
-            <h2 
+            <h2
               className="text-2xl font-mono uppercase tracking-wider"
               style={{ color: 'var(--text-main)' }}
             >
               Reading Journey
             </h2>
-            <p 
+            <p
               className="text-sm font-mono mt-1"
               style={{ color: 'var(--text-muted)' }}
             >
@@ -65,7 +60,7 @@ export function BooksSection({ className = '' }: BooksSectionProps) {
             </p>
           </div>
         </div>
-        
+
         {/* Quick Stats */}
         <div className="flex gap-4">
           <QuickStat value={stats.reading} label="Reading" color={statusColors.reading} />
@@ -77,7 +72,7 @@ export function BooksSection({ className = '' }: BooksSectionProps) {
       {/* Currently Reading - Featured */}
       {groupedBooks.reading.length > 0 && (
         <div className="mb-6">
-          <h3 
+          <h3
             className="text-sm font-mono uppercase tracking-wider mb-3"
             style={{ color: 'var(--accent-color)' }}
           >
@@ -94,7 +89,7 @@ export function BooksSection({ className = '' }: BooksSectionProps) {
       {/* To Read Queue */}
       {groupedBooks['to-read'].length > 0 && (
         <div>
-          <h3 
+          <h3
             className="text-sm font-mono uppercase tracking-wider mb-3"
             style={{ color: 'var(--text-muted)' }}
           >
@@ -111,7 +106,7 @@ export function BooksSection({ className = '' }: BooksSectionProps) {
       {/* Completed Books */}
       {groupedBooks.completed.length > 0 && (
         <div className="mt-6">
-          <h3 
+          <h3
             className="text-sm font-mono uppercase tracking-wider mb-3"
             style={{ color: statusColors.completed }}
           >
@@ -130,18 +125,18 @@ export function BooksSection({ className = '' }: BooksSectionProps) {
 
 function BookCard({ book, featured = false }: { book: Book; featured?: boolean }) {
   return (
-    <div 
+    <div
       className={`p-4 transition-all duration-200 hover:translate-y-[-2px] ${featured ? 'md:flex md:gap-4' : ''}`}
       style={{
         backgroundColor: 'var(--bg-main)',
-        border: featured 
-          ? `2px solid ${statusColors[book.status]}` 
+        border: featured
+          ? `2px solid ${statusColors[book.status]}`
           : '1px solid var(--border-color)',
       }}
     >
       <div className="flex-1">
         <div className="flex items-start justify-between gap-2">
-          <h4 
+          <h4
             className={`font-mono ${featured ? 'text-lg' : 'text-sm'}`}
             style={{ color: 'var(--text-main)' }}
           >
@@ -154,16 +149,16 @@ function BookCard({ book, featured = false }: { book: Book; featured?: boolean }
             </div>
           )}
         </div>
-        <p 
+        <p
           className="text-sm font-mono mt-1"
           style={{ color: 'var(--text-muted)' }}
         >
           by {book.author}
         </p>
         <div className="flex items-center gap-2 mt-2">
-          <span 
+          <span
             className="px-2 py-0.5 text-xs font-mono rounded"
-            style={{ 
+            style={{
               backgroundColor: `${statusColors[book.status]}20`,
               color: statusColors[book.status],
             }}
@@ -171,7 +166,7 @@ function BookCard({ book, featured = false }: { book: Book; featured?: boolean }
             {book.genre}
           </span>
           {book.startDate && (
-            <span 
+            <span
               className="text-xs font-mono"
               style={{ color: 'var(--text-muted)' }}
             >
@@ -180,7 +175,7 @@ function BookCard({ book, featured = false }: { book: Book; featured?: boolean }
           )}
         </div>
         {featured && book.notes && (
-          <p 
+          <p
             className="text-sm mt-3"
             style={{ color: 'var(--text-muted)' }}
           >
@@ -195,13 +190,13 @@ function BookCard({ book, featured = false }: { book: Book; featured?: boolean }
 function QuickStat({ value, label, color }: { value: number; label: string; color: string }) {
   return (
     <div className="text-center">
-      <div 
+      <div
         className="text-2xl font-mono font-bold"
         style={{ color }}
       >
         {value}
       </div>
-      <div 
+      <div
         className="text-xs font-mono uppercase"
         style={{ color: 'var(--text-muted)' }}
       >

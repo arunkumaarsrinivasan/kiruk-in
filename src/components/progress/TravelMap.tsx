@@ -83,10 +83,10 @@ const locationIcons: Record<LocationType, string> = {
 const createMarkerElement = (color: string, type: LocationType | 'trek-item'): HTMLDivElement => {
   const el = document.createElement('div');
   el.className = 'travel-marker';
-  
+
   const icon = type === 'trek-item' ? '⛰️' : locationIcons[type];
   const isEmoji = icon.length > 1; // Emojis are multi-char
-  
+
   el.style.cssText = `
     width: ${isEmoji ? '28px' : '24px'};
     height: ${isEmoji ? '28px' : '24px'};
@@ -223,6 +223,7 @@ export function TravelMap({ className = '' }: TravelMapProps) {
       map.remove();
       mapRef.current = null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Toggle dark/light theme
@@ -248,16 +249,16 @@ export function TravelMap({ className = '' }: TravelMapProps) {
         .then(res => res.json())
         .then((geojson) => {
           if (!mapRef.current) return;
-          
+
           // Filter features to only include visited states  
           const visitedFeatures = geojson.features.filter((feature: { properties: { NAME_1?: string } }) => {
             const stateName = feature.properties?.NAME_1;
             if (!stateName) return false;
-            
+
             // Check if this state is in our visited list
             for (const [ourState, aliases] of Object.entries(stateNameMapping)) {
               if (visitedStates.has(ourState)) {
-                if (aliases.some(alias => 
+                if (aliases.some(alias =>
                   stateName.toLowerCase() === alias.toLowerCase()
                 )) {
                   return true;
@@ -308,7 +309,7 @@ export function TravelMap({ className = '' }: TravelMapProps) {
     if (!mapRef.current || !mapReady) return;
 
     const map = mapRef.current;
-    
+
     // Remove existing markers
     markersRef.current.forEach(marker => marker.remove());
     markersRef.current = [];
@@ -319,9 +320,9 @@ export function TravelMap({ className = '' }: TravelMapProps) {
     data.forEach((item) => {
       const color = isTrek(item) ? markerColors.trek : markerColors[item.type];
       const markerType = isTrek(item) ? 'trek-item' : item.type;
-      
+
       const el = createMarkerElement(color, markerType);
-      
+
       const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
         .setLngLat([item.lng, item.lat])
         .addTo(map);

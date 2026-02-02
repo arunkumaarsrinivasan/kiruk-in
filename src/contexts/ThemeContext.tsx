@@ -60,6 +60,17 @@ const buildCustomThemeConfig = (custom: CustomEraStorage): ThemeConfig => {
     },
     // Keep this aligned with your default “grid world” vibe.
     style: 'sketch',
+    designTokens: {
+      gridSize: custom.gridSize,
+      gridOpacity: (custom.gridOpacity ?? 50) / 100,
+      borderRadius: 0, // Sketch / Grid world feel
+      shadowStyle: 'hard',
+      shadowIntensity: 0,
+      effects: ['custom-tokens', 'grid-world'],
+      letterSpacing: 0,
+      lineHeight: 1.5,
+      animationStyle: 'none',
+    },
   };
 };
 
@@ -108,7 +119,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         return [...prev, customTheme];
       });
     }
-    
+
     if (savedThemeId) {
       if (savedThemeId === 'custom') {
         const custom = getStoredCustomEra();
@@ -122,7 +133,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         }
       }
     }
-    
+
     if (savedThemeSelected === 'true') {
       setIsThemeSelected(true);
     } else {
@@ -135,25 +146,88 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   useEffect(() => {
     const root = document.documentElement;
     const theme = currentTheme;
-    
+
     root.style.setProperty('--theme-primary', theme.colors.primary);
     root.style.setProperty('--theme-secondary', theme.colors.secondary);
     root.style.setProperty('--theme-accent', theme.colors.accent);
     root.style.setProperty('--theme-background', theme.colors.background);
     root.style.setProperty('--theme-text', theme.colors.text);
-    
+
     root.style.setProperty('--theme-font-primary', theme.fonts.primary);
     root.style.setProperty('--theme-font-secondary', theme.fonts.secondary);
     root.style.setProperty('--theme-font-accent', theme.fonts.accent);
-    
+
+    // Also set the main/heading aliases for globals.css compatibility
+    root.style.setProperty('--font-main', theme.fonts.secondary);  // Body text
+    root.style.setProperty('--font-heading', theme.fonts.primary); // Headings
+
     // Set data attributes for global styles
     document.body.setAttribute('data-era', theme.id);
     document.body.setAttribute('data-style', theme.style);
-    
+
     // Toggle theme-* classes without wiping other body classes
     const themeClasses = ['theme-sketch', 'theme-minimal', 'theme-absurd'];
     themeClasses.forEach(themeClass => document.body.classList.remove(themeClass));
     document.body.classList.add(`theme-${theme.style}`);
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // DESIGN TOKENS - Apply era-specific tokens as global CSS variables
+    // ═══════════════════════════════════════════════════════════════════════════
+    const tokens = theme.designTokens;
+    if (tokens) {
+      // Grid system
+      root.style.setProperty('--era-grid-size', tokens.gridSize ? `${tokens.gridSize}px` : '0');
+      root.style.setProperty('--era-grid-opacity', String(tokens.gridOpacity ?? 0));
+      root.style.setProperty('--era-has-grid', tokens.gridSize ? '1' : '0');
+
+      // Border radius evolution
+      const radius = tokens.borderRadius ?? 0;
+      root.style.setProperty('--border-radius', `${radius}px`);  // For backwards compatibility
+      root.style.setProperty('--era-radius', `${radius}px`);
+      root.style.setProperty('--era-radius-sm', `${Math.min(radius, 4)}px`);
+      root.style.setProperty('--era-radius-md', `${Math.min(radius, 12)}px`);
+      root.style.setProperty('--era-radius-lg', `${Math.min(radius, 24)}px`);
+      root.style.setProperty('--era-radius-full', `${radius >= 16 ? '9999px' : `${radius}px`}`);
+
+      // Shadow system
+      root.style.setProperty('--era-shadow-style', tokens.shadowStyle ?? 'none');
+      root.style.setProperty('--era-shadow-intensity', String(tokens.shadowIntensity ?? 0));
+
+      // Precompute shadow CSS based on style
+      const intensity = (tokens.shadowIntensity ?? 50) / 100;
+      let shadowCSS = 'none';
+      switch (tokens.shadowStyle) {
+        case 'hard':
+          shadowCSS = `${4 * intensity}px ${4 * intensity}px 0px 0px var(--border-color)`;
+          break;
+        case 'soft':
+          shadowCSS = `0 ${4 * intensity}px ${16 * intensity}px rgba(0,0,0,${0.2 * intensity})`;
+          break;
+        case 'glow':
+          shadowCSS = `0 0 ${20 * intensity}px var(--accent-color), 0 0 ${40 * intensity}px color-mix(in srgb, var(--accent-color) 30%, transparent)`;
+          break;
+        case 'glass':
+          shadowCSS = `0 ${8 * intensity}px ${32 * intensity}px rgba(0,0,0,${0.3 * intensity}), inset 0 1px 0 rgba(255,255,255,0.1)`;
+          break;
+        case 'neumorphic':
+          shadowCSS = `${6 * intensity}px ${6 * intensity}px ${12 * intensity}px rgba(0,0,0,0.3), -${6 * intensity}px -${6 * intensity}px ${12 * intensity}px rgba(255,255,255,0.05)`;
+          break;
+        case 'inset':
+          shadowCSS = `inset 0 ${2 * intensity}px ${8 * intensity}px rgba(0,0,0,${0.3 * intensity})`;
+          break;
+      }
+      root.style.setProperty('--era-shadow', shadowCSS);
+
+      // Typography
+      root.style.setProperty('--era-letter-spacing', `${(tokens.letterSpacing ?? 0) * 0.01}em`);
+      root.style.setProperty('--era-line-height', String(tokens.lineHeight ?? 1.5));
+
+      // Animation style
+      root.style.setProperty('--era-animation', tokens.animationStyle ?? 'none');
+
+      // Effects as data attribute for CSS-based effects
+      document.body.setAttribute('data-effects', tokens.effects?.join(' ') ?? '');
+    }
 
     // IMPORTANT: Your visual system uses --bg-main/--text-main/etc (via globals.css).
     // Those are driven by body[data-era='YYYY'] rules for built-in eras.

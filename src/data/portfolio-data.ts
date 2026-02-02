@@ -18,11 +18,23 @@ export interface ThemeConfig {
     text: string;
   };
   fonts: {
-    primary: string;
-    secondary: string;
-    accent: string;
+    primary: string;      // Display font for headings
+    secondary: string;    // Text font for body
+    accent: string;       // UI elements
   };
   style: 'sketch' | 'minimal' | 'absurd';
+  // NEW: Era-specific design tokens for visual time-travel
+  designTokens: {
+    gridSize: number | null;  // null = no grid (post-2022), 4-48px
+    gridOpacity: number;      // 0-1
+    borderRadius: number;     // 0-32px
+    shadowStyle: 'none' | 'hard' | 'soft' | 'glow' | 'glass' | 'neumorphic' | 'inset';
+    shadowIntensity: number;  // 0-100
+    effects: string[];        // Era-specific visual effects
+    letterSpacing: number;    // -2 to 5 (em * 0.01)
+    lineHeight: number;       // 1.2 to 2.0
+    animationStyle: 'none' | 'blink' | 'pulse' | 'float' | 'morph' | 'glitch';
+  };
 }
 
 export interface PersonalInfo {
@@ -231,7 +243,7 @@ export interface WhyUXDesignEngineer {
   tagline: string;      // Memorable close
 }
 
-// Available Themes
+// Available Themes - with era-specific design tokens, celebrated fonts, and advanced effects
 export const AVAILABLE_THEMES: ThemeConfig[] = [
   {
     id: '1970',
@@ -243,18 +255,29 @@ export const AVAILABLE_THEMES: ThemeConfig[] = [
     keyElements: ['Monospace grids', 'Blinking cursors', 'Phosphor glow'],
     preview: '/themes/1970-terminal.jpg',
     colors: {
-      primary: '#00ff00',
-      secondary: '#003b00',
-      accent: '#00ff00',
-      background: '#000000',
-      text: '#00ff00',
+      primary: '#33ff33',
+      secondary: '#0a3d0a',
+      accent: '#66ff66',
+      background: '#0d0d0d',
+      text: '#33ff33',
     },
     fonts: {
-      primary: 'Courier New',
-      secondary: 'Courier New',
-      accent: 'Courier New',
+      primary: '"VT323", monospace',           // Display: Iconic terminal font
+      secondary: '"IBM Plex Mono", monospace', // Text: Modern monospace
+      accent: '"VT323", monospace',
     },
     style: 'minimal',
+    designTokens: {
+      gridSize: 48,
+      gridOpacity: 0.15,
+      borderRadius: 0,
+      shadowStyle: 'glow',
+      shadowIntensity: 80,
+      effects: ['crt-scanlines', 'phosphor-glow', 'screen-flicker', 'text-shadow-glow'],
+      letterSpacing: 2,
+      lineHeight: 1.4,
+      animationStyle: 'blink',
+    },
   },
   {
     id: '1981',
@@ -266,18 +289,29 @@ export const AVAILABLE_THEMES: ThemeConfig[] = [
     keyElements: ['Beige chrome', 'Menu strips', 'Pixel icons'],
     preview: '/themes/1981-xerox.jpg',
     colors: {
-      primary: '#0066cc',
-      secondary: '#dcdcdc',
-      accent: '#003399',
-      background: '#c0c0c0',
+      primary: '#1a5fb4',
+      secondary: '#c0c0c0',
+      accent: '#000080',
+      background: '#d4d0c8',
       text: '#1a1a1a',
     },
     fonts: {
-      primary: 'Helvetica',
-      secondary: 'Helvetica',
-      accent: 'Helvetica',
+      primary: '"Chicago", "Charcoal", system-ui',  // Display: Classic Mac
+      secondary: '"Geneva", "Helvetica", sans-serif', // Text: System feel
+      accent: '"Monaco", monospace',
     },
     style: 'minimal',
+    designTokens: {
+      gridSize: 40,
+      gridOpacity: 0.08,
+      borderRadius: 0,
+      shadowStyle: 'hard',
+      shadowIntensity: 100,
+      effects: ['pixel-border', 'bevel-edge', 'bitmap-dither', 'window-chrome'],
+      letterSpacing: 0,
+      lineHeight: 1.3,
+      animationStyle: 'none',
+    },
   },
   {
     id: '1991',
@@ -289,18 +323,29 @@ export const AVAILABLE_THEMES: ThemeConfig[] = [
     keyElements: ['Blue underlined links', 'Default serif body', 'Single-column layout'],
     preview: '/themes/1991-html.jpg',
     colors: {
-      primary: '#0000ff',
-      secondary: '#f7f7f7',
-      accent: '#0000ff',
+      primary: '#0000ee',
+      secondary: '#eeeeee',
+      accent: '#551a8b',
       background: '#ffffff',
       text: '#000000',
     },
     fonts: {
-      primary: 'Times New Roman',
-      secondary: 'Times New Roman',
-      accent: 'Times New Roman',
+      primary: '"Times New Roman", "Iowan Old Style", serif', // Display: Web default
+      secondary: '"Times New Roman", Georgia, serif',          // Text: Readable serif
+      accent: '"Courier", monospace',
     },
     style: 'minimal',
+    designTokens: {
+      gridSize: 32,
+      gridOpacity: 0.05,
+      borderRadius: 0,
+      shadowStyle: 'none',
+      shadowIntensity: 0,
+      effects: ['underline-links', 'visited-purple', 'hr-groove'],
+      letterSpacing: 0,
+      lineHeight: 1.6,
+      animationStyle: 'none',
+    },
   },
   {
     id: '1993',
@@ -313,17 +358,28 @@ export const AVAILABLE_THEMES: ThemeConfig[] = [
     preview: '/themes/1993-mosaic.jpg',
     colors: {
       primary: '#0000ff',
-      secondary: '#ffe6ff',
+      secondary: '#ffccff',
       accent: '#ff00ff',
-      background: '#fff8ff',
-      text: '#111111',
+      background: '#fffaf0',
+      text: '#222222',
     },
     fonts: {
-      primary: 'Arial',
-      secondary: 'Comic Sans MS',
-      accent: 'Courier New',
+      primary: '"Arial Black", "Impact", sans-serif',  // Display: Bold web fonts
+      secondary: '"Arial", "Helvetica", sans-serif',   // Text: Universal
+      accent: '"Courier New", monospace',
     },
     style: 'absurd',
+    designTokens: {
+      gridSize: 28,
+      gridOpacity: 0.1,
+      borderRadius: 0,
+      shadowStyle: 'hard',
+      shadowIntensity: 60,
+      effects: ['tiled-background', 'blink-text', 'marquee-scroll', 'table-border'],
+      letterSpacing: 0,
+      lineHeight: 1.5,
+      animationStyle: 'blink',
+    },
   },
   {
     id: '1995',
@@ -337,16 +393,27 @@ export const AVAILABLE_THEMES: ThemeConfig[] = [
     colors: {
       primary: '#ffff00',
       secondary: '#ff00ff',
-      accent: '#00ff00',
-      background: '#0b0025',
-      text: '#fdfd96',
+      accent: '#00ffff',
+      background: '#000033',
+      text: '#ffff99',
     },
     fonts: {
-      primary: 'Arial Black',
-      secondary: 'Comic Sans MS',
-      accent: 'Courier New',
+      primary: '"Comic Sans MS", "Chalkboard", cursive', // Display: Peak 90s
+      secondary: '"Arial", sans-serif',                   // Text: Readable contrast
+      accent: '"Courier New", monospace',
     },
     style: 'absurd',
+    designTokens: {
+      gridSize: 24,
+      gridOpacity: 0.12,
+      borderRadius: 0,
+      shadowStyle: 'glow',
+      shadowIntensity: 90,
+      effects: ['neon-glow', 'star-cursor', 'rainbow-text', 'gif-spinner', 'visitor-counter'],
+      letterSpacing: 1,
+      lineHeight: 1.4,
+      animationStyle: 'blink',
+    },
   },
   {
     id: '1997',
@@ -358,18 +425,29 @@ export const AVAILABLE_THEMES: ThemeConfig[] = [
     keyElements: ['Table borders everywhere', 'Frames & marquees', 'Gold navigation bars'],
     preview: '/themes/1997-corporate.jpg',
     colors: {
-      primary: '#ffcc00',
+      primary: '#ffd700',
       secondary: '#003366',
-      accent: '#ff6600',
-      background: '#002347',
-      text: '#f4f4f4',
+      accent: '#ff6b00',
+      background: '#001f3f',
+      text: '#f0f0f0',
     },
     fonts: {
-      primary: 'Verdana',
-      secondary: 'Arial',
-      accent: 'Verdana',
+      primary: '"Verdana", "Tahoma", sans-serif',   // Display: Microsoft era
+      secondary: '"Georgia", "Times", serif',       // Text: Professional
+      accent: '"Verdana", sans-serif',
     },
     style: 'minimal',
+    designTokens: {
+      gridSize: 20,
+      gridOpacity: 0.08,
+      borderRadius: 0,
+      shadowStyle: 'hard',
+      shadowIntensity: 70,
+      effects: ['table-cell-border', 'gradient-nav', 'beveled-button', 'frame-border'],
+      letterSpacing: 0,
+      lineHeight: 1.5,
+      animationStyle: 'none',
+    },
   },
   {
     id: '2000',
@@ -382,17 +460,28 @@ export const AVAILABLE_THEMES: ThemeConfig[] = [
     preview: '/themes/2000-css.jpg',
     colors: {
       primary: '#0066cc',
-      secondary: '#d9e2ec',
-      accent: '#0066cc',
+      secondary: '#e8f4fc',
+      accent: '#0052a3',
       background: '#ffffff',
-      text: '#1f2933',
+      text: '#2d3748',
     },
     fonts: {
-      primary: 'Trebuchet MS',
-      secondary: 'Verdana',
-      accent: 'Trebuchet MS',
+      primary: '"Trebuchet MS", "Gill Sans", sans-serif', // Display: CSS era
+      secondary: '"Verdana", "DejaVu Sans", sans-serif',  // Text: Pixel-perfect
+      accent: '"Trebuchet MS", sans-serif',
     },
     style: 'minimal',
+    designTokens: {
+      gridSize: 16,
+      gridOpacity: 0.06,
+      borderRadius: 4,
+      shadowStyle: 'soft',
+      shadowIntensity: 40,
+      effects: ['box-shadow-soft', 'rounded-corners', 'hover-underline', 'gradient-header'],
+      letterSpacing: 0,
+      lineHeight: 1.6,
+      animationStyle: 'none',
+    },
   },
   {
     id: '2003',
@@ -404,18 +493,29 @@ export const AVAILABLE_THEMES: ThemeConfig[] = [
     keyElements: ['Glossy buttons', 'Reflections', '960px centered layout'],
     preview: '/themes/2003-web2.jpg',
     colors: {
-      primary: '#ff6b6b',
-      secondary: '#4ecdc4',
-      accent: '#667eea',
-      background: '#f3f1ff',
-      text: '#1f1b24',
+      primary: '#e74c3c',
+      secondary: '#1abc9c',
+      accent: '#3498db',
+      background: '#faf9ff',
+      text: '#2c3e50',
     },
     fonts: {
-      primary: 'Lucida Grande',
-      secondary: 'Arial',
-      accent: 'Lucida Grande',
+      primary: '"Lucida Grande", "Lucida Sans", sans-serif', // Display: Mac OS X era
+      secondary: '"Helvetica Neue", "Arial", sans-serif',    // Text: Clean
+      accent: '"Lucida Grande", sans-serif',
     },
     style: 'minimal',
+    designTokens: {
+      gridSize: 14,
+      gridOpacity: 0.05,
+      borderRadius: 8,
+      shadowStyle: 'soft',
+      shadowIntensity: 50,
+      effects: ['glossy-gradient', 'reflection-shine', 'badge-3d', 'rounded-pill'],
+      letterSpacing: 0,
+      lineHeight: 1.6,
+      animationStyle: 'pulse',
+    },
   },
   {
     id: '2006',
@@ -428,17 +528,28 @@ export const AVAILABLE_THEMES: ThemeConfig[] = [
     preview: '/themes/2006-refined.jpg',
     colors: {
       primary: '#0088cc',
-      secondary: '#ff8800',
-      accent: '#f8fafc',
-      background: '#f5f5f5',
+      secondary: '#ff7f50',
+      accent: '#f0f0f0',
+      background: '#fafafa',
       text: '#1a1a1a',
     },
     fonts: {
-      primary: 'Helvetica',
-      secondary: 'Arial',
-      accent: 'Helvetica',
+      primary: '"Myriad Pro", "Segoe UI", sans-serif',  // Display: Apple-inspired
+      secondary: '"Lucida Sans", "Trebuchet", sans-serif', // Text: Elegant
+      accent: '"Helvetica", sans-serif',
     },
     style: 'minimal',
+    designTokens: {
+      gridSize: 12,
+      gridOpacity: 0.04,
+      borderRadius: 6,
+      shadowStyle: 'soft',
+      shadowIntensity: 35,
+      effects: ['subtle-gradient', 'generous-padding', 'smooth-transition', 'tab-rounded'],
+      letterSpacing: 0,
+      lineHeight: 1.7,
+      animationStyle: 'none',
+    },
   },
   {
     id: '2009',
@@ -451,17 +562,28 @@ export const AVAILABLE_THEMES: ThemeConfig[] = [
     preview: '/themes/2009-responsive.jpg',
     colors: {
       primary: '#007aff',
-      secondary: '#888888',
-      accent: '#00c7be',
-      background: '#fafafa',
-      text: '#1f1f1f',
+      secondary: '#5856d6',
+      accent: '#34c759',
+      background: '#f5f5f7',
+      text: '#1d1d1f',
     },
     fonts: {
-      primary: 'Helvetica Neue',
-      secondary: 'Arial',
-      accent: 'Helvetica Neue',
+      primary: '"Helvetica Neue", "SF Pro Display", sans-serif', // Display: iOS-inspired
+      secondary: '"Helvetica Neue", system-ui, sans-serif',       // Text: System native
+      accent: '"SF Mono", monospace',
     },
     style: 'minimal',
+    designTokens: {
+      gridSize: 10,
+      gridOpacity: 0.04,
+      borderRadius: 8,
+      shadowStyle: 'soft',
+      shadowIntensity: 30,
+      effects: ['css3-gradient', 'border-radius-smooth', 'media-query-grid', 'touch-target'],
+      letterSpacing: -0.5,
+      lineHeight: 1.5,
+      animationStyle: 'none',
+    },
   },
   {
     id: '2010',
@@ -474,17 +596,28 @@ export const AVAILABLE_THEMES: ThemeConfig[] = [
     preview: '/themes/2010-flat.jpg',
     colors: {
       primary: '#0099cc',
-      secondary: '#ff3333',
-      accent: '#00c3ff',
+      secondary: '#e74c3c',
+      accent: '#00d4ff',
       background: '#ffffff',
-      text: '#1e1e1e',
+      text: '#212121',
     },
     fonts: {
-      primary: 'San Francisco',
-      secondary: 'Helvetica Neue',
-      accent: 'San Francisco',
+      primary: '"SF Pro Display", "Segoe UI", sans-serif', // Display: Modern system
+      secondary: '"SF Pro Text", system-ui, sans-serif',   // Text: Optimized reading
+      accent: '"Menlo", monospace',
     },
     style: 'minimal',
+    designTokens: {
+      gridSize: 8,
+      gridOpacity: 0.03,
+      borderRadius: 4,
+      shadowStyle: 'soft',
+      shadowIntensity: 25,
+      effects: ['flat-color-block', 'crisp-border', 'bold-cta', 'grid-12-column'],
+      letterSpacing: 0,
+      lineHeight: 1.5,
+      animationStyle: 'none',
+    },
   },
   {
     id: '2013',
@@ -500,14 +633,25 @@ export const AVAILABLE_THEMES: ThemeConfig[] = [
       secondary: '#ff3b30',
       accent: '#ffcc00',
       background: '#f2f2f7',
-      text: '#16181f',
+      text: '#1c1c1e',
     },
     fonts: {
-      primary: 'Helvetica Neue',
-      secondary: 'Open Sans',
-      accent: 'Helvetica Neue',
+      primary: '"Avenir Next", "Montserrat", sans-serif', // Display: Flat era
+      secondary: '"Open Sans", "Roboto", sans-serif',     // Text: Google standard
+      accent: '"Avenir", sans-serif',
     },
     style: 'minimal',
+    designTokens: {
+      gridSize: 8,
+      gridOpacity: 0.02,
+      borderRadius: 6,
+      shadowStyle: 'none',
+      shadowIntensity: 0,
+      effects: ['flat-color', 'no-gradient', 'sharp-edge', 'pastel-palette'],
+      letterSpacing: 0,
+      lineHeight: 1.5,
+      animationStyle: 'none',
+    },
   },
   {
     id: '2014',
@@ -523,14 +667,25 @@ export const AVAILABLE_THEMES: ThemeConfig[] = [
       secondary: '#ff5722',
       accent: '#4caf50',
       background: '#fafafa',
-      text: '#1f1f1f',
+      text: '#212121',
     },
     fonts: {
-      primary: 'Roboto',
-      secondary: 'Open Sans',
-      accent: 'Roboto',
+      primary: '"Roboto", "Noto Sans", sans-serif',       // Display: Material icon
+      secondary: '"Roboto", "Source Sans Pro", sans-serif', // Text: Google standard
+      accent: '"Roboto Mono", monospace',
     },
     style: 'minimal',
+    designTokens: {
+      gridSize: 8,
+      gridOpacity: 0.03,
+      borderRadius: 4,
+      shadowStyle: 'soft',
+      shadowIntensity: 40,
+      effects: ['elevation-shadow', 'ripple-effect', '8dp-grid', 'fab-circle'],
+      letterSpacing: 0,
+      lineHeight: 1.5,
+      animationStyle: 'pulse',
+    },
   },
   {
     id: '2015',
@@ -546,14 +701,25 @@ export const AVAILABLE_THEMES: ThemeConfig[] = [
       secondary: '#4caf50',
       accent: '#ff9800',
       background: '#ffffff',
-      text: '#121212',
+      text: '#111111',
     },
     fonts: {
-      primary: 'San Francisco',
-      secondary: 'system-ui',
-      accent: 'San Francisco',
+      primary: '"Playfair Display", "Libre Baskerville", serif', // Display: Editorial
+      secondary: '"Source Sans Pro", "Lato", sans-serif',         // Text: Modern
+      accent: '"Fira Sans", sans-serif',
     },
     style: 'minimal',
+    designTokens: {
+      gridSize: 6,
+      gridOpacity: 0.02,
+      borderRadius: 4,
+      shadowStyle: 'soft',
+      shadowIntensity: 20,
+      effects: ['hero-image', 'bold-headline', 'flexbox-layout', 'hover-lift'],
+      letterSpacing: -1,
+      lineHeight: 1.4,
+      animationStyle: 'float',
+    },
   },
   {
     id: '2016',
@@ -568,15 +734,26 @@ export const AVAILABLE_THEMES: ThemeConfig[] = [
       primary: '#ff4081',
       secondary: '#00e676',
       accent: '#536dfe',
-      background: '#0b0b0b',
-      text: '#f5f5f5',
+      background: '#0a0a0a',
+      text: '#fafafa',
     },
     fonts: {
-      primary: 'Google Sans',
-      secondary: 'system-ui',
-      accent: 'Google Sans',
+      primary: '"Circular", "Poppins", sans-serif',     // Display: Spotify/Airbnb
+      secondary: '"Inter", "Nunito Sans", sans-serif',  // Text: Variable font
+      accent: '"IBM Plex Mono", monospace',
     },
     style: 'minimal',
+    designTokens: {
+      gridSize: 4,
+      gridOpacity: 0.02,
+      borderRadius: 8,
+      shadowStyle: 'soft',
+      shadowIntensity: 45,
+      effects: ['card-elevation', 'token-system', 'component-hover', 'micro-animation'],
+      letterSpacing: -0.5,
+      lineHeight: 1.5,
+      animationStyle: 'float',
+    },
   },
   {
     id: '2018',
@@ -588,18 +765,29 @@ export const AVAILABLE_THEMES: ThemeConfig[] = [
     keyElements: ['WCAG contrast', 'Dark mode previews', 'Design tokens'],
     preview: '/themes/2018-accessible.jpg',
     colors: {
-      primary: '#1976d2',
-      secondary: '#dc3545',
-      accent: '#121212',
+      primary: '#0066cc',
+      secondary: '#d32f2f',
+      accent: '#1a1a1a',
       background: '#ffffff',
-      text: '#111111',
+      text: '#0a0a0a',
     },
     fonts: {
-      primary: 'system-ui',
-      secondary: '-apple-system',
-      accent: 'system-ui',
+      primary: '"Atkinson Hyperlegible", "Inter", sans-serif', // Display: A11y focused
+      secondary: '"Atkinson Hyperlegible", system-ui, sans-serif', // Text: Maximum legibility
+      accent: '"JetBrains Mono", monospace',
     },
     style: 'minimal',
+    designTokens: {
+      gridSize: 4,
+      gridOpacity: 0.01,
+      borderRadius: 8,
+      shadowStyle: 'soft',
+      shadowIntensity: 30,
+      effects: ['focus-ring', 'high-contrast', 'reduced-motion', 'semantic-color'],
+      letterSpacing: 0,
+      lineHeight: 1.6,
+      animationStyle: 'none',
+    },
   },
   {
     id: '2020',
@@ -612,17 +800,28 @@ export const AVAILABLE_THEMES: ThemeConfig[] = [
     preview: '/themes/2020-neumorph.jpg',
     colors: {
       primary: '#bb86fc',
-      secondary: '#2196f3',
-      accent: '#e0e5ec',
+      secondary: '#03dac6',
+      accent: '#cf6679',
       background: '#121212',
-      text: '#f1f1f1',
+      text: '#e1e1e1',
     },
     fonts: {
-      primary: 'Inter',
-      secondary: 'system-ui',
-      accent: 'Inter',
+      primary: '"Inter", "Söhne", sans-serif',          // Display: Modern variable
+      secondary: '"Inter", "Suisse Int\'l", sans-serif', // Text: Premium
+      accent: '"Berkeley Mono", "Fira Code", monospace',
     },
     style: 'minimal',
+    designTokens: {
+      gridSize: 4,
+      gridOpacity: 0.01,
+      borderRadius: 20,
+      shadowStyle: 'neumorphic',
+      shadowIntensity: 60,
+      effects: ['neumorphic-inset', 'dark-elevation', 'soft-glow', 'smooth-toggle'],
+      letterSpacing: -0.5,
+      lineHeight: 1.5,
+      animationStyle: 'pulse',
+    },
   },
   {
     id: '2021',
@@ -637,15 +836,26 @@ export const AVAILABLE_THEMES: ThemeConfig[] = [
       primary: '#7c4dff',
       secondary: '#ffb74d',
       accent: '#ff7043',
-      background: '#f9f5ff',
-      text: '#1d1d1f',
+      background: '#fffbfe',
+      text: '#1c1b1f',
     },
     fonts: {
-      primary: 'system-ui',
-      secondary: '-apple-system',
-      accent: 'San Francisco',
+      primary: '"Google Sans", "Product Sans", sans-serif', // Display: Google identity
+      secondary: '"Roboto Flex", "Roboto", sans-serif',     // Text: Variable axes
+      accent: '"Google Sans Mono", monospace',
     },
     style: 'minimal',
+    designTokens: {
+      gridSize: null,  // No grid for modern era
+      gridOpacity: 0,
+      borderRadius: 28,
+      shadowStyle: 'soft',
+      shadowIntensity: 35,
+      effects: ['dynamic-color', 'shape-morph', 'adaptive-palette', 'motion-curve'],
+      letterSpacing: 0,
+      lineHeight: 1.5,
+      animationStyle: 'morph',
+    },
   },
   {
     id: '2022',
@@ -657,18 +867,29 @@ export const AVAILABLE_THEMES: ThemeConfig[] = [
     keyElements: ['Backdrop blur', 'Frosted panels', 'Translucent layers'],
     preview: '/themes/2022-glass.jpg',
     colors: {
-      primary: '#93c5fd',
-      secondary: '#111827',
-      accent: '#ffffff',
+      primary: '#60a5fa',
+      secondary: '#1e293b',
+      accent: '#f0f9ff',
       background: '#0f172a',
       text: '#e2e8f0',
     },
     fonts: {
-      primary: 'Space Grotesk',
-      secondary: 'Courier New',
-      accent: 'Space Grotesk',
+      primary: '"Space Grotesk", "Outfit", sans-serif',   // Display: Tech-forward
+      secondary: '"Inter", "Plus Jakarta Sans", sans-serif', // Text: Clean variable
+      accent: '"Space Mono", monospace',
     },
     style: 'minimal',
+    designTokens: {
+      gridSize: null,  // No grid for glass era
+      gridOpacity: 0,
+      borderRadius: 24,
+      shadowStyle: 'glass',
+      shadowIntensity: 50,
+      effects: ['backdrop-blur', 'frosted-glass', 'border-glow', 'layer-depth'],
+      letterSpacing: -0.5,
+      lineHeight: 1.5,
+      animationStyle: 'float',
+    },
   },
   {
     id: '2023',
@@ -683,15 +904,26 @@ export const AVAILABLE_THEMES: ThemeConfig[] = [
       primary: '#a855f7',
       secondary: '#06b6d4',
       accent: '#f472b6',
-      background: '#1e1b4b',
+      background: '#0c0a1d',
       text: '#f8fafc',
     },
     fonts: {
-      primary: 'Clash Display',
-      secondary: 'Space Grotesk',
-      accent: 'Clash Display',
+      primary: '"Clash Display", "Satoshi", sans-serif',   // Display: Independent foundry
+      secondary: '"General Sans", "DM Sans", sans-serif',  // Text: Contemporary
+      accent: '"Geist Mono", "JetBrains Mono", monospace',
     },
     style: 'absurd',
+    designTokens: {
+      gridSize: null,  // No grid
+      gridOpacity: 0,
+      borderRadius: 20,
+      shadowStyle: 'glow',
+      shadowIntensity: 70,
+      effects: ['gradient-animate', 'particle-float', 'aurora-glow', 'chat-bubble', 'holographic-shimmer'],
+      letterSpacing: -0.5,
+      lineHeight: 1.5,
+      animationStyle: 'float',
+    },
   },
   {
     id: '2024',
@@ -705,16 +937,27 @@ export const AVAILABLE_THEMES: ThemeConfig[] = [
     colors: {
       primary: '#ec4899',
       secondary: '#06b6d4',
-      accent: '#f59e0b',
-      background: '#0b021a',
-      text: '#f5f3ff',
+      accent: '#fbbf24',
+      background: '#030014',
+      text: '#faf5ff',
     },
     fonts: {
-      primary: 'Whyte',
-      secondary: 'Space Grotesk',
-      accent: 'Whyte',
+      primary: '"Geist", "Söhne", sans-serif',             // Display: Vercel flagship
+      secondary: '"Geist", "Inter", sans-serif',           // Text: Same family
+      accent: '"Geist Mono", "Berkeley Mono", monospace',
     },
     style: 'absurd',
+    designTokens: {
+      gridSize: null,  // No grid
+      gridOpacity: 0,
+      borderRadius: 16,
+      shadowStyle: 'glow',
+      shadowIntensity: 80,
+      effects: ['gradient-mesh', 'particle-swarm', 'noise-texture', 'liquid-morph', 'chromatic-aberration'],
+      letterSpacing: -1,
+      lineHeight: 1.4,
+      animationStyle: 'morph',
+    },
   },
   {
     id: '2025',
@@ -729,15 +972,26 @@ export const AVAILABLE_THEMES: ThemeConfig[] = [
       primary: '#8b5cf6',
       secondary: '#3b82f6',
       accent: '#14b8a6',
-      background: '#030712',
+      background: '#020617',
       text: '#f8fafc',
     },
     fonts: {
-      primary: 'StackSansText',
-      secondary: 'StackSansHeadline',
-      accent: 'StackSansNotch',
+      primary: '"SF Pro Display", "Geist", sans-serif',    // Display: Apple spatial
+      secondary: '"SF Pro Text", "Inter", sans-serif',     // Text: Apple ecosystem
+      accent: '"SF Mono", "Geist Mono", monospace',
     },
     style: 'sketch',
+    designTokens: {
+      gridSize: null,  // No grid - clean spatial
+      gridOpacity: 0,
+      borderRadius: 32,
+      shadowStyle: 'glass',
+      shadowIntensity: 60,
+      effects: ['spatial-depth', 'gesture-hint', 'parallax-layer', 'ai-particle', 'volumetric-light', 'depth-blur'],
+      letterSpacing: -0.5,
+      lineHeight: 1.5,
+      animationStyle: 'float',
+    },
   },
 ];
 

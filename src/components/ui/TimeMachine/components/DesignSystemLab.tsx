@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import type { ThemeConfig } from '@/data/portfolio-data';
+import { EraShaderCanvas } from './EraShaderCanvas';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -15,17 +16,78 @@ interface DesignSystemLabProps {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// COLOR SWATCH COMPONENT
+// ERA EFFECT STYLES - Returns CSS for era-specific visual effects
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function _getEraEffectStyles(effects: string[], _colors: ThemeConfig['colors']) {
+    const styles: React.CSSProperties = {};
+
+    // CRT/Terminal effects
+    if (effects.includes('crt-scanlines')) {
+        styles.backgroundImage = `repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 2px,
+            rgba(0, 0, 0, 0.15) 2px,
+            rgba(0, 0, 0, 0.15) 4px
+        )`;
+    }
+
+    return styles;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SHADOW STYLE GENERATOR
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function getShadowStyle(
+    shadowType: ThemeConfig['designTokens']['shadowStyle'],
+    intensity: number,
+    color: string,
+    _radius: number
+): React.CSSProperties {
+    const i = intensity / 100;
+
+    switch (shadowType) {
+        case 'hard':
+            return { boxShadow: `${4 * i}px ${4 * i}px 0px 0px ${color}` };
+        case 'soft':
+            return { boxShadow: `0 ${4 * i}px ${16 * i}px rgba(0,0,0,${0.2 * i})` };
+        case 'glow':
+            return { boxShadow: `0 0 ${20 * i}px ${color}40, 0 0 ${40 * i}px ${color}20` };
+        case 'glass':
+            return {
+                boxShadow: `0 ${8 * i}px ${32 * i}px rgba(0,0,0,${0.3 * i}), inset 0 1px 0 rgba(255,255,255,0.1)`,
+                backdropFilter: 'blur(16px)',
+            };
+        case 'neumorphic':
+            return {
+                boxShadow: `${6 * i}px ${6 * i}px ${12 * i}px rgba(0,0,0,0.3), 
+                            -${6 * i}px -${6 * i}px ${12 * i}px rgba(255,255,255,0.05)`
+            };
+        case 'inset':
+            return { boxShadow: `inset 0 ${2 * i}px ${8 * i}px rgba(0,0,0,${0.3 * i})` };
+        default:
+            return {};
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// COLOR SWATCH COMPONENT - Uses era-specific border radius
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function ColorSwatch({
     color,
     label,
-    isSmall = false
+    isSmall = false,
+    borderRadius = 0,
+    shadowStyle,
 }: {
     color: string;
     label: string;
     isSmall?: boolean;
+    borderRadius?: number;
+    shadowStyle?: React.CSSProperties;
 }) {
     const [copied, setCopied] = useState(false);
 
@@ -48,10 +110,14 @@ function ColorSwatch({
             <div
                 className={cn(
                     'border-2 border-[var(--border-color)] transition-all',
-                    'hover:border-[var(--accent-color)] hover:shadow-lg',
+                    'hover:border-[var(--accent-color)]',
                     isSmall ? 'w-8 h-8' : 'w-12 h-12 lg:w-14 lg:h-14'
                 )}
-                style={{ backgroundColor: color }}
+                style={{
+                    backgroundColor: color,
+                    borderRadius: `${Math.min(borderRadius, isSmall ? 4 : 8)}px`,
+                    ...shadowStyle,
+                }}
             />
             <span className={cn(
                 'font-mono uppercase',
@@ -74,6 +140,7 @@ function ColorSwatch({
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0 }}
                         className="absolute -top-6 px-2 py-1 text-[8px] font-mono bg-[var(--accent-color)] text-[var(--bg-main)]"
+                        style={{ borderRadius: `${borderRadius}px` }}
                     >
                         COPIED!
                     </motion.div>
@@ -84,16 +151,113 @@ function ColorSwatch({
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// ERA EFFECT LAYER - Renders era-specific visual effects
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function EraEffectLayer({ effects, colors, animationStyle }: {
+    effects: string[];
+    colors: ThemeConfig['colors'];
+    animationStyle: ThemeConfig['designTokens']['animationStyle'];
+}) {
+    return (
+        <>
+            {/* CRT Scanlines */}
+            {effects.includes('crt-scanlines') && (
+                <div
+                    className="absolute inset-0 pointer-events-none z-10"
+                    style={{
+                        background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px)',
+                    }}
+                />
+            )}
+
+            {/* Phosphor Glow */}
+            {effects.includes('phosphor-glow') && (
+                <motion.div
+                    className="absolute inset-0 pointer-events-none z-5"
+                    animate={{ opacity: [0.3, 0.5, 0.3] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    style={{
+                        background: `radial-gradient(ellipse at center, ${colors.primary}20 0%, transparent 70%)`,
+                    }}
+                />
+            )}
+
+            {/* Frosted Glass */}
+            {effects.includes('frosted-glass') && (
+                <div
+                    className="absolute inset-0 pointer-events-none z-5"
+                    style={{
+                        backdropFilter: 'blur(1px)',
+                        background: `linear-gradient(135deg, ${colors.primary}08 0%, transparent 50%, ${colors.secondary}08 100%)`,
+                    }}
+                />
+            )}
+
+            {/* Aurora Glow */}
+            {effects.includes('aurora-glow') && (
+                <motion.div
+                    className="absolute inset-0 pointer-events-none z-5 opacity-30"
+                    animate={{
+                        background: [
+                            `linear-gradient(45deg, ${colors.primary}30 0%, ${colors.secondary}20 50%, ${colors.accent}30 100%)`,
+                            `linear-gradient(45deg, ${colors.secondary}30 0%, ${colors.accent}20 50%, ${colors.primary}30 100%)`,
+                            `linear-gradient(45deg, ${colors.accent}30 0%, ${colors.primary}20 50%, ${colors.secondary}30 100%)`,
+                        ]
+                    }}
+                    transition={{ duration: 8, repeat: Infinity }}
+                />
+            )}
+
+            {/* Gradient Mesh - Modern effect */}
+            {effects.includes('gradient-mesh') && (
+                <motion.div
+                    className="absolute inset-0 pointer-events-none z-5 opacity-40"
+                    style={{
+                        background: `
+                            radial-gradient(at 20% 30%, ${colors.primary}40 0%, transparent 50%),
+                            radial-gradient(at 80% 70%, ${colors.secondary}40 0%, transparent 50%),
+                            radial-gradient(at 50% 50%, ${colors.accent}20 0%, transparent 70%)
+                        `,
+                    }}
+                />
+            )}
+
+            {/* Holographic Shimmer */}
+            {effects.includes('holographic-shimmer') && (
+                <motion.div
+                    className="absolute inset-0 pointer-events-none z-5 opacity-20"
+                    animate={{ rotate: [0, 360] }}
+                    transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+                    style={{
+                        background: `conic-gradient(from 0deg, ${colors.primary}, ${colors.secondary}, ${colors.accent}, ${colors.primary})`,
+                        filter: 'blur(40px)',
+                    }}
+                />
+            )}
+
+            {/* Screen Flicker - Terminal effect */}
+            {effects.includes('screen-flicker') && animationStyle === 'blink' && (
+                <motion.div
+                    className="absolute inset-0 pointer-events-none z-10"
+                    animate={{ opacity: [0, 0.02, 0, 0.01, 0] }}
+                    transition={{ duration: 0.1, repeat: Infinity, repeatDelay: Math.random() * 5 }}
+                    style={{ background: 'white' }}
+                />
+            )}
+        </>
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // DECORATIVE EYE ICON
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function SmallEyeIcon({ accentColor }: { accentColor: string }) {
     return (
         <motion.div
-            className="absolute top-2 right-2 opacity-40"
-            animate={{
-                opacity: [0.3, 0.5, 0.3],
-            }}
+            className="absolute top-2 right-2 opacity-40 z-20"
+            animate={{ opacity: [0.3, 0.5, 0.3] }}
             transition={{ duration: 3, repeat: Infinity }}
         >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -112,47 +276,77 @@ function SmallEyeIcon({ accentColor }: { accentColor: string }) {
 export function DesignSystemLab({ era, onOpenLabEditor }: DesignSystemLabProps) {
     const colors = era.colors;
     const fonts = era.fonts;
+    const tokens = era.designTokens;
 
     const previewBg = colors?.background ?? '#000000';
     const previewText = colors?.text ?? '#ffffff';
     const previewAccent = colors?.accent ?? colors?.primary ?? '#00ff88';
+
+    // Compute shadow style
+    const shadowStyle = useMemo(() =>
+        getShadowStyle(tokens?.shadowStyle ?? 'none', tokens?.shadowIntensity ?? 50, previewAccent, tokens?.borderRadius ?? 0),
+        [tokens?.shadowStyle, tokens?.shadowIntensity, tokens?.borderRadius, previewAccent]
+    );
+
+    // Grid configuration
+    const gridSize = tokens?.gridSize ?? null;
+    const gridOpacity = tokens?.gridOpacity ?? 0;
+    const borderRadius = tokens?.borderRadius ?? 0;
 
     return (
         <div className="flex flex-col h-full">
             {/* Lab Container with Era Theme */}
             <div
                 className="flex-1 relative overflow-hidden border-2 border-[var(--border-color)]"
-                style={{ backgroundColor: previewBg }}
+                style={{
+                    backgroundColor: previewBg,
+                    borderRadius: `${Math.min(borderRadius, 16)}px`,
+                }}
             >
                 {/* Decorative Eye Icon */}
                 <SmallEyeIcon accentColor={previewAccent} />
 
-                {/* Grid Pattern Overlay */}
-                <div
-                    className="absolute inset-0 pointer-events-none"
-                    style={{
-                        opacity: 0.08,
-                        backgroundImage: `linear-gradient(${previewText} 1px, transparent 1px), linear-gradient(90deg, ${previewText} 1px, transparent 1px)`,
-                        backgroundSize: '16px 16px',
-                    }}
+                {/* Era Effect Layer */}
+                <EraEffectLayer
+                    effects={tokens?.effects ?? []}
+                    colors={colors}
+                    animationStyle={tokens?.animationStyle ?? 'none'}
                 />
 
-                <div className="relative h-full flex flex-col p-3 lg:p-4 gap-4 overflow-y-auto">
+                {/* Advanced Shader Effects - ASCII, dithering, scanlines, glow */}
+                <EraShaderCanvas era={era} />
+
+                {/* Dynamic Grid Pattern Overlay - Only show if gridSize is set (pre-2022 eras) */}
+                {gridSize && gridSize > 0 && (
+                    <div
+                        className="absolute inset-0 pointer-events-none z-0"
+                        style={{
+                            opacity: gridOpacity,
+                            backgroundImage: `linear-gradient(${previewText} 1px, transparent 1px), linear-gradient(90deg, ${previewText} 1px, transparent 1px)`,
+                            backgroundSize: `${gridSize}px ${gridSize}px`,
+                        }}
+                    />
+                )}
+
+                <div className="relative h-full flex flex-col p-3 lg:p-4 gap-4 overflow-y-auto z-10">
 
                     {/* ═══ SECTION: COLOR PALETTE ═══ */}
                     <div>
                         <div
                             className="font-mono text-[9px] lg:text-[10px] uppercase mb-2 flex items-center gap-2"
-                            style={{ color: previewAccent }}
+                            style={{
+                                color: previewAccent,
+                                letterSpacing: `${(tokens?.letterSpacing ?? 0) * 0.01}em`,
+                            }}
                         >
                             <span>◆</span> COLOR PALETTE
                         </div>
                         <div className="flex flex-wrap gap-3 lg:gap-4">
-                            <ColorSwatch color={colors.primary} label="Primary" />
-                            <ColorSwatch color={colors.secondary} label="Secondary" />
-                            <ColorSwatch color={colors.accent} label="Accent" />
-                            <ColorSwatch color={colors.background} label="Bg" />
-                            <ColorSwatch color={colors.text} label="Text" />
+                            <ColorSwatch color={colors.primary} label="Primary" borderRadius={borderRadius} shadowStyle={shadowStyle} />
+                            <ColorSwatch color={colors.secondary} label="Secondary" borderRadius={borderRadius} shadowStyle={shadowStyle} />
+                            <ColorSwatch color={colors.accent} label="Accent" borderRadius={borderRadius} shadowStyle={shadowStyle} />
+                            <ColorSwatch color={colors.background} label="Bg" borderRadius={borderRadius} shadowStyle={shadowStyle} />
+                            <ColorSwatch color={colors.text} label="Text" borderRadius={borderRadius} shadowStyle={shadowStyle} />
                         </div>
                     </div>
 
@@ -160,7 +354,10 @@ export function DesignSystemLab({ era, onOpenLabEditor }: DesignSystemLabProps) 
                     <div>
                         <div
                             className="font-mono text-[9px] lg:text-[10px] uppercase mb-2 flex items-center gap-2"
-                            style={{ color: previewAccent }}
+                            style={{
+                                color: previewAccent,
+                                letterSpacing: `${(tokens?.letterSpacing ?? 0) * 0.01}em`,
+                            }}
                         >
                             <span>◆</span> TYPOGRAPHY
                         </div>
@@ -168,18 +365,33 @@ export function DesignSystemLab({ era, onOpenLabEditor }: DesignSystemLabProps) 
                             className="p-3 border border-opacity-20"
                             style={{
                                 borderColor: previewText,
-                                backgroundColor: `${previewBg}CC`
+                                backgroundColor: `${previewBg}CC`,
+                                borderRadius: `${borderRadius}px`,
+                                ...shadowStyle,
                             }}
                         >
                             <h3
                                 className="text-lg lg:text-xl font-bold mb-1"
-                                style={{ color: previewText, fontFamily: fonts.primary }}
+                                style={{
+                                    color: previewText,
+                                    fontFamily: fonts.primary,
+                                    letterSpacing: `${(tokens?.letterSpacing ?? 0) * 0.01}em`,
+                                    lineHeight: tokens?.lineHeight ?? 1.5,
+                                    // Add glow effect for terminal eras
+                                    textShadow: tokens?.effects?.includes('text-shadow-glow')
+                                        ? `0 0 10px ${previewText}80`
+                                        : 'none',
+                                }}
                             >
-                                Heading Text
+                                Heading Display
                             </h3>
                             <p
                                 className="text-xs lg:text-sm mb-2 opacity-80"
-                                style={{ color: previewText, fontFamily: fonts.secondary }}
+                                style={{
+                                    color: previewText,
+                                    fontFamily: fonts.secondary,
+                                    lineHeight: tokens?.lineHeight ?? 1.5,
+                                }}
                             >
                                 Body text in the secondary font. This showcases how readable content appears.
                             </p>
@@ -190,18 +402,24 @@ export function DesignSystemLab({ era, onOpenLabEditor }: DesignSystemLabProps) 
                                 Accent Label
                             </span>
                         </div>
+                        {/* Font Labels */}
                         <div className="flex gap-2 mt-2 flex-wrap">
-                            {[fonts.primary, fonts.secondary, fonts.accent].map((font, i) => (
+                            {[
+                                { font: fonts.primary, label: 'Display' },
+                                { font: fonts.secondary, label: 'Text' },
+                                { font: fonts.accent, label: 'UI' },
+                            ].map((item, i) => (
                                 <span
                                     key={i}
                                     className="text-[8px] px-2 py-1 border"
                                     style={{
                                         color: previewText,
                                         borderColor: `${previewText}33`,
-                                        fontFamily: font
+                                        fontFamily: item.font,
+                                        borderRadius: `${Math.min(borderRadius, 4)}px`,
                                     }}
                                 >
-                                    {font.split(',')[0].replace(/"/g, '')}
+                                    {item.label}: {item.font.split(',')[0].replace(/"/g, '')}
                                 </span>
                             ))}
                         </div>
@@ -211,23 +429,30 @@ export function DesignSystemLab({ era, onOpenLabEditor }: DesignSystemLabProps) 
                     <div>
                         <div
                             className="font-mono text-[9px] lg:text-[10px] uppercase mb-2 flex items-center gap-2"
-                            style={{ color: previewAccent }}
+                            style={{
+                                color: previewAccent,
+                                letterSpacing: `${(tokens?.letterSpacing ?? 0) * 0.01}em`,
+                            }}
                         >
                             <span>◆</span> COMPONENTS
                         </div>
                         <div className="flex flex-wrap gap-2 lg:gap-3">
                             {/* Primary Button */}
-                            <button
+                            <motion.button
                                 className="px-3 lg:px-4 py-1.5 lg:py-2 text-[10px] lg:text-xs font-bold uppercase border-2 transition-all"
                                 style={{
                                     backgroundColor: previewAccent,
                                     borderColor: previewAccent,
                                     color: previewBg,
                                     fontFamily: fonts.accent,
+                                    borderRadius: `${borderRadius}px`,
+                                    ...shadowStyle,
                                 }}
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
                             >
                                 Primary
-                            </button>
+                            </motion.button>
 
                             {/* Secondary Button */}
                             <button
@@ -237,6 +462,7 @@ export function DesignSystemLab({ era, onOpenLabEditor }: DesignSystemLabProps) 
                                     borderColor: previewText,
                                     color: previewText,
                                     fontFamily: fonts.accent,
+                                    borderRadius: `${borderRadius}px`,
                                 }}
                             >
                                 Secondary
@@ -249,6 +475,7 @@ export function DesignSystemLab({ era, onOpenLabEditor }: DesignSystemLabProps) 
                                     backgroundColor: colors.primary,
                                     color: previewBg,
                                     fontFamily: fonts.accent,
+                                    borderRadius: `${Math.min(borderRadius, 12)}px`,
                                 }}
                             >
                                 Badge
@@ -261,6 +488,7 @@ export function DesignSystemLab({ era, onOpenLabEditor }: DesignSystemLabProps) 
                                     borderColor: previewText,
                                     color: previewText,
                                     fontFamily: fonts.secondary,
+                                    borderRadius: `${Math.min(borderRadius, 8)}px`,
                                 }}
                             >
                                 #tag
@@ -273,6 +501,8 @@ export function DesignSystemLab({ era, onOpenLabEditor }: DesignSystemLabProps) 
                             style={{
                                 borderColor: `${previewText}33`,
                                 backgroundColor: `${previewText}08`,
+                                borderRadius: `${borderRadius}px`,
+                                ...shadowStyle,
                             }}
                         >
                             <div
@@ -285,32 +515,70 @@ export function DesignSystemLab({ era, onOpenLabEditor }: DesignSystemLabProps) 
                                 className="text-[10px] opacity-70"
                                 style={{ color: previewText, fontFamily: fonts.secondary }}
                             >
-                                A sample card component in this era's style.
+                                A sample card component in this era&apos;s style.
                             </div>
                         </div>
                     </div>
 
-                    {/* ═══ SECTION: STYLE INFO ═══ */}
+                    {/* ═══ SECTION: DESIGN TOKENS INFO ═══ */}
                     <div className="mt-auto pt-2 border-t" style={{ borderColor: `${previewText}22` }}>
-                        <div className="flex justify-between items-center">
-                            <div className="flex items-center gap-2">
+                        <div className="flex justify-between items-center flex-wrap gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                                 <span
                                     className="px-2 py-0.5 text-[8px] font-mono uppercase"
                                     style={{
                                         backgroundColor: previewAccent,
-                                        color: previewBg
+                                        color: previewBg,
+                                        borderRadius: `${Math.min(borderRadius, 4)}px`,
                                     }}
                                 >
                                     {era.style}
                                 </span>
+                                {gridSize && (
+                                    <span
+                                        className="text-[8px] font-mono"
+                                        style={{ color: `${previewText}88` }}
+                                    >
+                                        Grid: {gridSize}px
+                                    </span>
+                                )}
                                 <span
                                     className="text-[8px] font-mono"
                                     style={{ color: `${previewText}88` }}
                                 >
-                                    {era.era}
+                                    Radius: {borderRadius}px
                                 </span>
                             </div>
+                            <span
+                                className="text-[8px] font-mono"
+                                style={{ color: `${previewText}88` }}
+                            >
+                                {era.era}
+                            </span>
                         </div>
+                        {/* Effects Tags */}
+                        {tokens?.effects && tokens.effects.length > 0 && (
+                            <div className="flex gap-1 mt-2 flex-wrap">
+                                {tokens.effects.slice(0, 4).map((effect, i) => (
+                                    <span
+                                        key={i}
+                                        className="px-1.5 py-0.5 text-[7px] font-mono uppercase border"
+                                        style={{
+                                            borderColor: `${previewText}33`,
+                                            color: `${previewText}66`,
+                                            borderRadius: `${Math.min(borderRadius, 4)}px`,
+                                        }}
+                                    >
+                                        {effect}
+                                    </span>
+                                ))}
+                                {tokens.effects.length > 4 && (
+                                    <span className="text-[7px] font-mono" style={{ color: `${previewText}44` }}>
+                                        +{tokens.effects.length - 4}
+                                    </span>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -324,6 +592,7 @@ export function DesignSystemLab({ era, onOpenLabEditor }: DesignSystemLabProps) 
                     'text-[var(--accent-color)] hover:bg-[var(--accent-color)] hover:text-[var(--bg-main)]',
                     'transition-all flex items-center justify-center gap-2'
                 )}
+                style={{ borderRadius: `${borderRadius}px` }}
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
             >

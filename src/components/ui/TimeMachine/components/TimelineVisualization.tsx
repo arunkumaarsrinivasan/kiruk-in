@@ -19,6 +19,15 @@ const getDecade = (year: string): string => {
   return `${Math.floor(yearNum / 10) * 10}s`;
 };
 
+// Get era-specific visual density (grid dots size) - smaller = more HD
+const getVisualDensity = (gridSize: number | null): { dotSize: number; dotCount: number } => {
+  if (!gridSize) return { dotSize: 2, dotCount: 8 }; // Modern - ultra fine
+  if (gridSize >= 32) return { dotSize: 6, dotCount: 3 }; // 1970s-1990s - chunky
+  if (gridSize >= 16) return { dotSize: 4, dotCount: 4 }; // 2000s - medium
+  if (gridSize >= 8) return { dotSize: 3, dotCount: 5 }; // 2010s - finer
+  return { dotSize: 2, dotCount: 6 }; // 2020s - HD
+};
+
 export function TimelineVisualization({
   eras,
   currentEraId,
@@ -66,10 +75,10 @@ export function TimelineVisualization({
       {/* Header */}
       <div className="p-3 lg:p-4 border-b-2 border-[var(--border-color)] flex-shrink-0">
         <h3 className="font-mono text-xs lg:text-sm font-bold uppercase text-[var(--text-main)]">
-          TIMELINE
+          TIME MACHINE
         </h3>
         <p className="font-mono text-[10px] lg:text-xs text-[var(--text-muted)] mt-1">
-          {eras.length} Eras • {decades.length} Decades
+          {eras.length} Eras • {decades.length} Decades • 1970 → 2025
         </p>
       </div>
 
@@ -79,54 +88,118 @@ export function TimelineVisualization({
         className="flex-1 overflow-y-auto scrollbar-hide p-3 lg:p-4"
       >
         <div className="relative">
-          {/* Vertical Timeline Line */}
+          {/* Vertical Timeline Line - Gradient from chunky to refined */}
           <div
             className="absolute left-6 lg:left-8 top-0 bottom-0 w-0.5"
-            style={{ backgroundColor: 'var(--border-color)' }}
+            style={{
+              background: 'linear-gradient(180deg, var(--border-color) 0%, var(--accent-color) 50%, var(--border-color) 100%)',
+            }}
           />
 
           {/* Era Markers */}
-          <div className="relative space-y-6">
+          <div className="relative space-y-4">
             {eras.map((era, index) => {
               const isCurrent = era.id === currentEraId;
               const isSelected = era.id === selectedEraId;
               const isHovered = era.id === hoveredEraId;
               const year = Number.parseInt(era.id, 10);
 
+              // Get era-specific styling from designTokens
+              const tokens = era.designTokens;
+              const borderRadius = tokens?.borderRadius ?? 0;
+              const gridSize = tokens?.gridSize;
+              const density = getVisualDensity(gridSize);
+              const shadowStyle = tokens?.shadowStyle ?? 'none';
+
+              // Dynamic border radius for marker (evolves from 0 to fully round)
+              const markerRadius = Math.min(50, borderRadius * 2); // Max 50% for circular
+
               return (
                 <motion.div
                   key={era.id}
                   data-era-id={era.id}
-                  className="relative flex items-center gap-4"
+                  className="relative flex items-center gap-3"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.02 }}
                 >
-                  {/* Timeline Marker */}
+                  {/* Timeline Marker with Era-specific styling */}
                   <div className="relative z-10 flex-shrink-0">
                     <motion.button
                       onClick={() => onSelectEra(era.id)}
                       onMouseEnter={() => handleEraHover(era.id)}
                       onMouseLeave={() => handleEraHover(null)}
                       className={cn(
-                        'relative w-12 h-12 lg:w-16 lg:h-16 rounded-full border-2 flex items-center justify-center',
+                        'relative w-12 h-12 lg:w-14 lg:h-14 border-2 flex items-center justify-center overflow-hidden',
                         'transition-all font-mono font-black text-[10px] lg:text-xs',
                         isCurrent
-                          ? 'bg-[var(--accent-color)] border-[var(--accent-color)] text-[var(--bg-main)] scale-110'
+                          ? 'border-[var(--accent-color)] text-[var(--bg-main)] scale-110'
                           : isSelected
-                            ? 'bg-[var(--bg-main)] border-[var(--accent-color)] text-[var(--accent-color)] scale-105'
+                            ? 'border-[var(--accent-color)] text-[var(--accent-color)] scale-105'
                             : isHovered
-                              ? 'bg-[var(--bg-main)] border-[var(--text-main)] text-[var(--text-main)] scale-105'
-                              : 'bg-[var(--bg-card)] border-[var(--border-color)] text-[var(--text-muted)]'
+                              ? 'border-[var(--text-main)] text-[var(--text-main)] scale-105'
+                              : 'border-[var(--border-color)] text-[var(--text-muted)]'
                       )}
+                      style={{
+                        borderRadius: `${markerRadius}%`,
+                        backgroundColor: isCurrent
+                          ? era.colors.accent
+                          : era.colors.background,
+                        // Era-specific shadow
+                        boxShadow: shadowStyle === 'glow' && (isCurrent || isHovered)
+                          ? `0 0 15px ${era.colors.accent}60`
+                          : shadowStyle === 'hard'
+                            ? `3px 3px 0 ${era.colors.secondary}`
+                            : 'none',
+                      }}
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      {year}
+                      {/* Visual Density Grid - Shows grid evolution */}
+                      <div
+                        className="absolute inset-1 pointer-events-none opacity-30"
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns: `repeat(${density.dotCount}, 1fr)`,
+                          gridTemplateRows: `repeat(${density.dotCount}, 1fr)`,
+                          gap: '2px',
+                        }}
+                      >
+                        {Array.from({ length: density.dotCount * density.dotCount }).map((_, i) => (
+                          <div
+                            key={i}
+                            style={{
+                              width: `${density.dotSize}px`,
+                              height: `${density.dotSize}px`,
+                              backgroundColor: isCurrent
+                                ? era.colors.background
+                                : era.colors.text,
+                              borderRadius: `${borderRadius > 8 ? 50 : 0}%`,
+                              opacity: 0.4,
+                            }}
+                          />
+                        ))}
+                      </div>
+
+                      {/* Year Label */}
+                      <span
+                        className="relative z-10"
+                        style={{
+                          color: isCurrent ? era.colors.background : era.colors.text,
+                          fontFamily: era.fonts.accent,
+                        }}
+                      >
+                        {year.toString().slice(-2)}
+                      </span>
+
                       {/* Glow effect for current era */}
                       {isCurrent && (
                         <motion.div
-                          className="absolute inset-0 rounded-full bg-[var(--accent-color)]"
+                          className="absolute inset-0"
+                          style={{
+                            backgroundColor: era.colors.accent,
+                            borderRadius: `${markerRadius}%`,
+                          }}
                           animate={{ opacity: [0.3, 0.6, 0.3] }}
                           transition={{ duration: 2, repeat: Infinity }}
                         />
@@ -134,20 +207,51 @@ export function TimelineVisualization({
                     </motion.button>
                   </div>
 
-                  {/* Era Info */}
+                  {/* Era Info - With era-specific typography */}
                   <div className="flex-1 min-w-0">
                     <div
                       className={cn(
-                        'font-mono text-[10px] lg:text-xs font-bold uppercase truncate',
+                        'text-[10px] lg:text-xs font-bold uppercase truncate',
                         isCurrent || isSelected
                           ? 'text-[var(--accent-color)]'
                           : 'text-[var(--text-main)]'
                       )}
+                      style={{
+                        fontFamily: era.fonts.primary,
+                        letterSpacing: `${(tokens?.letterSpacing ?? 0) * 0.01}em`,
+                      }}
                     >
-                      {era.name.split(':')[0]}
+                      {era.name.split(':')[1]?.trim() || era.name}
                     </div>
-                    <div className="font-mono text-[9px] lg:text-[10px] text-[var(--text-muted)] truncate">
+                    <div
+                      className="text-[9px] lg:text-[10px] text-[var(--text-muted)] truncate"
+                      style={{ fontFamily: era.fonts.secondary }}
+                    >
                       {era.era}
+                    </div>
+                    {/* Design Token Indicator */}
+                    <div className="flex gap-1 mt-1">
+                      {gridSize && (
+                        <span
+                          className="text-[7px] px-1 py-0.5 rounded-sm"
+                          style={{
+                            backgroundColor: `${era.colors.text}15`,
+                            color: era.colors.text,
+                          }}
+                        >
+                          {gridSize}px
+                        </span>
+                      )}
+                      <span
+                        className="text-[7px] px-1 py-0.5"
+                        style={{
+                          backgroundColor: `${era.colors.text}15`,
+                          color: era.colors.text,
+                          borderRadius: `${Math.min(borderRadius, 4)}px`,
+                        }}
+                      >
+                        r{borderRadius}
+                      </span>
                     </div>
                   </div>
                 </motion.div>
