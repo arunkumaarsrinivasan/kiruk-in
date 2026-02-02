@@ -7,7 +7,6 @@ import DynamicContextBar from "./DynamicContextBar";
 import AppLoader from "@/components/ui/app-loader";
 import { getRandomGameId, getDefaultGameId, getGameEntry } from "@/components/ui/arcade/game-registry";
 import TimeMachine from "@/components/ui/TimeMachine";
-import { MissionCompletionNotification } from "./MissionCompletionNotification";
 import { useMissionTracker } from "@/hooks/useMissionTracker";
 import DetectiveStoryWrapper from "./DetectiveStoryWrapper";
 import { HelpBot } from "@/components/ui/HelpBot";
@@ -115,9 +114,6 @@ export default function LayoutClientShell({ children }: Readonly<LayoutClientShe
           {children}
         </main>
       </DetectiveStoryWrapper>
-      
-      {/* Mission Completion Notifications */}
-      <MissionCompletionNotification />
       
       {/* Help Bot - Available on all pages */}
       <HelpBot />

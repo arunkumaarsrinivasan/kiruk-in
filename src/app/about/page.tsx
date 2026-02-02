@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useCallback, useEffect, useState, useMemo, useRef } from "react";
 
 import { VlogGallery } from "@/modules/vlogs";
-// Removed unused import
 import { PixelCharacter, getStageFromAge, getActionFromAge } from "./components/PixelCharacter";
 import { PixelObstacle } from "./components/PixelObstacle";
 import { LevelBackground } from "./components/LevelBackground";
@@ -334,6 +333,7 @@ export default function About() {
 			currentYear: currentEvent?.year || lifeEvents[0]?.year,
 		});
 	}, [groupedLifeEvents, currentEvent, setAboutData]);
+	
 	const characterStage = getStageFromAge(currentEvent?.age || 0);
 	const characterAction = gameState.isPlaying 
 		? (gameState.isDucking ? "idle" : gameState.isJumping ? "jump" : gameState.isMovingRight || gameState.isMovingLeft ? "walk" : getActionFromAge(currentEvent?.age || 0))
@@ -506,7 +506,7 @@ export default function About() {
 								<span style={{ color: "var(--accent-color)" }}>Move left/right</span> to explore.
 							</motion.p>
 							
-							<motion.div
+							<motion. div
 								className="flex flex-col items-center gap-4"
 								initial={{ y: 20, opacity: 0 }}
 								animate={{ y: 0, opacity: 1 }}

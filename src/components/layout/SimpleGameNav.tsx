@@ -722,11 +722,12 @@ const SimpleGameNav: React.FC<SimpleGameNavProps> = ({
       >
         {/* Top Row: Main Navigation */}
         <div className="flex items-center justify-between h-full" style={{ height: BAR_HEIGHT }}>
-          {/* LEFT: Eye Logo + Previous Button (merged) */}
+          {/* LEFT: Home Eye Logo + Timeline Era + Previous Button */}
           <div className="flex">
+            {/* Home Button with Eye Logo */}
             <motion.button
-              onClick={() => setIsTimelineOpen(true)}
-              className="flex items-center justify-center border-r border-b border-[var(--border-color)] bg-[var(--bg-card)] hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] transition-colors duration-150"
+              onClick={() => router.push('/')}
+              className="flex items-center justify-center border-r border-b border-[var(--border-color)] bg-[var(--text-main)] hover:bg-[var(--accent-color)] transition-colors duration-150"
               style={{
                 height: BAR_HEIGHT,
                 width: BAR_HEIGHT,
@@ -734,12 +735,29 @@ const SimpleGameNav: React.FC<SimpleGameNavProps> = ({
               }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              aria-label="Open design era timeline"
+              aria-label="Go to home"
             >
               <PixelEye size={36} eraId={currentEraId} />
             </motion.button>
 
-            {/* Previous Game Button - Merged with Eye Logo */}
+            {/* Timeline Era Indicator - Opens Timeline */}
+            <motion.button
+              onClick={() => setIsTimelineOpen(true)}
+              className="flex flex-col items-center justify-center border-r border-b border-[var(--border-color)] bg-[var(--bg-card)] hover:bg-[var(--accent-color)] hover:text-[var(--bg-main)] transition-colors duration-150 group"
+              style={{
+                height: BAR_HEIGHT,
+                minWidth: BAR_HEIGHT * 1.5,
+                padding: '4px 12px',
+              }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              aria-label="Open design era timeline"
+            >
+              <span className="text-[8px] font-mono text-[var(--text-muted)] group-hover:text-[var(--bg-main)] uppercase tracking-wider">ERA</span>
+              <span className="text-sm font-mono font-bold text-[var(--accent-color)] group-hover:text-[var(--bg-main)]">{currentEraId}</span>
+            </motion.button>
+
+            {/* Previous Game Button */}
             {currentGame && (
               <motion.button
                 onClick={() => {
@@ -749,7 +767,7 @@ const SimpleGameNav: React.FC<SimpleGameNavProps> = ({
                 }}
                 disabled={!hasPreviousGame}
                 className={cn(
-                  'flex items-center justify-center border-l border-r border-b border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-main)] hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] transition-colors duration-150 font-mono text-lg',
+                  'flex items-center justify-center border-r border-b border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-main)] hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] transition-colors duration-150 font-mono text-lg',
                   !hasPreviousGame && 'opacity-30 cursor-not-allowed'
                 )}
                 style={{
