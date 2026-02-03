@@ -5,15 +5,12 @@ import Link from "next/link";
 import { useCallback, useEffect, useState, useMemo, useRef } from "react";
 
 import { VlogGallery } from "@/modules/vlogs";
-import { PixelCharacter, getStageFromAge, getActionFromAge } from "./components/PixelCharacter";
-import { PixelObstacle } from "./components/PixelObstacle";
-import { LevelBackground } from "./components/LevelBackground";
-import { useGameEngine } from "./components/useGameEngine";
-import { useGameMode } from "@/contexts/GameModeContext";
-import { GridBackground } from "@/components/ui/GridBackground";
+import { PixelCharacter, getStageFromAge } from "./components/PixelCharacter";
+import { CelestialLevelBackground } from "./components/CelestialLevelBackground";
+import { useCelestialEngine } from "./components/useCelestialEngine";
 import { useContextBar } from "@/contexts/ContextBarContext";
 
-// Life events data with timeline
+// Life events data with timeline - organized by cosmic phases
 type LifeEvent = {
 	id: string;
 	year: number;
@@ -38,9 +35,9 @@ const lifeEvents: LifeEvent[] = [
 		title: "Present Day - Kirukism in Motion",
 		location: "Bengaluru and Remote",
 		period: "2025",
-		description: "Switch between HP Print AI builds and sketching @kirukism; process journals keep the two worlds in dialogue.",
+		description: "Building HP Print AI by day, sketching @kirukism by night — process journals bridge these two creative worlds.",
 		icon: "🌈",
-		details: "Weekends are for capturing tiny learnings, posting snippets, and chatting with builders who resonate.",
+		details: "Weekends flow into capturing small learnings, sharing snippets, and connecting with builders who vibe with the journey.",
 		tags: ["Process journaling", "Kirukism sketches", "Builder conversations"],
 		milestone: true,
 		current: true,
@@ -49,12 +46,12 @@ const lifeEvents: LifeEvent[] = [
 		id: "print-ai-2024",
 		year: 2024,
 		age: 23,
-		title: "HP Print AI Launch and Observability",
-		location: "HP Print AI, Bengaluru and Global",
+		title: "HP Print AI Launch & Observability",
+		location: "HP Print AI, Bengaluru",
 		period: "2024",
-		description: "Launch season felt like conducting a workshop—linking prompt tests, data reviews, and onboarding dry runs until flows sang.",
+		description: "Launch season felt like conducting a symphony — linking prompt tests, data reviews, and onboarding rehearsals until everything clicked.",
 		icon: "🚀",
-		details: "We diagrammed AI stack handoffs on paper before instrumenting anything, tuning observability with ops and writers at the table.",
+		details: "We mapped AI stack handoffs on whiteboards before instrumenting anything, tuning observability with ops and writers at the same table.",
 		tags: ["Prompt rehearsals", "Team dry runs", "Observability circles"],
 		milestone: true,
 		photoPlaceholder: true,
@@ -66,9 +63,9 @@ const lifeEvents: LifeEvent[] = [
 		title: "SNS Square - Freelance Design Lead",
 		location: "Squarebridge Platform (Remote)",
 		period: "Nov 2023 - Aug 2024",
-		description: "Designed alongside placement teams, stitching research calls, Miro maps, and system tokens into a living design kit.",
+		description: "Designed hand-in-hand with placement teams, weaving research calls, Miro maps, and system tokens into a living design kit.",
 		icon: "🧩",
-		details: "Working sprints began with listening sessions and ended with Loom walkthroughs for developers to trace the why.",
+		details: "Sprints started with listening sessions and ended with Loom walkthroughs so developers could trace the 'why' behind every decision.",
 		tags: ["Research sprints", "Design systems", "Async storytelling"],
 		milestone: true,
 	},
@@ -79,9 +76,9 @@ const lifeEvents: LifeEvent[] = [
 		title: "HP Inc - Software Systems Engineer 1",
 		location: "HP Print AI, Bengaluru",
 		period: "Aug 2023 - Present",
-		description: "I co-create print workflows with writers, QA, and ML folks—every release starts in Miro flows before it hits code.",
+		description: "Co-creating print workflows with writers, QA, and ML folks — every release begins in Miro flows before touching code.",
 		icon: "🖨️",
-		details: "Daily standups end with sketching the email journey; we experiment, test, and refactor together.",
+		details: "Daily standups end with sketching email journeys; we experiment, test, and refactor as one team.",
 		tags: ["Cross-team co-creation", "Service design", "Print journaling"],
 		milestone: true,
 	},
@@ -92,7 +89,7 @@ const lifeEvents: LifeEvent[] = [
 		title: "HP Inc - R&D Intern",
 		location: "HP Print, Bengaluru",
 		period: "Feb 2023 - Jul 2023",
-		description: "Shadowed SREs and feature teams, mapping how logs become stories and scripting helpers that matched their rhythm.",
+		description: "Shadowed SREs and feature teams, learning how logs become stories and scripting helpers that matched their rhythm.",
 		icon: "🛠️",
 		details: "Shipping meant whiteboarding alert flows, replaying failures, and tweaking scripts together until dashboards felt calm.",
 		tags: ["Observability playbooks", "Pair scripting", "Spring experiments"],
@@ -108,7 +105,7 @@ const lifeEvents: LifeEvent[] = [
 		period: "Nov 2022 - Jan 2023",
 		description: "Paired with product and engineering in FigJam and Notion, sketching playful loops before writing a single component.",
 		icon: "🎮",
-		details: "We ran weekly critique jams where prototypes changed in real-time as teammates reacted.",
+		details: "Weekly critique jams where prototypes evolved in real-time as teammates reacted and riffed.",
 		tags: ["Gamified journeys", "Feedback jams", "Remote rituals"],
 		milestone: true,
 	},
@@ -119,7 +116,7 @@ const lifeEvents: LifeEvent[] = [
 		title: "Design Systems Deep Dive",
 		location: "College Studio & Remote Clients",
 		period: "2020 - 2021",
-		description: "Documented UI kits, motion rules, and UX playbooks for campus apps and freelance teams, sharpening how I articulate craft.",
+		description: "Documented UI kits, motion rules, and UX playbooks for campus apps and freelance teams, sharpening articulation of craft.",
 		icon: "🎛️",
 		details: "Pattern libraries, accessibility checklists, and case study write-ups helped align engineers, mentors, and clients remotely.",
 		tags: ["Design systems", "UX playbooks", "Remote collaboration"],
@@ -145,7 +142,7 @@ const lifeEvents: LifeEvent[] = [
 		period: "2019 - 2021",
 		description: "Led the cultural design team, refreshed the college website, and shaped a medical incubation app alongside dev partners.",
 		icon: "🎭",
-		details: "Balanced stage branding, stakeholder reviews, and sprint rituals so the campus voice stayed playful yet clear.",
+		details: "Balanced stage branding, stakeholder reviews, and sprint rituals so the campus voice stayed playful yet professional.",
 		tags: ["Cultural design lead", "Website redesign", "Medical app UX"],
 		photoPlaceholder: true,
 	},
@@ -156,9 +153,9 @@ const lifeEvents: LifeEvent[] = [
 		title: "Engineering Journey Begins",
 		location: "Sona College of Technology",
 		period: "2019 - 2023",
-		description: "Carried family-fueled experimentation into Computer Science—code labs by day, sketch critiques by night.",
+		description: "Carried family-fueled experimentation into Computer Science — code labs by day, sketch critiques by night.",
 		icon: "💻",
-		details: "The freelance hustle and QA drills primed me to blend storytelling with systems from the first semester.",
+		details: "Freelance hustle and QA drills primed me to blend storytelling with systems from semester one.",
 		tags: ["Code + design blends", "Family influence"],
 		milestone: true,
 	},
@@ -169,9 +166,9 @@ const lifeEvents: LifeEvent[] = [
 		title: "First Freelance Paycheck",
 		location: "Salem & Remote Clients",
 		period: "Summer 2018",
-		description: "Before college began I took on poster and illustration gigs sparked by family referrals and community buzz.",
+		description: "Before college, took on poster and illustration gigs sparked by family referrals and community buzz.",
 		icon: "💼",
-		details: "Learnt pricing, feedback loops, and the thrill of shipping imagination for my first paycheck.",
+		details: "Learned pricing, feedback loops, and the thrill of shipping imagination for my first real paycheck.",
 		tags: ["Poster design", "Illustration gigs", "First pay"],
 		milestone: true,
 		photoPlaceholder: true,
@@ -195,9 +192,9 @@ const lifeEvents: LifeEvent[] = [
 		title: "Family Studio Playground",
 		location: "Salem Joint Family Home",
 		period: "2008 - 2012",
-		description: "Watched my mom crochet masterpieces, an aunt letter scripts, another paint murals, and cousins doodle alongside me.",
+		description: "Watched mom crochet masterpieces, an aunt letter scripts, another paint murals, and cousins doodle alongside me.",
 		icon: "🏡",
-		details: "Critique circles happened over tea; I learnt that every idea invites another perspective before it ships.",
+		details: "Critique circles happened over tea; I learned that every idea invites another perspective before it ships.",
 		tags: ["Crochet to calligraphy", "30 voices", "Shared critiques"],
 		photoPlaceholder: true,
 	},
@@ -210,54 +207,19 @@ const lifeEvents: LifeEvent[] = [
 		period: "11 Aug 2001",
 		description: "Opened my eyes inside a joint family of nearly 30 people where collaboration was the constant background score.",
 		icon: "👶",
-		details: "Aunties swapped crochet stitches, calligraphy strokes, and mural tricks while uncles—project managers, marketers, founders—workshopped ventures over chai.",
+		details: "Aunties swapped crochet stitches, calligraphy strokes, and mural tricks while uncles — project managers, marketers, founders — workshopped ventures over chai.",
 		tags: ["Joint family", "Creative roots", "Entrepreneurial home"],
 		milestone: true,
 		photoPlaceholder: true,
 	},
 ];
 
-// Pixel collectible component
-function PixelCollectible({ type }: { type: string }) {
-	const size = 3;
-	const collectibles: Record<string, { pixels: string[][]; }> = {
-		coin: {
-			pixels: [
-				["", "#FFD700", "#FFD700", ""],
-				["#FFD700", "#FFF", "#FFD700", "#FFD700"],
-				["#FFD700", "#FFD700", "#FFF", "#FFD700"],
-				["", "#FFD700", "#FFD700", ""],
-			],
-		},
-		star: {
-			pixels: [
-				["", "", "#FFD700", "", ""],
-				["", "#FFD700", "#FFD700", "#FFD700", ""],
-				["#FFD700", "#FFD700", "#FFD700", "#FFD700", "#FFD700"],
-				["", "#FFD700", "#FFD700", "#FFD700", ""],
-				["", "#FFD700", "", "#FFD700", ""],
-			],
-		},
-		coffee: {
-			pixels: [
-				["", "#8B4513", "#8B4513", ""],
-				["#FFF", "#8B4513", "#8B4513", "#FFF"],
-				["", "#8B4513", "#8B4513", ""],
-				["", "#654321", "#654321", ""],
-			],
-		},
-	};
-	
-	const item = collectibles[type] || collectibles.coin;
-	const width = item.pixels[0].length;
-	
-	return (
-		<div className="grid" style={{ gridTemplateColumns: `repeat(${width}, ${size}px)` }}>
-			{item.pixels.flat().map((color, idx) => (
-				<div key={idx} style={{ width: size, height: size, backgroundColor: color || "transparent" }} />
-			))}
-		</div>
-	);
+// Helper to group events for intro screen display
+// Note: Sun/Moon/Stars now happen within each level based on progress, not age
+function getCosmicPhase(age: number): "sun" | "moon" | "stars" {
+	if (age <= 17) return "sun";
+	if (age <= 22) return "moon";
+	return "stars";
 }
 
 function getTimelinePhase(age: number) {
@@ -272,7 +234,7 @@ export default function About() {
 	const [showIntro, setShowIntro] = useState(true);
 	const [showRoadmap, setShowRoadmap] = useState(false);
 	const { setAboutData, setAboutPhaseHandler } = useContextBar();
-	
+
 	const groupedLifeEvents = useMemo(() => {
 		const groups: { phase: string; items: { event: LifeEvent; index: number }[] }[] = [];
 		lifeEvents.forEach((event, index) => {
@@ -286,79 +248,72 @@ export default function About() {
 		});
 		return groups;
 	}, []);
-	
+
 	const levels = lifeEvents.map((event) => ({
 		year: event.year,
 		age: event.age,
 	}));
-	
-	const { mode: gameMode } = useGameMode();
-	
+
 	const nextLevelRef = useRef<(() => void) | null>(null);
-	
-	const { gameState, startGame, jump, setMoving, togglePause, nextLevel, goToLevel, restartLevel } = useGameEngine({
+
+	const { gameState, startGame, togglePause, nextLevel, goToLevel, setMoving } = useCelestialEngine({
 		levels,
-		events: lifeEvents.map(e => ({ id: e.id, year: e.year, title: e.title, tags: e.tags, icon: e.icon })),
-		gameMode: gameMode || 'normal',
+		events: lifeEvents.map(e => ({ id: e.id, year: e.year, age: e.age, title: e.title, tags: e.tags, icon: e.icon })),
 		worldWidth: 2000,
 		onLevelComplete: (level) => {
-			// Automatically continue to next timeline event without modal
 			if (level < lifeEvents.length - 1 && nextLevelRef.current) {
 				setTimeout(() => nextLevelRef.current?.(), 100);
 			}
 		},
 	});
-	
-	// Store nextLevel in ref so callback can access it
+
+	// Store nextLevel in ref
 	useEffect(() => {
 		nextLevelRef.current = nextLevel;
 	}, [nextLevel]);
-	
+
 	const currentEvent = lifeEvents[gameState.level];
-	
-	// Update context bar with timeline phases (moved after currentEvent is defined)
+
+	// Update context bar
 	useEffect(() => {
 		const phases = groupedLifeEvents.map((group, index) => ({
 			phase: group.phase,
 			year: group.items[0]?.event.year || 2001,
 			index,
 		}));
-		
-		// Find current phase based on current event
+
 		const currentEventPhase = currentEvent ? getTimelinePhase(currentEvent.age) : groupedLifeEvents[0]?.phase;
-		
+
 		setAboutData({
 			phases,
 			currentPhase: currentEventPhase,
 			currentYear: currentEvent?.year || lifeEvents[0]?.year,
 		});
 	}, [groupedLifeEvents, currentEvent, setAboutData]);
-	
+
 	const characterStage = getStageFromAge(currentEvent?.age || 0);
-	const characterAction = gameState.isPlaying 
-		? (gameState.isDucking ? "idle" : gameState.isJumping ? "jump" : gameState.isMovingRight || gameState.isMovingLeft ? "walk" : getActionFromAge(currentEvent?.age || 0))
+	const characterAction = gameState.isPlaying
+		? (gameState.isMovingLeft || gameState.isMovingRight ? "walk" : "idle")
 		: "idle";
-	
-	// Camera offset calculation - player stays at 120px from left, world scrolls
+
+	// Camera offset calculation
 	const cameraOffset = useMemo(() => {
 		return Math.max(0, gameState.playerX - 120);
 	}, [gameState.playerX]);
-	
+
 	const handleStartGame = useCallback(() => {
 		setShowIntro(false);
 		setShowRoadmap(false);
 		startGame();
 	}, [startGame]);
-	
+
 	const handleTimelineSelect = useCallback((timelineIndex: number) => {
 		setShowIntro(false);
 		setShowRoadmap(false);
 		goToLevel(timelineIndex);
 	}, [goToLevel]);
 
-	// Handler for phase navigation from context bar
 	const handlePhaseClick = useCallback((phase: string) => {
-		// Find the first event in the phase
 		const phaseGroup = groupedLifeEvents.find(group => group.phase === phase);
 		if (phaseGroup && phaseGroup.items.length > 0) {
 			const firstIndex = phaseGroup.items[0].index;
@@ -366,111 +321,113 @@ export default function About() {
 		}
 	}, [groupedLifeEvents, handleTimelineSelect]);
 
-	// Register phase handler with context bar
 	useEffect(() => {
 		if (setAboutPhaseHandler) {
 			setAboutPhaseHandler(handlePhaseClick);
 		}
-		// Only register when handlePhaseClick or setAboutPhaseHandler changes
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [handlePhaseClick]);
+	}, [handlePhaseClick, setAboutPhaseHandler]);
 
 	// Touch controls for mobile
 	useEffect(() => {
 		const handleTouch = (e: TouchEvent) => {
 			if (gameState.isPlaying && !gameState.isPaused) {
-				// Get touch position relative to screen
 				const touchX = e.touches[0].clientX;
 				const screenWidth = globalThis.innerWidth;
-				
-				// Left side of screen = move left, right side = move right, center = jump
-				if (touchX < screenWidth * 0.3) {
+
+				// Left side = move left, right side = move right
+				if (touchX < screenWidth * 0.5) {
 					setMoving('left');
-				} else if (touchX > screenWidth * 0.7) {
-					setMoving('right');
 				} else {
-					jump();
+					setMoving('right');
 				}
-		} else if (gameState.isLevelComplete) {
-			// Auto-continue handled by onLevelComplete callback
-		} else if (gameState.isGameOver) {
-			restartLevel();
-		} else if (showIntro) {
-			handleStartGame();
-		}
-	};
-	
-	const handleTouchEnd = () => {
-		if (gameState.isPlaying && !gameState.isPaused) {
-			setMoving('none');
-		}
-	};
-	
-	globalThis.addEventListener("touchstart", handleTouch);
-	globalThis.addEventListener("touchend", handleTouchEnd);
-	return () => {
-		globalThis.removeEventListener("touchstart", handleTouch);
-		globalThis.removeEventListener("touchend", handleTouchEnd);
-	};
-}, [gameState.isPlaying, gameState.isPaused, gameState.isLevelComplete, gameState.isGameOver, showIntro, jump, setMoving, restartLevel, handleStartGame]);
+			} else if (gameState.isLevelComplete) {
+				// Continue to next level
+				nextLevel();
+			} else if (showIntro) {
+				handleStartGame();
+			}
+		};
+
+		const handleTouchEnd = () => {
+			if (gameState.isPlaying && !gameState.isPaused) {
+				setMoving('none');
+			}
+		};
+
+		globalThis.addEventListener("touchstart", handleTouch);
+		globalThis.addEventListener("touchend", handleTouchEnd);
+		return () => {
+			globalThis.removeEventListener("touchstart", handleTouch);
+			globalThis.removeEventListener("touchend", handleTouchEnd);
+		};
+	}, [gameState.isPlaying, gameState.isPaused, gameState.isLevelComplete, showIntro, setMoving, nextLevel, handleStartGame]);
+
+	// Level progress is now used directly - no phase calculation needed
 
 	return (
 		<main className="min-h-screen overflow-hidden relative" style={{ backgroundColor: "var(--bg-main)" }}>
-			<GridBackground />
-			{/* Game Header */}
-			<div className="fixed top-0 left-0 right-0 z-30 border-b-2 p-3" style={{ backgroundColor: "var(--bg-card)", borderColor: "var(--border-color)" }}>
-				<div className="max-w-7xl mx-auto flex items-center justify-between">
-					<div className="flex items-center gap-4">
-						<h1 className="text-xl font-mono" style={{ color: "var(--text-main)" }}>
-							KIRUK&apos;S JOURNEY
-						</h1>
-							{!showIntro && (
-							<div className="flex items-center gap-2 font-mono text-sm">
-								<span className="px-2 py-1 border" style={{ backgroundColor: "var(--bg-card)", borderColor: "var(--accent-color)", color: "var(--accent-color)" }}>
-									{currentEvent?.year || 2025} ({gameState.level + 1}/{lifeEvents.length})
-								</span>
-								<span className="px-2 py-1 border" style={{ backgroundColor: "var(--bg-card)", borderColor: "var(--border-color)", color: "var(--text-main)" }}>
-									SCORE: {gameState.score}
-								</span>
-								<span className="px-2 py-1 border" style={{ backgroundColor: "var(--bg-card)", borderColor: "var(--border-color)", color: "var(--text-muted)" }}>
-									AGE: {currentEvent?.age || 0}
-								</span>
-							</div>
-						)}
-					</div>
-					{!showIntro && (
-						<div className="flex items-center gap-2">
-							<button
-								onClick={togglePause}
-								className="px-3 py-1 font-mono text-sm border-2 transition-colors hover:opacity-80"
-								style={{ backgroundColor: "var(--bg-card)", borderColor: "var(--border-color)", color: "var(--text-main)" }}
-							>
-								{gameState.isPaused ? "RESUME" : "PAUSE"}
-							</button>
-							<Link
-								href="/"
-								className="px-3 py-1 font-mono text-sm border-2 transition-colors hover:opacity-80"
-								style={{ borderColor: "var(--accent-color)", color: "var(--accent-color)" }}
-							>
-								EXIT
-							</Link>
-						</div>
-					)}
-				</div>
-			</div>
-			
+			{/* Game Header - Minimal navbar */}
+
 			{/* Intro Screen */}
 			<AnimatePresence>
 				{showIntro && (
 					<motion.div
-						className="fixed inset-0 z-20 flex items-center justify-center"
-						style={{ backgroundColor: "var(--bg-main)" }}
+						className="fixed inset-0 z-20 flex items-center justify-center overflow-hidden"
+						style={{ background: "linear-gradient(180deg, #0a0a15 0%, #1a1a2e 50%, #2d1b3d 100%)" }}
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
 					>
-						<GridBackground opacity={0.3} />
-						
+						{/* Animated stars background */}
+						<div className="absolute inset-0">
+							{Array.from({ length: 50 }).map((_, i) => (
+								<motion.div
+									key={i}
+									className="absolute w-1 h-1 rounded-full bg-white"
+									style={{
+										left: `${Math.random() * 100}%`,
+										top: `${Math.random() * 100}%`,
+									}}
+									animate={{
+										opacity: [0.2, 0.8, 0.2],
+										scale: [1, 1.2, 1],
+									}}
+									transition={{
+										duration: 2 + Math.random() * 2,
+										repeat: Infinity,
+										delay: Math.random() * 2,
+									}}
+								/>
+							))}
+						</div>
+
+						{/* Celestial arc preview */}
+						<div className="absolute top-20 left-1/2 -translate-x-1/2">
+							<div className="flex items-center gap-12">
+								<motion.div
+									className="text-4xl"
+									animate={{ y: [0, -10, 0] }}
+									transition={{ duration: 3, repeat: Infinity }}
+								>
+									☀️
+								</motion.div>
+								<motion.div
+									className="text-3xl"
+									animate={{ y: [0, -8, 0] }}
+									transition={{ duration: 3, repeat: Infinity, delay: 0.5 }}
+								>
+									🌙
+								</motion.div>
+								<motion.div
+									className="text-2xl"
+									animate={{ y: [0, -5, 0], rotate: [0, 180, 360] }}
+									transition={{ duration: 4, repeat: Infinity, delay: 1 }}
+								>
+									⭐
+								</motion.div>
+							</div>
+						</div>
+
 						<div className="text-center max-w-2xl px-4 relative z-10 max-h-screen overflow-y-auto">
 							<motion.div
 								initial={{ scale: 0 }}
@@ -483,30 +440,30 @@ export default function About() {
 									className="mx-auto mb-8"
 								/>
 							</motion.div>
-							
+
 							<motion.h1
 								className="text-4xl md:text-6xl font-mono mb-4"
-								style={{ color: "var(--text-main)" }}
+								style={{ color: "#FFC857" }}
 								initial={{ y: 20, opacity: 0 }}
 								animate={{ y: 0, opacity: 1 }}
 								transition={{ delay: 0.4 }}
 							>
-								THE JOURNEY OF KIRUK
+								CELESTIAL JOURNEY
 							</motion.h1>
-							
+
 							<motion.p
 								className="text-lg font-mono mb-6"
-								style={{ color: "var(--text-muted)" }}
+								style={{ color: "rgba(255,255,255,0.7)" }}
 								initial={{ y: 20, opacity: 0 }}
 								animate={{ y: 0, opacity: 1 }}
 								transition={{ delay: 0.6 }}
 							>
-								{lifeEvents.length} moments from 2025 → 2001.
+								From sunrise to starlight — {lifeEvents.length} moments from 2001 to 2025.
 								<br />
-								<span style={{ color: "var(--accent-color)" }}>Move left/right</span> to explore.
+								<span style={{ color: "#90CDF4" }}>← →</span> to walk through time.
 							</motion.p>
-							
-							<motion. div
+
+							<motion.div
 								className="flex flex-col items-center gap-4"
 								initial={{ y: 20, opacity: 0 }}
 								animate={{ y: 0, opacity: 1 }}
@@ -514,61 +471,84 @@ export default function About() {
 							>
 								<button
 									onClick={handleStartGame}
-									className="px-8 py-4 font-mono text-2xl border-2 transition-all hover:opacity-80"
-									style={{ 
-										backgroundColor: "var(--bg-card)", 
-										borderColor: "var(--accent-color)", 
-										color: "var(--accent-color)" 
+									className="px-8 py-4 font-mono text-2xl border-2 transition-all hover:scale-105"
+									style={{
+										background: "linear-gradient(135deg, #FF6B35, #FFC857)",
+										borderColor: "#FFC857",
+										color: "#fff"
 									}}
 								>
-									▶ START GAME
+									☀️ BEGIN JOURNEY
 								</button>
 								<button
 									onClick={() => setShowRoadmap((prev) => !prev)}
 									className="px-6 py-2 font-mono text-sm border-2 transition-all hover:opacity-80"
-									style={{ 
-										backgroundColor: "var(--bg-card)", 
-										borderColor: "var(--border-color)", 
-										color: "var(--text-main)" 
+									style={{
+										backgroundColor: "rgba(0,0,0,0.5)",
+										borderColor: "rgba(255,255,255,0.3)",
+										color: "#fff"
 									}}
 								>
-									{showRoadmap ? "HIDE ROADMAP" : "VIEW ROADMAP LIST"}
+									{showRoadmap ? "HIDE ROADMAP" : "VIEW ALL MOMENTS"}
 								</button>
 							</motion.div>
-							
-							{/* Timeline Select */}
+
+							{/* Phase Jump Buttons */}
 							<motion.div
 								className="mt-8"
 								initial={{ y: 20, opacity: 0 }}
 								animate={{ y: 0, opacity: 1 }}
 								transition={{ delay: 1 }}
 							>
-								<p className="font-mono text-sm mb-3" style={{ color: "var(--text-muted)" }}>
+								<p className="font-mono text-sm mb-3" style={{ color: "rgba(255,255,255,0.5)" }}>
 									Jump to a phase:
 								</p>
-								<div className="flex flex-wrap justify-center gap-2 max-w-2xl mx-auto">
-									{groupedLifeEvents.map((group) => {
-										const first = group.items[0];
-										return (
-											<button
-												key={group.phase}
-												onClick={() => handleTimelineSelect(first.index)}
-												className="px-3 py-2 font-mono text-xs border transition-colors flex items-center gap-2 hover:opacity-80"
-												style={{ 
-													backgroundColor: "var(--bg-card)", 
-													borderColor: "var(--border-color)", 
-													color: "var(--text-main)" 
-												}}
-												title={`${group.phase}: ${first.event.title}`}
-											>
-												<span style={{ color: "var(--accent-color)" }}>{group.phase}</span>
-												<span>{first.event.year}</span>
-											</button>
-										);
-									})}
+								<div className="flex flex-wrap justify-center gap-3">
+									<button
+										onClick={() => {
+											const idx = lifeEvents.findIndex(e => getCosmicPhase(e.age) === "sun");
+											if (idx >= 0) handleTimelineSelect(idx);
+										}}
+										className="px-4 py-2 font-mono text-sm border-2 transition-colors hover:opacity-80 flex items-center gap-2"
+										style={{
+											background: "linear-gradient(135deg, rgba(255,107,53,0.3), rgba(255,200,87,0.3))",
+											borderColor: "#FFC857",
+											color: "#FFC857"
+										}}
+									>
+										<span>☀️</span> Origins (2001-2018)
+									</button>
+									<button
+										onClick={() => {
+											const idx = lifeEvents.findIndex(e => getCosmicPhase(e.age) === "moon");
+											if (idx >= 0) handleTimelineSelect(idx);
+										}}
+										className="px-4 py-2 font-mono text-sm border-2 transition-colors hover:opacity-80 flex items-center gap-2"
+										style={{
+											background: "linear-gradient(135deg, rgba(74,85,104,0.3), rgba(144,205,244,0.3))",
+											borderColor: "#90CDF4",
+											color: "#90CDF4"
+										}}
+									>
+										<span>🌙</span> Journey (2019-2022)
+									</button>
+									<button
+										onClick={() => {
+											const idx = lifeEvents.findIndex(e => getCosmicPhase(e.age) === "stars");
+											if (idx >= 0) handleTimelineSelect(idx);
+										}}
+										className="px-4 py-2 font-mono text-sm border-2 transition-colors hover:opacity-80 flex items-center gap-2"
+										style={{
+											background: "linear-gradient(135deg, rgba(128,90,213,0.3), rgba(255,215,0,0.3))",
+											borderColor: "#FFD700",
+											color: "#FFD700"
+										}}
+									>
+										<span>⭐</span> Milestones (2023-Now)
+									</button>
 								</div>
 							</motion.div>
-							
+
 							{/* Roadmap List */}
 							{showRoadmap && (
 								<motion.div
@@ -577,35 +557,41 @@ export default function About() {
 									animate={{ opacity: 1, y: 0 }}
 									transition={{ delay: 0.1 }}
 								>
-									<div className="border-2 p-4 space-y-5" style={{ backgroundColor: "var(--bg-card)", borderColor: "var(--border-color)" }}>
-										{groupedLifeEvents.map((group) => (
-											<div key={`roadmap-${group.phase}`} className="space-y-3">
-												<div className="font-mono text-xs uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
-													{group.phase}
+									<div className="border-2 p-4 space-y-4 max-h-[50vh] overflow-y-auto" style={{ backgroundColor: "rgba(0,0,0,0.7)", borderColor: "rgba(255,255,255,0.2)" }}>
+										{["stars", "moon", "sun"].map((cosmicPhase) => {
+											const phaseEvents = lifeEvents.filter(e => getCosmicPhase(e.age) === cosmicPhase);
+											const phaseLabel = cosmicPhase === "sun" ? "☀️ Origins" : cosmicPhase === "moon" ? "🌙 Journey" : "⭐ Milestones";
+											const phaseColor = cosmicPhase === "sun" ? "#FFC857" : cosmicPhase === "moon" ? "#90CDF4" : "#FFD700";
+
+											return (
+												<div key={cosmicPhase} className="space-y-2">
+													<div className="font-mono text-xs uppercase tracking-widest" style={{ color: phaseColor }}>
+														{phaseLabel}
+													</div>
+													{phaseEvents.map((event) => {
+														const eventIndex = lifeEvents.findIndex(e => e.id === event.id);
+														return (
+															<button
+																key={event.id}
+																onClick={() => handleTimelineSelect(eventIndex)}
+																className="w-full text-left font-mono text-sm border px-3 py-2 transition-colors hover:opacity-80"
+																style={{
+																	backgroundColor: "rgba(0,0,0,0.5)",
+																	borderColor: "rgba(255,255,255,0.1)",
+																	color: "#fff"
+																}}
+															>
+																<div className="flex items-center justify-between">
+																	<span style={{ color: phaseColor }}>{event.year}</span>
+																	<span className="text-xs opacity-50">{event.period || event.year}</span>
+																</div>
+																<div className="mt-1">{event.icon} {event.title}</div>
+															</button>
+														);
+													})}
 												</div>
-												{group.items.map(({ event, index }) => (
-													<button
-														key={`roadmap-${event.id}`}
-														onClick={() => handleTimelineSelect(index)}
-														className="w-full text-left font-mono text-sm border px-3 py-3 transition-colors hover:opacity-80"
-														style={{ backgroundColor: "var(--bg-main)", borderColor: "var(--border-color)", color: "var(--text-main)" }}
-													>
-														<div className="flex items-center justify-between gap-3">
-															<span style={{ color: "var(--accent-color)" }}>
-																{event.year}
-															</span>
-															<span className="text-xs" style={{ color: "var(--text-muted)" }}>
-																{event.period || event.year}
-															</span>
-														</div>
-														<div className="mt-1 text-base">{event.title}</div>
-														<div className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
-															{event.location}
-														</div>
-													</button>
-												))}
-											</div>
-										))}
+											);
+										})}
 									</div>
 								</motion.div>
 							)}
@@ -613,12 +599,12 @@ export default function About() {
 					</motion.div>
 				)}
 			</AnimatePresence>
-			
+
 			{/* Game Area */}
 			{!showIntro && (
-				<div className="fixed inset-0 pt-16" style={{ backgroundColor: "var(--bg-main)" }}>
-					{/* Level Background */}
-					<LevelBackground
+				<div className="fixed inset-0 pt-16">
+					{/* Celestial Level Background */}
+					<CelestialLevelBackground
 						year={currentEvent?.year || 2001}
 						title={currentEvent?.title || ""}
 						description={currentEvent?.description || ""}
@@ -626,14 +612,14 @@ export default function About() {
 						worldWidth={gameState.worldWidth}
 						event={currentEvent || undefined}
 						levelProgress={gameState.levelProgress}
-						activeCheckpoint={gameState.activeCheckpoint}
-						visitedCheckpoints={gameState.visitedCheckpoints}
+						totalEvents={lifeEvents.length}
+						currentEventIndex={gameState.level}
 					>
-						
+
 						{/* Game Canvas - with camera offset */}
 						<div className="absolute bottom-20 left-0 right-0 h-48 overflow-hidden z-10">
 							{/* Scrolling world container */}
-							<div 
+							<div
 								className="relative h-full"
 								style={{
 									width: gameState.worldWidth,
@@ -641,13 +627,13 @@ export default function About() {
 									transition: 'transform 0.05s linear',
 								}}
 							>
-								{/* Player - positioned by playerX, slightly above ground */}
+								{/* Player */}
 								<div
 									className="absolute"
 									style={{
-										bottom: gameState.playerY,
+										bottom: 0,
 										left: gameState.playerX,
-										transform: `${gameState.isDucking ? 'scaleY(0.6)' : 'scaleY(1)'} ${gameState.isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)'}`,
+										transform: `${gameState.isMovingLeft ? 'scaleX(-1)' : 'scaleX(1)'}`,
 										transformOrigin: 'bottom center',
 										transition: 'transform 0.1s ease-out',
 									}}
@@ -655,74 +641,51 @@ export default function About() {
 									<PixelCharacter
 										stage={characterStage}
 										action={characterAction}
-										isJumping={gameState.isJumping}
 									/>
 								</div>
-								
-								{/* Obstacles */}
-								{gameState.obstacles.map((obstacle) => (
-									<div
-										key={obstacle.id}
-										className="absolute"
-										style={{ left: obstacle.x, bottom: 0 }}
-									>
-										<PixelObstacle type={obstacle.type} size="medium" />
-									</div>
-								))}
-								
-								{/* Collectibles */}
-								{gameState.collectibles?.map((collectible) => (
-									<div
-										key={collectible.id}
-										className="absolute"
-										style={{ left: collectible.x, bottom: collectible.y }}
-									>
-										<PixelCollectible type={collectible.type} />
-									</div>
-								))}
-								
+
 								{/* Goal marker at end */}
-								<div 
+								<div
 									className="absolute bottom-0 flex flex-col items-center"
 									style={{ left: gameState.worldWidth - 60 }}
 								>
 									<div
 										className="font-mono text-lg mb-2"
-										style={{ color: "var(--accent-color)" }}
+										style={{
+											color: "#FFD700",
+										}}
 									>
-										🏁
+										✨
 									</div>
-									<div 
+									<div
 										className="w-2 h-24 border-2"
-										style={{ 
-											backgroundColor: "var(--bg-card)", 
-											borderColor: "var(--border-color)" 
+										style={{
+											background: "linear-gradient(180deg, #FFD700, transparent)",
+											borderColor: "#805AD5",
 										}}
 									/>
 								</div>
 							</div>
 						</div>
-						
-						{/* Controls Hint - Hidden while playing */}
-						{!gameState.isPlaying && (
-							<div className="absolute grid-bottom-1 left-1/2 transform -translate-x-1/2 z-30">
-								<div 
-									className="font-mono text-xs grid-px-1 grid-py-1 flex items-center gap-3 border"
-									style={{ 
-										backgroundColor: "var(--bg-card)", 
-										color: "var(--text-main)",
-										borderColor: "var(--border-color)"
+
+						{/* Controls Hint */}
+						{gameState.isPlaying && !gameState.isPaused && (
+							<div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-30">
+								<div
+									className="font-mono text-xs px-4 py-2 flex items-center gap-4 border backdrop-blur-sm"
+									style={{
+										backgroundColor: "rgba(0,0,0,0.6)",
+										color: "#fff",
+										borderColor: "rgba(255,255,255,0.2)"
 									}}
 								>
 									<span>← → MOVE</span>
-									<span>⬆️ SPACE = JUMP</span>
-									<span>⬇️ DOWN = DUCK</span>
-									<span>⏸️ ESC = PAUSE</span>
+									<span>ESC PAUSE</span>
 								</div>
 							</div>
 						)}
-					</LevelBackground>
-					
+					</CelestialLevelBackground>
+
 					{/* Pause Overlay */}
 					<AnimatePresence>
 						{gameState.isPaused && (
@@ -734,14 +697,14 @@ export default function About() {
 								exit={{ opacity: 0 }}
 							>
 								<div className="text-center">
-									<h2 className="text-4xl font-mono mb-4" style={{ color: "var(--text-main)" }}>PAUSED</h2>
+									<h2 className="text-4xl font-mono mb-4" style={{ color: "#fff" }}>PAUSED</h2>
 									<button
 										onClick={togglePause}
 										className="px-6 py-3 font-mono text-xl border-2"
-										style={{ 
-											backgroundColor: "var(--bg-card)", 
-											borderColor: "var(--accent-color)", 
-											color: "var(--accent-color)" 
+										style={{
+											background: "linear-gradient(135deg, #FF6B35, #FFC857)",
+											borderColor: "#FFC857",
+											color: "#fff"
 										}}
 									>
 										▶ RESUME
@@ -750,49 +713,60 @@ export default function About() {
 							</motion.div>
 						)}
 					</AnimatePresence>
-					
-					{/* Game Over Overlay */}
+
+					{/* Level Complete Overlay */}
 					<AnimatePresence>
-						{gameState.isGameOver && !gameState.isLevelComplete && (
+						{gameState.isLevelComplete && (
 							<motion.div
 								className="absolute inset-0 z-40 flex items-center justify-center"
-								style={{ backgroundColor: "rgba(0,0,0,0.9)" }}
+								style={{ backgroundColor: "rgba(0,0,0,0.85)" }}
 								initial={{ opacity: 0 }}
 								animate={{ opacity: 1 }}
 								exit={{ opacity: 0 }}
 							>
 								<div className="text-center">
-									<h2
-										className="text-6xl font-mono mb-4"
-										style={{ color: "var(--accent-color)" }}
+									<motion.div
+										className="text-6xl mb-4"
+										animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
+										transition={{ duration: 1, repeat: Infinity }}
 									>
-										GAME OVER
+										⭐
+									</motion.div>
+									<h2
+										className="text-3xl font-mono mb-2"
+										style={{ color: "#FFD700" }}
+									>
+										{currentEvent?.year} Complete!
 									</h2>
-									<p className="font-mono mb-2" style={{ color: "var(--text-main)" }}>
-										Timeline: {currentEvent?.year || 2025} | Score: {gameState.score}
-									</p>
-									<p className="font-mono text-sm mb-6" style={{ color: "var(--text-muted)" }}>
+									<p className="font-mono mb-6 opacity-70" style={{ color: "#fff" }}>
 										{currentEvent?.title}
 									</p>
 									<div className="flex gap-4 justify-center">
-										<button
-											onClick={restartLevel}
-											className="px-6 py-3 font-mono text-xl border-2"
-											style={{ 
-												backgroundColor: "var(--bg-card)", 
-												borderColor: "var(--accent-color)", 
-												color: "var(--accent-color)" 
-											}}
-										>
-											🔄 RETRY
-										</button>
+										{gameState.level < lifeEvents.length - 1 ? (
+											<button
+												onClick={nextLevel}
+												className="px-6 py-3 font-mono text-xl border-2 transition-transform hover:scale-105"
+												style={{
+													background: "linear-gradient(135deg, #805AD5, #FFD700)",
+													borderColor: "#FFD700",
+													color: "#fff"
+												}}
+											>
+												→ NEXT MOMENT
+											</button>
+										) : (
+											<div className="text-center">
+												<div className="text-2xl mb-2">🎉</div>
+												<p className="font-mono" style={{ color: "#FFD700" }}>Journey Complete!</p>
+											</div>
+										)}
 										<button
 											onClick={() => setShowIntro(true)}
 											className="px-6 py-3 font-mono text-xl border-2"
-											style={{ 
-												backgroundColor: "var(--bg-card)", 
-												borderColor: "var(--border-color)", 
-												color: "var(--text-main)" 
+											style={{
+												backgroundColor: "rgba(0,0,0,0.5)",
+												borderColor: "rgba(255,255,255,0.3)",
+												color: "#fff"
 											}}
 										>
 											📋 MENU
@@ -804,13 +778,12 @@ export default function About() {
 					</AnimatePresence>
 				</div>
 			)}
-			
 
-			{/* Vlog Gallery Section - Outside game area */}
+
+			{/* Vlog Gallery Section */}
 			{!showIntro && !gameState.isPlaying && gameState.isLevelComplete && gameState.level >= lifeEvents.length - 1 && (
 				<div className="pt-[100vh]">
 					<div id="instagram-section" className="max-w-7xl mx-auto px-4 py-12 mt-16 relative bg-white">
-						{/* Sketchy section divider */}
 						<div className="text-center mb-8">
 							<div className="inline-block px-8 py-4 wireframe-border" style={{
 								borderWidth: "var(--border-width)",
