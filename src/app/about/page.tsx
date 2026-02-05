@@ -401,48 +401,23 @@ export default function About() {
 							))}
 						</div>
 
-						{/* Celestial arc preview */}
-						<div className="absolute top-20 left-1/2 -translate-x-1/2">
-							<div className="flex items-center gap-12">
-								<motion.div
-									className="text-4xl"
-									animate={{ y: [0, -10, 0] }}
-									transition={{ duration: 3, repeat: Infinity }}
-								>
-									☀️
-								</motion.div>
-								<motion.div
-									className="text-3xl"
-									animate={{ y: [0, -8, 0] }}
-									transition={{ duration: 3, repeat: Infinity, delay: 0.5 }}
-								>
-									🌙
-								</motion.div>
-								<motion.div
-									className="text-2xl"
-									animate={{ y: [0, -5, 0], rotate: [0, 180, 360] }}
-									transition={{ duration: 4, repeat: Infinity, delay: 1 }}
-								>
-									⭐
-								</motion.div>
-							</div>
-						</div>
 
-						<div className="text-center max-w-2xl px-4 relative z-10 max-h-screen overflow-y-auto">
+						<div className="text-center max-w-2xl px-4 pt-[120px] pb-12 md:pt-[140px] md:pb-16 relative z-10 max-h-screen min-h-0 overflow-y-auto flex flex-col items-center">
 							<motion.div
 								initial={{ scale: 0 }}
 								animate={{ scale: 1 }}
 								transition={{ type: "spring", delay: 0.2 }}
+								className="relative mx-auto mb-6 md:mb-8 shrink-0"
 							>
 								<PixelCharacter
 									stage="professional"
 									action="idle"
-									className="mx-auto mb-8"
+									className="mx-auto block"
 								/>
 							</motion.div>
 
 							<motion.h1
-								className="text-4xl md:text-6xl font-mono mb-4"
+								className="text-4xl md:text-6xl font-mono mb-4 shrink-0"
 								style={{ color: "#FFC857" }}
 								initial={{ y: 20, opacity: 0 }}
 								animate={{ y: 0, opacity: 1 }}

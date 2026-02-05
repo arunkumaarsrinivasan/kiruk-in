@@ -746,7 +746,7 @@ export default function WireframeManualLayout() {
                                             ))}
                                         </div>
                                         <Link
-                                            href={`/case-studies/${project.id}`}
+                                            href="/portfolio"
                                             className="inline-block text-xs font-mono uppercase tracking-wider transition-colors"
                                             style={{ color: 'var(--accent-color)' }}
                                         >

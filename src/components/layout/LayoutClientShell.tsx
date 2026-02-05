@@ -2,18 +2,39 @@
 
 import { useState, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import SimpleGameNav from "./SimpleGameNav";
 import DynamicContextBar from "./DynamicContextBar";
 import AppLoader from "@/components/ui/app-loader";
 import { getRandomGameId, getDefaultGameId, getGameEntry } from "@/components/ui/arcade/game-registry";
-import TimeMachine from "@/components/ui/TimeMachine";
 import { useMissionTracker } from "@/hooks/useMissionTracker";
 import DetectiveStoryWrapper from "./DetectiveStoryWrapper";
 import { HelpBot } from "@/components/ui/HelpBot";
 
+// Lazy load TimeMachine (heavy era switcher) only on non-home pages
+const TimeMachine = dynamic(
+  () => import('@/components/ui/TimeMachine'),
+  { ssr: false }
+);
+
 interface LayoutClientShellProps {
   readonly children: React.ReactNode;
 }
+
+const GAME_ICONS: Record<string, string> = {
+  snake: 'bolt',
+  painter: 'pen',
+  collector: 'sparkles',
+  avoider: 'eye-cross',
+  tetris: 'grid',
+  pipe: 'cog',
+  shooter: 'eye',
+  minesweeper: 'exclamation-triangle',
+  flappy: 'arrow-up',
+  timeline: 'clock',
+  quiz: 'question',
+  memory: 'bookmark',
+};
 
 export default function LayoutClientShell({ children }: Readonly<LayoutClientShellProps>) {
   const pathname = usePathname();
@@ -30,23 +51,7 @@ export default function LayoutClientShell({ children }: Readonly<LayoutClientShe
   
   const gameEntry = getGameEntry(gameId);
   const gameName = gameEntry?.label || 'Game';
-  
-  // Game icons based on game type - using pixel icons
-  const gameIcons: Record<string, string> = {
-    'snake': 'bolt',
-    'painter': 'pen',
-    'collector': 'sparkles',
-    'avoider': 'eye-cross',
-    'tetris': 'grid',
-    'pipe': 'cog',
-    'shooter': 'eye',
-    'minesweeper': 'exclamation-triangle',
-    'flappy': 'arrow-up',
-    'timeline': 'clock',
-    'quiz': 'question',
-    'memory': 'bookmark',
-  };
-  const gameIcon = gameIcons[gameId] || 'play';
+  const gameIcon = GAME_ICONS[gameId] ?? 'play';
   
   const handleToggleGame = useCallback(() => {
     setIsGameActive(prev => !prev);

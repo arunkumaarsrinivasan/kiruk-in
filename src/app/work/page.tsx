@@ -56,7 +56,7 @@ export default function Work() {
 
   return (
     <main
-      className="min-h-screen overflow-hidden relative"
+      className="h-[calc(100vh-100px)] min-h-0 overflow-hidden relative"
       style={{ backgroundColor: 'var(--bg-main)' }}
     >
       {/* Header - Only show when intro is visible, otherwise main nav handles it */}

@@ -69,14 +69,14 @@ export default function CaseStudyPage() {
   
   // Extract id immediately to avoid enumeration warnings
   // Direct property access without enumerating the params object
+  const rawId = (params as { id?: string | string[] }).id;
   const caseStudyId = useMemo(() => {
-    const id = (params as { id?: string | string[] }).id;
-    return typeof id === 'string' 
-      ? id 
-      : Array.isArray(id) 
-        ? id[0] 
-        : String(id || '');
-  }, [params]);
+    return typeof rawId === 'string' 
+      ? rawId 
+      : Array.isArray(rawId) 
+        ? rawId[0] 
+        : String(rawId || '');
+  }, [rawId]);
   
   const caseStudy = CASE_STUDIES.find((study) => study.id === caseStudyId);
 

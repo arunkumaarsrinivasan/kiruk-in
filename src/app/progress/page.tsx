@@ -1,14 +1,19 @@
 'use client'
 
 import { useEffect, useMemo, useState, useCallback, type CSSProperties } from 'react'
+import dynamic from 'next/dynamic'
 import { AnimatePresence, motion } from 'framer-motion'
 import { GridBackground } from '@/components/ui/GridBackground'
 import { useContextBar } from '@/contexts/ContextBarContext'
 
 // New Progress Components
 import { LifeProgressCard } from '@/components/progress/LifeProgressCard'
-import { TravelMap } from '@/components/progress/TravelMap'
 import { BooksSection } from '@/components/progress/BooksSection'
+
+const TravelMap = dynamic(
+  () => import('@/components/progress/TravelMap').then((m) => ({ default: m.TravelMap })),
+  { ssr: false, loading: () => <div className="min-h-[400px] flex items-center justify-center font-mono text-sm" style={{ color: 'var(--text-muted)' }}>Loading map...</div> }
+)
 import { GamesSection } from '@/components/progress/GamesSection'
 import { TrekTimeline } from '@/components/progress/TrekTimeline'
 import { MusicVibeSection } from '@/components/progress/MusicVibeSection'

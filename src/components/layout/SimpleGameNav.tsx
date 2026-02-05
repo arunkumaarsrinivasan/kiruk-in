@@ -17,153 +17,392 @@ import { GRID_SIZE, cn } from '@/lib/utils';
 import { useDesignEra } from '@/contexts/DesignEraContext';
 import { useGameMode, PAGE_GAMES } from '@/contexts/GameModeContext';
 import { AVAILABLE_THEMES, ThemeConfig } from '@/data/portfolio-data';
+import dynamic from 'next/dynamic';
 import { GameMenuOverlay } from './GameMenuOverlay';
 import { getPageInfo } from '@/data/page-info';
 import { getNextGame } from '@/data/game-navigation-data';
-import { DesignSystemLab } from '@/components/ui/TimeMachine/components/DesignSystemLab';
-import { DesignLabEditor, type LabDesignTokens } from '@/components/ui/TimeMachine/components/DesignLabEditor';
+import type { LabDesignTokens } from '@/components/ui/TimeMachine/components/DesignLabEditor';
+
+const SimpleGameNavEraOverlayContent = dynamic(
+  () => import('./SimpleGameNavEraOverlayContent').then((m) => ({ default: m.SimpleGameNavEraOverlayContent })),
+  { ssr: false }
+);
 
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// PIXEL EYE COMPONENT - Reusable eye with era-based styling
+// BIG EYE COMPONENT - Large eyeball with cursor-following pupil and emotions
 // ═══════════════════════════════════════════════════════════════════════════════
 
-interface PixelEyeProps {
+type EyeEmotion = 'neutral' | 'confused' | 'excited' | 'focused' | 'surprised' | 'sleepy' | 'wink';
+
+interface BigEyeProps {
   size?: number;
   eraId?: string;
   onClick?: () => void;
   className?: string;
 }
 
-const PixelEye: React.FC<PixelEyeProps> = ({ size = 52, eraId, onClick, className }) => {
+const BigEye: React.FC<BigEyeProps> = ({ size = 48, eraId, onClick, className }) => {
   const [pupilPos, setPupilPos] = useState({ x: 0, y: 0 });
   const [isBlinking, setIsBlinking] = useState(false);
+  const [emotion, setEmotion] = useState<EyeEmotion>('neutral');
+  const [eyeShape, setEyeShape] = useState({ width: 1, height: 1 }); // For excited/surprised states
   const eyeRef = useRef<HTMLDivElement>(null);
+  const lastMousePos = useRef({ x: 0, y: 0, time: Date.now() });
+  const speedHistory = useRef<number[]>([]);
+  const hoverCheckTimeout = useRef<NodeJS.Timeout | null>(null);
+  const emotionRef = useRef<EyeEmotion>('neutral');
+  const confusedTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const surprisedTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const cols = 13;
-  const rows = 9;
-  const pixelSize = Math.floor(size / cols);
-
-  // Get era colors for eyeball styling
   const currentEra = AVAILABLE_THEMES.find(t => t.id === eraId) || AVAILABLE_THEMES[0];
   const eyeColor = currentEra.colors.text || 'var(--text-main)';
   const pupilColor = currentEra.colors.accent || 'var(--accent-color)';
 
+  // Bigger movement range for visible cursor-following
+  const pupilRadius = size * 0.15;
+  const maxMove = size * 0.25;
+
+  // Sync emotion ref with state
+  useEffect(() => {
+    emotionRef.current = emotion;
+  }, [emotion]);
+
+  // Check if hovering over interactive elements
+  useEffect(() => {
+    const checkHover = (e: MouseEvent) => {
+      if (hoverCheckTimeout.current) {
+        clearTimeout(hoverCheckTimeout.current);
+      }
+      
+      hoverCheckTimeout.current = setTimeout(() => {
+        const element = document.elementFromPoint(e.clientX, e.clientY);
+        if (element) {
+          const isInteractive = 
+            element.tagName === 'BUTTON' ||
+            element.tagName === 'A' ||
+            element.getAttribute('role') === 'button' ||
+            element.closest('button') !== null ||
+            element.closest('a') !== null ||
+            element.closest('[role="button"]') !== null;
+          
+          if (isInteractive && emotionRef.current !== 'excited' && emotionRef.current !== 'confused') {
+            setEmotion('excited');
+            setEyeShape({ width: 1.15, height: 1.1 });
+          } else if (!isInteractive && emotionRef.current === 'excited') {
+            setEmotion('neutral');
+            setEyeShape({ width: 1, height: 1 });
+          }
+        }
+      }, 50);
+    };
+
+    globalThis.addEventListener('mousemove', checkHover);
+    return () => {
+      globalThis.removeEventListener('mousemove', checkHover);
+      if (hoverCheckTimeout.current) {
+        clearTimeout(hoverCheckTimeout.current);
+      }
+    };
+  }, []);
+
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!eyeRef.current) return;
+      
       const rect = eyeRef.current.getBoundingClientRect();
       const eyeCenterX = rect.left + rect.width / 2;
       const eyeCenterY = rect.top + rect.height / 2;
       const deltaX = e.clientX - eyeCenterX;
       const deltaY = e.clientY - eyeCenterY;
       const angle = Math.atan2(deltaY, deltaX);
-      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-      const maxMove = pixelSize * 2;
-      const moveAmount = Math.min(distance / 10, maxMove);
-      setPupilPos((prev) => {
-        const newX = Math.cos(angle) * moveAmount;
-        const newY = Math.sin(angle) * moveAmount;
-        // Only update if position actually changed to prevent unnecessary re-renders
-        if (Math.abs(prev.x - newX) < 0.1 && Math.abs(prev.y - newY) < 0.1) {
-          return prev;
+      const distance = Math.hypot(deltaX, deltaY);
+      
+      // Calculate speed
+      const now = Date.now();
+      const timeDelta = now - lastMousePos.current.time;
+      const mouseDeltaX = e.clientX - lastMousePos.current.x;
+      const mouseDeltaY = e.clientY - lastMousePos.current.y;
+      const mouseDistance = Math.hypot(mouseDeltaX, mouseDeltaY);
+      const speed = timeDelta > 0 ? mouseDistance / timeDelta : 0;
+      
+      lastMousePos.current = { x: e.clientX, y: e.clientY, time: now };
+      
+      // Track speed history (last 5 movements)
+      speedHistory.current.push(speed);
+      if (speedHistory.current.length > 5) {
+        speedHistory.current.shift();
+      }
+      
+      const avgSpeed = speedHistory.current.length > 0 
+        ? speedHistory.current.reduce((a, b) => a + b, 0) / speedHistory.current.length 
+        : 0;
+      const fastThreshold = 0.5; // pixels per millisecond
+      
+      // Always update pupil position, but adjust based on emotion
+      let moveAmount = Math.min(distance / 8, maxMove);
+      let newPupilPos = { x: 0, y: 0 };
+      
+      // Determine emotion based on speed
+      if (avgSpeed > fastThreshold && emotionRef.current !== 'excited') {
+        // Clear any existing confused timeout
+        if (confusedTimeoutRef.current) {
+          clearTimeout(confusedTimeoutRef.current);
         }
-        return { x: newX, y: newY };
+        
+        if (emotionRef.current !== 'confused') {
+          setEmotion('confused');
+        }
+        
+        // Confused: pupil moves erratically
+        const confusedOffset = {
+          x: (Math.random() - 0.5) * maxMove * 0.3,
+          y: (Math.random() - 0.5) * maxMove * 0.3,
+        };
+        moveAmount = Math.min(distance / 8, maxMove) + Math.abs(confusedOffset.x);
+        newPupilPos = {
+          x: Math.cos(angle) * moveAmount + confusedOffset.x,
+          y: Math.sin(angle) * moveAmount + confusedOffset.y,
+        };
+        
+        // Clear confused state after movement slows
+        confusedTimeoutRef.current = setTimeout(() => {
+          if (speedHistory.current.length > 0) {
+            const currentAvg = speedHistory.current.reduce((a, b) => a + b, 0) / speedHistory.current.length;
+            if (currentAvg < fastThreshold * 0.5 && emotionRef.current === 'confused') {
+              setEmotion('neutral');
+            }
+          }
+        }, 500);
+      } else {
+        // Normal or excited tracking
+        if (emotionRef.current === 'excited') {
+          moveAmount = Math.min(distance / 6, maxMove * 1.1);
+        }
+        
+        newPupilPos = {
+          x: Math.cos(angle) * moveAmount,
+          y: Math.sin(angle) * moveAmount,
+        };
+        
+        // Direction-based emotions (only when not confused)
+        if (emotionRef.current !== 'confused' && emotionRef.current !== 'excited') {
+          const absDeltaX = Math.abs(deltaX);
+          const absDeltaY = Math.abs(deltaY);
+          const isLookingRight = deltaX > size * 0.3;
+          const isLookingLeft = deltaX < -size * 0.3;
+          const isLookingUp = deltaY < -size * 0.3;
+          
+          if (emotionRef.current === 'neutral' || emotionRef.current === 'surprised') {
+            // Subtle emotion hints based on direction
+            if (isLookingRight && absDeltaX > absDeltaY) {
+              // Slight excitement when looking right (like "oh, something interesting!")
+              setEyeShape({ width: 1.05, height: 1 });
+            } else if (isLookingLeft && absDeltaX > absDeltaY) {
+              // Curious when looking left
+              setEyeShape({ width: 1.05, height: 1 });
+            } else if (isLookingUp && emotionRef.current !== 'surprised') {
+              // Surprised when looking up
+              if (surprisedTimeoutRef.current) {
+                clearTimeout(surprisedTimeoutRef.current);
+              }
+              setEmotion('surprised');
+              setEyeShape({ width: 1.1, height: 1.2 });
+              surprisedTimeoutRef.current = setTimeout(() => {
+                if (emotionRef.current === 'surprised') {
+                  setEmotion('neutral');
+                  setEyeShape({ width: 1, height: 1 });
+                }
+              }, 400);
+            } else if (!isLookingUp && emotionRef.current === 'neutral') {
+              setEyeShape({ width: 1, height: 1 });
+            }
+          }
+        }
+      }
+      
+      // Always update pupil position
+      setPupilPos((prev) => {
+        if (Math.abs(prev.x - newPupilPos.x) < 0.5 && Math.abs(prev.y - newPupilPos.y) < 0.5) return prev;
+        return newPupilPos;
       });
     };
+    
     globalThis.addEventListener('mousemove', handleMouseMove);
-    return () => globalThis.removeEventListener('mousemove', handleMouseMove);
-  }, [pixelSize]);
+    return () => {
+      globalThis.removeEventListener('mousemove', handleMouseMove);
+      if (confusedTimeoutRef.current) {
+        clearTimeout(confusedTimeoutRef.current);
+      }
+      if (surprisedTimeoutRef.current) {
+        clearTimeout(surprisedTimeoutRef.current);
+      }
+    };
+  }, [maxMove, size]);
 
   useEffect(() => {
     const blink = () => {
       setIsBlinking(true);
-      setTimeout(() => setIsBlinking(false), 150);
+      setTimeout(() => setIsBlinking(false), 120);
     };
     const interval = setInterval(() => {
-      if (Math.random() > 0.7) blink();
-    }, 3000);
+      if (Math.random() > 0.7 && emotionRef.current !== 'confused') blink();
+    }, 3500);
     return () => clearInterval(interval);
   }, []);
 
-  const eyePattern = [
-    [0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0],
-    [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
-    [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-    [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
-    [0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0],
-  ];
+  // Render eye based on emotion
+  const renderEye = () => {
+    const baseRadiusX = (size / 2 - 2) * eyeShape.width;
+    const baseRadiusY = (size / 2 - 2) * eyeShape.height;
+    const irisRadiusX = size * 0.35 * eyeShape.width;
+    const irisRadiusY = size * 0.35 * eyeShape.height;
 
-  const blinkPattern = [
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  ];
-
-  const currentPattern = isBlinking ? blinkPattern : eyePattern;
+    return (
+      <svg
+        width={size}
+        height={size}
+        viewBox={`0 0 ${size} ${size}`}
+        className="overflow-visible"
+      >
+        {/* Eye outline (oval) - adjusts based on emotion */}
+        <motion.ellipse
+          cx={size / 2}
+          cy={size / 2}
+          rx={baseRadiusX}
+          ry={baseRadiusY}
+          fill="none"
+          stroke={eyeColor}
+          strokeWidth={emotion === 'excited' || emotion === 'surprised' ? 2.5 : 2}
+          animate={{
+            rx: baseRadiusX,
+            ry: baseRadiusY,
+          }}
+          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+        />
+        
+        {/* Iris fill - soft background for pupil area */}
+        {!isBlinking && (
+          <motion.ellipse
+            cx={size / 2}
+            cy={size / 2}
+            rx={irisRadiusX}
+            ry={irisRadiusY}
+            fill={eyeColor}
+            fillOpacity={emotion === 'excited' ? 0.25 : 0.15}
+            animate={{
+              rx: irisRadiusX,
+              ry: irisRadiusY,
+            }}
+            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+          />
+        )}
+        
+        {/* Confused state: spinning/swirling effect */}
+        {emotion === 'confused' && !isBlinking && (
+          <motion.g
+            animate={{ rotate: [0, 360] }}
+            transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
+            style={{ transformOrigin: `${size / 2}px ${size / 2}px` }}
+          >
+            <circle
+              cx={size / 2}
+              cy={size / 2}
+              r={pupilRadius * 0.3}
+              fill={pupilColor}
+              fillOpacity={0.3}
+            />
+          </motion.g>
+        )}
+        
+        {/* Blink: horizontal line */}
+        {isBlinking ? (
+          <line
+            x1={size * 0.2}
+            y1={size / 2}
+            x2={size * 0.8}
+            y2={size / 2}
+            stroke={eyeColor}
+            strokeWidth={2}
+            strokeLinecap="round"
+          />
+        ) : (
+          <motion.g
+            animate={{ 
+              x: pupilPos.x, 
+              y: pupilPos.y,
+              scale: emotion === 'excited' ? 1.1 : emotion === 'surprised' ? 1.15 : 1,
+            }}
+            transition={{ 
+              type: emotion === 'confused' ? 'tween' : 'spring', 
+              stiffness: emotion === 'confused' ? 100 : 350, 
+              damping: emotion === 'confused' ? 5 : 22,
+              duration: emotion === 'confused' ? 0.1 : undefined,
+            }}
+            style={{ transformOrigin: `${size / 2}px ${size / 2}px` }}
+          >
+            {/* Pupil - big dark circle */}
+            <circle
+              cx={size / 2}
+              cy={size / 2}
+              r={pupilRadius}
+              fill={pupilColor}
+            />
+            {/* Pupil highlight */}
+            <circle
+              cx={size / 2 + pupilRadius * 0.3}
+              cy={size / 2 - pupilRadius * 0.3}
+              r={pupilRadius * 0.25}
+              fill="white"
+              fillOpacity={emotion === 'excited' ? 0.7 : 0.5}
+            />
+            
+            {/* Excited state: sparkle effect */}
+            {emotion === 'excited' && (
+              <>
+                <circle
+                  cx={size / 2 + pupilRadius * 0.8}
+                  cy={size / 2 - pupilRadius * 0.8}
+                  r={pupilRadius * 0.15}
+                  fill={pupilColor}
+                  fillOpacity={0.6}
+                />
+                <circle
+                  cx={size / 2 - pupilRadius * 0.6}
+                  cy={size / 2 + pupilRadius * 0.7}
+                  r={pupilRadius * 0.12}
+                  fill={pupilColor}
+                  fillOpacity={0.5}
+                />
+              </>
+            )}
+            
+            {/* Surprised state: wider pupil */}
+            {emotion === 'surprised' && (
+              <ellipse
+                cx={size / 2}
+                cy={size / 2}
+                rx={pupilRadius * 1.2}
+                ry={pupilRadius * 0.9}
+                fill={pupilColor}
+                fillOpacity={0.3}
+              />
+            )}
+          </motion.g>
+        )}
+      </svg>
+    );
+  };
 
   return (
     <div
       ref={eyeRef}
-      className={cn('relative cursor-pointer', className)}
+      className={cn('relative cursor-pointer flex items-center justify-center', className)}
       onClick={onClick}
-      style={{ width: cols * pixelSize, height: rows * pixelSize }}
+      style={{ width: size, height: size }}
+      aria-hidden
     >
-      <div
-        className="absolute inset-0 grid"
-        style={{
-          gridTemplateColumns: `repeat(${cols}, ${pixelSize}px)`,
-          gridTemplateRows: `repeat(${rows}, ${pixelSize}px)`,
-        }}
-      >
-        {currentPattern.flat().map((pixel, i) => (
-          <div
-            key={i}
-            style={{
-              backgroundColor: pixel === 1 ? eyeColor : 'transparent',
-              width: pixelSize,
-              height: pixelSize,
-            }}
-          />
-        ))}
-      </div>
-
-      {!isBlinking && (
-        <motion.div
-          className="absolute"
-          style={{
-            left: '50%',
-            top: '50%',
-            marginLeft: -pixelSize,
-            marginTop: -pixelSize,
-          }}
-          animate={{ x: pupilPos.x, y: pupilPos.y }}
-          transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-        >
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: `repeat(2, ${pixelSize}px)`,
-              gridTemplateRows: `repeat(2, ${pixelSize}px)`,
-            }}
-          >
-            <div style={{ width: pixelSize, height: pixelSize, backgroundColor: pupilColor }} />
-            <div style={{ width: pixelSize, height: pixelSize, backgroundColor: pupilColor }} />
-            <div style={{ width: pixelSize, height: pixelSize, backgroundColor: pupilColor }} />
-            <div />
-          </div>
-        </motion.div>
-      )}
+      {renderEye()}
     </div>
   );
 };
@@ -422,56 +661,42 @@ const EyeTimelineOverlay: React.FC<EyeTimelineOverlayProps> = ({
             {/* Design System Lab / Lab Editor */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-auto" style={{ paddingBottom: '180px', paddingTop: '80px' }}>
               <div className="w-full max-w-3xl h-full max-h-[550px] p-4">
-                {isLabEditorOpen ? (
-                  <DesignLabEditor
-                    era={currentEra}
-                    onApply={(tokens: LabDesignTokens) => {
-                      // Apply custom tokens to CSS variables
-                      const root = document.documentElement;
-
-                      // Set CSS variables directly
-                      root.style.setProperty('--bg-main', tokens.colors.background);
-                      root.style.setProperty('--bg-card', tokens.colors.secondary);
-                      root.style.setProperty('--text-main', tokens.colors.text);
-                      root.style.setProperty('--text-muted', `${tokens.colors.text}99`);
-                      root.style.setProperty('--accent-color', tokens.colors.accent);
-                      root.style.setProperty('--border-color', `${tokens.colors.text}33`);
-                      root.style.setProperty('--font-main', tokens.fonts.primary);
-                      root.style.setProperty('--font-heading', tokens.fonts.secondary);
-
-                      // Save to localStorage for persistence
-                      const customEra = {
-                        id: 'custom',
-                        name: 'Lab Design',
-                        bgMain: tokens.colors.background,
-                        bgCard: tokens.colors.secondary,
-                        textMain: tokens.colors.text,
-                        textMuted: `${tokens.colors.text}99`,
-                        accentColor: tokens.colors.accent,
-                        borderColor: `${tokens.colors.text}33`,
-                        gridColor: tokens.colors.primary,
-                        fontMain: tokens.fonts.primary,
-                        fontHeading: tokens.fonts.secondary,
-                        gridSize: 20,
-                        gridOpacity: 50,
-                      };
-                      localStorage.setItem('kiruk-custom-era', JSON.stringify(customEra));
-                      localStorage.setItem('portfolio-theme', 'custom');
-
-                      // Update body data attribute
-                      document.body.setAttribute('data-era', 'custom');
-
-                      console.log('✅ Applied custom design tokens:', tokens);
-                      setIsLabEditorOpen(false);
-                    }}
-                    onClose={() => setIsLabEditorOpen(false)}
-                  />
-                ) : (
-                  <DesignSystemLab
-                    era={currentEra}
-                    onOpenLabEditor={() => setIsLabEditorOpen(true)}
-                  />
-                )}
+                <SimpleGameNavEraOverlayContent
+                  era={currentEra}
+                  isLabEditorOpen={isLabEditorOpen}
+                  onOpenLabEditor={() => setIsLabEditorOpen(true)}
+                  onApply={(tokens: LabDesignTokens) => {
+                    const root = document.documentElement;
+                    root.style.setProperty('--bg-main', tokens.colors.background);
+                    root.style.setProperty('--bg-card', tokens.colors.secondary);
+                    root.style.setProperty('--text-main', tokens.colors.text);
+                    root.style.setProperty('--text-muted', `${tokens.colors.text}99`);
+                    root.style.setProperty('--accent-color', tokens.colors.accent);
+                    root.style.setProperty('--border-color', `${tokens.colors.text}33`);
+                    root.style.setProperty('--font-main', tokens.fonts.primary);
+                    root.style.setProperty('--font-heading', tokens.fonts.secondary);
+                    const customEra = {
+                      id: 'custom',
+                      name: 'Lab Design',
+                      bgMain: tokens.colors.background,
+                      bgCard: tokens.colors.secondary,
+                      textMain: tokens.colors.text,
+                      textMuted: `${tokens.colors.text}99`,
+                      accentColor: tokens.colors.accent,
+                      borderColor: `${tokens.colors.text}33`,
+                      gridColor: tokens.colors.primary,
+                      fontMain: tokens.fonts.primary,
+                      fontHeading: tokens.fonts.secondary,
+                      gridSize: 20,
+                      gridOpacity: 50,
+                    };
+                    localStorage.setItem('kiruk-custom-era', JSON.stringify(customEra));
+                    localStorage.setItem('portfolio-theme', 'custom');
+                    document.body.setAttribute('data-era', 'custom');
+                    setIsLabEditorOpen(false);
+                  }}
+                  onCloseLabEditor={() => setIsLabEditorOpen(false)}
+                />
               </div>
             </div>
 
@@ -722,25 +947,23 @@ const SimpleGameNav: React.FC<SimpleGameNavProps> = ({
       >
         {/* Top Row: Main Navigation */}
         <div className="flex items-center justify-between h-full" style={{ height: BAR_HEIGHT }}>
-          {/* LEFT: Home Eye Logo + Timeline Era + Previous Button */}
+          {/* LEFT: Big Eye + Timeline Era + Previous Button */}
           <div className="flex">
-            {/* Home Button with Eye Logo */}
             <motion.button
               onClick={() => router.push('/')}
-              className="flex items-center justify-center border-r border-b border-[var(--border-color)] bg-[var(--text-main)] hover:bg-[var(--accent-color)] transition-colors duration-150"
+              className="flex items-center justify-center border-r border-b border-[var(--border-color)] bg-[var(--bg-card)] hover:bg-[var(--accent-color)]/20 hover:border-[var(--accent-color)] transition-colors duration-150 flex-shrink-0"
               style={{
                 height: BAR_HEIGHT,
                 width: BAR_HEIGHT,
-                padding: '8px',
+                padding: '4px',
               }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               aria-label="Go to home"
             >
-              <PixelEye size={36} eraId={currentEraId} />
+              <BigEye size={BAR_HEIGHT - 20} eraId={currentEraId} />
             </motion.button>
 
-            {/* Timeline Era Indicator - Opens Timeline */}
             <motion.button
               onClick={() => setIsTimelineOpen(true)}
               className="flex flex-col items-center justify-center border-r border-b border-[var(--border-color)] bg-[var(--bg-card)] hover:bg-[var(--accent-color)] hover:text-[var(--bg-main)] transition-colors duration-150 group"
@@ -757,7 +980,6 @@ const SimpleGameNav: React.FC<SimpleGameNavProps> = ({
               <span className="text-sm font-mono font-bold text-[var(--accent-color)] group-hover:text-[var(--bg-main)]">{currentEraId}</span>
             </motion.button>
 
-            {/* Previous Game Button */}
             {currentGame && (
               <motion.button
                 onClick={() => {
@@ -783,14 +1005,14 @@ const SimpleGameNav: React.FC<SimpleGameNavProps> = ({
             )}
           </div>
 
-          {/* CENTER: Simple Title */}
-          <motion.div
-            className="flex-1 flex items-center justify-center px-2 sm:px-4 min-w-0"
-          >
-            <div className="text-xs sm:text-sm font-mono text-[var(--text-main)] uppercase tracking-wider text-center">
-              {pageInfo.title}
-            </div>
-          </motion.div>
+          {/* CENTER: Page Title (hidden when HOME) */}
+          <div className="flex-1 flex items-center justify-center px-2 sm:px-4 min-w-0">
+            {pageInfo.title !== 'HOME' && (
+              <div className="text-xs sm:text-sm font-mono text-[var(--text-main)] uppercase tracking-wider text-center truncate">
+                {pageInfo.title}
+              </div>
+            )}
+          </div>
 
           {/* RIGHT: Next Button + Menu Button */}
           <div className="flex">
