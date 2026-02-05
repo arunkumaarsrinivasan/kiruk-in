@@ -539,29 +539,22 @@ export function CelestialSkyCanvas({
     const moonPhase: "full" | "half" | "crescent" =
         moonProgress < 0.33 ? "full" : moonProgress < 0.66 ? "half" : "crescent";
 
-    // Enhanced sky gradient - smoother, darker tops for text readability
+    // Enhanced sky gradient - uses design system for base, atmospheric progression
+    // The sky is intentionally atmospheric to show day/night cycle
     const skyGradient = useMemo(() => {
+        // These atmospheric gradients blend with design system via CSS mixing
         if (levelProgress < 0.15) {
-            // Dawn - subtle warm colors, dark top
-            return "linear-gradient(180deg, #0a0812 0%, #12101a 20%, #251525 35%, #4a2540 50%, #8b4560 65%, #c76555 80%, #e8a060 95%, #f5c080 100%)";
+            // Dawn - subtle warm colors
+            return "linear-gradient(180deg, var(--bg-main, #0a0812) 0%, color-mix(in srgb, var(--bg-main) 80%, #251525) 35%, color-mix(in srgb, var(--accent-color) 30%, #4a2540) 50%, color-mix(in srgb, var(--accent-color) 50%, #c76555) 80%, color-mix(in srgb, var(--accent-color) 60%, #f5c080) 100%)";
         } else if (levelProgress < 0.30) {
-            // Sunrise - golden warmth, still readable top
-            return "linear-gradient(180deg, #0c0a14 0%, #1a1422 18%, #2d1a35 32%, #5a3050 48%, #a05555 65%, #d88545 82%, #f5b565 100%)";
-        } else if (levelProgress < 0.45) {
-            // Day transition - darker purple/blue
-            return "linear-gradient(180deg, #08080f 0%, #0f0a18 20%, #1a1530 38%, #352855 55%, #5a4075 72%, #7a5590 88%, #9a70a8 100%)";
+            // Sunrise - golden warmth
+            return "linear-gradient(180deg, var(--bg-main, #0c0a14) 0%, color-mix(in srgb, var(--bg-main) 70%, #2d1a35) 32%, color-mix(in srgb, var(--accent-color) 40%, #a05555) 65%, color-mix(in srgb, var(--accent-color) 60%, #f5b565) 100%)";
         } else if (levelProgress < 0.60) {
-            // Dusk - purple twilight
-            return "linear-gradient(180deg, #050508 0%, #0a0a12 22%, #15122a 42%, #25204a 60%, #3a3065 78%, #504580 92%, #655595 100%)";
-        } else if (levelProgress < 0.75) {
-            // Twilight - deep blue purple
-            return "linear-gradient(180deg, #030306 0%, #06060c 25%, #0c0a18 48%, #151228 68%, #1e1a3a 85%, #282548 100%)";
-        } else if (levelProgress < 0.90) {
-            // Night - very dark
-            return "linear-gradient(180deg, #020204 0%, #040408 30%, #08080f 55%, #0c0a15 75%, #10101c 90%, #141422 100%)";
+            // Day/Dusk - purple twilight
+            return "linear-gradient(180deg, var(--bg-main, #050508) 0%, color-mix(in srgb, var(--bg-main) 80%, #15122a) 42%, color-mix(in srgb, var(--bg-card) 50%, #3a3065) 78%, color-mix(in srgb, var(--accent-color) 20%, #655595) 100%)";
         } else {
-            // Deep night - near black
-            return "linear-gradient(180deg, #010103 0%, #030306 35%, #050508 60%, #08080c 82%, #0a0a10 100%)";
+            // Night - uses design system base colors
+            return "linear-gradient(180deg, var(--bg-main, #020204) 0%, color-mix(in srgb, var(--bg-main) 90%, #08080f) 55%, color-mix(in srgb, var(--bg-card) 70%, #141422) 100%)";
         }
     }, [levelProgress]);
 

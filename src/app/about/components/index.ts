@@ -8,3 +8,6 @@ export * from "./CelestialChip";
 export * from "./CelestialLevelBackground";
 export * from "./useCelestialEngine";
 export * from "./TypewriterStory";
+export * from "./JourneyStoryCard";
+export * from "./ThoughtBubble";
+

@@ -1,7 +1,6 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import Link from "next/link";
 import { useCallback, useEffect, useState, useMemo, useRef } from "react";
 
 import { VlogGallery } from "@/modules/vlogs";
@@ -9,6 +8,14 @@ import { PixelCharacter, getStageFromAge } from "./components/PixelCharacter";
 import { CelestialLevelBackground } from "./components/CelestialLevelBackground";
 import { useCelestialEngine } from "./components/useCelestialEngine";
 import { useContextBar } from "@/contexts/ContextBarContext";
+
+// Skills type for constellation
+type Skill = {
+	id: string;
+	name: string;
+	level: "beginner" | "intermediate" | "advanced" | "expert";
+	category: string;
+};
 
 // Life events data with timeline - organized by cosmic phases
 type LifeEvent = {
@@ -25,6 +32,7 @@ type LifeEvent = {
 	milestone?: boolean;
 	current?: boolean;
 	photoPlaceholder?: boolean;
+	skills?: Skill[];
 };
 
 const lifeEvents: LifeEvent[] = [
@@ -41,6 +49,12 @@ const lifeEvents: LifeEvent[] = [
 		tags: ["Process journaling", "Kirukism sketches", "Builder conversations"],
 		milestone: true,
 		current: true,
+		skills: [
+			{ id: "design-leadership", name: "Design Leadership", level: "expert", category: "leadership" },
+			{ id: "nextjs", name: "Next.js", level: "advanced", category: "development" },
+			{ id: "content-creation", name: "Content Creation", level: "advanced", category: "design" },
+			{ id: "rive", name: "Rive Animation", level: "intermediate", category: "tools" },
+		],
 	},
 	{
 		id: "print-ai-2024",
@@ -55,6 +69,13 @@ const lifeEvents: LifeEvent[] = [
 		tags: ["Prompt rehearsals", "Team dry runs", "Observability circles"],
 		milestone: true,
 		photoPlaceholder: true,
+		skills: [
+			{ id: "splunk", name: "Splunk", level: "advanced", category: "infrastructure" },
+			{ id: "flutter", name: "Flutter", level: "advanced", category: "development" },
+			{ id: "ai-integration", name: "AI Integration", level: "intermediate", category: "development" },
+			{ id: "agile-scrum", name: "Agile/Scrum", level: "advanced", category: "leadership" },
+			{ id: "stakeholder-mgmt", name: "Stakeholder Management", level: "advanced", category: "leadership" },
+		],
 	},
 	{
 		id: "sns-square-2024",
@@ -68,6 +89,12 @@ const lifeEvents: LifeEvent[] = [
 		details: "Sprints started with listening sessions and ended with Loom walkthroughs so developers could trace the 'why' behind every decision.",
 		tags: ["Research sprints", "Design systems", "Async storytelling"],
 		milestone: true,
+		skills: [
+			{ id: "design-systems", name: "Design Systems", level: "advanced", category: "design" },
+			{ id: "user-research", name: "User Research", level: "advanced", category: "design" },
+			{ id: "figma", name: "Figma", level: "expert", category: "tools" },
+			{ id: "mentoring", name: "Mentoring", level: "intermediate", category: "leadership" },
+		],
 	},
 	{
 		id: "hp-sde1-2023",
@@ -81,6 +108,12 @@ const lifeEvents: LifeEvent[] = [
 		details: "Daily standups end with sketching email journeys; we experiment, test, and refactor as one team.",
 		tags: ["Cross-team co-creation", "Service design", "Print journaling"],
 		milestone: true,
+		skills: [
+			{ id: "react", name: "React", level: "advanced", category: "development" },
+			{ id: "spring-boot", name: "Spring Boot", level: "intermediate", category: "infrastructure" },
+			{ id: "docker", name: "Docker", level: "intermediate", category: "infrastructure" },
+			{ id: "ui-ux", name: "UI/UX Design", level: "expert", category: "design" },
+		],
 	},
 	{
 		id: "hp-intern-2023",
@@ -95,6 +128,11 @@ const lifeEvents: LifeEvent[] = [
 		tags: ["Observability playbooks", "Pair scripting", "Spring experiments"],
 		milestone: true,
 		photoPlaceholder: true,
+		skills: [
+			{ id: "nodejs", name: "Node.js", level: "intermediate", category: "infrastructure" },
+			{ id: "aws", name: "AWS", level: "beginner", category: "infrastructure" },
+			{ id: "prototyping", name: "Prototyping", level: "advanced", category: "design" },
+		],
 	},
 	{
 		id: "peoplegamez-2022",
@@ -108,6 +146,11 @@ const lifeEvents: LifeEvent[] = [
 		details: "Weekly critique jams where prototypes evolved in real-time as teammates reacted and riffed.",
 		tags: ["Gamified journeys", "Feedback jams", "Remote rituals"],
 		milestone: true,
+		skills: [
+			{ id: "figma-proto", name: "Figma Prototyping", level: "intermediate", category: "tools" },
+			{ id: "interaction-design", name: "Interaction Design", level: "intermediate", category: "design" },
+			{ id: "remote-collaboration", name: "Remote Collaboration", level: "intermediate", category: "leadership" },
+		],
 	},
 	{
 		id: "design-awakening-2021",
@@ -120,6 +163,12 @@ const lifeEvents: LifeEvent[] = [
 		icon: "🎛️",
 		details: "Pattern libraries, accessibility checklists, and case study write-ups helped align engineers, mentors, and clients remotely.",
 		tags: ["Design systems", "UX playbooks", "Remote collaboration"],
+		skills: [
+			{ id: "ui-design", name: "UI Design", level: "intermediate", category: "design" },
+			{ id: "figma-basics", name: "Figma", level: "intermediate", category: "tools" },
+			{ id: "adobe-cc", name: "Adobe CC", level: "intermediate", category: "tools" },
+			{ id: "branding", name: "Branding", level: "beginner", category: "design" },
+		],
 	},
 	{
 		id: "pandemic-playlab-2020",
@@ -132,6 +181,11 @@ const lifeEvents: LifeEvent[] = [
 		icon: "🕹️",
 		details: "Lockdown evenings turned into game art jams, motion experiments, freelance sprints, and internship case studies.",
 		tags: ["Game assets", "Play Store launch", "Lockdown experiments"],
+		skills: [
+			{ id: "mobile-game-design", name: "Game Design", level: "intermediate", category: "design" },
+			{ id: "illustration", name: "Illustration", level: "advanced", category: "design" },
+			{ id: "unity-basics", name: "Unity Basics", level: "beginner", category: "development" },
+		],
 	},
 	{
 		id: "campus-design-2020",
@@ -145,6 +199,11 @@ const lifeEvents: LifeEvent[] = [
 		details: "Balanced stage branding, stakeholder reviews, and sprint rituals so the campus voice stayed playful yet professional.",
 		tags: ["Cultural design lead", "Website redesign", "Medical app UX"],
 		photoPlaceholder: true,
+		skills: [
+			{ id: "web-design", name: "Web Design", level: "intermediate", category: "design" },
+			{ id: "team-leadership", name: "Team Lead", level: "beginner", category: "leadership" },
+			{ id: "html-css", name: "HTML/CSS", level: "intermediate", category: "development" },
+		],
 	},
 	{
 		id: "engineering-start-2019",
@@ -158,6 +217,11 @@ const lifeEvents: LifeEvent[] = [
 		details: "Freelance hustle and QA drills primed me to blend storytelling with systems from semester one.",
 		tags: ["Code + design blends", "Family influence"],
 		milestone: true,
+		skills: [
+			{ id: "cs-fundamentals", name: "CS Fundamentals", level: "beginner", category: "development" },
+			{ id: "logic-building", name: "Logic Building", level: "intermediate", category: "development" },
+			{ id: "sketching", name: "Sketching", level: "advanced", category: "design" },
+		],
 	},
 	{
 		id: "freelance-2018",
@@ -172,6 +236,11 @@ const lifeEvents: LifeEvent[] = [
 		tags: ["Poster design", "Illustration gigs", "First pay"],
 		milestone: true,
 		photoPlaceholder: true,
+		skills: [
+			{ id: "freelancing", name: "Freelancing", level: "beginner", category: "leadership" },
+			{ id: "graphic-design", name: "Graphic Design", level: "intermediate", category: "design" },
+			{ id: "client-communication", name: "Client Comm", level: "beginner", category: "leadership" },
+		],
 	},
 	{
 		id: "scribble-tester-2014",
@@ -184,6 +253,11 @@ const lifeEvents: LifeEvent[] = [
 		icon: "📝",
 		details: "Regression checklists, bug logs, and biryani rewards made quality assurance feel like a family game.",
 		tags: ["ERP testing", "Biryani rewards", "Sketchy notebooks"],
+		skills: [
+			{ id: "qa-testing", name: "QA Testing", level: "beginner", category: "infrastructure" },
+			{ id: "curiosity", name: "Curiosity", level: "expert", category: "tools" },
+			{ id: "doodling", name: "Doodling", level: "advanced", category: "design" },
+		],
 	},
 	{
 		id: "family-collective-2008",
@@ -197,6 +271,10 @@ const lifeEvents: LifeEvent[] = [
 		details: "Critique circles happened over tea; I learned that every idea invites another perspective before it ships.",
 		tags: ["Crochet to calligraphy", "30 voices", "Shared critiques"],
 		photoPlaceholder: true,
+		skills: [
+			{ id: "collaboration", name: "Collaboration", level: "beginner", category: "leadership" },
+			{ id: "observation", name: "Observation", level: "advanced", category: "design" },
+		],
 	},
 	{
 		id: "birth-2001",
@@ -373,32 +451,20 @@ export default function About() {
 				{showIntro && (
 					<motion.div
 						className="fixed inset-0 z-20 flex items-center justify-center overflow-hidden"
-						style={{ background: "linear-gradient(180deg, #0a0a15 0%, #1a1a2e 50%, #2d1b3d 100%)" }}
+						style={{ backgroundColor: "var(--bg-main)" }}
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
 					>
-						{/* Animated stars background */}
-						<div className="absolute inset-0">
-							{Array.from({ length: 50 }).map((_, i) => (
-								<motion.div
-									key={i}
-									className="absolute w-1 h-1 rounded-full bg-white"
-									style={{
-										left: `${Math.random() * 100}%`,
-										top: `${Math.random() * 100}%`,
-									}}
-									animate={{
-										opacity: [0.2, 0.8, 0.2],
-										scale: [1, 1.2, 1],
-									}}
-									transition={{
-										duration: 2 + Math.random() * 2,
-										repeat: Infinity,
-										delay: Math.random() * 2,
-									}}
-								/>
-							))}
+						{/* Grid background for consistency with design system */}
+						<div className="absolute inset-0" style={{ opacity: 0.1 }}>
+							<div
+								className="absolute inset-0"
+								style={{
+									backgroundImage: `linear-gradient(var(--border-color) 1px, transparent 1px), linear-gradient(90deg, var(--border-color) 1px, transparent 1px)`,
+									backgroundSize: "var(--era-grid-size, 20px) var(--era-grid-size, 20px)",
+								}}
+							/>
 						</div>
 
 
@@ -418,7 +484,7 @@ export default function About() {
 
 							<motion.h1
 								className="text-4xl md:text-6xl font-mono mb-4 shrink-0"
-								style={{ color: "#FFC857" }}
+								style={{ color: "var(--text-main)" }}
 								initial={{ y: 20, opacity: 0 }}
 								animate={{ y: 0, opacity: 1 }}
 								transition={{ delay: 0.4 }}
@@ -428,14 +494,14 @@ export default function About() {
 
 							<motion.p
 								className="text-lg font-mono mb-6"
-								style={{ color: "rgba(255,255,255,0.7)" }}
+								style={{ color: "var(--text-muted)" }}
 								initial={{ y: 20, opacity: 0 }}
 								animate={{ y: 0, opacity: 1 }}
 								transition={{ delay: 0.6 }}
 							>
 								From sunrise to starlight — {lifeEvents.length} moments from 2001 to 2025.
 								<br />
-								<span style={{ color: "#90CDF4" }}>← →</span> to walk through time.
+								<span style={{ color: "var(--accent-color)" }}>← →</span> to walk through time.
 							</motion.p>
 
 							<motion.div
@@ -446,22 +512,23 @@ export default function About() {
 							>
 								<button
 									onClick={handleStartGame}
-									className="px-8 py-4 font-mono text-2xl border-2 transition-all hover:scale-105"
+									className="px-8 py-4 font-mono text-2xl transition-all hover:scale-105 wireframe-btn"
 									style={{
-										background: "linear-gradient(135deg, #FF6B35, #FFC857)",
-										borderColor: "#FFC857",
-										color: "#fff"
+										borderWidth: "var(--border-width)",
+										borderColor: "var(--border-color)",
+										boxShadow: "var(--shadow-offset-x) var(--shadow-offset-y) var(--shadow-blur) var(--shadow-color)",
 									}}
 								>
 									☀️ BEGIN JOURNEY
 								</button>
 								<button
 									onClick={() => setShowRoadmap((prev) => !prev)}
-									className="px-6 py-2 font-mono text-sm border-2 transition-all hover:opacity-80"
+									className="px-6 py-2 font-mono text-sm transition-all hover:opacity-80"
 									style={{
-										backgroundColor: "rgba(0,0,0,0.5)",
-										borderColor: "rgba(255,255,255,0.3)",
-										color: "#fff"
+										backgroundColor: "var(--bg-card)",
+										borderWidth: "var(--border-width)",
+										borderColor: "var(--border-color)",
+										color: "var(--text-main)"
 									}}
 								>
 									{showRoadmap ? "HIDE ROADMAP" : "VIEW ALL MOMENTS"}
@@ -475,7 +542,7 @@ export default function About() {
 								animate={{ y: 0, opacity: 1 }}
 								transition={{ delay: 1 }}
 							>
-								<p className="font-mono text-sm mb-3" style={{ color: "rgba(255,255,255,0.5)" }}>
+								<p className="font-mono text-sm mb-3" style={{ color: "var(--text-muted)" }}>
 									Jump to a phase:
 								</p>
 								<div className="flex flex-wrap justify-center gap-3">
@@ -484,11 +551,12 @@ export default function About() {
 											const idx = lifeEvents.findIndex(e => getCosmicPhase(e.age) === "sun");
 											if (idx >= 0) handleTimelineSelect(idx);
 										}}
-										className="px-4 py-2 font-mono text-sm border-2 transition-colors hover:opacity-80 flex items-center gap-2"
+										className="px-4 py-2 font-mono text-sm transition-colors hover:opacity-80 flex items-center gap-2"
 										style={{
-											background: "linear-gradient(135deg, rgba(255,107,53,0.3), rgba(255,200,87,0.3))",
-											borderColor: "#FFC857",
-											color: "#FFC857"
+											backgroundColor: "var(--bg-card)",
+											borderWidth: "var(--border-width)",
+											borderColor: "var(--border-color)",
+											color: "var(--text-main)"
 										}}
 									>
 										<span>☀️</span> Origins (2001-2018)
@@ -498,11 +566,12 @@ export default function About() {
 											const idx = lifeEvents.findIndex(e => getCosmicPhase(e.age) === "moon");
 											if (idx >= 0) handleTimelineSelect(idx);
 										}}
-										className="px-4 py-2 font-mono text-sm border-2 transition-colors hover:opacity-80 flex items-center gap-2"
+										className="px-4 py-2 font-mono text-sm transition-colors hover:opacity-80 flex items-center gap-2"
 										style={{
-											background: "linear-gradient(135deg, rgba(74,85,104,0.3), rgba(144,205,244,0.3))",
-											borderColor: "#90CDF4",
-											color: "#90CDF4"
+											backgroundColor: "var(--bg-card)",
+											borderWidth: "var(--border-width)",
+											borderColor: "var(--border-color)",
+											color: "var(--text-main)"
 										}}
 									>
 										<span>🌙</span> Journey (2019-2022)
@@ -512,11 +581,12 @@ export default function About() {
 											const idx = lifeEvents.findIndex(e => getCosmicPhase(e.age) === "stars");
 											if (idx >= 0) handleTimelineSelect(idx);
 										}}
-										className="px-4 py-2 font-mono text-sm border-2 transition-colors hover:opacity-80 flex items-center gap-2"
+										className="px-4 py-2 font-mono text-sm transition-colors hover:opacity-80 flex items-center gap-2"
 										style={{
-											background: "linear-gradient(135deg, rgba(128,90,213,0.3), rgba(255,215,0,0.3))",
-											borderColor: "#FFD700",
-											color: "#FFD700"
+											backgroundColor: "var(--bg-card)",
+											borderWidth: "var(--border-width)",
+											borderColor: "var(--border-color)",
+											color: "var(--text-main)"
 										}}
 									>
 										<span>⭐</span> Milestones (2023-Now)
@@ -532,15 +602,14 @@ export default function About() {
 									animate={{ opacity: 1, y: 0 }}
 									transition={{ delay: 0.1 }}
 								>
-									<div className="border-2 p-4 space-y-4 max-h-[50vh] overflow-y-auto" style={{ backgroundColor: "rgba(0,0,0,0.7)", borderColor: "rgba(255,255,255,0.2)" }}>
+									<div className="p-4 space-y-4 max-h-[50vh] overflow-y-auto" style={{ backgroundColor: "var(--bg-card)", borderWidth: "var(--border-width)", borderColor: "var(--border-color)", borderStyle: "solid" }}>
 										{["stars", "moon", "sun"].map((cosmicPhase) => {
 											const phaseEvents = lifeEvents.filter(e => getCosmicPhase(e.age) === cosmicPhase);
 											const phaseLabel = cosmicPhase === "sun" ? "☀️ Origins" : cosmicPhase === "moon" ? "🌙 Journey" : "⭐ Milestones";
-											const phaseColor = cosmicPhase === "sun" ? "#FFC857" : cosmicPhase === "moon" ? "#90CDF4" : "#FFD700";
 
 											return (
 												<div key={cosmicPhase} className="space-y-2">
-													<div className="font-mono text-xs uppercase tracking-widest" style={{ color: phaseColor }}>
+													<div className="font-mono text-xs uppercase tracking-widest" style={{ color: "var(--accent-color)" }}>
 														{phaseLabel}
 													</div>
 													{phaseEvents.map((event) => {
@@ -549,16 +618,18 @@ export default function About() {
 															<button
 																key={event.id}
 																onClick={() => handleTimelineSelect(eventIndex)}
-																className="w-full text-left font-mono text-sm border px-3 py-2 transition-colors hover:opacity-80"
+																className="w-full text-left font-mono text-sm px-3 py-2 transition-colors hover:opacity-80"
 																style={{
-																	backgroundColor: "rgba(0,0,0,0.5)",
-																	borderColor: "rgba(255,255,255,0.1)",
-																	color: "#fff"
+																	backgroundColor: "var(--bg-main)",
+																	borderWidth: "1px",
+																	borderColor: "var(--border-color)",
+																	borderStyle: "solid",
+																	color: "var(--text-main)"
 																}}
 															>
 																<div className="flex items-center justify-between">
-																	<span style={{ color: phaseColor }}>{event.year}</span>
-																	<span className="text-xs opacity-50">{event.period || event.year}</span>
+																	<span style={{ color: "var(--accent-color)" }}>{event.year}</span>
+																	<span className="text-xs" style={{ color: "var(--text-muted)" }}>{event.period || event.year}</span>
 																</div>
 																<div className="mt-1">{event.icon} {event.title}</div>
 															</button>
@@ -590,7 +661,6 @@ export default function About() {
 						totalEvents={lifeEvents.length}
 						currentEventIndex={gameState.level}
 					>
-
 						{/* Game Canvas - with camera offset */}
 						<div className="absolute bottom-20 left-0 right-0 h-48 overflow-hidden z-10">
 							{/* Scrolling world container */}
@@ -635,8 +705,8 @@ export default function About() {
 									<div
 										className="w-2 h-24 border-2"
 										style={{
-											background: "linear-gradient(180deg, #FFD700, transparent)",
-											borderColor: "#805AD5",
+											background: "linear-gradient(180deg, var(--accent-color), transparent)",
+											borderColor: "var(--border-color)",
 										}}
 									/>
 								</div>
@@ -647,11 +717,13 @@ export default function About() {
 						{gameState.isPlaying && !gameState.isPaused && (
 							<div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-30">
 								<div
-									className="font-mono text-xs px-4 py-2 flex items-center gap-4 border backdrop-blur-sm"
+									className="font-mono text-xs px-4 py-2 flex items-center gap-4 backdrop-blur-sm"
 									style={{
-										backgroundColor: "rgba(0,0,0,0.6)",
-										color: "#fff",
-										borderColor: "rgba(255,255,255,0.2)"
+										backgroundColor: "var(--bg-card)",
+										color: "var(--text-main)",
+										borderWidth: "var(--border-width)",
+										borderColor: "var(--border-color)",
+										borderStyle: "solid"
 									}}
 								>
 									<span>← → MOVE</span>
@@ -666,20 +738,20 @@ export default function About() {
 						{gameState.isPaused && (
 							<motion.div
 								className="absolute inset-0 z-40 flex items-center justify-center"
-								style={{ backgroundColor: "rgba(0,0,0,0.9)" }}
+								style={{ backgroundColor: "var(--bg-main)", opacity: 0.95 }}
 								initial={{ opacity: 0 }}
 								animate={{ opacity: 1 }}
 								exit={{ opacity: 0 }}
 							>
 								<div className="text-center">
-									<h2 className="text-4xl font-mono mb-4" style={{ color: "#fff" }}>PAUSED</h2>
+									<h2 className="text-4xl font-mono mb-4" style={{ color: "var(--text-main)" }}>PAUSED</h2>
 									<button
 										onClick={togglePause}
-										className="px-6 py-3 font-mono text-xl border-2"
+										className="px-6 py-3 font-mono text-xl wireframe-btn"
 										style={{
-											background: "linear-gradient(135deg, #FF6B35, #FFC857)",
-											borderColor: "#FFC857",
-											color: "#fff"
+											borderWidth: "var(--border-width)",
+											borderColor: "var(--border-color)",
+											boxShadow: "var(--shadow-offset-x) var(--shadow-offset-y) var(--shadow-blur) var(--shadow-color)",
 										}}
 									>
 										▶ RESUME
@@ -694,7 +766,7 @@ export default function About() {
 						{gameState.isLevelComplete && (
 							<motion.div
 								className="absolute inset-0 z-40 flex items-center justify-center"
-								style={{ backgroundColor: "rgba(0,0,0,0.85)" }}
+								style={{ backgroundColor: "var(--bg-main)", opacity: 0.95 }}
 								initial={{ opacity: 0 }}
 								animate={{ opacity: 1 }}
 								exit={{ opacity: 0 }}
@@ -709,22 +781,22 @@ export default function About() {
 									</motion.div>
 									<h2
 										className="text-3xl font-mono mb-2"
-										style={{ color: "#FFD700" }}
+										style={{ color: "var(--accent-color)" }}
 									>
 										{currentEvent?.year} Complete!
 									</h2>
-									<p className="font-mono mb-6 opacity-70" style={{ color: "#fff" }}>
+									<p className="font-mono mb-6" style={{ color: "var(--text-muted)" }}>
 										{currentEvent?.title}
 									</p>
 									<div className="flex gap-4 justify-center">
 										{gameState.level < lifeEvents.length - 1 ? (
 											<button
 												onClick={nextLevel}
-												className="px-6 py-3 font-mono text-xl border-2 transition-transform hover:scale-105"
+												className="px-6 py-3 font-mono text-xl transition-transform hover:scale-105 wireframe-btn"
 												style={{
-													background: "linear-gradient(135deg, #805AD5, #FFD700)",
-													borderColor: "#FFD700",
-													color: "#fff"
+													borderWidth: "var(--border-width)",
+													borderColor: "var(--border-color)",
+													boxShadow: "var(--shadow-offset-x) var(--shadow-offset-y) var(--shadow-blur) var(--shadow-color)",
 												}}
 											>
 												→ NEXT MOMENT
@@ -732,16 +804,18 @@ export default function About() {
 										) : (
 											<div className="text-center">
 												<div className="text-2xl mb-2">🎉</div>
-												<p className="font-mono" style={{ color: "#FFD700" }}>Journey Complete!</p>
+												<p className="font-mono" style={{ color: "var(--accent-color)" }}>Journey Complete!</p>
 											</div>
 										)}
 										<button
 											onClick={() => setShowIntro(true)}
-											className="px-6 py-3 font-mono text-xl border-2"
+											className="px-6 py-3 font-mono text-xl"
 											style={{
-												backgroundColor: "rgba(0,0,0,0.5)",
-												borderColor: "rgba(255,255,255,0.3)",
-												color: "#fff"
+												backgroundColor: "var(--bg-card)",
+												borderWidth: "var(--border-width)",
+												borderColor: "var(--border-color)",
+												borderStyle: "solid",
+												color: "var(--text-main)"
 											}}
 										>
 											📋 MENU

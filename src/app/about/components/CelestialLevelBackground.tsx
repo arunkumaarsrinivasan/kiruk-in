@@ -2,8 +2,15 @@
 
 import { motion } from "framer-motion";
 import { ReactNode, useMemo } from "react";
-import { CelestialSkyCanvas } from "./CelestialSkyCanvas";
-import { TypewriterStory } from "./TypewriterStory";
+import { PixelSkyGrid } from "./PixelSkyGrid";
+import { JourneyStoryCard } from "./JourneyStoryCard";
+
+interface Skill {
+    id: string;
+    name: string;
+    level: "beginner" | "intermediate" | "advanced" | "expert";
+    category: string;
+}
 
 interface LifeEvent {
     id: string;
@@ -16,6 +23,7 @@ interface LifeEvent {
     details?: string;
     tags?: string[];
     icon?: string;
+    skills?: Skill[];
 }
 
 interface CelestialLevelBackgroundProps {
@@ -30,6 +38,7 @@ interface CelestialLevelBackgroundProps {
     levelProgress?: number;
     totalEvents: number;
     currentEventIndex: number;
+    onStarClick?: (skillId: string) => void;
 }
 
 const GRID_SIZE = 20;
@@ -46,6 +55,7 @@ export function CelestialLevelBackground({
     levelProgress = 0,
     totalEvents: _totalEvents,
     currentEventIndex: _currentEventIndex,
+    onStarClick,
 }: CelestialLevelBackgroundProps) {
     const cameraOffset = Math.max(0, playerX - 400);
 
@@ -64,49 +74,22 @@ export function CelestialLevelBackground({
         };
     }, [event]);
 
-    // Phase colors based on time of day (level progress)
-    const phaseColor = useMemo(() => {
-        if (levelProgress < 0.35) return "#FFC857"; // Sun phase - gold
-        if (levelProgress < 0.70) return "#90CDF4"; // Moon phase - blue
-        return "#FFD700"; // Stars phase - bright gold
-    }, [levelProgress]);
-
     const groundGradient = useMemo(() => {
-        if (levelProgress < 0.35) {
-            // Sun phase - warm earth
-            return "linear-gradient(180deg, rgba(139,90,43,0.9) 0%, rgba(101,67,33,1) 100%)";
-        } else if (levelProgress < 0.70) {
-            // Moon phase - cool night
-            return "linear-gradient(180deg, rgba(30,40,60,0.95) 0%, rgba(20,30,45,1) 100%)";
-        } else {
-            // Stars phase - deep dark
-            return "linear-gradient(180deg, rgba(15,15,30,0.98) 0%, rgba(10,10,20,1) 100%)";
-        }
-    }, [levelProgress]);
+        return "linear-gradient(180deg, var(--bg-card) 0%, var(--bg-main) 100%)";
+    }, []);
 
     return (
-        <div
-            className={`relative w-full h-full overflow-hidden ${className}`}
-        >
-            {/* Celestial Sky Canvas - positioned below navbar, uses levelProgress for sun/moon/stars */}
+        <div className={`relative w-full h-full overflow-hidden ${className}`}>
+            {/* Pixel Sky Grid - uses levelProgress for sun/moon/stars */}
             <div className="absolute inset-0 pt-16">
-                <CelestialSkyCanvas
+                <PixelSkyGrid
                     levelProgress={levelProgress}
                     className="z-0"
+                    skills={event?.skills || []}
+                    onStarClick={onStarClick}
+                    currentYear={event?.year}
                 />
             </div>
-
-            {/* Subtle grid overlay */}
-            <div
-                className="absolute inset-0 pointer-events-none z-10"
-                style={{
-                    backgroundImage: `
-            linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)
-          `,
-                    backgroundSize: `${GRID_SIZE}px ${GRID_SIZE}px`,
-                }}
-            />
 
             {/* World Container - Scrolls with player */}
             <div
@@ -122,15 +105,16 @@ export function CelestialLevelBackground({
                     style={{
                         width: worldWidth + 800,
                         background: groundGradient,
-                        borderTop: `2px solid ${phaseColor}40`,
+                        borderTop: "2px solid var(--border-color)",
                     }}
                 >
                     {/* Ground texture */}
                     <div
                         className="absolute inset-0"
                         style={{
-                            backgroundImage: `linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)`,
+                            backgroundImage: `linear-gradient(90deg, var(--border-color) 1px, transparent 1px)`,
                             backgroundSize: `${GRID_SIZE * 2}px ${GRID_SIZE}px`,
+                            opacity: 0.3,
                         }}
                     />
                 </div>
@@ -145,7 +129,8 @@ export function CelestialLevelBackground({
                         <div
                             className="w-1 h-8"
                             style={{
-                                background: `linear-gradient(180deg, ${phaseColor}60, transparent)`,
+                                background: `linear-gradient(180deg, var(--accent-color), transparent)`,
+                                opacity: 0.6,
                             }}
                         />
                     </div>
@@ -166,21 +151,22 @@ export function CelestialLevelBackground({
                         </motion.div>
                         <div
                             className="w-1 h-16"
-                            style={{ background: `linear-gradient(180deg, ${phaseColor}, transparent)` }}
+                            style={{ background: `linear-gradient(180deg, var(--accent-color), transparent)` }}
                         />
                     </div>
                 </div>
             </div>
 
-            {/* Typewriter Story - Center bottom floating */}
+            {/* Journey Story Card - Center bottom floating */}
             {storyContent && event && (
-                <TypewriterStory
+                <JourneyStoryCard
                     content={storyContent}
                     age={event.age}
                     year={event.year}
                     isActive={true}
-                    phaseColor={phaseColor}
                     levelProgress={levelProgress}
+                    totalEvents={_totalEvents}
+                    currentEventIndex={_currentEventIndex}
                 />
             )}
 
