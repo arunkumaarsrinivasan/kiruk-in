@@ -116,6 +116,18 @@ export * from './section-characters';
 // Personal Knowledge Base
 export * from './personal-knowledge-base';
 
+// Timeline Era: About page journey design system (age-based phases)
+export {
+  ERA_CONFIG,
+  getEraConfig,
+  getEraConfigByPhase,
+  getTimelinePhase,
+  getEraColors,
+  getEraColorsByPhase,
+  type EraConfig,
+  type LineStyle,
+} from './timeline-era-config';
+
 // ============================================
 // DATA LAYER CONFIGURATION
 // ============================================

@@ -3,6 +3,8 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useObservatoryData } from '@/hooks/useObservatoryData';
+import { WireframeCard } from '@/components/ui/wireframe/WireframeCard';
+import { WireframeBadge } from '@/components/ui/wireframe/WireframeBadge';
 import {
     CONSTELLATIONS,
     PositionedSkillNode,
@@ -162,8 +164,8 @@ export function ObservatoryView() {
             {/* LEFT: Unified Control Panel (Desktop) */}
             {!isMobile && (
                 <div
-                    className="w-48 shrink-0 border-r-2 flex flex-col overflow-y-auto"
-                    style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)' }}
+                    className="w-48 shrink-0 flex flex-col overflow-y-auto"
+                    style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRightWidth: '2px', borderRightStyle: 'solid' }}
                 >
                     <ControlPanel
                         constellationCounts={constellationCounts}
@@ -304,21 +306,23 @@ export function ObservatoryView() {
                 </div>
 
                 {/* Timeline Slider (Bottom) */}
-                <TimelineSlider
-                    experiences={experiences}
-                    currentDate={timelineDate}
-                    onChange={setTimelineDate}
-                    range={timelineRange}
-                    onExperienceClick={handleExperienceSelect}
-                    selectedExperienceId={selectedExperienceId}
-                />
+                <div className="border-t-2" style={{ borderColor: 'var(--border-color)' }}>
+                    <TimelineSlider
+                        experiences={experiences}
+                        currentDate={timelineDate}
+                        onChange={setTimelineDate}
+                        range={timelineRange}
+                        onExperienceClick={handleExperienceSelect}
+                        selectedExperienceId={selectedExperienceId}
+                    />
+                </div>
             </div>
 
             {/* RIGHT: Journey Log + Detail Panel (Desktop) */}
             {!isMobile && (
                 <div
-                    className="w-64 shrink-0 border-l-2 flex flex-col overflow-hidden"
-                    style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)' }}
+                    className="w-64 shrink-0 flex flex-col overflow-hidden"
+                    style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderLeftWidth: '2px', borderLeftStyle: 'solid' }}
                 >
                     <AnimatePresence mode="wait">
                         {isDetailOpen ? (
@@ -785,31 +789,28 @@ function JourneyLog({
             <div className="mb-3" style={{ color: 'var(--accent-color)' }}>📜 JOURNEY LOG</div>
 
             <div className="space-y-2">
-                {sortedExps.map(exp => {
+                        {sortedExps.map(exp => {
                     const isVisible = exp.startDate <= currentDate;
                     const isSelected = selectedId === exp.id;
+                    const duration = exp.current ? 'Present' : exp.endDate ? `${new Date(exp.endDate).getFullYear() - new Date(exp.startDate).getFullYear()}y` : '';
 
                     return (
-                        <button
+                        <WireframeCard
                             key={exp.id}
-                            className="w-full text-left p-2 border transition-all"
-                            style={{
-                                borderColor: isSelected ? 'var(--accent-color)' : 'var(--border-color)',
-                                backgroundColor: isSelected ? 'var(--accent-color)' : 'transparent',
-                                color: isSelected ? 'var(--bg-main)' : 'var(--text-main)',
-                                opacity: isVisible ? 1 : 0.4,
-                            }}
-                            onClick={() => onSelect(exp.id)}
-                            disabled={!isVisible}
+                            hoverable={isVisible}
+                            onClick={() => isVisible && onSelect(exp.id)}
+                            className="w-full"
+                            badge={duration}
+                            badgeVariant={isSelected ? 'accent' : 'default'}
                         >
                             <div className="font-bold truncate">{exp.company}</div>
-                            <div className="text-[10px] truncate" style={{ color: isSelected ? 'var(--bg-main)' : 'var(--text-muted)' }}>
+                            <div className="text-[10px] truncate" style={{ color: 'var(--text-muted)' }}>
                                 {exp.position}
                             </div>
-                            <div className="text-[10px]" style={{ color: isSelected ? 'var(--bg-main)' : 'var(--text-muted)' }}>
+                            <div className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
                                 {new Date(exp.startDate).getFullYear()}{exp.current ? ' - Present' : exp.endDate ? ` - ${new Date(exp.endDate).getFullYear()}` : ''}
                             </div>
-                        </button>
+                        </WireframeCard>
                     );
                 })}
             </div>
@@ -883,11 +884,12 @@ function DetailPanel({
                             {(experienceSkillMap.get(experience.id)?.skills ?? []).map(({ skill: s, contribution }) => (
                                 <button
                                     key={s.id}
-                                    className="px-1 border"
-                                    style={{ borderColor: s.color, color: s.color }}
                                     onClick={() => onSkillClick(s.id)}
+                                    className="cursor-pointer"
                                 >
-                                    {contribution === 'mastered' ? '●' : contribution === 'applied' ? '◐' : '○'} {s.name}
+                                    <WireframeBadge variant="accent">
+                                        {contribution === 'mastered' ? '●' : contribution === 'applied' ? '◐' : '○'} {s.name}
+                                    </WireframeBadge>
                                 </button>
                             ))}
                         </div>

@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { useAnalytics } from '@/hooks/useAnalytics';
-import { GRID_SIZE } from '@/lib/utils';
 import { GridBackground } from '@/components/ui/GridBackground';
 
 // Lazy load heavy components
@@ -56,27 +55,6 @@ export default function CaseStudies() {
       }}
     >
       <GridBackground />
-      {/* Grid Background - No dots, just grid lines */}
-      <div 
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          backgroundImage: `
-            linear-gradient(var(--border-color) 1px, transparent 1px),
-            linear-gradient(90deg, var(--border-color) 1px, transparent 1px)
-          `,
-          backgroundSize: `${GRID_SIZE}px ${GRID_SIZE}px`,
-          opacity: 0.3,
-          imageRendering: 'pixelated' as any,
-        }}
-      />
-      
-      {/* Scanlines effect for retro pixel feel */}
-      <div 
-        className="absolute inset-0 pointer-events-none opacity-5"
-        style={{
-          backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px)",
-        }}
-      />
 
       {/* Intro Screen */}
       <AnimatePresence mode="wait">

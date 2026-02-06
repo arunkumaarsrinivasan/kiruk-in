@@ -9,7 +9,7 @@ import { TelephoneInterface } from './components/TelephoneInterface';
 import { GridBackground } from '@/components/ui/GridBackground';
 
 // The summary text users need to type - short and simple
-const TYPING_TEXT = "I'm Arun Kumaar, a creative technologist building digital experiences.";
+const TYPING_TEXT = "Mother promise I'll hire you";
 
 // Contact info that gets unlocked
 const CONTACT_INFO = {
@@ -85,7 +85,7 @@ export default function Contact() {
     trackInteraction('typing_game_start');
   }, [startGame, trackInteraction]);
 
-  const handleRestart = useCallback(() => {
+  const _handleRestart = useCallback(() => {
     resetGame();
     setCompletedStats(null);
     setSkipped(false);
@@ -217,6 +217,7 @@ export default function Contact() {
               onKeyPress={handleKeyPress}
               onStart={startGame}
               onReset={handleRetry}
+              onSkip={handleSkip}
             />
           </motion.div>
         )}
@@ -232,34 +233,17 @@ export default function Contact() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <div className="absolute inset-0 z-0">
+            <motion.div 
+              className="fixed inset-0 z-0"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
               <GridBackground opacity={0.2} />
-            </div>
+            </motion.div>
             
-            <div className="relative max-w-4xl mx-auto px-4 py-8 z-10">
-              {/* Success Header */}
-              <motion.div
-                className="text-center mb-12"
-                initial={{ y: -20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.2 }}
-              >
-                <motion.div
-                  className="text-8xl mb-4"
-                  animate={{ scale: [1, 1.1, 1] }}
-                  transition={{ duration: 1, repeat: Infinity, repeatDelay: 2 }}
-                >
-                  🎉
-                </motion.div>
-                <h1 className="text-4xl font-mono font-bold mb-4" style={{ color: '#6BCF7F' }}>
-                  {skipped ? 'CONTACT INFO' : 'CHALLENGE COMPLETE!'}
-                </h1>
-                <p className="font-mono text-lg" style={{ color: 'var(--text-main)' }}>
-                  {skipped ? "Here's how to reach me." : "Impressive typing! Here's your reward."}
-                </p>
-              </motion.div>
-
-              {/* Stats Card - Only show if challenge was completed, not skipped */}
+            <div className="relative max-w-4xl mx-auto px-4 pt-24 pb-8 z-10">
+              {/* Note - Only show if challenge was completed, not skipped */}
               {!skipped && completedStats && (
                 <motion.div
                   className="mb-8 p-6"
@@ -271,67 +255,9 @@ export default function Contact() {
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.3 }}
                 >
-                  <h3 className="text-xl font-mono font-bold mb-6 text-center" style={{ color: '#FFD93D' }}>
-                    📊 YOUR STATS
-                  </h3>
-                  <div className="grid grid-cols-4 gap-4 text-center">
-                    <div
-                      className="p-4"
-                      style={{
-                        backgroundColor: 'var(--bg-main)',
-                        border: '1px solid var(--border-color)',
-                      }}
-                    >
-                      <div className="text-3xl font-mono font-bold" style={{ color: '#FFD93D' }}>
-                        {completedStats.wpm}
-                      </div>
-                      <div className="text-xs font-mono uppercase" style={{ color: 'var(--text-muted)' }}>
-                        WPM
-                      </div>
-                    </div>
-                    <div
-                      className="p-4"
-                      style={{
-                        backgroundColor: 'var(--bg-main)',
-                        border: '1px solid var(--border-color)',
-                      }}
-                    >
-                      <div className="text-3xl font-mono font-bold" style={{ color: '#6BCF7F' }}>
-                        {completedStats.cps}
-                      </div>
-                      <div className="text-xs font-mono uppercase" style={{ color: 'var(--text-muted)' }}>
-                        CPS
-                      </div>
-                    </div>
-                    <div
-                      className="p-4"
-                      style={{
-                        backgroundColor: 'var(--bg-main)',
-                        border: '1px solid var(--border-color)',
-                      }}
-                    >
-                      <div className="text-3xl font-mono font-bold" style={{ color: '#6BCF7F' }}>
-                        {completedStats.accuracy}%
-                      </div>
-                      <div className="text-xs font-mono uppercase" style={{ color: 'var(--text-muted)' }}>
-                        Accuracy
-                      </div>
-                    </div>
-                    <div
-                      className="p-4"
-                      style={{
-                        backgroundColor: 'var(--bg-main)',
-                        border: '1px solid var(--border-color)',
-                      }}
-                    >
-                      <div className="text-3xl font-mono font-bold" style={{ color: 'var(--text-main)' }}>
-                        {completedStats.time.toFixed(1)}s
-                      </div>
-                      <div className="text-xs font-mono uppercase" style={{ color: 'var(--text-muted)' }}>
-                        Time
-                      </div>
-                    </div>
-                  </div>
+                  <p className="text-xl font-mono text-center leading-relaxed" style={{ color: '#FFD93D' }}>
+                    Keep your promise like a true gentleman or woman
+                  </p>
                 </motion.div>
               )}
 
@@ -368,13 +294,13 @@ export default function Contact() {
                     className="w-full rounded overflow-hidden"
                     style={{
                       border: '1px solid var(--border-color)',
-                      minHeight: '400px',
+                      minHeight: '700px',
                     }}
                   >
                     <iframe
                       src="https://cal.com/arun-kumaar-sreenivasan-uihrg5"
                       width="100%"
-                      height="400"
+                      height="700"
                       style={{
                         backgroundColor: 'var(--bg-card)',
                         border: 'none',
@@ -383,31 +309,6 @@ export default function Contact() {
                     />
                   </div>
                 </div>
-              </motion.div>
-
-              {/* Play Again Button */}
-              <motion.div
-                className="text-center"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1 }}
-              >
-                <motion.button
-                  onClick={handleRestart}
-                  className="px-8 py-4 font-mono text-lg border-2 font-bold"
-                  style={{
-                    backgroundColor: 'transparent',
-                    borderColor: 'var(--border-color)',
-                    color: 'var(--text-main)',
-                  }}
-                  whileHover={{ 
-                    scale: 1.05,
-                    backgroundColor: 'var(--bg-card)',
-                  }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  🔄 PLAY AGAIN (Beat your score!)
-                </motion.button>
               </motion.div>
             </div>
           </motion.div>

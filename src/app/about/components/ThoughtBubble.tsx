@@ -8,6 +8,24 @@ interface ThoughtBubbleProps {
     stage: CharacterStage;
     isActive: boolean;
     className?: string;
+    wireframeStyle?: boolean;
+}
+
+// Era-based accent colors for wireframe mode
+function getEraAccent(stage: CharacterStage): string {
+    switch (stage) {
+        case "baby":
+        case "toddler":
+            return "#22c55e";
+        case "child":
+            return "#3b82f6";
+        case "teen":
+            return "#f59e0b";
+        case "adult":
+        case "professional":
+        default:
+            return "#a855f7";
+    }
 }
 
 // Thought content varies by life stage
@@ -30,9 +48,10 @@ const doodleElements = [
     "F12",
 ];
 
-export function ThoughtBubble({ stage, isActive, className = "" }: ThoughtBubbleProps) {
+export function ThoughtBubble({ stage, isActive, className = "", wireframeStyle = true }: ThoughtBubbleProps) {
     const [currentThought, setCurrentThought] = useState("");
     const [isVisible, setIsVisible] = useState(false);
+    const accentColor = getEraAccent(stage);
 
     const thoughts = useMemo(() => {
         const stageThoughts = [...thoughtsByStage[stage]];
@@ -89,7 +108,12 @@ export function ThoughtBubble({ stage, isActive, className = "" }: ThoughtBubble
                 >
                     <div
                         className="relative px-4 py-2 font-mono text-sm whitespace-nowrap"
-                        style={{
+                        style={wireframeStyle ? {
+                            background: "rgba(12, 12, 20, 0.95)",
+                            border: `2px solid ${accentColor}`,
+                            boxShadow: `0 0 10px ${accentColor}30`,
+                            color: accentColor,
+                        } : {
                             background: "rgba(255, 255, 255, 0.98)",
                             border: "3px solid #1a1a2e",
                             borderRadius: "16px 16px 16px 4px",
@@ -97,26 +121,60 @@ export function ThoughtBubble({ stage, isActive, className = "" }: ThoughtBubble
                             color: "#1a1a2e",
                         }}
                     >
+                        {/* Wireframe corner markers */}
+                        {wireframeStyle && (
+                            <>
+                                <div className="absolute top-0 left-0 w-2 h-px" style={{ backgroundColor: accentColor }} />
+                                <div className="absolute top-0 left-0 w-px h-2" style={{ backgroundColor: accentColor }} />
+                                <div className="absolute top-0 right-0 w-2 h-px" style={{ backgroundColor: accentColor }} />
+                                <div className="absolute top-0 right-0 w-px h-2" style={{ backgroundColor: accentColor }} />
+                                <div className="absolute bottom-0 left-0 w-2 h-px" style={{ backgroundColor: accentColor }} />
+                                <div className="absolute bottom-0 left-0 w-px h-2" style={{ backgroundColor: accentColor }} />
+                                <div className="absolute bottom-0 right-0 w-2 h-px" style={{ backgroundColor: accentColor }} />
+                                <div className="absolute bottom-0 right-0 w-px h-2" style={{ backgroundColor: accentColor }} />
+                            </>
+                        )}
+
                         {currentThought}
 
-                        {/* Bubble pointer */}
-                        <svg
-                            className="absolute -bottom-3 left-2"
-                            width="16"
-                            height="12"
-                            viewBox="0 0 16 12"
-                            fill="none"
-                        >
-                            <path
-                                d="M0 0 L8 12 L4 0"
-                                fill="rgba(255, 255, 255, 0.98)"
-                            />
-                            <path
-                                d="M0 0 L8 11"
-                                stroke="#1a1a2e"
-                                strokeWidth="3"
-                            />
-                        </svg>
+                        {/* Bubble pointer - wireframe or classic style */}
+                        {wireframeStyle ? (
+                            <svg
+                                className="absolute -bottom-3 left-2"
+                                width="12"
+                                height="10"
+                                viewBox="0 0 12 10"
+                                fill="none"
+                            >
+                                <path
+                                    d="M0 0 L6 10 L3 0"
+                                    fill="rgba(12, 12, 20, 0.95)"
+                                />
+                                <path
+                                    d="M0 0 L6 9"
+                                    stroke={accentColor}
+                                    strokeWidth="2"
+                                />
+                            </svg>
+                        ) : (
+                            <svg
+                                className="absolute -bottom-3 left-2"
+                                width="16"
+                                height="12"
+                                viewBox="0 0 16 12"
+                                fill="none"
+                            >
+                                <path
+                                    d="M0 0 L8 12 L4 0"
+                                    fill="rgba(255, 255, 255, 0.98)"
+                                />
+                                <path
+                                    d="M0 0 L8 11"
+                                    stroke="#1a1a2e"
+                                    strokeWidth="3"
+                                />
+                            </svg>
+                        )}
                     </div>
                 </motion.div>
             )}

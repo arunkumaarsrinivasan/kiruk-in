@@ -109,7 +109,7 @@ const getSimplifiedName = (gameId: string): string => {
   const nameMap: Record<string, string> = {
     'home': 'HOME',
     'about': 'ABOUT',
-    'work': 'WORK',
+    'work': 'EXPERIENCE',
     'case-studies': 'CASE STUDY',
     'contact': 'CONTACT',
     'progress': 'PROGRESS',

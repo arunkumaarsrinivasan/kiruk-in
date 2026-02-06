@@ -68,6 +68,7 @@ export function GridBackground({
           `,
           backgroundSize: `var(--era-grid-size, 20px) var(--era-grid-size, 20px)`,
           backgroundPosition: `${offsetX}px ${offsetY}px`,
+          backgroundRepeat: 'repeat',
           opacity: opacity ?? 'var(--era-grid-opacity, 0.3)',
           imageRendering: 'pixelated' as React.CSSProperties['imageRendering'],
           ...style,

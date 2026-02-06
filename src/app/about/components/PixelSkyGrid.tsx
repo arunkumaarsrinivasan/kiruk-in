@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useMemo, useState, useEffect, useRef, useCallback } from "react";
+import { useMemo, useState, useEffect } from "react";
 
 interface Skill {
     id: string;
@@ -20,43 +20,6 @@ interface PixelSkyGridProps {
 
 // Grid configuration
 const PIXEL_SIZE = 16;
-
-// Simplified sky palettes - clean gradients
-const getSkyColors = (progress: number) => {
-    if (progress < 0.25) {
-        // Dawn to Morning
-        return {
-            sky: ["#1a0f25", "#221530", "#2a1a3a", "#321f45"],
-            horizon: ["#3a2550", "#452d5a", "#503565"],
-        };
-    } else if (progress < 0.50) {
-        // Day
-        return {
-            sky: ["#12101f", "#181528", "#1e1a32", "#241f3c"],
-            horizon: ["#2a2548", "#302a52", "#362f5c"],
-        };
-    } else if (progress < 0.75) {
-        // Dusk
-        return {
-            sky: ["#0e0a18", "#120e20", "#161228", "#1a1630"],
-            horizon: ["#1e1a38", "#221e42", "#26224c"],
-        };
-    } else {
-        // Night
-        return {
-            sky: ["#06050a", "#08070e", "#0a0912", "#0c0b16"],
-            horizon: ["#0e0d1a", "#100f1e", "#121122"],
-        };
-    }
-};
-
-// Parse hex to RGB
-function hexToRgb(hex: string): [number, number, number] {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result
-        ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)]
-        : [0, 0, 0];
-}
 
 // Calculate position on arc - TALLER arc (half horizontal screen)
 function getArcPosition(progress: number, width: number, height: number) {
@@ -551,7 +514,6 @@ export function PixelSkyGrid({
     onStarClick,
     currentYear,
 }: PixelSkyGridProps) {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
     const [dimensions, setDimensions] = useState({ width: 1200, height: 600 });
     const [activeSkillId, setActiveSkillId] = useState<string | null>(null);
 
@@ -567,57 +529,6 @@ export function PixelSkyGrid({
         window.addEventListener('resize', updateDimensions);
         return () => window.removeEventListener('resize', updateDimensions);
     }, []);
-
-    const skyColors = useMemo(() => getSkyColors(levelProgress), [levelProgress]);
-
-    // Draw clean pixel sky on canvas
-    const drawSky = useCallback(() => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-
-        const { width, height } = dimensions;
-        const cols = Math.ceil(width / PIXEL_SIZE);
-        const rows = Math.ceil(height / PIXEL_SIZE);
-
-        ctx.clearRect(0, 0, width, height);
-
-        // Draw each pixel row - clean gradient
-        for (let row = 0; row < rows; row++) {
-            const rowRatio = row / rows;
-
-            let colorIndex: number;
-            let palette: string[];
-
-            if (rowRatio < 0.6) {
-                colorIndex = Math.floor((rowRatio / 0.6) * skyColors.sky.length);
-                palette = skyColors.sky;
-            } else {
-                colorIndex = Math.floor(((rowRatio - 0.6) / 0.4) * skyColors.horizon.length);
-                palette = skyColors.horizon;
-            }
-
-            colorIndex = Math.min(colorIndex, palette.length - 1);
-            const baseColor = hexToRgb(palette[colorIndex]);
-
-            for (let col = 0; col < cols; col++) {
-                // Subtle dithering
-                const dither = ((row + col) % 2 === 0) ? 3 : -3;
-                const r = Math.max(0, Math.min(255, baseColor[0] + dither));
-                const g = Math.max(0, Math.min(255, baseColor[1] + dither));
-                const b = Math.max(0, Math.min(255, baseColor[2] + dither));
-
-                ctx.fillStyle = `rgb(${r},${g},${b})`;
-                ctx.fillRect(col * PIXEL_SIZE, row * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
-            }
-        }
-    }, [dimensions, skyColors]);
-
-    useEffect(() => {
-        drawSky();
-    }, [drawSky]);
 
     // Celestial body visibility - Stars appear AFTER moon disappears
     const showSun = levelProgress < 0.35;
@@ -644,13 +555,10 @@ export function PixelSkyGrid({
 
     return (
         <div className={`absolute inset-0 overflow-hidden ${className}`}>
-            {/* Canvas-based pixel sky */}
-            <canvas
-                ref={canvasRef}
-                width={dimensions.width}
-                height={dimensions.height}
+            {/* Solid background - no texture grid or gradient */}
+            <div
                 className="absolute inset-0"
-                style={{ width: dimensions.width, height: dimensions.height }}
+                style={{ background: "var(--bg-main)" }}
             />
 
             {/* Pixel Sun */}

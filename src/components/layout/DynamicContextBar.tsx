@@ -126,29 +126,6 @@ function AboutContextBar() {
     }));
   }, [phases, onAboutPhaseClick]);
 
-  const contactItems: ContextBarItem[] = useMemo(() => {
-    return [
-      {
-        id: 'email',
-        label: 'Email',
-        href: CONTACT_INFO.email.href,
-        icon: CONTACT_INFO.email.icon,
-      },
-      {
-        id: 'linkedin',
-        label: 'LinkedIn',
-        href: CONTACT_INFO.linkedin.href,
-        icon: CONTACT_INFO.linkedin.icon,
-      },
-      {
-        id: 'github',
-        label: 'GitHub',
-        href: CONTACT_INFO.github.href,
-        icon: CONTACT_INFO.github.icon,
-      },
-    ];
-  }, []);
-
   return (
     <div className="flex items-center justify-between w-full h-full px-2 sm:px-4 gap-2 sm:gap-4">
       {/* Timeline Phases */}
@@ -172,28 +149,6 @@ function AboutContextBar() {
           >
             {item.label}
           </motion.button>
-        ))}
-      </div>
-
-      {/* Contact Shortcuts */}
-      <div className="flex items-center gap-1 sm:gap-2 h-full">
-        <span className="text-[9px] sm:text-[10px] font-mono uppercase text-[var(--text-muted)] whitespace-nowrap hidden sm:inline">
-          Contact:
-        </span>
-        {contactItems.map((item) => (
-          <motion.a
-            key={item.id}
-            href={item.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-1.5 sm:px-2 py-0.5 sm:py-1 text-[9px] sm:text-[10px] font-mono uppercase border bg-[var(--bg-card)] text-[var(--text-main)] border-[var(--border-color)] hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] transition-colors flex items-center gap-0.5 sm:gap-1"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            title={item.label}
-          >
-            {item.icon && <PixelIcon name={item.icon} size={9} className="sm:w-[10px] sm:h-[10px]" />}
-            <span className="whitespace-nowrap hidden sm:inline">{item.label}</span>
-          </motion.a>
         ))}
       </div>
     </div>

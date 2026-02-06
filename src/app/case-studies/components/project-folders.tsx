@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import { PixelIcon } from '@/components/ui/PixelIcon';
 
 type ProjectFolder = {
@@ -10,11 +11,22 @@ type ProjectFolder = {
   color: string;
   url?: string;
   description: string;
-  type: 'behance' | 'playbook' | 'github' | 'codepen' | 'figma' | 'case-study';
+  type: 'behance' | 'playbook' | 'github' | 'codepen' | 'figma' | 'case-study' | 'portfolio';
   comingSoon?: boolean;
+  highlighted?: boolean;
 };
 
 const folders: ProjectFolder[] = [
+  {
+    id: 'portfolio',
+    name: 'Portfolio',
+    icon: 'folder-open',
+    color: '#FFD93D',
+    url: '/portfolio',
+    description: 'Figma portfolio slides and design work',
+    type: 'portfolio',
+    highlighted: true,
+  },
   {
     id: 'behance',
     name: 'Behance',
@@ -38,7 +50,7 @@ const folders: ProjectFolder[] = [
     name: 'GitHub',
     icon: 'code-block',
     color: '#181717',
-    url: 'https://github.com/arunkumaar',
+    url: 'https://github.com/arunkumaarsrinivasan',
     description: 'Code repositories and projects',
     type: 'github',
   },
@@ -61,15 +73,6 @@ const folders: ProjectFolder[] = [
     description: 'Design files and prototypes',
     type: 'figma',
   },
-  {
-    id: 'case-study',
-    name: 'Case Studies',
-    icon: 'folder-open',
-    color: '#14b8a6',
-    description: 'Detailed project documentation',
-    type: 'case-study',
-    comingSoon: true,
-  },
 ];
 
 type ProjectFoldersProps = {
@@ -77,16 +80,19 @@ type ProjectFoldersProps = {
 };
 
 export function ProjectFolders({ onFolderClick }: ProjectFoldersProps) {
+  const router = useRouter();
+
   const handleFolderClick = (folder: ProjectFolder) => {
     // Don't handle clicks for coming soon items
     if (folder.comingSoon) {
       return;
     }
     
-    if (folder.url && folder.type !== 'case-study') {
+    if (folder.type === 'portfolio' && folder.url?.startsWith('/')) {
+      router.push(folder.url);
+    } else if (folder.url && folder.type !== 'case-study') {
       window.open(folder.url, '_blank');
     } else if (folder.type === 'case-study') {
-      // Navigate to case study detail page or show modal
       onFolderClick?.(folder);
     } else {
       onFolderClick?.(folder);
@@ -154,13 +160,16 @@ export function ProjectFolders({ onFolderClick }: ProjectFoldersProps) {
               type="button"
               onClick={() => handleFolderClick(folder)}
               disabled={folder.comingSoon}
-              className="w-full wireframe-border p-6 flex flex-col items-center justify-center gap-3 group relative"
+              className={`w-full wireframe-border p-6 flex flex-col items-center justify-center gap-3 group relative ${
+                folder.highlighted ? 'ring-4 ring-[var(--accent-color)] ring-offset-2 ring-offset-[var(--bg-main)]' : ''
+              }`}
               style={{
-                backgroundColor: 'var(--bg-card)',
+                backgroundColor: folder.highlighted ? 'color-mix(in srgb, var(--accent-color) 15%, var(--bg-card))' : 'var(--bg-card)',
                 imageRendering: 'pixelated' as any,
                 minHeight: '200px',
-                opacity: folder.comingSoon ? 0.6 : 1,
+                opacity: folder.comingSoon ? 0.85 : 1,
                 cursor: folder.comingSoon ? 'not-allowed' : 'pointer',
+                boxShadow: folder.highlighted ? '0 0 24px color-mix(in srgb, var(--accent-color) 40%, transparent)' : undefined,
               }}
               whileHover={folder.comingSoon ? {} : { scale: 1.05, y: -4 }}
               whileTap={folder.comingSoon ? {} : { scale: 0.95 }}

@@ -9,6 +9,7 @@ interface TypingGameInterfaceProps {
   onKeyPress: (key: string) => void;
   onStart: () => void;
   onReset: () => void;
+  onSkip?: () => void;
 }
 
 export function TypingGameInterface({
@@ -16,6 +17,7 @@ export function TypingGameInterface({
   onKeyPress,
   onStart,
   onReset,
+  onSkip,
 }: TypingGameInterfaceProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -258,30 +260,64 @@ export function TypingGameInterface({
 
         {/* Start / Retry Button */}
         {!gameState.isActive && !gameState.isCompleted && !gameState.isFailed && (
-          <motion.button
-            onClick={onStart}
-            className="w-full py-4 font-mono text-lg border-2 font-bold"
-            style={{
-              backgroundColor: '#FFD93D',
-              borderColor: '#FFD93D',
-              color: '#000',
-              boxShadow: '0 0 0 2px var(--bg-main), 4px 4px 0 var(--border-color)',
-            }}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            ⌨️ START TYPING
-          </motion.button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <motion.button
+              onClick={onStart}
+              className="w-full sm:w-auto px-8 py-4 font-mono text-lg border-2 font-bold"
+              style={{
+                backgroundColor: '#FFD93D',
+                borderColor: '#FFD93D',
+                color: '#000',
+                boxShadow: '0 0 0 2px var(--bg-main), 4px 4px 0 var(--border-color)',
+              }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              ⌨️ START TYPING
+            </motion.button>
+            {onSkip && (
+              <motion.button
+                onClick={onSkip}
+                className="w-full sm:w-auto px-8 py-4 font-mono text-lg border-2 font-bold"
+                style={{
+                  backgroundColor: 'transparent',
+                  borderColor: 'var(--border-color)',
+                  color: 'var(--text-main)',
+                }}
+                whileHover={{ scale: 1.02, backgroundColor: 'var(--bg-main)' }}
+                whileTap={{ scale: 0.98 }}
+              >
+                ⏭️ SKIP TO CONTACT
+              </motion.button>
+            )}
+          </div>
         )}
 
         {gameState.isActive && !gameState.isCompleted && !gameState.isFailed && (
-          <div className="text-center font-mono text-sm" style={{ color: 'var(--text-muted)' }}>
-            <motion.p
-              animate={{ opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              Start typing to begin... Focus on accuracy!
-            </motion.p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <div className="text-center font-mono text-sm" style={{ color: 'var(--text-muted)' }}>
+              <motion.p
+                animate={{ opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                Start typing to begin... Focus on accuracy!
+              </motion.p>
+            </div>
+            {onSkip && (
+              <motion.button
+                onClick={onSkip}
+                className="px-6 py-2 font-mono text-sm border-2 font-bold shrink-0"
+                style={{
+                  backgroundColor: 'transparent',
+                  borderColor: 'var(--border-color)',
+                  color: 'var(--text-main)',
+                }}
+                whileHover={{ scale: 1.02, backgroundColor: 'var(--bg-main)' }}
+                whileTap={{ scale: 0.98 }}
+              >
+                ⏭️ SKIP TO CONTACT
+              </motion.button>
+            )}
           </div>
         )}
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 // Simplified game state for celestial journey (no obstacles, no jumping)
 interface CelestialGameState {
@@ -62,11 +62,14 @@ export function useCelestialEngine({
     const keysPressed = useRef<Set<string>>(new Set());
 
     // Checkpoint positions (relative to world width)
-    const checkpointPositions = [
-        worldWidth * 0.25,
-        worldWidth * 0.5,
-        worldWidth * 0.75,
-    ];
+    const checkpointPositions = useMemo(
+        () => [
+            worldWidth * 0.25,
+            worldWidth * 0.5,
+            worldWidth * 0.75,
+        ],
+        [worldWidth]
+    );
 
     // Start the game/journey
     const startGame = useCallback(() => {

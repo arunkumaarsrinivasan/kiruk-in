@@ -10,4 +10,5 @@ export * from "./useCelestialEngine";
 export * from "./TypewriterStory";
 export * from "./JourneyStoryCard";
 export * from "./ThoughtBubble";
-
+export * from "./PixelSkyGrid";
+export * from "./PixelStoryBackground";

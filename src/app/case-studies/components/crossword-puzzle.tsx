@@ -39,8 +39,8 @@ const crosswordData = {
     ['B', 'E', 'H', 'A', 'N', 'C', 'E', null, null, null, null, null],
     // Row 1: Empty
     [null, null, null, null, null, null, null, null, null, null, null, null],
-    // Row 2: P L A Y B O O K (2-Across)
-    ['P', 'L', 'A', 'Y', 'B', 'O', 'O', 'K', null, null, null, null],
+    // Row 2: Empty
+    [null, null, null, null, null, null, null, null, null, null, null, null],
     // Row 3: Empty
     [null, null, null, null, null, null, null, null, null, null, null, null],
     // Row 4: G I T H U B (3-Across)
@@ -69,43 +69,34 @@ const crosswordData = {
       answer: 'BEHANCE', 
       startRow: 0, 
       startCol: 0,
-      hintIndices: [0, 3, 6], // B, A, E
+      hintIndices: [0, 1, 3, 4, 6], // Pre-fill 5, guess 2 (H, C)
     },
     { 
       number: 2, 
-      direction: 'across' as const, 
-      text: 'Quick project snapshots platform', 
-      answer: 'PLAYBOOK', 
-      startRow: 2, 
-      startCol: 0,
-      hintIndices: [0, 4, 7], // P, B, K
-    },
-    { 
-      number: 3, 
       direction: 'across' as const, 
       text: 'Code repository platform', 
       answer: 'GITHUB', 
       startRow: 4, 
       startCol: 0,
-      hintIndices: [0, 3, 5], // G, H, B
+      hintIndices: [0, 1, 3, 5], // Pre-fill 4, guess 2 (T, U)
     },
     { 
-      number: 4, 
+      number: 3, 
       direction: 'across' as const, 
       text: 'Frontend code playground', 
       answer: 'CODEPEN', 
       startRow: 6, 
       startCol: 0,
-      hintIndices: [0, 3, 6], // C, E, N
+      hintIndices: [0, 1, 3, 4, 6], // Pre-fill 5, guess 2 (D, E)
     },
     { 
-      number: 5, 
+      number: 4, 
       direction: 'across' as const, 
       text: 'Design tool for prototypes', 
       answer: 'FIGMA', 
       startRow: 8, 
       startCol: 0,
-      hintIndices: [0, 2, 4], // F, G, A
+      hintIndices: [0, 2, 4], // Pre-fill 3, guess 2 (I, M)
     },
   ],
 };

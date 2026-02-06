@@ -1,9 +1,11 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { ReactNode, useMemo } from "react";
+import { AnimatePresence } from "framer-motion";
 import { PixelSkyGrid } from "./PixelSkyGrid";
 import { JourneyStoryCard } from "./JourneyStoryCard";
+import { CornerMarkers as WireframeCornerMarkers } from "@/components/ui/wireframe/MeasurementLines";
+import { getEraConfig } from "@/data/timeline-era-config";
 
 interface Skill {
     id: string;
@@ -39,9 +41,9 @@ interface CelestialLevelBackgroundProps {
     totalEvents: number;
     currentEventIndex: number;
     onStarClick?: (skillId: string) => void;
+    allEvents?: LifeEvent[];
+    onNavigate?: (index: number) => void;
 }
-
-const GRID_SIZE = 20;
 
 export function CelestialLevelBackground({
     year: _year,
@@ -56,8 +58,29 @@ export function CelestialLevelBackground({
     totalEvents: _totalEvents,
     currentEventIndex: _currentEventIndex,
     onStarClick,
+    allEvents = [],
+    onNavigate,
 }: CelestialLevelBackgroundProps) {
     const cameraOffset = Math.max(0, playerX - 400);
+
+    // Calculate previous and next events with wraparound navigation
+    const previousEvent = useMemo(() => {
+        if (!allEvents.length) return null;
+        // Wraparound: if at index 0, go to last event
+        const previousIndex = _currentEventIndex <= 0 
+            ? allEvents.length - 1 
+            : _currentEventIndex - 1;
+        return allEvents[previousIndex] || null;
+    }, [allEvents, _currentEventIndex]);
+
+    const nextEvent = useMemo(() => {
+        if (!allEvents.length) return null;
+        // Wraparound: if at last index, go to first event
+        const nextIndex = _currentEventIndex >= allEvents.length - 1 
+            ? 0 
+            : _currentEventIndex + 1;
+        return allEvents[nextIndex] || null;
+    }, [allEvents, _currentEventIndex]);
 
     // Story content
     const storyContent = useMemo(() => {
@@ -74,14 +97,12 @@ export function CelestialLevelBackground({
         };
     }, [event]);
 
-    const groundGradient = useMemo(() => {
-        return "linear-gradient(180deg, var(--bg-card) 0%, var(--bg-main) 100%)";
-    }, []);
+    const eraConfig = useMemo(() => getEraConfig(event?.age ?? 0), [event?.age]);
 
     return (
         <div className={`relative w-full h-full overflow-hidden ${className}`}>
             {/* Pixel Sky Grid - uses levelProgress for sun/moon/stars */}
-            <div className="absolute inset-0 pt-16">
+            <div className="absolute inset-0 pt-16 z-0">
                 <PixelSkyGrid
                     levelProgress={levelProgress}
                     className="z-0"
@@ -93,82 +114,68 @@ export function CelestialLevelBackground({
 
             {/* World Container - Scrolls with player */}
             <div
-                className="absolute inset-0 z-20"
+                className="absolute inset-0 z-10"
                 style={{
                     transform: `translateX(${-cameraOffset}px)`,
                     transition: "transform 0.05s linear",
                 }}
             >
+                {/* Wireframe corner markers on world container */}
+                <div className="absolute inset-0 pointer-events-none">
+                    <WireframeCornerMarkers />
+                </div>
+
                 {/* Ground */}
                 <div
                     className="absolute bottom-0 left-0 h-20"
                     style={{
                         width: worldWidth + 800,
-                        background: groundGradient,
+                        background: "var(--bg-card)",
                         borderTop: "2px solid var(--border-color)",
                     }}
-                >
-                    {/* Ground texture */}
-                    <div
-                        className="absolute inset-0"
-                        style={{
-                            backgroundImage: `linear-gradient(90deg, var(--border-color) 1px, transparent 1px)`,
-                            backgroundSize: `${GRID_SIZE * 2}px ${GRID_SIZE}px`,
-                            opacity: 0.3,
-                        }}
-                    />
-                </div>
+                />
 
-                {/* Simple path markers */}
-                {[0.25, 0.5, 0.75].map((ratio, index) => (
+                {/* Path markers - wireframe style matching design system era */}
+                {[0.25, 0.5, 0.75].map((ratio) => (
                     <div
-                        key={`marker-${index}`}
+                        key={`marker-${ratio}`}
                         className="absolute bottom-20"
-                        style={{ left: worldWidth * ratio - 2 }}
+                        style={{ left: worldWidth * ratio - 4 }}
                     >
                         <div
-                            className="w-1 h-8"
+                            className="border font-mono"
                             style={{
-                                background: `linear-gradient(180deg, var(--accent-color), transparent)`,
-                                opacity: 0.6,
+                                width: 8,
+                                height: 24,
+                                borderWidth: "var(--wireframe-outline-width, 1px)",
+                                borderColor: "var(--wireframe-border-color, var(--border-color))",
+                                borderStyle: eraConfig.lineStyle,
+                                backgroundColor: "transparent",
                             }}
                         />
                     </div>
                 ))}
-
-                {/* Goal marker */}
-                <div
-                    className="absolute bottom-20"
-                    style={{ left: worldWidth - 60 }}
-                >
-                    <div className="flex flex-col items-center">
-                        <motion.div
-                            className="text-2xl mb-2"
-                            animate={{ y: [0, -5, 0], scale: [1, 1.1, 1] }}
-                            transition={{ duration: 1.5, repeat: Infinity }}
-                        >
-                            ✨
-                        </motion.div>
-                        <div
-                            className="w-1 h-16"
-                            style={{ background: `linear-gradient(180deg, var(--accent-color), transparent)` }}
-                        />
-                    </div>
-                </div>
             </div>
 
-            {/* Journey Story Card - Center bottom floating */}
-            {storyContent && event && (
-                <JourneyStoryCard
-                    content={storyContent}
-                    age={event.age}
-                    year={event.year}
-                    isActive={true}
-                    levelProgress={levelProgress}
-                    totalEvents={_totalEvents}
-                    currentEventIndex={_currentEventIndex}
-                />
-            )}
+            {/* Journey Story Card - Horizontal three-column layout */}
+            <AnimatePresence mode="wait">
+                {storyContent && event && (
+                    <JourneyStoryCard
+                        key={event.id}
+                        content={storyContent}
+                        age={event.age}
+                        year={event.year}
+                        isActive={true}
+                        levelProgress={levelProgress}
+                        totalEvents={_totalEvents}
+                        currentEventIndex={_currentEventIndex}
+                        previousEvent={previousEvent}
+                        nextEvent={nextEvent}
+                        onNavigate={onNavigate}
+                        allEvents={allEvents}
+                    />
+                )}
+            </AnimatePresence>
 
             {children}
         </div>
