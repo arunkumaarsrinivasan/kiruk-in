@@ -8,8 +8,8 @@ import { PixelCharacter, getStageFromAge } from "./components/PixelCharacter";
 import { CelestialLevelBackground } from "./components/CelestialLevelBackground";
 import { useCelestialEngine } from "./components/useCelestialEngine";
 import { useContextBar } from "@/contexts/ContextBarContext";
-import { CornerMarkers as WireframeCornerMarkers } from "@/components/ui/wireframe/MeasurementLines";
 import { getTimelinePhase } from "@/data/timeline-era-config";
+import { getOSTheme } from "@/data/os-theme-config";
 
 // Skills type for constellation
 type Skill = {
@@ -373,6 +373,10 @@ export default function About() {
 		? (gameState.isMovingLeft || gameState.isMovingRight ? "walk" : "idle")
 		: "idle";
 
+	// Get current OS theme for player positioning on taskbar
+	const currentOSTheme = useMemo(() => getOSTheme(currentEvent?.year ?? 2001), [currentEvent?.year]);
+	const taskbarHeight = currentOSTheme.taskbar.height;
+
 	// Camera offset calculation
 	const cameraOffset = useMemo(() => {
 		return Math.max(0, gameState.playerX - 120);
@@ -475,7 +479,7 @@ export default function About() {
 								animate={{ y: 0, opacity: 1 }}
 								transition={{ delay: 0.4 }}
 							>
-								CELESTIAL JOURNEY
+								TIME TRAVEL
 							</motion.h1>
 
 							<motion.p
@@ -485,9 +489,9 @@ export default function About() {
 								animate={{ y: 0, opacity: 1 }}
 								transition={{ delay: 0.6 }}
 							>
-								From sunrise to starlight — {lifeEvents.length} moments from 2001 to 2025.
+								Walk through {lifeEvents.length} moments across operating systems — from Windows 98 to Spatial UI.
 								<br />
-								<span style={{ color: "var(--accent-color)" }}>← →</span> to walk through time.
+								<span style={{ color: "var(--accent-color)" }}>← →</span> to travel through time.
 							</motion.p>
 
 							<motion.div
@@ -505,7 +509,7 @@ export default function About() {
 										boxShadow: "var(--shadow-offset-x) var(--shadow-offset-y) var(--shadow-blur) var(--shadow-color)",
 									}}
 								>
-									☀️ BEGIN JOURNEY
+									🖥️ BEGIN TIME TRAVEL
 								</button>
 								<button
 									onClick={() => setShowRoadmap((prev) => !prev)}
@@ -529,7 +533,7 @@ export default function About() {
 								transition={{ delay: 1 }}
 							>
 								<p className="font-mono text-sm mb-3" style={{ color: "var(--text-muted)" }}>
-									Jump to a phase:
+									Jump to an era:
 								</p>
 								<div className="flex flex-wrap justify-center gap-3">
 									<button
@@ -545,7 +549,7 @@ export default function About() {
 											color: "var(--text-main)"
 										}}
 									>
-										<span>☀️</span> Origins (2001-2018)
+										<span>🖥️</span> Windows Era (2001-2018)
 									</button>
 									<button
 										onClick={() => {
@@ -560,7 +564,7 @@ export default function About() {
 											color: "var(--text-main)"
 										}}
 									>
-										<span>🌙</span> Journey (2019-2022)
+										<span>🍎</span> macOS & Linux (2019-2022)
 									</button>
 									<button
 										onClick={() => {
@@ -575,7 +579,7 @@ export default function About() {
 											color: "var(--text-main)"
 										}}
 									>
-										<span>⭐</span> Milestones (2023-Now)
+										<span>✨</span> Modern & Spatial (2023-Now)
 									</button>
 								</div>
 							</motion.div>
@@ -591,7 +595,7 @@ export default function About() {
 									<div className="p-4 space-y-4 max-h-[50vh] overflow-y-auto" style={{ backgroundColor: "var(--bg-card)", borderWidth: "var(--border-width)", borderColor: "var(--border-color)", borderStyle: "solid" }}>
 										{["sun", "moon", "stars"].map((cosmicPhase) => {
 											const phaseEvents = lifeEvents.filter(e => getCosmicPhase(e.age) === cosmicPhase);
-											const phaseLabel = cosmicPhase === "sun" ? "☀️ Origins" : cosmicPhase === "moon" ? "🌙 Journey" : "⭐ Milestones";
+											const phaseLabel = cosmicPhase === "sun" ? "🖥️ Windows Era" : cosmicPhase === "moon" ? "🍎 macOS & Linux" : "✨ Modern & Spatial";
 
 											return (
 												<div key={cosmicPhase} className="space-y-2">
@@ -665,19 +669,19 @@ export default function About() {
 									{[0.25, 0.5, 0.75].map((ratio, i) => (
 										<div
 											key={`marker-${i}`}
-											className="absolute bottom-20"
-											style={{ left: gameState.worldWidth * ratio - 2 }}
+											className="absolute"
+											style={{ left: gameState.worldWidth * ratio - 2, bottom: taskbarHeight }}
 										>
 											<div
 												className="w-px h-12"
 												style={{
-													background: `linear-gradient(to top, var(--accent-color), transparent)`,
+													background: `linear-gradient(to top, ${currentOSTheme.accentColor}, transparent)`,
 													opacity: 0.4,
 												}}
 											/>
 											<div
 												className="absolute bottom-16 font-mono text-[8px] transform -translate-x-1/2"
-												style={{ color: 'var(--accent-color)', opacity: 0.6, left: '50%' }}
+												style={{ color: currentOSTheme.accentColor, opacity: 0.6, left: '50%' }}
 											>
 												{Math.round((i + 1) * 25)}%
 											</div>
@@ -688,7 +692,7 @@ export default function About() {
 									<motion.div
 										style={{
 											position: 'absolute',
-											bottom: '80px', // Align with top of ground (ground is h-20 = 80px)
+											bottom: `${taskbarHeight}px`,
 											left: 0,
 											transformOrigin: 'bottom center',
 											zIndex: 15,
@@ -712,7 +716,7 @@ export default function About() {
 									<div
 										className="absolute pointer-events-none"
 										style={{
-											bottom: '80px',
+											bottom: `${taskbarHeight}px`,
 											left: gameState.worldWidth - 60,
 											transform: 'translateX(-50%)',
 										}}
@@ -720,19 +724,17 @@ export default function About() {
 										<div className="flex flex-col items-center">
 											<div
 												className="font-mono text-lg mb-2"
-												style={{ color: "#FFD700" }}
+												style={{ color: currentOSTheme.accentColor }}
 											>
 												✨
 											</div>
 											<div
-												className="w-2 h-24 border-2 relative"
+												className="w-2 h-24 relative"
 												style={{
-													background: "linear-gradient(180deg, var(--accent-color), transparent)",
-													borderColor: "var(--border-color)",
+													background: `linear-gradient(180deg, ${currentOSTheme.accentColor}, transparent)`,
+													borderRadius: currentOSTheme.windowChrome.borderRadius > 0 ? 2 : 0,
 												}}
-											>
-												<WireframeCornerMarkers />
-											</div>
+											/>
 										</div>
 									</div>
 								</div>

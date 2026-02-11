@@ -2,10 +2,10 @@
 
 import { ReactNode, useMemo } from "react";
 import { AnimatePresence } from "framer-motion";
-import { PixelSkyGrid } from "./PixelSkyGrid";
+import { OSDesktopBackground } from "./OSDesktopBackground";
+import { OSTaskbar } from "./OSTaskbar";
 import { JourneyStoryCard } from "./JourneyStoryCard";
-import { CornerMarkers as WireframeCornerMarkers } from "@/components/ui/wireframe/MeasurementLines";
-import { getEraConfig } from "@/data/timeline-era-config";
+import { getOSTheme } from "@/data/os-theme-config";
 
 interface Skill {
     id: string;
@@ -57,27 +57,27 @@ export function CelestialLevelBackground({
     levelProgress = 0,
     totalEvents: _totalEvents,
     currentEventIndex: _currentEventIndex,
-    onStarClick,
     allEvents = [],
     onNavigate,
 }: CelestialLevelBackgroundProps) {
     const cameraOffset = Math.max(0, playerX - 400);
 
+    // Get OS theme for current event year
+    const osTheme = useMemo(() => getOSTheme(event?.year ?? 2001), [event?.year]);
+
     // Calculate previous and next events with wraparound navigation
     const previousEvent = useMemo(() => {
         if (!allEvents.length) return null;
-        // Wraparound: if at index 0, go to last event
-        const previousIndex = _currentEventIndex <= 0 
-            ? allEvents.length - 1 
+        const previousIndex = _currentEventIndex <= 0
+            ? allEvents.length - 1
             : _currentEventIndex - 1;
         return allEvents[previousIndex] || null;
     }, [allEvents, _currentEventIndex]);
 
     const nextEvent = useMemo(() => {
         if (!allEvents.length) return null;
-        // Wraparound: if at last index, go to first event
-        const nextIndex = _currentEventIndex >= allEvents.length - 1 
-            ? 0 
+        const nextIndex = _currentEventIndex >= allEvents.length - 1
+            ? 0
             : _currentEventIndex + 1;
         return allEvents[nextIndex] || null;
     }, [allEvents, _currentEventIndex]);
@@ -97,19 +97,11 @@ export function CelestialLevelBackground({
         };
     }, [event]);
 
-    const eraConfig = useMemo(() => getEraConfig(event?.age ?? 0), [event?.age]);
-
     return (
         <div className={`relative w-full h-full overflow-hidden ${className}`}>
-            {/* Pixel Sky Grid - uses levelProgress for sun/moon/stars */}
-            <div className="absolute inset-0 pt-16 z-0">
-                <PixelSkyGrid
-                    levelProgress={levelProgress}
-                    className="z-0"
-                    skills={event?.skills || []}
-                    onStarClick={onStarClick}
-                    currentYear={event?.year}
-                />
+            {/* OS Desktop Background - replaces PixelSkyGrid */}
+            <div className="absolute inset-0 z-0">
+                <OSDesktopBackground theme={osTheme} />
             </div>
 
             {/* World Container - Scrolls with player */}
@@ -120,44 +112,32 @@ export function CelestialLevelBackground({
                     transition: "transform 0.05s linear",
                 }}
             >
-                {/* Wireframe corner markers on world container */}
-                <div className="absolute inset-0 pointer-events-none">
-                    <WireframeCornerMarkers />
-                </div>
+                {/* OS Taskbar - replaces plain ground */}
+                <OSTaskbar theme={osTheme} width={worldWidth} />
 
-                {/* Ground */}
-                <div
-                    className="absolute bottom-0 left-0 h-20"
-                    style={{
-                        width: worldWidth + 800,
-                        background: "var(--bg-card)",
-                        borderTop: "2px solid var(--border-color)",
-                    }}
-                />
-
-                {/* Path markers - wireframe style matching design system era */}
+                {/* Path markers styled for the OS theme */}
                 {[0.25, 0.5, 0.75].map((ratio) => (
                     <div
                         key={`marker-${ratio}`}
-                        className="absolute bottom-20"
-                        style={{ left: worldWidth * ratio - 4 }}
+                        className="absolute"
+                        style={{
+                            bottom: osTheme.taskbar.height,
+                            left: worldWidth * ratio - 2,
+                        }}
                     >
                         <div
-                            className="border font-mono"
                             style={{
-                                width: 8,
-                                height: 24,
-                                borderWidth: "var(--wireframe-outline-width, 1px)",
-                                borderColor: "var(--wireframe-border-color, var(--border-color))",
-                                borderStyle: eraConfig.lineStyle,
-                                backgroundColor: "transparent",
+                                width: 4,
+                                height: 16,
+                                background: `linear-gradient(to top, ${osTheme.accentColor}, transparent)`,
+                                opacity: 0.4,
                             }}
                         />
                     </div>
                 ))}
             </div>
 
-            {/* Journey Story Card - Horizontal three-column layout */}
+            {/* Journey Story Card - now themed as OS window */}
             <AnimatePresence mode="wait">
                 {storyContent && event && (
                     <JourneyStoryCard
