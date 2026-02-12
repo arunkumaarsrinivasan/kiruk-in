@@ -70,7 +70,7 @@ export function EraStoryCard({ era, currentEraId, onApply }: EraStoryCardProps) 
             }
         }, 22);
         return () => clearInterval(typeInterval);
-    }, [era?.id, era?.description]);
+    }, [era?.id, era?.description, era]);
 
     if (!era) {
         return (

@@ -531,7 +531,7 @@ export function CharacterSheet() {
   const stats = useMemo(() => getCharacterStats(), []);
   const lifeProgress = useMemo(() => getLifeProgress(), []);
 
-  const [selectedStat, setSelectedStat] = useState<number | null>(null);
+  const [_selectedStat, _setSelectedStat] = useState<number | null>(null);
 
   // Calculate total stat points
   const totalStatPoints = stats.reduce((sum, s) => sum + s.value, 0);

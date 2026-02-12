@@ -4,9 +4,7 @@ import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   games,
-  books,
   treks,
-  travelLocations,
   getTrekStats,
   getGameStats,
   getBookStats,

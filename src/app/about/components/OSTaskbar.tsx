@@ -331,7 +331,7 @@ function TaskbarPinnedIcon({ icon, active }: { icon: string; active?: boolean })
 
 function DockIcon({
   icon,
-  label,
+  label: _label,
   rounded,
   glow,
 }: {

@@ -1196,7 +1196,7 @@ function JourneyLog({
                 />
 
                 <div className="space-y-1">
-                    {sortedExps.map((exp, idx) => {
+                    {sortedExps.map((exp) => {
                         const isVisible = exp.startDate <= currentDate;
                         const isSelected = selectedId === exp.id;
                         const isCurrent = exp.current;

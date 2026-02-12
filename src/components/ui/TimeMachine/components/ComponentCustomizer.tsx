@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import {
@@ -198,7 +198,7 @@ function ComponentPreview({
   const boxShadowStyle = useMemo(() => {
     const shadowX = overrides['shadow-x'] ?? 0;
     const shadowY = overrides['shadow-y'] ?? 0;
-    let shadowColor = String(overrides['shadow-color'] ?? '#000000');
+    const shadowColor = String(overrides['shadow-color'] ?? '#000000');
     if (Number(shadowX) === 0 && Number(shadowY) === 0) return {};
     return { boxShadow: `${shadowX}px ${shadowY}px 0px 0px ${shadowColor}` };
   }, [overrides]);

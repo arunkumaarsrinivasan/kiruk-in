@@ -8,7 +8,7 @@ import { PixelIcon } from '@/components/ui/PixelIcon';
 import { useContextBar } from '@/contexts/ContextBarContext';
 
 // Contact info (shared from contact page)
-const CONTACT_INFO = {
+const _CONTACT_INFO = {
   email: {
     label: 'Email',
     value: 'arunkumaar.srinivasan@gmail.com',

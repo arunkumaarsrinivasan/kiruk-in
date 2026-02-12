@@ -284,6 +284,12 @@ export function DesignSystemLab({ era, onOpenLabEditor }: DesignSystemLabProps) 
     const previewText = colors?.text ?? '#ffffff';
     const previewAccent = colors?.accent ?? colors?.primary ?? '#00ff88';
 
+    // Compute shadow style (must be before conditional return)
+    const shadowStyle = useMemo(() =>
+        getShadowStyle(tokens?.shadowStyle ?? 'none', tokens?.shadowIntensity ?? 50, previewAccent, tokens?.borderRadius ?? 0),
+        [tokens?.shadowStyle, tokens?.shadowIntensity, tokens?.borderRadius, previewAccent]
+    );
+
     // If customization lab is open, render it instead
     if (showCustomizationLab) {
         return (
@@ -292,12 +298,6 @@ export function DesignSystemLab({ era, onOpenLabEditor }: DesignSystemLabProps) 
             </div>
         );
     }
-
-    // Compute shadow style
-    const shadowStyle = useMemo(() =>
-        getShadowStyle(tokens?.shadowStyle ?? 'none', tokens?.shadowIntensity ?? 50, previewAccent, tokens?.borderRadius ?? 0),
-        [tokens?.shadowStyle, tokens?.shadowIntensity, tokens?.borderRadius, previewAccent]
-    );
 
     // Grid configuration
     const gridSize = tokens?.gridSize ?? null;
