@@ -6,17 +6,15 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { GridBackground } from '@/components/ui/GridBackground'
 import { useContextBar } from '@/contexts/ContextBarContext'
 
-// New Progress Components
-import { LifeProgressCard } from '@/components/progress/LifeProgressCard'
-import { BooksSection } from '@/components/progress/BooksSection'
+// Character Progression Components
+import { CharacterSheet } from '@/components/progress/CharacterSheet'
+import { SkillTree } from '@/components/progress/SkillTree'
+import { EquipmentAndAchievements } from '@/components/progress/EquipmentAndAchievements'
 
 const TravelMap = dynamic(
   () => import('@/components/progress/TravelMap').then((m) => ({ default: m.TravelMap })),
   { ssr: false, loading: () => <div className="min-h-[400px] flex items-center justify-center font-mono text-sm" style={{ color: 'var(--text-muted)' }}>Loading map...</div> }
 )
-import { GamesSection } from '@/components/progress/GamesSection'
-import { TrekTimeline } from '@/components/progress/TrekTimeline'
-import { MusicVibeSection } from '@/components/progress/MusicVibeSection'
 
 // Data imports
 import {
@@ -87,7 +85,7 @@ const pageStyle: CSSProperties = {
   overflow: 'hidden',
 }
 
-type SectionType = 'overview' | 'places' | 'reading' | 'gaming' | 'music' | 'treks' | 'goals'
+type SectionType = 'character' | 'skills' | 'equipment' | 'places' | 'goals'
 
 export default function LifeProgressPage() {
   // Notion data state
@@ -99,7 +97,7 @@ export default function LifeProgressPage() {
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null)
 
   // Active section for navigation
-  const [activeSection, setActiveSection] = useState<SectionType>('overview')
+  const [activeSection, setActiveSection] = useState<SectionType>('character')
 
   // Context bar integration
   const { setProgressData, setProgressSectionHandler } = useContextBar()
@@ -207,13 +205,11 @@ export default function LifeProgressPage() {
 
   // Section navigation items
   const sections: Array<{ id: SectionType; label: string; icon: string }> = [
-    { id: 'overview', label: 'Overview', icon: '📊' },
-    { id: 'places', label: 'Places', icon: '🗺️' },
-    { id: 'reading', label: 'Reading', icon: '📚' },
-    { id: 'gaming', label: 'Gaming', icon: '🎮' },
-    { id: 'music', label: 'Music', icon: '🎵' },
-    { id: 'treks', label: 'Treks', icon: '🥾' },
-    { id: 'goals', label: 'Goals', icon: '🎯' },
+    { id: 'character', label: 'Character', icon: '⚔️' },
+    { id: 'skills', label: 'Skills', icon: '⚡' },
+    { id: 'equipment', label: 'Loot', icon: '🛡️' },
+    { id: 'places', label: 'World Map', icon: '🗺️' },
+    { id: 'goals', label: 'Quests', icon: '🎯' },
   ]
 
   if (loading) {
@@ -246,33 +242,49 @@ export default function LifeProgressPage() {
       <GridBackground opacity={0.3} scanlinesOpacity={0.05} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        {/* Page Header */}
+        {/* Page Header - Game Style */}
         <motion.div
           className="mt-8 mb-8"
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <h1
-            className="text-4xl md:text-5xl font-mono font-bold mb-2"
-            style={{ color: 'var(--text-main)' }}
-          >
-            Life Progress
-          </h1>
-          <p
-            className="text-lg font-mono"
-            style={{ color: 'var(--text-muted)' }}
-          >
-            Tracking the journey — places explored, books read, games played, and goals achieved.
-          </p>
+          <div className="flex items-center gap-4">
+            <motion.div
+              className="text-5xl"
+              animate={{ rotate: [0, -5, 5, 0] }}
+              transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut' }}
+            >
+              ⚔️
+            </motion.div>
+            <div>
+              <h1
+                className="text-4xl md:text-5xl font-mono font-bold mb-1"
+                style={{ color: 'var(--text-main)' }}
+              >
+                Character Progress
+              </h1>
+              <p
+                className="text-lg font-mono"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                Every day is a new quest. Every experience levels you up.
+              </p>
+            </div>
+          </div>
         </motion.div>
 
-        {/* Section Navigation */}
+        {/* Section Navigation - Tab Bar styled like game menu */}
         <motion.div
-          className="mb-8 flex flex-wrap gap-2"
+          className="mb-6 flex flex-wrap gap-1"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
+          style={{
+            backgroundColor: 'var(--bg-card)',
+            border: 'var(--border-width) solid var(--border-color)',
+            padding: '4px',
+          }}
         >
           {sections.map((section) => (
             <button
@@ -287,44 +299,70 @@ export default function LifeProgressPage() {
                   window.scrollTo({ top: offsetPosition, behavior: 'smooth' })
                 }
               }}
-              className="px-4 py-2 font-mono text-sm transition-all"
+              className="px-4 py-2 font-mono text-sm transition-all relative"
               style={{
-                backgroundColor: activeSection === section.id ? 'var(--accent-color)' : 'var(--bg-card)',
-                color: activeSection === section.id ? 'white' : 'var(--text-main)',
-                border: 'var(--border-width) solid var(--border-color)',
+                backgroundColor: activeSection === section.id ? 'var(--accent-color)' : 'transparent',
+                color: activeSection === section.id ? 'white' : 'var(--text-muted)',
               }}
             >
-              <span className="mr-2">{section.icon}</span>
+              <span className="mr-1.5">{section.icon}</span>
               {section.label}
+              {activeSection === section.id && (
+                <motion.div
+                  className="absolute bottom-0 left-0 right-0 h-0.5"
+                  style={{ backgroundColor: 'white' }}
+                  layoutId="activeTab"
+                />
+              )}
             </button>
           ))}
         </motion.div>
 
-        {/* Quick Stats Bar */}
+        {/* Quick Stats Bar - RPG style */}
         <motion.div
-          className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-12"
+          className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <QuickStat icon="📍" value={travelStats.totalLocations} label="Places" />
-          <QuickStat icon="🗺️" value={travelStats.statesVisited} label="States" />
-          <QuickStat icon="📚" value={bookStats.total} label="Books" />
-          <QuickStat icon="🎮" value={gameStats.completed} label="Games Done" />
-          <QuickStat icon="🥾" value={trekStats.totalTreks} label="Treks" />
-          <QuickStat icon="⏱️" value={`${gameStats.totalHours}h`} label="Gaming" />
+          <QuickStat icon="📍" value={travelStats.totalLocations} label="Discovered" sublabel="Locations" />
+          <QuickStat icon="🗺️" value={travelStats.statesVisited} label="Explored" sublabel="Regions" />
+          <QuickStat icon="📚" value={bookStats.total} label="Collected" sublabel="Tomes" />
+          <QuickStat icon="🎮" value={gameStats.completed} label="Conquered" sublabel="Games" />
+          <QuickStat icon="🥾" value={trekStats.totalTreks} label="Completed" sublabel="Expeditions" />
+          <QuickStat icon="⏱️" value={`${gameStats.totalHours}h`} label="Logged" sublabel="Battle Time" />
         </motion.div>
 
         {/* Main Content Sections */}
-        <div className="space-y-12">
-          {/* Life Progress Overview */}
+        <div className="space-y-10">
+          {/* Character Sheet - THE HERO SECTION */}
           <motion.section
-            id="overview-section"
+            id="character-section"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
           >
-            <LifeProgressCard />
+            <CharacterSheet />
+          </motion.section>
+
+          {/* Skill Tree */}
+          <motion.section
+            id="skills-section"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            <SkillTree />
+          </motion.section>
+
+          {/* Equipment & Achievements */}
+          <motion.section
+            id="equipment-section"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+          >
+            <EquipmentAndAchievements />
           </motion.section>
 
           {/* Travel Map */}
@@ -332,49 +370,9 @@ export default function LifeProgressPage() {
             id="places-section"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-          >
-            <TravelMap />
-          </motion.section>
-
-          {/* Reading Section */}
-          <motion.section
-            id="reading-section"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-          >
-            <BooksSection />
-          </motion.section>
-
-          {/* Gaming Section */}
-          <motion.section
-            id="gaming-section"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7 }}
           >
-            <GamesSection />
-          </motion.section>
-
-          {/* Music Section */}
-          <motion.section
-            id="music-section"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
-          >
-            <MusicVibeSection />
-          </motion.section>
-
-          {/* Treks Section */}
-          <motion.section
-            id="treks-section"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.9 }}
-          >
-            <TrekTimeline />
+            <TravelMap />
           </motion.section>
 
           {/* Goals Section (from Notion) */}
@@ -382,7 +380,7 @@ export default function LifeProgressPage() {
             id="goals-section"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.0 }}
+            transition={{ delay: 0.8 }}
           >
             <GoalsSection
               lifeGoals={lifeGoals}
@@ -422,17 +420,19 @@ export default function LifeProgressPage() {
   )
 }
 
-// Quick Stat Component
-function QuickStat({ icon, value, label }: { icon: string; value: number | string; label: string }) {
+// Quick Stat Component - RPG Style
+function QuickStat({ icon, value, label, sublabel }: { icon: string; value: number | string; label: string; sublabel?: string }) {
   return (
-    <div
-      className="p-4 text-center"
+    <motion.div
+      className="p-3 text-center relative overflow-hidden group cursor-default"
       style={{
         backgroundColor: 'var(--bg-card)',
         border: 'var(--border-width) solid var(--border-color)',
       }}
+      whileHover={{ scale: 1.03, y: -2 }}
+      transition={{ type: 'spring', stiffness: 300 }}
     >
-      <div className="text-2xl mb-1">{icon}</div>
+      <div className="text-xl mb-0.5">{icon}</div>
       <div
         className="text-xl font-mono font-bold"
         style={{ color: 'var(--accent-color)' }}
@@ -445,7 +445,23 @@ function QuickStat({ icon, value, label }: { icon: string; value: number | strin
       >
         {label}
       </div>
-    </div>
+      {sublabel && (
+        <div
+          className="text-xs font-mono opacity-50"
+          style={{ color: 'var(--text-muted)' }}
+        >
+          {sublabel}
+        </div>
+      )}
+      {/* Hover glow effect */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        style={{
+          background: 'radial-gradient(circle at center, var(--accent-color) 0%, transparent 70%)',
+          opacity: 0.05,
+        }}
+      />
+    </motion.div>
   )
 }
 

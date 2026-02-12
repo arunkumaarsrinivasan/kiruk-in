@@ -110,7 +110,7 @@ export default function Work() {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.3 }}
               >
-                Explore my professional journey through the stars
+                Look through the telescope and discover my skills as stars
               </motion.p>
 
               <motion.p
@@ -120,14 +120,11 @@ export default function Work() {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.4 }}
               >
-                Each star represents a skill plotted by{' '}
-                <span style={{ color: 'var(--accent-color)' }}>years of experience</span>
-                {' '}and{' '}
-                <span style={{ color: 'var(--accent-color)' }}>mastery level</span>.
+                Each <span style={{ color: 'var(--accent-color)' }}>star</span> is a skill — brighter stars mean higher mastery.
                 <br />
-                Hover over stars to discover where each skill was learned.
+                Skills form <span style={{ color: 'var(--accent-color)' }}>constellations</span> across Design, Development, Leadership, Tools & Infrastructure.
                 <br />
-                Click on jobs to see the skills I used there.
+                Hover to focus the telescope. Click to explore the journey.
               </motion.p>
 
               <motion.div

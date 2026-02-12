@@ -1,8 +1,8 @@
 /**
- * Observatory Styles
+ * Observatory Styles — Telescope Experience
  * 
- * Theme-aligned styles for the Skills Constellation feature.
- * Uses CSS variables from the global theme system.
+ * Immersive telescope viewport with glowing stars, nebulae,
+ * and ambient cosmic effects.
  */
 
 /* === Constellation Color Variables === */
@@ -12,7 +12,111 @@
   --constellation-lead: #f59e0b;
   --constellation-tools: #8b5cf6;
   --constellation-infra: #22c55e;
+  --observatory-deep-bg: #05080f;
 }
+
+/* === Twinkling Stars === */
+@keyframes twinkle {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+@keyframes twinkle-slow {
+  0%, 100% { opacity: 0.5; }
+  30% { opacity: 0.9; }
+  70% { opacity: 0.6; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { filter: drop-shadow(0 0 2px currentColor); }
+  50% { filter: drop-shadow(0 0 6px currentColor) drop-shadow(0 0 12px currentColor); }
+}
+
+@keyframes shooting-star {
+  0% {
+    transform: translateX(0) translateY(0);
+    opacity: 1;
+  }
+  70% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateX(30vw) translateY(15vh);
+    opacity: 0;
+  }
+}
+
+@keyframes float-dust {
+  0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
+  25% { transform: translateY(-2px) translateX(1px); opacity: 0.5; }
+  50% { transform: translateY(-1px) translateX(-1px); opacity: 0.4; }
+  75% { transform: translateY(1px) translateX(2px); opacity: 0.35; }
+}
+
+@keyframes reticle-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes focus-ring-pulse {
+  0%, 100% { r: 3; opacity: 0.6; }
+  50% { r: 4; opacity: 0.3; }
+}
+
+@keyframes lens-shimmer {
+  0%, 100% { opacity: 0.03; }
+  50% { opacity: 0.06; }
+}
+
+/* === Telescope Viewport === */
+.telescope-viewport {
+  position: relative;
+  overflow: hidden;
+  background: var(--observatory-deep-bg);
+}
+
+.telescope-viewport::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 0;
+  pointer-events: none;
+  z-index: 5;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 50%,
+    rgba(0, 0, 0, 0.25) 70%,
+    rgba(0, 0, 0, 0.6) 90%,
+    rgba(0, 0, 0, 0.85) 100%
+  );
+}
+
+/* === Star Styling === */
+.skill-star {
+  transition: transform 0.3s ease-out, filter 0.3s ease-out;
+  cursor: pointer;
+}
+
+.skill-star:hover {
+  transform: scale(1.2);
+}
+
+.skill-star-glow {
+  filter: drop-shadow(0 0 4px var(--accent-color));
+}
+
+.skill-star-glow-active {
+  filter: drop-shadow(0 0 8px var(--accent-color)) drop-shadow(0 0 16px var(--accent-color));
+}
+
+/* Star twinkle classes */
+.star-twinkle-1 { animation: twinkle 3s ease-in-out infinite; }
+.star-twinkle-2 { animation: twinkle 4s ease-in-out infinite 0.5s; }
+.star-twinkle-3 { animation: twinkle-slow 5s ease-in-out infinite 1s; }
+.star-twinkle-4 { animation: twinkle 3.5s ease-in-out infinite 1.5s; }
+.star-twinkle-5 { animation: twinkle-slow 6s ease-in-out infinite 2s; }
+
+.star-expert { animation: pulse-glow 4s ease-in-out infinite; }
 
 /* === Grid Lines === */
 .observatory-grid-major {
@@ -24,23 +128,6 @@
   stroke: var(--text-muted);
   stroke-width: 0.5px;
   opacity: 0.4;
-}
-
-/* === Star Styling === */
-.skill-star {
-  transition: transform 0.2s ease-out, filter 0.2s ease-out;
-}
-
-.skill-star:hover {
-  transform: scale(1.1);
-}
-
-.skill-star-glow {
-  filter: drop-shadow(0 0 4px var(--accent-color));
-}
-
-.skill-star-glow-active {
-  filter: drop-shadow(0 0 8px var(--accent-color));
 }
 
 /* === Pixel-perfect Rendering === */
@@ -80,61 +167,14 @@
   background: var(--accent-color);
 }
 
-.corner-bracket-tl::before {
-  top: 0;
-  left: 0;
-  width: 2px;
-  height: 100%;
-}
-
-.corner-bracket-tl::after {
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 2px;
-}
-
-.corner-bracket-tr::before {
-  top: 0;
-  right: 0;
-  width: 2px;
-  height: 100%;
-}
-
-.corner-bracket-tr::after {
-  top: 0;
-  right: 0;
-  width: 100%;
-  height: 2px;
-}
-
-.corner-bracket-bl::before {
-  bottom: 0;
-  left: 0;
-  width: 2px;
-  height: 100%;
-}
-
-.corner-bracket-bl::after {
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 2px;
-}
-
-.corner-bracket-br::before {
-  bottom: 0;
-  right: 0;
-  width: 2px;
-  height: 100%;
-}
-
-.corner-bracket-br::after {
-  bottom: 0;
-  right: 0;
-  width: 100%;
-  height: 2px;
-}
+.corner-bracket-tl::before { top: 0; left: 0; width: 2px; height: 100%; }
+.corner-bracket-tl::after { top: 0; left: 0; width: 100%; height: 2px; }
+.corner-bracket-tr::before { top: 0; right: 0; width: 2px; height: 100%; }
+.corner-bracket-tr::after { top: 0; right: 0; width: 100%; height: 2px; }
+.corner-bracket-bl::before { bottom: 0; left: 0; width: 2px; height: 100%; }
+.corner-bracket-bl::after { bottom: 0; left: 0; width: 100%; height: 2px; }
+.corner-bracket-br::before { bottom: 0; right: 0; width: 2px; height: 100%; }
+.corner-bracket-br::after { bottom: 0; right: 0; width: 100%; height: 2px; }
 
 /* === Timeline Card Transitions === */
 .timeline-card-enter {
@@ -148,14 +188,8 @@
   transition: opacity 0.3s ease-out, transform 0.3s ease-out;
 }
 
-.timeline-card-exit {
-  opacity: 1;
-}
-
-.timeline-card-exit-active {
-  opacity: 0;
-  transition: opacity 0.2s ease-out;
-}
+.timeline-card-exit { opacity: 1; }
+.timeline-card-exit-active { opacity: 0; transition: opacity 0.2s ease-out; }
 
 /* === Connection Line Styling === */
 .connection-line {
@@ -228,6 +262,17 @@
   background: var(--bg-main);
 }
 
+/* === Shooting Star === */
+.shooting-star {
+  position: absolute;
+  width: 80px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+  animation: shooting-star 1.5s linear forwards;
+  pointer-events: none;
+  z-index: 2;
+}
+
 /* === Responsive Adjustments === */
 @media (max-width: 1024px) {
   .observatory-grid {
@@ -259,5 +304,22 @@
   .skill-tag,
   .filter-btn {
     transition: none;
+  }
+  
+  .star-twinkle-1,
+  .star-twinkle-2,
+  .star-twinkle-3,
+  .star-twinkle-4,
+  .star-twinkle-5,
+  .star-expert {
+    animation: none;
+  }
+  
+  .shooting-star {
+    display: none;
+  }
+  
+  .telescope-viewport::after {
+    background: none;
   }
 }

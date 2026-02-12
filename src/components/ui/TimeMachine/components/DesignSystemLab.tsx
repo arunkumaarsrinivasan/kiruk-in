@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import type { ThemeConfig } from '@/data/portfolio-data';
 import { EraShaderCanvas } from './EraShaderCanvas';
+import { CustomizationLab } from './CustomizationLab';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -274,6 +275,7 @@ function SmallEyeIcon({ accentColor }: { accentColor: string }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export function DesignSystemLab({ era, onOpenLabEditor }: DesignSystemLabProps) {
+    const [showCustomizationLab, setShowCustomizationLab] = useState(false);
     const colors = era.colors;
     const fonts = era.fonts;
     const tokens = era.designTokens;
@@ -281,6 +283,15 @@ export function DesignSystemLab({ era, onOpenLabEditor }: DesignSystemLabProps) 
     const previewBg = colors?.background ?? '#000000';
     const previewText = colors?.text ?? '#ffffff';
     const previewAccent = colors?.accent ?? colors?.primary ?? '#00ff88';
+
+    // If customization lab is open, render it instead
+    if (showCustomizationLab) {
+        return (
+            <div className="flex flex-col h-full">
+                <CustomizationLab era={era} onClose={() => setShowCustomizationLab(false)} />
+            </div>
+        );
+    }
 
     // Compute shadow style
     const shadowStyle = useMemo(() =>
@@ -330,10 +341,26 @@ export function DesignSystemLab({ era, onOpenLabEditor }: DesignSystemLabProps) 
 
                 <div className="relative h-full flex flex-col p-3 lg:p-4 gap-4 overflow-y-auto z-10">
 
+                    {/* ═══ SECTION: HOW YOUR SITE WILL LOOK ═══ */}
+                    <div>
+                        <div
+                            className="font-mono text-[9px] lg:text-[10px] uppercase mb-1 flex items-center gap-2"
+                            style={{
+                                color: previewAccent,
+                                letterSpacing: `${(tokens?.letterSpacing ?? 0) * 0.01}em`,
+                            }}
+                        >
+                            <span>◆</span> SITE PREVIEW
+                        </div>
+                        <p className="text-[8px] font-mono mb-2 opacity-60" style={{ color: previewText }}>
+                            This is how your portfolio will look with this era&apos;s design system applied
+                        </p>
+                    </div>
+
                     {/* ═══ SECTION: COLOR PALETTE ═══ */}
                     <div>
                         <div
-                            className="font-mono text-[9px] lg:text-[10px] uppercase mb-2 flex items-center gap-2"
+                            className="font-mono text-[9px] lg:text-[10px] uppercase mb-1 flex items-center gap-2"
                             style={{
                                 color: previewAccent,
                                 letterSpacing: `${(tokens?.letterSpacing ?? 0) * 0.01}em`,
@@ -341,6 +368,9 @@ export function DesignSystemLab({ era, onOpenLabEditor }: DesignSystemLabProps) 
                         >
                             <span>◆</span> COLOR PALETTE
                         </div>
+                        <p className="text-[7px] font-mono mb-2 opacity-50" style={{ color: previewText }}>
+                            Click any swatch to copy its hex code
+                        </p>
                         <div className="flex flex-wrap gap-3 lg:gap-4">
                             <ColorSwatch color={colors.primary} label="Primary" borderRadius={borderRadius} shadowStyle={shadowStyle} />
                             <ColorSwatch color={colors.secondary} label="Secondary" borderRadius={borderRadius} shadowStyle={shadowStyle} />
@@ -353,7 +383,7 @@ export function DesignSystemLab({ era, onOpenLabEditor }: DesignSystemLabProps) 
                     {/* ═══ SECTION: TYPOGRAPHY ═══ */}
                     <div>
                         <div
-                            className="font-mono text-[9px] lg:text-[10px] uppercase mb-2 flex items-center gap-2"
+                            className="font-mono text-[9px] lg:text-[10px] uppercase mb-1 flex items-center gap-2"
                             style={{
                                 color: previewAccent,
                                 letterSpacing: `${(tokens?.letterSpacing ?? 0) * 0.01}em`,
@@ -361,6 +391,9 @@ export function DesignSystemLab({ era, onOpenLabEditor }: DesignSystemLabProps) 
                         >
                             <span>◆</span> TYPOGRAPHY
                         </div>
+                        <p className="text-[7px] font-mono mb-2 opacity-50" style={{ color: previewText }}>
+                            Headings, body text, and UI labels in this era&apos;s fonts
+                        </p>
                         <div
                             className="p-3 border border-opacity-20"
                             style={{
@@ -377,7 +410,6 @@ export function DesignSystemLab({ era, onOpenLabEditor }: DesignSystemLabProps) 
                                     fontFamily: fonts.primary,
                                     letterSpacing: `${(tokens?.letterSpacing ?? 0) * 0.01}em`,
                                     lineHeight: tokens?.lineHeight ?? 1.5,
-                                    // Add glow effect for terminal eras
                                     textShadow: tokens?.effects?.includes('text-shadow-glow')
                                         ? `0 0 10px ${previewText}80`
                                         : 'none',
@@ -428,14 +460,17 @@ export function DesignSystemLab({ era, onOpenLabEditor }: DesignSystemLabProps) 
                     {/* ═══ SECTION: COMPONENT SHOWCASE ═══ */}
                     <div>
                         <div
-                            className="font-mono text-[9px] lg:text-[10px] uppercase mb-2 flex items-center gap-2"
+                            className="font-mono text-[9px] lg:text-[10px] uppercase mb-1 flex items-center gap-2"
                             style={{
                                 color: previewAccent,
                                 letterSpacing: `${(tokens?.letterSpacing ?? 0) * 0.01}em`,
                             }}
                         >
-                            <span>◆</span> COMPONENTS
+                            <span>◆</span> UI COMPONENTS
                         </div>
+                        <p className="text-[7px] font-mono mb-2 opacity-50" style={{ color: previewText }}>
+                            Buttons, badges, tags, and cards styled for this era
+                        </p>
                         <div className="flex flex-wrap gap-2 lg:gap-3">
                             {/* Primary Button */}
                             <motion.button
@@ -522,6 +557,15 @@ export function DesignSystemLab({ era, onOpenLabEditor }: DesignSystemLabProps) 
 
                     {/* ═══ SECTION: DESIGN TOKENS INFO ═══ */}
                     <div className="mt-auto pt-2 border-t" style={{ borderColor: `${previewText}22` }}>
+                        <div
+                            className="font-mono text-[9px] lg:text-[10px] uppercase mb-2 flex items-center gap-2"
+                            style={{
+                                color: previewAccent,
+                                letterSpacing: `${(tokens?.letterSpacing ?? 0) * 0.01}em`,
+                            }}
+                        >
+                            <span>◆</span> DESIGN TOKENS
+                        </div>
                         <div className="flex justify-between items-center flex-wrap gap-2">
                             <div className="flex items-center gap-2 flex-wrap">
                                 <span
@@ -548,18 +592,18 @@ export function DesignSystemLab({ era, onOpenLabEditor }: DesignSystemLabProps) 
                                 >
                                     Radius: {borderRadius}px
                                 </span>
+                                <span
+                                    className="text-[8px] font-mono"
+                                    style={{ color: `${previewText}88` }}
+                                >
+                                    Shadow: {tokens?.shadowStyle ?? 'none'}
+                                </span>
                             </div>
-                            <span
-                                className="text-[8px] font-mono"
-                                style={{ color: `${previewText}88` }}
-                            >
-                                {era.era}
-                            </span>
                         </div>
                         {/* Effects Tags */}
                         {tokens?.effects && tokens.effects.length > 0 && (
                             <div className="flex gap-1 mt-2 flex-wrap">
-                                {tokens.effects.slice(0, 4).map((effect, i) => (
+                                {tokens.effects.map((effect, i) => (
                                     <span
                                         key={i}
                                         className="px-1.5 py-0.5 text-[7px] font-mono uppercase border"
@@ -572,32 +616,43 @@ export function DesignSystemLab({ era, onOpenLabEditor }: DesignSystemLabProps) 
                                         {effect}
                                     </span>
                                 ))}
-                                {tokens.effects.length > 4 && (
-                                    <span className="text-[7px] font-mono" style={{ color: `${previewText}44` }}>
-                                        +{tokens.effects.length - 4}
-                                    </span>
-                                )}
                             </div>
                         )}
                     </div>
                 </div>
             </div>
 
-            {/* Open Lab Editor Button */}
-            <motion.button
-                onClick={onOpenLabEditor}
-                className={cn(
-                    'w-full py-2 lg:py-3 font-mono text-[10px] lg:text-xs font-bold uppercase',
-                    'border-2 border-dashed border-[var(--accent-color)]',
-                    'text-[var(--accent-color)] hover:bg-[var(--accent-color)] hover:text-[var(--bg-main)]',
-                    'transition-all flex items-center justify-center gap-2'
-                )}
-                style={{ borderRadius: `${borderRadius}px` }}
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
-            >
-                <span>🧪</span> OPEN DESIGN LAB
-            </motion.button>
+            {/* Action Buttons */}
+            <div className="flex gap-2 mt-2">
+                <motion.button
+                    onClick={() => setShowCustomizationLab(true)}
+                    className={cn(
+                        'flex-1 py-2 lg:py-3 font-mono text-[10px] lg:text-xs font-bold uppercase',
+                        'border-2 border-[var(--accent-color)]',
+                        'bg-[var(--accent-color)] text-[var(--bg-main)]',
+                        'hover:brightness-110 transition-all flex items-center justify-center gap-2'
+                    )}
+                    style={{ borderRadius: `${borderRadius}px` }}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                >
+                    <span>🔬</span> CUSTOMIZATION LAB
+                </motion.button>
+                <motion.button
+                    onClick={onOpenLabEditor}
+                    className={cn(
+                        'flex-1 py-2 lg:py-3 font-mono text-[10px] lg:text-xs font-bold uppercase',
+                        'border-2 border-dashed border-[var(--accent-color)]',
+                        'text-[var(--accent-color)] hover:bg-[var(--accent-color)] hover:text-[var(--bg-main)]',
+                        'transition-all flex items-center justify-center gap-2'
+                    )}
+                    style={{ borderRadius: `${borderRadius}px` }}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                >
+                    <span>🧪</span> DESIGN LAB
+                </motion.button>
+            </div>
         </div>
     );
 }

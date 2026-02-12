@@ -16,17 +16,11 @@ import { useRouter, usePathname } from 'next/navigation';
 import { GRID_SIZE, cn } from '@/lib/utils';
 import { useDesignEra } from '@/contexts/DesignEraContext';
 import { useGameMode, PAGE_GAMES } from '@/contexts/GameModeContext';
-import { AVAILABLE_THEMES, ThemeConfig } from '@/data/portfolio-data';
-import dynamic from 'next/dynamic';
+import { AVAILABLE_THEMES, type ThemeConfig } from '@/data/portfolio-data';
 import { GameMenuOverlay } from './GameMenuOverlay';
 import { getPageInfo } from '@/data/page-info';
+import { CustomizationLab } from '@/components/ui/TimeMachine/components/CustomizationLab';
 import { getNextGame } from '@/data/game-navigation-data';
-import type { LabDesignTokens } from '@/components/ui/TimeMachine/components/DesignLabEditor';
-
-const SimpleGameNavEraOverlayContent = dynamic(
-  () => import('./SimpleGameNavEraOverlayContent').then((m) => ({ default: m.SimpleGameNavEraOverlayContent })),
-  { ssr: false }
-);
 
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -595,269 +589,724 @@ const FullScreenPixelEye: React.FC<{ eraId: string; size: number }> = ({ eraId, 
   );
 };
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// TOKEN DIFF COMPUTATION
+// ═══════════════════════════════════════════════════════════════════════════════
+
+interface DiffEntry {
+  label: string;
+  oldValue: string;
+  newValue: string;
+  type: 'color' | 'font' | 'token' | 'effect';
+}
+
+function getShadowStyle(
+  shadowType: ThemeConfig['designTokens']['shadowStyle'],
+  intensity: number,
+  color: string,
+): React.CSSProperties {
+  const i = intensity / 100;
+  switch (shadowType) {
+    case 'hard': return { boxShadow: `${4 * i}px ${4 * i}px 0px 0px ${color}` };
+    case 'soft': return { boxShadow: `0 ${4 * i}px ${16 * i}px rgba(0,0,0,${0.2 * i})` };
+    case 'glow': return { boxShadow: `0 0 ${20 * i}px ${color}40, 0 0 ${40 * i}px ${color}20` };
+    case 'glass': return { boxShadow: `0 ${8 * i}px ${32 * i}px rgba(0,0,0,${0.3 * i}), inset 0 1px 0 rgba(255,255,255,0.1)`, backdropFilter: 'blur(16px)' };
+    case 'neumorphic': return { boxShadow: `${6 * i}px ${6 * i}px ${12 * i}px rgba(0,0,0,0.3), -${6 * i}px -${6 * i}px ${12 * i}px rgba(255,255,255,0.05)` };
+    case 'inset': return { boxShadow: `inset 0 ${2 * i}px ${8 * i}px rgba(0,0,0,${0.3 * i})` };
+    default: return {};
+  }
+}
+
+function computeTokenDiff(prevEra: ThemeConfig, nextEra: ThemeConfig): DiffEntry[] {
+  const diffs: DiffEntry[] = [];
+
+  // Colors
+  const colorKeys = ['primary', 'secondary', 'accent', 'background', 'text'] as const;
+  for (const key of colorKeys) {
+    if (prevEra.colors[key] !== nextEra.colors[key]) {
+      diffs.push({ label: `colors.${key}`, oldValue: prevEra.colors[key], newValue: nextEra.colors[key], type: 'color' });
+    }
+  }
+
+  // Fonts
+  const fontKeys = ['primary', 'secondary', 'accent'] as const;
+  const fontLabels = { primary: 'font-display', secondary: 'font-text', accent: 'font-ui' };
+  for (const key of fontKeys) {
+    const prev = prevEra.fonts[key].split(',')[0].replace(/"/g, '').trim();
+    const next = nextEra.fonts[key].split(',')[0].replace(/"/g, '').trim();
+    if (prev !== next) {
+      diffs.push({ label: fontLabels[key], oldValue: prev, newValue: next, type: 'font' });
+    }
+  }
+
+  // Style
+  if (prevEra.style !== nextEra.style) {
+    diffs.push({ label: 'style', oldValue: prevEra.style, newValue: nextEra.style, type: 'token' });
+  }
+
+  // Design tokens
+  const pt = prevEra.designTokens;
+  const nt = nextEra.designTokens;
+
+  if (pt.borderRadius !== nt.borderRadius) diffs.push({ label: 'border-radius', oldValue: `${pt.borderRadius}px`, newValue: `${nt.borderRadius}px`, type: 'token' });
+  if (pt.shadowStyle !== nt.shadowStyle) diffs.push({ label: 'shadow-style', oldValue: pt.shadowStyle, newValue: nt.shadowStyle, type: 'token' });
+  if (pt.shadowIntensity !== nt.shadowIntensity) diffs.push({ label: 'shadow-intensity', oldValue: `${pt.shadowIntensity}%`, newValue: `${nt.shadowIntensity}%`, type: 'token' });
+  if ((pt.gridSize ?? 0) !== (nt.gridSize ?? 0)) diffs.push({ label: 'grid-size', oldValue: pt.gridSize ? `${pt.gridSize}px` : 'none', newValue: nt.gridSize ? `${nt.gridSize}px` : 'none', type: 'token' });
+  if (pt.letterSpacing !== nt.letterSpacing) diffs.push({ label: 'letter-spacing', oldValue: `${pt.letterSpacing}`, newValue: `${nt.letterSpacing}`, type: 'token' });
+  if (pt.lineHeight !== nt.lineHeight) diffs.push({ label: 'line-height', oldValue: `${pt.lineHeight}`, newValue: `${nt.lineHeight}`, type: 'token' });
+  if (pt.animationStyle !== nt.animationStyle) diffs.push({ label: 'animation', oldValue: pt.animationStyle, newValue: nt.animationStyle, type: 'token' });
+
+  // Effects diff
+  const prevEffects = new Set(pt.effects);
+  const nextEffects = new Set(nt.effects);
+  const added = nt.effects.filter(e => !prevEffects.has(e));
+  const removed = pt.effects.filter(e => !nextEffects.has(e));
+  if (added.length > 0) diffs.push({ label: 'effects-added', oldValue: '', newValue: added.join(', '), type: 'effect' });
+  if (removed.length > 0) diffs.push({ label: 'effects-removed', oldValue: removed.join(', '), newValue: '', type: 'effect' });
+
+  return diffs;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// COLOR SWATCH (click to copy)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function LabColorSwatch({ color, label, borderRadius }: { color: string; label: string; borderRadius: number }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(color);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1200);
+  };
+  return (
+    <motion.button onClick={handleCopy} className="relative group flex flex-col items-center gap-1" whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }}>
+      <div className="w-8 h-8 lg:w-10 lg:h-10 border-2 border-[var(--border-color)] hover:border-[var(--accent-color)] transition-all" style={{ backgroundColor: color, borderRadius: `${Math.min(borderRadius, 4)}px` }} />
+      <span className="text-[7px] font-mono uppercase" style={{ color: 'var(--text-muted)' }}>{label}</span>
+      <span className="text-[6px] lg:text-[7px] font-mono" style={{ color: 'var(--text-main)' }}>{color.toUpperCase()}</span>
+      <AnimatePresence>
+        {copied && (
+          <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute -top-5 px-1.5 py-0.5 text-[7px] font-mono bg-[var(--accent-color)] text-[var(--bg-main)]" style={{ borderRadius: `${borderRadius}px` }}>
+            COPIED
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.button>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// EYE TIMELINE OVERLAY - Token Dashboard Explorer
+// ═══════════════════════════════════════════════════════════════════════════════
+
 const EyeTimelineOverlay: React.FC<EyeTimelineOverlayProps> = ({
   isOpen,
   onClose,
   currentEraId,
   onEraSelect
 }) => {
-  const overlayRef = useRef<HTMLDivElement>(null);
-  const [hoveredEra, setHoveredEra] = useState<string | null>(null);
-  const [isLabEditorOpen, setIsLabEditorOpen] = useState(false);
-  const _displayEraId = hoveredEra || currentEraId;
+  const [selectedEraId, setSelectedEraId] = useState<string>(currentEraId);
+  const [previousEraId, setPreviousEraId] = useState<string | null>(null);
+  const [rightPanelMode, setRightPanelMode] = useState<'preview' | 'lab'>('preview');
 
-  // Get current era index
-  const currentEraIndex = AVAILABLE_THEMES.findIndex(e => e.id === currentEraId);
-  const currentEra = AVAILABLE_THEMES[currentEraIndex] || AVAILABLE_THEMES[0];
-
-  // Navigation functions
-  const navigatePrevious = () => {
-    if (currentEraIndex > 0) {
-      const prevEra = AVAILABLE_THEMES[currentEraIndex - 1];
-      onEraSelect(prevEra.id);
+  // Sync selectedEraId when overlay opens or currentEraId changes
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedEraId(currentEraId);
+      setPreviousEraId(null);
     }
+  }, [isOpen, currentEraId]);
+
+  // Get era objects
+  const selectedIndex = AVAILABLE_THEMES.findIndex(e => e.id === selectedEraId);
+  const selectedEra = AVAILABLE_THEMES[selectedIndex] || AVAILABLE_THEMES[0];
+  const previousEra = previousEraId ? AVAILABLE_THEMES.find(e => e.id === previousEraId) || null : null;
+
+  // Compute diff
+  const tokenDiff = useMemo(() => {
+    if (!previousEra) return [];
+    return computeTokenDiff(previousEra, selectedEra);
+  }, [previousEra, selectedEra]);
+
+  // Shadow style for live preview
+  const shadowCSS = useMemo(() =>
+    getShadowStyle(selectedEra.designTokens.shadowStyle, selectedEra.designTokens.shadowIntensity, selectedEra.colors.accent),
+    [selectedEra]
+  );
+
+  const setEraWithTracking = (newEraId: string) => {
+    if (newEraId !== selectedEraId) {
+      setPreviousEraId(selectedEraId);
+      setSelectedEraId(newEraId);
+    }
+  };
+
+  const navigatePrevious = () => {
+    if (selectedIndex > 0) setEraWithTracking(AVAILABLE_THEMES[selectedIndex - 1].id);
   };
 
   const navigateNext = () => {
-    if (currentEraIndex < AVAILABLE_THEMES.length - 1) {
-      const nextEra = AVAILABLE_THEMES[currentEraIndex + 1];
-      onEraSelect(nextEra.id);
-    }
+    if (selectedIndex < AVAILABLE_THEMES.length - 1) setEraWithTracking(AVAILABLE_THEMES[selectedIndex + 1].id);
   };
 
-  const handleEraClick = (eraId: string) => {
-    onEraSelect(eraId);
+  const handleApplyEra = () => {
+    if (selectedEraId !== currentEraId) onEraSelect(selectedEraId);
   };
 
-  // Calculate timeline position for visualization
-  const totalEras = AVAILABLE_THEMES.length;
-  const getEraPosition = (era: ThemeConfig) => {
-    const index = AVAILABLE_THEMES.findIndex(e => e.id === era.id);
-    return (index / (totalEras - 1)) * 100;
-  };
+  // Keyboard navigation
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') { e.preventDefault(); navigatePrevious(); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); navigateNext(); }
+      else if (e.key === 'Enter') { e.preventDefault(); handleApplyEra(); }
+      else if (e.key === 'Escape') { e.preventDefault(); onClose(); }
+    };
+    globalThis.addEventListener('keydown', handleKeyDown);
+    return () => globalThis.removeEventListener('keydown', handleKeyDown);
+  });
 
-  // Stats calculations
-  const _totalDecades = new Set(AVAILABLE_THEMES.map(e => `${Math.floor(parseInt(e.id) / 10) * 10}s`)).size;
-  const currentDecade = `${Math.floor(parseInt(currentEraId) / 10) * 10}s`;
+  const tokens = selectedEra.designTokens;
+  const borderRadius = Math.min(tokens.borderRadius, 16);
+  const colorKeys = ['primary', 'secondary', 'accent', 'background', 'text'] as const;
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 bg-black/90 backdrop-blur-sm z-[100] pointer-events-none"
-          />
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+          className="fixed inset-0 z-[100] flex flex-col"
+          style={{ backgroundColor: 'var(--bg-main)' }}
+        >
+          {/* ═══ TOP BAR ═══ */}
+          <div className="flex items-center justify-between px-4 md:px-6 py-2.5 border-b-2 border-[var(--border-color)] bg-[var(--bg-card)] flex-shrink-0">
+            <motion.button
+              onClick={onClose}
+              className="px-3 py-1.5 font-mono text-xs border-2 border-[var(--border-color)] text-[var(--text-main)] hover:border-[var(--text-main)] transition-all"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              &times;
+            </motion.button>
+            <div className="text-center">
+              <h1 className="font-mono text-[10px] md:text-xs font-bold uppercase tracking-[0.25em] text-[var(--accent-color)]">
+                DESIGN SYSTEM LAB
+              </h1>
+              <p className="font-mono text-[8px] text-[var(--text-muted)] mt-0.5">
+                {selectedEra.id} &middot; {selectedEra.era}
+              </p>
+            </div>
+            <motion.button
+              onClick={handleApplyEra}
+              className="px-3 py-1.5 font-mono text-[9px] md:text-[10px] font-bold uppercase border-2 transition-all"
+              style={{
+                borderColor: selectedEra.id !== currentEraId ? 'var(--accent-color)' : 'var(--border-color)',
+                color: selectedEra.id !== currentEraId ? 'var(--accent-color)' : 'var(--text-muted)',
+              }}
+              whileHover={selectedEra.id !== currentEraId ? { scale: 1.05 } : {}}
+              whileTap={selectedEra.id !== currentEraId ? { scale: 0.95 } : {}}
+            >
+              {selectedEra.id !== currentEraId ? 'APPLY ERA' : 'ACTIVE'}
+            </motion.button>
+          </div>
 
-          {/* Full Screen Eye Container */}
-          <div
-            ref={overlayRef}
-            className="fixed inset-0 z-[101] pointer-events-none"
-          >
-            {/* Design System Lab / Lab Editor */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-auto" style={{ paddingBottom: '180px', paddingTop: '80px' }}>
-              <div className="w-full max-w-3xl h-full max-h-[550px] p-4">
-                <SimpleGameNavEraOverlayContent
-                  era={currentEra}
-                  isLabEditorOpen={isLabEditorOpen}
-                  onOpenLabEditor={() => setIsLabEditorOpen(true)}
-                  onApply={(tokens: LabDesignTokens) => {
-                    const root = document.documentElement;
-                    root.style.setProperty('--bg-main', tokens.colors.background);
-                    root.style.setProperty('--bg-card', tokens.colors.secondary);
-                    root.style.setProperty('--text-main', tokens.colors.text);
-                    root.style.setProperty('--text-muted', `${tokens.colors.text}99`);
-                    root.style.setProperty('--accent-color', tokens.colors.accent);
-                    root.style.setProperty('--border-color', `${tokens.colors.text}33`);
-                    root.style.setProperty('--font-main', tokens.fonts.primary);
-                    root.style.setProperty('--font-heading', tokens.fonts.secondary);
-                    const customEra = {
-                      id: 'custom',
-                      name: 'Lab Design',
-                      bgMain: tokens.colors.background,
-                      bgCard: tokens.colors.secondary,
-                      textMain: tokens.colors.text,
-                      textMuted: `${tokens.colors.text}99`,
-                      accentColor: tokens.colors.accent,
-                      borderColor: `${tokens.colors.text}33`,
-                      gridColor: tokens.colors.primary,
-                      fontMain: tokens.fonts.primary,
-                      fontHeading: tokens.fonts.secondary,
-                      gridSize: 20,
-                      gridOpacity: 50,
-                    };
-                    localStorage.setItem('kiruk-custom-era', JSON.stringify(customEra));
-                    localStorage.setItem('portfolio-theme', 'custom');
-                    document.body.setAttribute('data-era', 'custom');
-                    setIsLabEditorOpen(false);
-                  }}
-                  onCloseLabEditor={() => setIsLabEditorOpen(false)}
-                />
+          {/* ═══ MAIN CONTENT: TWO-PANEL LAB ═══ */}
+          <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+
+            {/* ═══ LEFT PANEL: TOKEN INSPECTOR ═══ */}
+            <div className="lg:w-[42%] xl:w-[38%] border-b-2 lg:border-b-0 lg:border-r-2 border-[var(--border-color)] overflow-y-auto scrollbar-hide">
+              <div className="p-4 md:p-5 space-y-5">
+                {/* Era Header */}
+                <div>
+                  <div className="flex items-start justify-between mb-1">
+                    <div className="text-3xl md:text-4xl font-black tracking-tight" style={{ color: selectedEra.colors.accent, fontFamily: selectedEra.fonts.primary }}>
+                      {selectedEra.id}
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      {selectedEra.id === currentEraId && (
+                        <span className="px-1.5 py-0.5 text-[7px] font-mono font-bold uppercase bg-[var(--accent-color)] text-[var(--bg-main)]">ACTIVE</span>
+                      )}
+                      <span className="px-1.5 py-0.5 text-[7px] font-mono uppercase border border-[var(--border-color)] text-[var(--text-muted)]">{selectedEra.style}</span>
+                    </div>
+                  </div>
+                  <div className="font-mono text-xs md:text-sm font-bold" style={{ color: 'var(--text-main)' }}>
+                    {selectedEra.name.split(':')[1]?.trim() || selectedEra.name}
+                  </div>
+                  <div className="text-[9px] font-mono mt-0.5" style={{ color: 'var(--text-muted)' }}>{selectedEra.era}</div>
+                </div>
+
+                {/* Color Palette */}
+                <div>
+                  <div className="font-mono text-[9px] uppercase mb-2 flex items-center gap-2 tracking-[0.1em]" style={{ color: 'var(--accent-color)' }}>
+                    <span>&#9670;</span> COLOR PALETTE
+                  </div>
+                  <div className="flex flex-wrap gap-2 lg:gap-3">
+                    {colorKeys.map((key) => (
+                      <LabColorSwatch key={key} color={selectedEra.colors[key]} label={key} borderRadius={borderRadius} />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Typography */}
+                <div>
+                  <div className="font-mono text-[9px] uppercase mb-2 flex items-center gap-2 tracking-[0.1em]" style={{ color: 'var(--accent-color)' }}>
+                    <span>&#9670;</span> TYPOGRAPHY
+                  </div>
+                  <div className="space-y-1.5">
+                    {[
+                      { label: 'Display', font: selectedEra.fonts.primary },
+                      { label: 'Text', font: selectedEra.fonts.secondary },
+                      { label: 'UI', font: selectedEra.fonts.accent },
+                    ].map((item) => (
+                      <div key={item.label} className="flex items-center gap-2 px-2 py-1.5 border border-[var(--border-color)]" style={{ borderRadius: `${Math.min(borderRadius, 4)}px` }}>
+                        <span className="text-[7px] font-mono uppercase w-10 flex-shrink-0" style={{ color: 'var(--text-muted)' }}>{item.label}</span>
+                        <span className="text-xs truncate" style={{ fontFamily: item.font, color: 'var(--text-main)' }}>
+                          {item.font.split(',')[0].replace(/"/g, '').trim()}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Design Tokens */}
+                <div>
+                  <div className="font-mono text-[9px] uppercase mb-2 flex items-center gap-2 tracking-[0.1em]" style={{ color: 'var(--accent-color)' }}>
+                    <span>&#9670;</span> DESIGN TOKENS
+                  </div>
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                    {[
+                      { label: 'border-radius', value: `${tokens.borderRadius}px` },
+                      { label: 'shadow', value: `${tokens.shadowStyle} (${tokens.shadowIntensity}%)` },
+                      { label: 'grid', value: tokens.gridSize ? `${tokens.gridSize}px` : 'none' },
+                      { label: 'grid-opacity', value: `${tokens.gridOpacity}` },
+                      { label: 'letter-spacing', value: `${tokens.letterSpacing}` },
+                      { label: 'line-height', value: `${tokens.lineHeight}` },
+                      { label: 'animation', value: tokens.animationStyle },
+                    ].map((item) => (
+                      <div key={item.label} className="flex items-center justify-between px-2 py-1 border border-[var(--border-color)]" style={{ borderRadius: `${Math.min(borderRadius, 3)}px` }}>
+                        <span className="text-[7px] font-mono uppercase" style={{ color: 'var(--text-muted)' }}>{item.label}</span>
+                        <span className="text-[8px] font-mono font-bold" style={{ color: 'var(--text-main)' }}>{item.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Effects */}
+                {tokens.effects.length > 0 && (
+                  <div>
+                    <div className="font-mono text-[9px] uppercase mb-2 flex items-center gap-2 tracking-[0.1em]" style={{ color: 'var(--accent-color)' }}>
+                      <span>&#9670;</span> EFFECTS
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {tokens.effects.map((effect, i) => (
+                        <span key={i} className="px-1.5 py-0.5 text-[7px] font-mono uppercase border border-[var(--border-color)]" style={{ color: 'var(--text-muted)', borderRadius: `${Math.min(borderRadius, 4)}px` }}>
+                          {effect}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Apply Button (mobile/left panel) */}
+                <div className="pt-2">
+                  {selectedEra.id !== currentEraId ? (
+                    <motion.button
+                      onClick={handleApplyEra}
+                      className="w-full py-2 px-4 font-mono text-[10px] font-bold uppercase border-2 transition-all hover:brightness-110"
+                      style={{ backgroundColor: 'var(--accent-color)', borderColor: 'var(--accent-color)', color: 'var(--bg-main)', borderRadius: `${borderRadius}px` }}
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.99 }}
+                    >
+                      Apply &ldquo;{selectedEra.name}&rdquo; &rarr;
+                    </motion.button>
+                  ) : (
+                    <div className="w-full py-2 px-4 font-mono text-[9px] text-center border-2 border-dashed border-[var(--border-color)]" style={{ color: 'var(--text-muted)', borderRadius: `${borderRadius}px` }}>
+                      Currently active era
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* Top Left: Close Button */}
-            <motion.button
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0 }}
-              onClick={onClose}
-              className="absolute top-4 left-4 w-12 h-12 border-2 border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-main)] flex items-center justify-center font-mono text-xl hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] transition-colors pointer-events-auto z-50"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              ×
-            </motion.button>
-
-            {/* Redesigned Timeline Navigation - Bottom */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              transition={{ delay: 0.2 }}
-              className="absolute bottom-0 left-0 right-0 pointer-events-auto bg-[var(--bg-card)]/98 backdrop-blur-md border-t-2 border-[var(--border-color)] z-50"
-            >
-              {/* Wireframe-style Header with Instructions */}
-              <div className="flex items-center justify-between px-4 py-2 border-b border-[var(--border-color)]/50">
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-[var(--accent-color)] animate-pulse" />
-                  <span className="text-[10px] font-mono uppercase text-[var(--text-muted)] tracking-wider">
-                    {/* TIME_MACHINE.v1 */}
-                  </span>
-                </div>
-                <div className="flex items-center gap-4">
-                  <span className="text-[10px] font-mono text-[var(--text-muted)]">
-                    ← → Navigate • Click to Select • Design System Preview Above
-                  </span>
-                  <span className="text-[10px] font-mono font-bold text-[var(--accent-color)]">
-                    {currentEraIndex + 1}/{totalEras} ERAS
-                  </span>
-                </div>
+            {/* ═══ RIGHT PANEL: LIVE PREVIEW + CHANGE LOG / CUSTOMIZATION LAB ═══ */}
+            <div className="flex-1 overflow-y-auto scrollbar-hide flex flex-col">
+              {/* Panel Mode Toggle */}
+              <div className="flex border-b-2 border-[var(--border-color)] px-4 md:px-5 flex-shrink-0">
+                <button
+                  onClick={() => setRightPanelMode('preview')}
+                  className="px-3 py-2 font-mono text-[9px] uppercase transition-all flex items-center gap-1.5"
+                  style={{
+                    color: rightPanelMode === 'preview' ? 'var(--accent-color)' : 'var(--text-muted)',
+                    borderBottom: rightPanelMode === 'preview' ? '2px solid var(--accent-color)' : '2px solid transparent',
+                  }}
+                >
+                  <span>&#9670;</span> Live Preview
+                </button>
+                <button
+                  onClick={() => setRightPanelMode('lab')}
+                  className="px-3 py-2 font-mono text-[9px] uppercase transition-all flex items-center gap-1.5"
+                  style={{
+                    color: rightPanelMode === 'lab' ? 'var(--accent-color)' : 'var(--text-muted)',
+                    borderBottom: rightPanelMode === 'lab' ? '2px solid var(--accent-color)' : '2px solid transparent',
+                  }}
+                >
+                  <span>🔬</span> Customization Lab
+                </button>
               </div>
 
-              {/* Timeline Slider with Year Labels */}
-              <div className="px-4 pt-3 pb-2">
-                {/* Year Range Labels */}
-                <div className="flex justify-between mb-1">
-                  <span className="text-[9px] font-mono text-[var(--text-muted)]">1970</span>
-                  <span className="text-[9px] font-mono text-[var(--text-muted)]">1980</span>
-                  <span className="text-[9px] font-mono text-[var(--text-muted)]">1990</span>
-                  <span className="text-[9px] font-mono text-[var(--text-muted)]">2000</span>
-                  <span className="text-[9px] font-mono text-[var(--text-muted)]">2010</span>
-                  <span className="text-[9px] font-mono text-[var(--text-muted)]">2020</span>
+              {rightPanelMode === 'lab' ? (
+                <div className="flex-1">
+                  <CustomizationLab era={selectedEra} onClose={() => setRightPanelMode('preview')} />
                 </div>
+              ) : (
+              <div className="p-4 md:p-5 space-y-5">
 
-                {/* Timeline Bar */}
-                <div className="relative h-3 bg-[var(--bg-main)] border border-[var(--border-color)] cursor-pointer">
-                  {/* Progress Fill */}
-                  <div
-                    className="absolute top-0 left-0 h-full bg-[var(--accent-color)]/20 transition-all"
-                    style={{ width: `${(currentEraIndex / (totalEras - 1)) * 100}%` }}
-                  />
-                  {/* Era Markers */}
-                  {AVAILABLE_THEMES.map((era) => {
-                    const position = getEraPosition(era);
-                    const isActive = era.id === currentEraId;
-                    const isHovered = era.id === hoveredEra;
-                    return (
-                      <motion.div
-                        key={era.id}
-                        className="absolute top-0 h-full cursor-pointer"
-                        style={{
-                          left: `${position}%`,
-                          width: `${100 / totalEras}%`,
-                        }}
-                        onClick={() => handleEraClick(era.id)}
-                        onMouseEnter={() => setHoveredEra(era.id)}
-                        onMouseLeave={() => setHoveredEra(null)}
-                      >
-                        <div
-                          className={cn(
-                            'w-full h-full transition-all border-r border-[var(--border-color)]/30',
-                            isActive ? 'bg-[var(--accent-color)]' : isHovered ? 'bg-[var(--text-main)]/40' : 'bg-transparent hover:bg-[var(--text-main)]/20'
-                          )}
-                        />
-                      </motion.div>
-                    );
-                  })}
-                  {/* Current Position Marker */}
+                {/* Live Preview */}
+                <div>
+                  <div className="font-mono text-[9px] uppercase mb-2 flex items-center gap-2 tracking-[0.1em]" style={{ color: 'var(--accent-color)' }}>
+                    <span>&#9670;</span> LIVE PREVIEW
+                  </div>
+                  <p className="text-[7px] font-mono mb-3" style={{ color: 'var(--text-muted)' }}>
+                    Components morph in real-time as you switch eras
+                  </p>
+
                   <motion.div
-                    className="absolute top-1/2 -translate-y-1/2 w-3 h-3 border-2 border-[var(--accent-color)] bg-[var(--bg-main)] z-10"
-                    style={{ left: `calc(${(currentEraIndex / (totalEras - 1)) * 100}% - 6px)` }}
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  />
-                </div>
-              </div>
-
-              {/* Current Era Info + Navigation */}
-              <div className="flex items-center gap-4 px-4 pb-3">
-                {/* Previous Button */}
-                <motion.button
-                  onClick={navigatePrevious}
-                  disabled={currentEraIndex === 0}
-                  className={cn(
-                    'w-10 h-10 border-2 border-[var(--border-color)] bg-[var(--bg-main)] text-[var(--text-main)] flex items-center justify-center font-mono text-lg transition-all flex-shrink-0',
-                    currentEraIndex === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-[var(--accent-color)] hover:text-[var(--bg-main)] hover:border-[var(--accent-color)]'
-                  )}
-                  whileHover={currentEraIndex > 0 ? { scale: 1.05 } : {}}
-                  whileTap={currentEraIndex > 0 ? { scale: 0.95 } : {}}
-                >
-                  ←
-                </motion.button>
-
-                {/* Current Era Display */}
-                <div className="flex-1 bg-[var(--bg-main)] border border-[var(--border-color)] p-3">
-                  <AnimatePresence mode="wait">
+                    className="relative overflow-hidden border-2 p-4 md:p-5"
+                    animate={{
+                      borderColor: selectedEra.colors.accent,
+                      borderRadius: borderRadius,
+                      backgroundColor: selectedEra.colors.background,
+                    }}
+                    transition={{ duration: 0.6, ease: 'easeInOut' }}
+                  >
+                    {/* Grid overlay */}
                     <motion.div
-                      key={currentEraId}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.2 }}
-                      className="flex items-center justify-between"
-                    >
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-[10px] font-mono text-[var(--accent-color)] uppercase">{currentDecade}</span>
-                          <span className="text-[9px] font-mono text-[var(--text-muted)]">{currentEra.style.toUpperCase()}</span>
-                        </div>
-                        <div className="font-mono font-bold text-sm text-[var(--text-main)]">
-                          {currentEra.name}
-                        </div>
+                      className="absolute inset-0 pointer-events-none"
+                      animate={{
+                        opacity: tokens.gridSize && tokens.gridSize > 0 ? tokens.gridOpacity * 0.5 : 0,
+                      }}
+                      transition={{ duration: 0.6 }}
+                      style={{
+                        backgroundImage: `linear-gradient(${selectedEra.colors.text} 1px, transparent 1px), linear-gradient(90deg, ${selectedEra.colors.text} 1px, transparent 1px)`,
+                        backgroundSize: `${tokens.gridSize || 20}px ${tokens.gridSize || 20}px`,
+                      }}
+                    />
+
+                    <div className="relative z-10 space-y-3">
+                      {/* Heading */}
+                      <AnimatePresence mode="wait">
+                        <motion.h3
+                          key={`heading-${selectedEra.fonts.primary}`}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="text-lg lg:text-xl font-bold"
+                          style={{
+                            color: selectedEra.colors.text,
+                            fontFamily: selectedEra.fonts.primary,
+                            letterSpacing: `${tokens.letterSpacing * 0.01}em`,
+                            lineHeight: tokens.lineHeight,
+                          }}
+                        >
+                          Heading Display
+                        </motion.h3>
+                      </AnimatePresence>
+
+                      {/* Body text */}
+                      <AnimatePresence mode="wait">
+                        <motion.p
+                          key={`body-${selectedEra.fonts.secondary}`}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="text-xs lg:text-sm opacity-80"
+                          style={{
+                            color: selectedEra.colors.text,
+                            fontFamily: selectedEra.fonts.secondary,
+                            lineHeight: tokens.lineHeight,
+                          }}
+                        >
+                          Body text showcasing this era&apos;s typography. Every design system tells a story through its choices.
+                        </motion.p>
+                      </AnimatePresence>
+
+                      {/* Buttons + Badge row */}
+                      <div className="flex flex-wrap gap-2 items-center">
+                        <motion.button
+                          className="px-3 py-1.5 text-[10px] font-bold uppercase border-2 transition-colors"
+                          animate={{
+                            backgroundColor: selectedEra.colors.accent,
+                            borderColor: selectedEra.colors.accent,
+                            color: selectedEra.colors.background,
+                            borderRadius: borderRadius,
+                          }}
+                          transition={{ duration: 0.6, ease: 'easeInOut' }}
+                          style={{ ...shadowCSS, fontFamily: selectedEra.fonts.accent }}
+                        >
+                          Primary
+                        </motion.button>
+
+                        <motion.button
+                          className="px-3 py-1.5 text-[10px] font-bold uppercase border-2"
+                          animate={{
+                            borderColor: selectedEra.colors.text,
+                            color: selectedEra.colors.text,
+                            borderRadius: borderRadius,
+                            backgroundColor: 'transparent',
+                          }}
+                          transition={{ duration: 0.6, ease: 'easeInOut' }}
+                          style={{ fontFamily: selectedEra.fonts.accent }}
+                        >
+                          Secondary
+                        </motion.button>
+
+                        <motion.span
+                          className="px-2 py-1 text-[8px] font-bold uppercase"
+                          animate={{
+                            backgroundColor: selectedEra.colors.primary,
+                            color: selectedEra.colors.background,
+                            borderRadius: Math.min(borderRadius, 12),
+                          }}
+                          transition={{ duration: 0.6, ease: 'easeInOut' }}
+                          style={{ fontFamily: selectedEra.fonts.accent }}
+                        >
+                          Badge
+                        </motion.span>
+
+                        <motion.span
+                          className="px-2 py-1 text-[8px] border"
+                          animate={{
+                            borderColor: selectedEra.colors.text,
+                            color: selectedEra.colors.text,
+                            borderRadius: Math.min(borderRadius, 8),
+                          }}
+                          transition={{ duration: 0.6, ease: 'easeInOut' }}
+                          style={{ fontFamily: selectedEra.fonts.secondary }}
+                        >
+                          #tag
+                        </motion.span>
                       </div>
-                      <div className="text-right">
-                        <div className="text-[9px] font-mono text-[var(--text-muted)] uppercase">{currentEra.era}</div>
-                        <div className="text-[10px] font-mono text-[var(--accent-color)]">
-                          "{currentEra.lesson?.substring(0, 30)}..."
+
+                      {/* Mini Card */}
+                      <motion.div
+                        className="p-3 border-2"
+                        animate={{
+                          borderColor: `${selectedEra.colors.text}33`,
+                          backgroundColor: `${selectedEra.colors.text}08`,
+                          borderRadius: borderRadius,
+                        }}
+                        transition={{ duration: 0.6, ease: 'easeInOut' }}
+                        style={shadowCSS}
+                      >
+                        <div className="text-xs font-bold mb-1" style={{ color: selectedEra.colors.text, fontFamily: selectedEra.fonts.primary }}>
+                          Card Title
                         </div>
-                      </div>
-                    </motion.div>
-                  </AnimatePresence>
+                        <div className="text-[10px] opacity-70" style={{ color: selectedEra.colors.text, fontFamily: selectedEra.fonts.secondary }}>
+                          A sample card component styled for this era.
+                        </div>
+                      </motion.div>
+                    </div>
+                  </motion.div>
                 </div>
 
-                {/* Next Button */}
-                <motion.button
-                  onClick={navigateNext}
-                  disabled={currentEraIndex === AVAILABLE_THEMES.length - 1}
-                  className={cn(
-                    'w-10 h-10 border-2 border-[var(--border-color)] bg-[var(--bg-main)] text-[var(--text-main)] flex items-center justify-center font-mono text-lg transition-all flex-shrink-0',
-                    currentEraIndex === AVAILABLE_THEMES.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-[var(--accent-color)] hover:text-[var(--bg-main)] hover:border-[var(--accent-color)]'
-                  )}
-                  whileHover={currentEraIndex < AVAILABLE_THEMES.length - 1 ? { scale: 1.05 } : {}}
-                  whileTap={currentEraIndex < AVAILABLE_THEMES.length - 1 ? { scale: 0.95 } : {}}
-                >
-                  →
-                </motion.button>
-              </div>
-            </motion.div>
+                {/* Change Log */}
+                <div>
+                  <div className="font-mono text-[9px] uppercase mb-2 flex items-center gap-2 tracking-[0.1em]" style={{ color: 'var(--accent-color)' }}>
+                    <span>&#9670;</span> CHANGE LOG
+                  </div>
 
+                  {tokenDiff.length > 0 ? (
+                    <div className="space-y-1">
+                      <AnimatePresence mode="popLayout">
+                        {tokenDiff.map((diff, i) => (
+                          <motion.div
+                            key={`${diff.label}-${i}`}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 10 }}
+                            transition={{ duration: 0.25, delay: i * 0.03 }}
+                            className="flex items-center gap-2 px-2.5 py-1.5 border border-[var(--border-color)]"
+                            style={{ borderRadius: `${Math.min(borderRadius, 4)}px` }}
+                          >
+                            {/* Diff type indicator */}
+                            <span className="text-[7px] font-mono w-1.5 h-1.5 rounded-full flex-shrink-0" style={{
+                              backgroundColor: diff.type === 'color' ? 'var(--accent-color)' :
+                                diff.type === 'font' ? '#a78bfa' :
+                                diff.type === 'effect' ? '#fbbf24' : 'var(--text-muted)',
+                            }} />
+
+                            {/* Label */}
+                            <span className="text-[8px] font-mono font-bold flex-shrink-0 min-w-[80px]" style={{ color: 'var(--text-main)' }}>
+                              {diff.label}
+                            </span>
+
+                            {/* Old value */}
+                            {diff.type === 'color' && diff.oldValue ? (
+                              <span className="flex items-center gap-1 text-[7px] font-mono" style={{ color: 'var(--text-muted)' }}>
+                                <span className="w-2.5 h-2.5 inline-block border border-[var(--border-color)]" style={{ backgroundColor: diff.oldValue }} />
+                                {diff.oldValue}
+                              </span>
+                            ) : (
+                              <span className="text-[7px] font-mono" style={{ color: 'var(--text-muted)', textDecoration: diff.label === 'effects-removed' ? 'none' : undefined }}>
+                                {diff.oldValue || (diff.label === 'effects-added' ? '' : '---')}
+                              </span>
+                            )}
+
+                            {/* Arrow */}
+                            <span className="text-[8px] font-mono flex-shrink-0" style={{ color: 'var(--accent-color)' }}>&rarr;</span>
+
+                            {/* New value */}
+                            {diff.type === 'color' && diff.newValue ? (
+                              <span className="flex items-center gap-1 text-[7px] font-mono font-bold" style={{ color: 'var(--text-main)' }}>
+                                <span className="w-2.5 h-2.5 inline-block border border-[var(--border-color)]" style={{ backgroundColor: diff.newValue }} />
+                                {diff.newValue}
+                              </span>
+                            ) : (
+                              <span className="text-[7px] font-mono font-bold" style={{
+                                color: diff.label === 'effects-removed' ? 'var(--text-muted)' :
+                                  diff.label === 'effects-added' ? 'var(--accent-color)' : 'var(--text-main)',
+                              }}>
+                                {diff.newValue || (diff.label === 'effects-removed' ? 'removed' : '---')}
+                              </span>
+                            )}
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+
+                      <div className="text-[8px] font-mono pt-1" style={{ color: 'var(--text-muted)' }}>
+                        {tokenDiff.length} token{tokenDiff.length !== 1 ? 's' : ''} changed from {previousEra?.id || '?'}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="px-3 py-4 border border-dashed border-[var(--border-color)] text-center" style={{ borderRadius: `${Math.min(borderRadius, 6)}px` }}>
+                      <p className="text-[9px] font-mono" style={{ color: 'var(--text-muted)' }}>
+                        Navigate between eras to see what changes
+                      </p>
+                      <p className="text-[8px] font-mono mt-1" style={{ color: 'var(--text-muted)' }}>
+                        Use &larr; &rarr; keys or click timeline dots
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Statement */}
+                <div className="p-3 border border-[var(--border-color)] text-center" style={{ borderRadius: `${Math.min(borderRadius, 8)}px` }}>
+                  <p className="font-mono text-[10px] font-bold" style={{ color: 'var(--text-main)' }}>
+                    &ldquo;I design &amp; develop for every era.&rdquo;
+                  </p>
+                  <p className="font-mono text-[8px] mt-0.5 tracking-[0.05em]" style={{ color: 'var(--accent-color)' }}>
+                    Whatever the interface. Anytime. Forever.
+                  </p>
+                </div>
+              </div>
+              )}
+            </div>
           </div>
-        </>
+
+          {/* ═══ HORIZONTAL TIMELINE ═══ */}
+          <div className="flex-shrink-0 border-t-2 border-[var(--border-color)] bg-[var(--bg-card)]">
+            {/* Selected era info strip */}
+            <div className="flex items-center justify-between px-6 md:px-10 pt-3 pb-1">
+              <span className="font-mono text-xs md:text-sm text-[var(--text-muted)] tracking-wide">{selectedIndex + 1} / {AVAILABLE_THEMES.length} ERAS</span>
+              <motion.span
+                key={selectedEraId}
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="font-mono text-sm md:text-base font-bold text-[var(--accent-color)] tracking-wide"
+              >
+                {selectedEra.id}: {selectedEra.name}
+              </motion.span>
+              <span className="font-mono text-xs md:text-sm text-[var(--text-muted)] tracking-wide">1970 &rarr; 2025</span>
+            </div>
+
+            {/* Timeline dots + year labels */}
+            <div className="overflow-x-auto scrollbar-hide px-6 md:px-10 pt-3 pb-2">
+              <div className="flex items-center min-w-max">
+                {AVAILABLE_THEMES.map((era, index) => {
+                  const isSelected = era.id === selectedEraId;
+                  const isCurrent = era.id === currentEraId;
+                  const isPast = index <= selectedIndex;
+                  return (
+                    <div key={era.id} className="flex items-center">
+                      {index > 0 && (
+                        <div className="transition-colors duration-300" style={{ width: 'clamp(28px, 4vw, 56px)', height: isPast ? '3px' : '2px', backgroundColor: isPast ? 'var(--accent-color)' : 'var(--border-color)' }} />
+                      )}
+                      <div className="flex flex-col items-center gap-1.5">
+                        <motion.button
+                          onClick={() => setEraWithTracking(era.id)}
+                          className="relative flex-shrink-0 rounded-full transition-all flex items-center justify-center"
+                          style={{
+                            width: isSelected ? 32 : isCurrent ? 24 : 18,
+                            height: isSelected ? 32 : isCurrent ? 24 : 18,
+                            backgroundColor: isSelected || isCurrent
+                              ? era.colors.accent
+                              : isPast
+                                ? `${era.colors.accent}AA`
+                                : `${era.colors.accent}55`,
+                            boxShadow: isSelected
+                              ? `0 0 16px ${era.colors.accent}90, 0 0 32px ${era.colors.accent}50`
+                              : isCurrent
+                                ? `0 0 8px ${era.colors.accent}60`
+                                : 'none',
+                            border: isCurrent && !isSelected
+                              ? '3px solid var(--text-main)'
+                              : isSelected
+                                ? `3px solid ${era.colors.accent}`
+                                : '2px solid transparent',
+                          }}
+                          whileHover={{ scale: 1.3 }}
+                          whileTap={{ scale: 0.9 }}
+                          aria-label={`${era.id}: ${era.name}`}
+                        >
+                          {isSelected && (
+                            <span className="text-[9px] md:text-[10px] font-mono font-black" style={{ color: era.colors.background }}>{era.id.slice(-2)}</span>
+                          )}
+                        </motion.button>
+                        {/* Always-visible year label */}
+                        <span
+                          className="font-mono whitespace-nowrap transition-all duration-200"
+                          style={{
+                            fontSize: isSelected ? '11px' : '10px',
+                            fontWeight: isSelected || isCurrent ? 700 : 400,
+                            color: isSelected
+                              ? era.colors.accent
+                              : isCurrent
+                                ? 'var(--text-main)'
+                                : 'var(--text-muted)',
+                          }}
+                        >
+                          {era.id}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* ═══ KEYBOARD HINTS FOOTER ═══ */}
+          <div className="flex items-center justify-center gap-5 md:gap-8 px-6 md:px-10 py-3 border-t-2 border-[var(--border-color)] bg-[var(--bg-main)] flex-shrink-0">
+            <span className="font-mono text-xs md:text-sm text-[var(--text-muted)] flex items-center gap-2">
+              <kbd className="px-2 py-1 text-[10px] md:text-xs border-2 border-[var(--border-color)] bg-[var(--bg-card)] rounded-sm">&larr;</kbd>
+              <kbd className="px-2 py-1 text-[10px] md:text-xs border-2 border-[var(--border-color)] bg-[var(--bg-card)] rounded-sm">&rarr;</kbd>
+              Navigate
+            </span>
+            <span className="hidden md:flex font-mono text-xs md:text-sm text-[var(--text-muted)] items-center gap-2">Click to Select</span>
+            <span className="font-mono text-xs md:text-sm text-[var(--text-muted)] flex items-center gap-2">
+              <kbd className="px-2 py-1 text-[10px] md:text-xs border-2 border-[var(--accent-color)] bg-[var(--bg-card)] text-[var(--accent-color)] rounded-sm">Enter</kbd>
+              Apply
+            </span>
+            <span className="font-mono text-xs md:text-sm text-[var(--text-muted)] flex items-center gap-2">
+              <kbd className="px-2 py-1 text-[10px] md:text-xs border-2 border-[var(--border-color)] bg-[var(--bg-card)] rounded-sm">Esc</kbd>
+              Close
+            </span>
+          </div>
+        </motion.div>
       )}
     </AnimatePresence>
   );
