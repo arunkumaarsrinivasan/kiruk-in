@@ -10,6 +10,7 @@ import { getDefaultGameId, getGameEntry } from "@/components/ui/arcade/game-regi
 import { useMissionTracker } from "@/hooks/useMissionTracker";
 import DetectiveStoryWrapper from "./DetectiveStoryWrapper";
 import { HelpBot } from "@/components/ui/HelpBot";
+import CustomCursor from "@/components/ui/CustomCursor";
 
 // Lazy load TimeMachine (heavy era switcher) only on non-home pages
 const TimeMachine = dynamic(
@@ -40,57 +41,58 @@ export default function LayoutClientShell({ children }: Readonly<LayoutClientShe
   const pathname = usePathname();
   // Keep the global layout stable; only show the gamified header + grid on chosen pages.
   const arcadeEnabled = pathname === '/';
-  
+
   // Game state for nav (play button opens game menu overlay)
   const [isGameActive, setIsGameActive] = useState(false);
   const gameId = getDefaultGameId();
-  
+
   const { trackInteraction } = useMissionTracker();
   const gameEntry = getGameEntry(gameId);
   const gameName = gameEntry?.label || 'Game';
   const gameIcon = GAME_ICONS[gameId] ?? 'play';
-  
+
   const handleToggleGame = useCallback(() => {
     setIsGameActive(prev => !prev);
     trackInteraction();
   }, [trackInteraction]);
 
   return (
-    <AppLoader enableLoader={true} loadingDuration={3500}>
+    <AppLoader enableLoader={true} loadingDuration={600}>
+      <CustomCursor />
       {/* Skip Links for Accessibility */}
-      <a 
-        href="#main-content" 
+      <a
+        href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:text-sm focus:no-underline"
         tabIndex={1}
       >
         Skip to main content
       </a>
-      <a 
-        href="#navigation" 
+      <a
+        href="#navigation"
         className="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-30 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:text-sm focus:no-underline"
         tabIndex={2}
       >
         Skip to navigation
       </a>
-      
+
       {/* Simplified Game Navigation */}
-      <SimpleGameNav 
+      <SimpleGameNav
         isGameActive={arcadeEnabled ? isGameActive : false}
         currentGameId={gameId}
         currentGameName={gameName}
         currentGameIcon={gameIcon}
         onToggleGame={arcadeEnabled ? handleToggleGame : undefined}
       />
-      
+
       {/* Dynamic Context Bar - shows page-specific timeline and shortcuts */}
       <DynamicContextBar />
-      
+
       <DetectiveStoryWrapper>
-        <main 
-          id="main-content" 
+        <main
+          id="main-content"
           tabIndex={-1}
-          style={{ 
-            paddingTop: ['/about', '/work', '/progress'].includes(pathname) 
+          style={{
+            paddingTop: ['/about', '/work', '/progress'].includes(pathname)
               ? '100px' // 60px (main nav) + 40px (context bar) = 100px
               : '60px'  // 60px (main nav only, no context bar)
           }}
@@ -98,10 +100,10 @@ export default function LayoutClientShell({ children }: Readonly<LayoutClientShe
           {children}
         </main>
       </DetectiveStoryWrapper>
-      
+
       {/* Help Bot - Available on all pages */}
       <HelpBot />
-      
+
       {/* Time Machine - Era Switcher - Available on all pages except home */}
       {pathname !== '/' && <TimeMachine />}
     </AppLoader>

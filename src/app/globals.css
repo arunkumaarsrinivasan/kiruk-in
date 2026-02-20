@@ -682,6 +682,10 @@ body[data-style='absurd'] {
    GLOBAL STYLES
    ========================================= */
 
+* {
+  cursor: none !important;
+}
+
 html,
 body {
   width: 100%;

@@ -70,6 +70,7 @@ export function HeroWithHatSwitching({
         <section
             id="hero"
             ref={sectionRef}
+            data-cursor-zone="hero"
             className="relative min-h-[90vh] flex items-center py-16 px-6"
         >
             {/* Corner rulers - Top Left */}
@@ -318,6 +319,7 @@ export function HeroWithHatSwitching({
                                 {/* Designer Button */}
                                 <motion.button
                                     className="flex items-center gap-2 px-4 py-3 border-2 cursor-pointer"
+                                    data-cursor-chat="hat-designer"
                                     style={{
                                         borderColor: activeHat === 'designer' ? '#E91E63' : 'var(--border-color)',
                                         backgroundColor: activeHat === 'designer' ? 'rgba(233, 30, 99, 0.2)' : 'rgba(233, 30, 99, 0.05)',
@@ -345,6 +347,7 @@ export function HeroWithHatSwitching({
                                 {/* Bridge Button */}
                                 <motion.button
                                     className="flex items-center gap-2 px-4 py-3 border-2 cursor-pointer"
+                                    data-cursor-chat="hat-bridge"
                                     style={{
                                         borderColor: activeHat === 'bridge' ? (isSuperPowered ? '#FFD700' : currentEra.colors.accent) : 'var(--border-color)',
                                         backgroundColor: activeHat === 'bridge' ? hexToRgba(isSuperPowered ? '#FFD700' : currentEra.colors.accent, 0.2) : hexToRgba(currentEra.colors.accent, 0.05),
@@ -375,6 +378,7 @@ export function HeroWithHatSwitching({
                                 {/* Developer Button */}
                                 <motion.button
                                     className="flex items-center gap-2 px-4 py-3 border-2 cursor-pointer"
+                                    data-cursor-chat="hat-developer"
                                     style={{
                                         borderColor: activeHat === 'developer' ? '#2196F3' : 'var(--border-color)',
                                         backgroundColor: activeHat === 'developer' ? 'rgba(33, 150, 243, 0.2)' : 'rgba(33, 150, 243, 0.05)',
@@ -429,6 +433,7 @@ export function HeroWithHatSwitching({
                             >
                                 <motion.a
                                     href="/portfolio"
+                                    data-cursor-chat="cta-work"
                                     className="px-6 py-3 border-2 font-mono font-bold uppercase text-sm cursor-pointer"
                                     style={{
                                         backgroundColor: 'var(--accent-color)',
@@ -441,6 +446,7 @@ export function HeroWithHatSwitching({
                                 </motion.a>
                                 <motion.a
                                     href="#contact"
+                                    data-cursor-chat="cta-contact"
                                     className="px-6 py-3 border-2 font-mono font-bold uppercase text-sm cursor-pointer"
                                     style={{
                                         borderColor: 'var(--accent-color)',

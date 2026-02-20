@@ -83,6 +83,7 @@ export default function WireframeManualLayout() {
                 {/* Header Bar */}
                 <motion.header
                     className="sticky top-0 z-40 border-b-2"
+                    data-cursor-zone="nav"
                     style={{
                         backgroundColor: 'var(--bg-main)',
                         borderColor: 'var(--border-color)'
@@ -113,6 +114,7 @@ export default function WireframeManualLayout() {
                                 <a
                                     key={section}
                                     href={`#${section}`}
+                                    data-cursor-chat="nav-section"
                                     className="text-[10px] font-mono uppercase tracking-wider transition-colors"
                                     style={{
                                         color: currentSection === section
@@ -135,457 +137,615 @@ export default function WireframeManualLayout() {
                 />
 
                 {/* === WHY UX DESIGN ENGINEER === */}
-                <WireframeSection
-                    id="why-ux-design-engineer"
-                    title="Why Kiruk"
-                    subtitle={portfolioData.whyUXDesignEngineer.hook}
-                >
-                    <div className="max-w-2xl mx-auto space-y-6">
-                        {/* Pain Points Grid */}
-                        <div className="grid md:grid-cols-2 gap-3 mb-4">
-                            <div
-                                className="border p-3"
-                                style={{ borderColor: 'var(--border-color)' }}
-                            >
-                                <div className="text-[10px] font-mono uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>
-                                    ⚡ Handoff Friction
-                                </div>
-                                <p className="text-xs font-mono" style={{ color: 'var(--text-main)' }}>
-                                    Great ideas stall when design and engineering split the work.
-                                </p>
-                            </div>
-                            <div
-                                className="border p-3"
-                                style={{ borderColor: 'var(--border-color)' }}
-                            >
-                                <div className="text-[10px] font-mono uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>
-                                    📊 What Teams Need
-                                </div>
-                                <p className="text-xs font-mono" style={{ color: 'var(--text-main)' }}>
-                                    A designer who can also ship production-ready UI.
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* The Bridge */}
-                        <div
-                            className="border-2 p-4"
-                            style={{ borderColor: 'var(--accent-color)', backgroundColor: 'rgba(var(--accent-color-rgb), 0.05)' }}
-                        >
-                            <div className="flex items-center gap-2 mb-2">
-                                <span className="text-lg">🌉</span>
-                                <span
-                                    className="text-[10px] font-mono uppercase tracking-widest font-bold"
-                                    style={{ color: 'var(--accent-color)' }}
-                                >
-                                    The Bridge
-                                </span>
-                            </div>
-                            <p className="text-sm font-mono font-bold" style={{ color: 'var(--text-main)' }}>
-                                I design, prototype, and build—so the vision survives to launch.
-                            </p>
-                            <p className="text-xs font-mono mt-1" style={{ color: 'var(--text-muted)' }}>
-                                Research → Interaction → Production
-                            </p>
-                        </div>
-                    </div>
-                </WireframeSection>
-
-                {/* === ABOUT/PROFILE - PERSONA FORMAT === */}
-                <WireframeSection
-                    id="about"
-                    title="Persona"
-                    subtitle="User profile analysis"
-                >
-                    <div ref={setSectionRef('about')} className="space-y-6">
-                        {/* Persona Header */}
-                        <ComponentBlueprint
-                            title="Identity"
-                            componentType="persona"
-                            rulerLabelTop="Design Engineer"
-                            rulerLabelLeft="@ HP Inc"
-                        >
-                            <div className="flex gap-6">
+                <div data-cursor-zone="why-ux-design-engineer">
+                    <WireframeSection
+                        id="why-ux-design-engineer"
+                        title="Why Kiruk"
+                        subtitle={portfolioData.whyUXDesignEngineer.hook}
+                    >
+                        <div className="max-w-2xl mx-auto space-y-6">
+                            {/* Pain Points Grid */}
+                            <div className="grid md:grid-cols-2 gap-3 mb-4">
                                 <div
-                                    className="w-24 h-24 border-2 overflow-hidden flex-shrink-0"
-                                    style={{ borderColor: 'var(--accent-color)' }}
+                                    className="border p-3"
+                                    style={{ borderColor: 'var(--border-color)' }}
                                 >
-                                    <Image
-                                        src="/images/dp-8bit.jpg"
-                                        alt="Profile Photo"
-                                        width={96}
-                                        height={96}
-                                        className="w-full h-full object-cover"
-                                        style={{ imageRendering: 'pixelated' }}
-                                    />
-                                </div>
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <span
-                                            className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 border"
-                                            style={{ borderColor: 'var(--accent-color)', color: 'var(--accent-color)' }}
-                                        >
-                                            👤 Persona
-                                        </span>
+                                    <div className="text-[10px] font-mono uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>
+                                        ⚡ Handoff Friction
                                     </div>
-                                    <h3
-                                        className="text-xl font-mono font-bold"
-                                        style={{ color: 'var(--text-main)' }}
-                                    >
-                                        {portfolioData.personal.fullName}
-                                    </h3>
-                                    <p
-                                        className="text-sm font-mono uppercase tracking-wider"
+                                    <p className="text-xs font-mono" style={{ color: 'var(--text-main)' }}>
+                                        Great ideas stall when design and engineering split the work.
+                                    </p>
+                                </div>
+                                <div
+                                    className="border p-3"
+                                    style={{ borderColor: 'var(--border-color)' }}
+                                >
+                                    <div className="text-[10px] font-mono uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>
+                                        📊 What Teams Need
+                                    </div>
+                                    <p className="text-xs font-mono" style={{ color: 'var(--text-main)' }}>
+                                        A designer who can also ship production-ready UI.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* The Bridge */}
+                            <div
+                                className="border-2 p-4"
+                                style={{ borderColor: 'var(--accent-color)', backgroundColor: 'rgba(var(--accent-color-rgb), 0.05)' }}
+                            >
+                                <div className="flex items-center gap-2 mb-2">
+                                    <span className="text-lg">🌉</span>
+                                    <span
+                                        className="text-[10px] font-mono uppercase tracking-widest font-bold"
                                         style={{ color: 'var(--accent-color)' }}
                                     >
-                                        {portfolioData.personal.title}
-                                    </p>
-                                    <p
-                                        className="text-xs font-mono mt-2"
-                                        style={{ color: 'var(--text-muted)' }}
-                                    >
-                                        📍 {portfolioData.personal.location}
-                                    </p>
+                                        The Bridge
+                                    </span>
                                 </div>
+                                <p className="text-sm font-mono font-bold" style={{ color: 'var(--text-main)' }}>
+                                    I design, prototype, and build—so the vision survives to launch.
+                                </p>
+                                <p className="text-xs font-mono mt-1" style={{ color: 'var(--text-muted)' }}>
+                                    Research → Interaction → Production
+                                </p>
                             </div>
-                        </ComponentBlueprint>
+                        </div>
+                    </WireframeSection>
+                </div>
 
-                        {/* Goals & Frustrations Grid */}
-                        <div className="grid md:grid-cols-2 gap-4">
+                {/* === ABOUT/PROFILE - PERSONA FORMAT === */}
+                <div data-cursor-zone="about">
+                    <WireframeSection
+                        id="about"
+                        title="Persona"
+                        subtitle="User profile analysis"
+                    >
+                        <div ref={setSectionRef('about')} className="space-y-6">
+                            {/* Persona Header */}
                             <ComponentBlueprint
-                                title="Goals"
-                                componentType="goals"
-                                rulerLabelTop="What I strive for"
-                                rulerLabelLeft="Objectives"
+                                title="Identity"
+                                componentType="persona"
+                                rulerLabelTop="Design Engineer"
+                                rulerLabelLeft="@ HP Inc"
                             >
-                                <ul className="space-y-2 text-sm font-mono">
-                                    <li className="flex items-start gap-2" style={{ color: 'var(--text-main)' }}>
-                                        <span style={{ color: 'var(--accent-color)' }}>→</span>
-                                        Ship user-centered products fast
-                                    </li>
-                                    <li className="flex items-start gap-2" style={{ color: 'var(--text-main)' }}>
-                                        <span style={{ color: 'var(--accent-color)' }}>→</span>
-                                        Bridge the design-engineering gap
-                                    </li>
-                                    <li className="flex items-start gap-2" style={{ color: 'var(--text-main)' }}>
-                                        <span style={{ color: 'var(--accent-color)' }}>→</span>
-                                        Build scalable design systems
-                                    </li>
-                                </ul>
+                                <div className="flex gap-6">
+                                    <div
+                                        className="w-24 h-24 border-2 overflow-hidden flex-shrink-0"
+                                        style={{ borderColor: 'var(--accent-color)' }}
+                                    >
+                                        <Image
+                                            src="/images/dp-8bit.jpg"
+                                            alt="Profile Photo"
+                                            width={96}
+                                            height={96}
+                                            className="w-full h-full object-cover"
+                                            style={{ imageRendering: 'pixelated' }}
+                                        />
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <span
+                                                className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 border"
+                                                style={{ borderColor: 'var(--accent-color)', color: 'var(--accent-color)' }}
+                                            >
+                                                👤 Persona
+                                            </span>
+                                        </div>
+                                        <h3
+                                            className="text-xl font-mono font-bold"
+                                            style={{ color: 'var(--text-main)' }}
+                                        >
+                                            {portfolioData.personal.fullName}
+                                        </h3>
+                                        <p
+                                            className="text-sm font-mono uppercase tracking-wider"
+                                            style={{ color: 'var(--accent-color)' }}
+                                        >
+                                            {portfolioData.personal.title}
+                                        </p>
+                                        <p
+                                            className="text-xs font-mono mt-2"
+                                            style={{ color: 'var(--text-muted)' }}
+                                        >
+                                            📍 {portfolioData.personal.location}
+                                        </p>
+                                    </div>
+                                </div>
                             </ComponentBlueprint>
 
-                            <ComponentBlueprint
-                                title="Frustrations"
-                                componentType="frustrations"
-                                rulerLabelTop="Pain points I solve"
-                                rulerLabelLeft="Challenges"
+                            {/* Goals & Frustrations Grid */}
+                            <div className="grid md:grid-cols-2 gap-4">
+                                <ComponentBlueprint
+                                    title="Goals"
+                                    componentType="goals"
+                                    rulerLabelTop="What I strive for"
+                                    rulerLabelLeft="Objectives"
+                                >
+                                    <ul className="space-y-2 text-sm font-mono">
+                                        <li className="flex items-start gap-2" style={{ color: 'var(--text-main)' }}>
+                                            <span style={{ color: 'var(--accent-color)' }}>→</span>
+                                            Ship user-centered products fast
+                                        </li>
+                                        <li className="flex items-start gap-2" style={{ color: 'var(--text-main)' }}>
+                                            <span style={{ color: 'var(--accent-color)' }}>→</span>
+                                            Bridge the design-engineering gap
+                                        </li>
+                                        <li className="flex items-start gap-2" style={{ color: 'var(--text-main)' }}>
+                                            <span style={{ color: 'var(--accent-color)' }}>→</span>
+                                            Build scalable design systems
+                                        </li>
+                                    </ul>
+                                </ComponentBlueprint>
+
+                                <ComponentBlueprint
+                                    title="Frustrations"
+                                    componentType="frustrations"
+                                    rulerLabelTop="Pain points I solve"
+                                    rulerLabelLeft="Challenges"
+                                >
+                                    <ul className="space-y-2 text-sm font-mono">
+                                        <li className="flex items-start gap-2" style={{ color: 'var(--text-main)' }}>
+                                            <span style={{ color: '#E91E63' }}>✕</span>
+                                            Siloed design and dev teams
+                                        </li>
+                                        <li className="flex items-start gap-2" style={{ color: 'var(--text-main)' }}>
+                                            <span style={{ color: '#E91E63' }}>✕</span>
+                                            Slow design-to-prod handoffs
+                                        </li>
+                                        <li className="flex items-start gap-2" style={{ color: 'var(--text-main)' }}>
+                                            <span style={{ color: '#E91E63' }}>✕</span>
+                                            Lost context in translation
+                                        </li>
+                                    </ul>
+                                </ComponentBlueprint>
+                            </div>
+
+                            {/* Quote */}
+                            <div
+                                className="border-l-4 pl-4 py-2"
+                                style={{ borderColor: 'var(--accent-color)' }}
                             >
-                                <ul className="space-y-2 text-sm font-mono">
-                                    <li className="flex items-start gap-2" style={{ color: 'var(--text-main)' }}>
-                                        <span style={{ color: '#E91E63' }}>✕</span>
-                                        Siloed design and dev teams
-                                    </li>
-                                    <li className="flex items-start gap-2" style={{ color: 'var(--text-main)' }}>
-                                        <span style={{ color: '#E91E63' }}>✕</span>
-                                        Slow design-to-prod handoffs
-                                    </li>
-                                    <li className="flex items-start gap-2" style={{ color: 'var(--text-main)' }}>
-                                        <span style={{ color: '#E91E63' }}>✕</span>
-                                        Lost context in translation
-                                    </li>
-                                </ul>
+                                <p
+                                    className="text-lg font-mono italic"
+                                    style={{ color: 'var(--text-main)' }}
+                                >
+                                    "{portfolioData.personal.tagline}"
+                                </p>
+                            </div>
+
+                            {/* Background */}
+                            <ComponentBlueprint
+                                title="Background"
+                                componentType="bio"
+                                rulerLabelTop="Context"
+                                rulerLabelLeft="Story"
+                            >
+                                <p
+                                    className="text-sm font-mono leading-relaxed"
+                                    style={{ color: 'var(--text-main)' }}
+                                >
+                                    {portfolioData.personal.bio}
+                                </p>
                             </ComponentBlueprint>
                         </div>
-
-                        {/* Quote */}
-                        <div
-                            className="border-l-4 pl-4 py-2"
-                            style={{ borderColor: 'var(--accent-color)' }}
-                        >
-                            <p
-                                className="text-lg font-mono italic"
-                                style={{ color: 'var(--text-main)' }}
-                            >
-                                "{portfolioData.personal.tagline}"
-                            </p>
-                        </div>
-
-                        {/* Background */}
-                        <ComponentBlueprint
-                            title="Background"
-                            componentType="bio"
-                            rulerLabelTop="Context"
-                            rulerLabelLeft="Story"
-                        >
-                            <p
-                                className="text-sm font-mono leading-relaxed"
-                                style={{ color: 'var(--text-main)' }}
-                            >
-                                {portfolioData.personal.bio}
-                            </p>
-                        </ComponentBlueprint>
-                    </div>
-                </WireframeSection>
+                    </WireframeSection>
+                </div>
 
                 {/* === SKILLS - EMPATHY MAP FORMAT === */}
-                <WireframeSection
-                    id="skills"
-                    title="Empathy Map"
-                    subtitle="Understanding my capabilities"
-                >
-                    <div ref={setSectionRef('skills')} className="space-y-6">
-                        {/* Empathy Map Header */}
-                        <div className="flex items-center gap-2 mb-4">
-                            <span className="text-lg">🧠</span>
-                            <span
-                                className="text-[10px] font-mono uppercase tracking-widest px-2 py-1 border"
-                                style={{ borderColor: 'var(--accent-color)', color: 'var(--accent-color)' }}
-                            >
-                                Empathy Map
-                            </span>
-                        </div>
+                <div data-cursor-zone="skills">
+                    <WireframeSection
+                        id="skills"
+                        title="Empathy Map"
+                        subtitle="Understanding my capabilities"
+                    >
+                        <div ref={setSectionRef('skills')} className="space-y-6">
+                            {/* Empathy Map Header */}
+                            <div className="flex items-center gap-2 mb-4">
+                                <span className="text-lg">🧠</span>
+                                <span
+                                    className="text-[10px] font-mono uppercase tracking-widest px-2 py-1 border"
+                                    style={{ borderColor: 'var(--accent-color)', color: 'var(--accent-color)' }}
+                                >
+                                    Empathy Map
+                                </span>
+                            </div>
 
-                        {/* 4-Quadrant Grid */}
-                        <div className="grid md:grid-cols-2 gap-4">
-                            {/* SAYS - Skills I claim */}
-                            <ComponentBlueprint
-                                title="Says"
-                                componentType="says"
-                                rulerLabelTop="Skills I claim"
-                                rulerLabelLeft="Expertise"
-                            >
-                                <div className="space-y-3">
-                                    <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
-                                        "I can bridge design and development..."
-                                    </p>
+                            {/* 4-Quadrant Grid */}
+                            <div className="grid md:grid-cols-2 gap-4">
+                                {/* SAYS - Skills I claim */}
+                                <ComponentBlueprint
+                                    title="Says"
+                                    componentType="says"
+                                    rulerLabelTop="Skills I claim"
+                                    rulerLabelLeft="Expertise"
+                                >
+                                    <div className="space-y-3">
+                                        <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
+                                            "I can bridge design and development..."
+                                        </p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {portfolioData.skills.filter(s => s.category === 'design').slice(0, 4).map(skill => (
+                                                <span
+                                                    key={skill.id}
+                                                    className="text-[10px] font-mono px-2 py-1 border"
+                                                    style={{ borderColor: 'var(--accent-color)', color: 'var(--accent-color)' }}
+                                                >
+                                                    {skill.name}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </ComponentBlueprint>
+
+                                {/* THINKS - Design Philosophy */}
+                                <ComponentBlueprint
+                                    title="Thinks"
+                                    componentType="thinks"
+                                    rulerLabelTop="Philosophy"
+                                    rulerLabelLeft="Mindset"
+                                >
+                                    <ul className="space-y-2 text-sm font-mono">
+                                        <li className="flex items-start gap-2" style={{ color: 'var(--text-main)' }}>
+                                            <span style={{ color: 'var(--accent-color)' }}>💡</span>
+                                            Design is engineering
+                                        </li>
+                                        <li className="flex items-start gap-2" style={{ color: 'var(--text-main)' }}>
+                                            <span style={{ color: 'var(--accent-color)' }}>💡</span>
+                                            Ship fast, iterate faster
+                                        </li>
+                                        <li className="flex items-start gap-2" style={{ color: 'var(--text-main)' }}>
+                                            <span style={{ color: 'var(--accent-color)' }}>💡</span>
+                                            User problems → Solutions
+                                        </li>
+                                    </ul>
+                                </ComponentBlueprint>
+
+                                {/* DOES - Technologies */}
+                                <ComponentBlueprint
+                                    title="Does"
+                                    componentType="does"
+                                    rulerLabelTop="Technologies"
+                                    rulerLabelLeft="Stack"
+                                >
                                     <div className="flex flex-wrap gap-2">
-                                        {portfolioData.skills.filter(s => s.category === 'design').slice(0, 4).map(skill => (
+                                        {/* Priority skills: nextjs, figma, blender, mongodb, splunk */}
+                                        {portfolioData.skills.filter(s =>
+                                            s.id === 'nextjs' ||
+                                            s.id === 'figma' ||
+                                            s.id === 'blender' ||
+                                            s.id === 'splunk'
+                                        ).map(skill => (
                                             <span
                                                 key={skill.id}
                                                 className="text-[10px] font-mono px-2 py-1 border"
-                                                style={{ borderColor: 'var(--accent-color)', color: 'var(--accent-color)' }}
+                                                style={{ borderColor: 'var(--border-color)', color: 'var(--text-muted)' }}
                                             >
-                                                {skill.name}
+                                                {skill.icon} {skill.name}
+                                            </span>
+                                        ))}
+                                        {/* MongoDB */}
+                                        <span
+                                            className="text-[10px] font-mono px-2 py-1 border"
+                                            style={{ borderColor: 'var(--border-color)', color: 'var(--text-muted)' }}
+                                        >
+                                            🍃 MongoDB
+                                        </span>
+                                        {/* Other relevant skills */}
+                                        {portfolioData.skills.filter(s =>
+                                            (s.category === 'tools' || s.category === 'frontend' || s.category === 'backend') &&
+                                            s.id !== 'nextjs' &&
+                                            s.id !== 'figma' &&
+                                            s.id !== 'blender' &&
+                                            s.id !== 'splunk'
+                                        ).slice(0, 8).map(skill => (
+                                            <span
+                                                key={skill.id}
+                                                className="text-[10px] font-mono px-2 py-1 border"
+                                                style={{ borderColor: 'var(--border-color)', color: 'var(--text-muted)' }}
+                                            >
+                                                {skill.icon} {skill.name}
                                             </span>
                                         ))}
                                     </div>
-                                </div>
-                            </ComponentBlueprint>
+                                </ComponentBlueprint>
 
-                            {/* THINKS - Design Philosophy */}
-                            <ComponentBlueprint
-                                title="Thinks"
-                                componentType="thinks"
-                                rulerLabelTop="Philosophy"
-                                rulerLabelLeft="Mindset"
-                            >
-                                <ul className="space-y-2 text-sm font-mono">
-                                    <li className="flex items-start gap-2" style={{ color: 'var(--text-main)' }}>
-                                        <span style={{ color: 'var(--accent-color)' }}>💡</span>
-                                        Design is engineering
-                                    </li>
-                                    <li className="flex items-start gap-2" style={{ color: 'var(--text-main)' }}>
-                                        <span style={{ color: 'var(--accent-color)' }}>💡</span>
-                                        Ship fast, iterate faster
-                                    </li>
-                                    <li className="flex items-start gap-2" style={{ color: 'var(--text-main)' }}>
-                                        <span style={{ color: 'var(--accent-color)' }}>💡</span>
-                                        User problems → Solutions
-                                    </li>
-                                </ul>
-                            </ComponentBlueprint>
-
-                            {/* DOES - Technologies */}
-                            <ComponentBlueprint
-                                title="Does"
-                                componentType="does"
-                                rulerLabelTop="Technologies"
-                                rulerLabelLeft="Stack"
-                            >
-                                <div className="flex flex-wrap gap-2">
-                                    {/* Priority skills: nextjs, figma, blender, mongodb, splunk */}
-                                    {portfolioData.skills.filter(s => 
-                                        s.id === 'nextjs' || 
-                                        s.id === 'figma' || 
-                                        s.id === 'blender' || 
-                                        s.id === 'splunk'
-                                    ).map(skill => (
-                                        <span
-                                            key={skill.id}
-                                            className="text-[10px] font-mono px-2 py-1 border"
-                                            style={{ borderColor: 'var(--border-color)', color: 'var(--text-muted)' }}
-                                        >
-                                            {skill.icon} {skill.name}
-                                        </span>
-                                    ))}
-                                    {/* MongoDB */}
-                                    <span
-                                        className="text-[10px] font-mono px-2 py-1 border"
-                                        style={{ borderColor: 'var(--border-color)', color: 'var(--text-muted)' }}
-                                    >
-                                        🍃 MongoDB
-                                    </span>
-                                    {/* Other relevant skills */}
-                                    {portfolioData.skills.filter(s => 
-                                        (s.category === 'tools' || s.category === 'frontend' || s.category === 'backend') &&
-                                        s.id !== 'nextjs' && 
-                                        s.id !== 'figma' && 
-                                        s.id !== 'blender' && 
-                                        s.id !== 'splunk'
-                                    ).slice(0, 8).map(skill => (
-                                        <span
-                                            key={skill.id}
-                                            className="text-[10px] font-mono px-2 py-1 border"
-                                            style={{ borderColor: 'var(--border-color)', color: 'var(--text-muted)' }}
-                                        >
-                                            {skill.icon} {skill.name}
-                                        </span>
-                                    ))}
-                                </div>
-                            </ComponentBlueprint>
-
-                            {/* FEELS - Passions */}
-                            <ComponentBlueprint
-                                title="Feels"
-                                componentType="feels"
-                                rulerLabelTop="Passions"
-                                rulerLabelLeft="Motivations"
-                            >
-                                <ul className="space-y-2 text-sm font-mono">
-                                    <li className="flex items-start gap-2" style={{ color: 'var(--text-main)' }}>
-                                        <span>✨</span>
-                                        Passionate about craft & details
-                                    </li>
-                                    <li className="flex items-start gap-2" style={{ color: 'var(--text-main)' }}>
-                                        <span>🎮</span>
-                                        Excited by gamified experiences
-                                    </li>
-                                    <li className="flex items-start gap-2" style={{ color: 'var(--text-main)' }}>
-                                        <span>🤖</span>
-                                        Curious about AI integration
-                                    </li>
-                                </ul>
-                            </ComponentBlueprint>
+                                {/* FEELS - Passions */}
+                                <ComponentBlueprint
+                                    title="Feels"
+                                    componentType="feels"
+                                    rulerLabelTop="Passions"
+                                    rulerLabelLeft="Motivations"
+                                >
+                                    <ul className="space-y-2 text-sm font-mono">
+                                        <li className="flex items-start gap-2" style={{ color: 'var(--text-main)' }}>
+                                            <span>✨</span>
+                                            Passionate about craft & details
+                                        </li>
+                                        <li className="flex items-start gap-2" style={{ color: 'var(--text-main)' }}>
+                                            <span>🎮</span>
+                                            Excited by gamified experiences
+                                        </li>
+                                        <li className="flex items-start gap-2" style={{ color: 'var(--text-main)' }}>
+                                            <span>🤖</span>
+                                            Curious about AI integration
+                                        </li>
+                                    </ul>
+                                </ComponentBlueprint>
+                            </div>
                         </div>
-                    </div>
-                </WireframeSection>
+                    </WireframeSection>
+                </div>
 
                 {/* === EXPERIENCE - JOURNEY MAP FORMAT === */}
-                <WireframeSection
-                    id="experience"
-                    title="Journey Map"
-                    subtitle="Career progression timeline"
-                >
-                    <div ref={setSectionRef('experience')} className="space-y-6">
-                        {/* Journey Map Header */}
-                        <div className="flex items-center gap-2 mb-4">
-                            <span className="text-lg">🗺️</span>
-                            <span
-                                className="text-[10px] font-mono uppercase tracking-widest px-2 py-1 border"
-                                style={{ borderColor: 'var(--accent-color)', color: 'var(--accent-color)' }}
-                            >
-                                Journey Map
-                            </span>
-                        </div>
+                <div data-cursor-zone="experience">
+                    <WireframeSection
+                        id="experience"
+                        title="Journey Map"
+                        subtitle="Career progression timeline"
+                    >
+                        <div ref={setSectionRef('experience')} className="space-y-6">
+                            {/* Journey Map Header */}
+                            <div className="flex items-center gap-2 mb-4">
+                                <span className="text-lg">🗺️</span>
+                                <span
+                                    className="text-[10px] font-mono uppercase tracking-widest px-2 py-1 border"
+                                    style={{ borderColor: 'var(--accent-color)', color: 'var(--accent-color)' }}
+                                >
+                                    Journey Map
+                                </span>
+                            </div>
 
-                        {/* Timeline Phases */}
-                        <div className="flex items-center justify-between mb-6 overflow-x-auto pb-2">
-                            {['Discovery', 'Growth', 'Mastery', 'Current'].map((phase, i) => (
-                                <div key={phase} className="flex items-center">
-                                    <div className="text-center px-4">
-                                        <div
-                                            className="w-4 h-4 border-2 rounded-full mx-auto mb-1"
-                                            style={{
-                                                borderColor: 'var(--accent-color)',
-                                                backgroundColor: i === 3 ? 'var(--accent-color)' : 'transparent'
-                                            }}
-                                        />
-                                        <span
-                                            className="text-[10px] font-mono uppercase tracking-wider"
-                                            style={{ color: i === 3 ? 'var(--accent-color)' : 'var(--text-muted)' }}
-                                        >
-                                            {phase}
-                                        </span>
+                            {/* Timeline Phases */}
+                            <div className="flex items-center justify-between mb-6 overflow-x-auto pb-2">
+                                {['Discovery', 'Growth', 'Mastery', 'Current'].map((phase, i) => (
+                                    <div key={phase} className="flex items-center">
+                                        <div className="text-center px-4">
+                                            <div
+                                                className="w-4 h-4 border-2 rounded-full mx-auto mb-1"
+                                                style={{
+                                                    borderColor: 'var(--accent-color)',
+                                                    backgroundColor: i === 3 ? 'var(--accent-color)' : 'transparent'
+                                                }}
+                                            />
+                                            <span
+                                                className="text-[10px] font-mono uppercase tracking-wider"
+                                                style={{ color: i === 3 ? 'var(--accent-color)' : 'var(--text-muted)' }}
+                                            >
+                                                {phase}
+                                            </span>
+                                        </div>
+                                        {i < 3 && (
+                                            <div
+                                                className="h-px w-12 md:w-20"
+                                                style={{ backgroundColor: 'var(--border-color)' }}
+                                            />
+                                        )}
                                     </div>
-                                    {i < 3 && (
-                                        <div
-                                            className="h-px w-12 md:w-20"
-                                            style={{ backgroundColor: 'var(--border-color)' }}
-                                        />
-                                    )}
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
 
-                        {/* Experience Cards */}
-                        <div className="space-y-4">
-                            {portfolioData.experience.map((exp, index) => (
-                                <div key={exp.id} className="relative">
-                                    {/* Timeline connector */}
-                                    {index < portfolioData.experience.length - 1 && (
-                                        <div
-                                            className="absolute left-4 top-12 w-px h-full"
-                                            style={{ backgroundColor: 'var(--border-color)' }}
-                                        />
-                                    )}
-                                    <ComponentBlueprint
-                                        title={exp.position}
-                                        componentType={exp.current ? 'current-stage' : 'past-stage'}
-                                        description={`${exp.company} • ${exp.location}`}
-                                        rulerLabelTop={`${exp.startDate} → ${exp.endDate || 'Present'}`}
-                                        rulerLabelLeft={`@ ${exp.company}`}
-                                    >
-                                        <div className="space-y-3">
-                                            {/* Phase Indicator */}
-                                            <div className="flex items-center gap-3">
-                                                <div
-                                                    className="w-8 h-8 border-2 rounded-full flex items-center justify-center flex-shrink-0"
-                                                    style={{
-                                                        borderColor: exp.current ? 'var(--accent-color)' : 'var(--border-color)',
-                                                        backgroundColor: exp.current ? 'var(--accent-color)' : 'transparent'
-                                                    }}
-                                                >
-                                                    <span
-                                                        className="text-xs font-mono font-bold"
-                                                        style={{ color: exp.current ? 'var(--bg-main)' : 'var(--text-muted)' }}
+                            {/* Experience Cards */}
+                            <div className="space-y-4">
+                                {portfolioData.experience.map((exp, index) => (
+                                    <div key={exp.id} className="relative">
+                                        {/* Timeline connector */}
+                                        {index < portfolioData.experience.length - 1 && (
+                                            <div
+                                                className="absolute left-4 top-12 w-px h-full"
+                                                style={{ backgroundColor: 'var(--border-color)' }}
+                                            />
+                                        )}
+                                        <ComponentBlueprint
+                                            title={exp.position}
+                                            componentType={exp.current ? 'current-stage' : 'past-stage'}
+                                            description={`${exp.company} • ${exp.location}`}
+                                            rulerLabelTop={`${exp.startDate} → ${exp.endDate || 'Present'}`}
+                                            rulerLabelLeft={`@ ${exp.company}`}
+                                        >
+                                            <div className="space-y-3">
+                                                {/* Phase Indicator */}
+                                                <div className="flex items-center gap-3">
+                                                    <div
+                                                        className="w-8 h-8 border-2 rounded-full flex items-center justify-center flex-shrink-0"
+                                                        style={{
+                                                            borderColor: exp.current ? 'var(--accent-color)' : 'var(--border-color)',
+                                                            backgroundColor: exp.current ? 'var(--accent-color)' : 'transparent'
+                                                        }}
                                                     >
-                                                        {index + 1}
-                                                    </span>
-                                                </div>
-                                                <div>
-                                                    <div className="flex items-center gap-2">
                                                         <span
-                                                            className="text-xs font-mono"
-                                                            style={{ color: 'var(--text-muted)' }}
+                                                            className="text-xs font-mono font-bold"
+                                                            style={{ color: exp.current ? 'var(--bg-main)' : 'var(--text-muted)' }}
                                                         >
-                                                            {exp.startDate} → {exp.endDate || 'Present'}
+                                                            {index + 1}
                                                         </span>
-                                                        {exp.current && (
+                                                    </div>
+                                                    <div>
+                                                        <div className="flex items-center gap-2">
                                                             <span
-                                                                className="px-2 py-0.5 text-[10px] uppercase"
-                                                                style={{
-                                                                    backgroundColor: 'var(--accent-color)',
-                                                                    color: 'var(--bg-main)'
-                                                                }}
+                                                                className="text-xs font-mono"
+                                                                style={{ color: 'var(--text-muted)' }}
                                                             >
-                                                                Current
+                                                                {exp.startDate} → {exp.endDate || 'Present'}
                                                             </span>
-                                                        )}
+                                                            {exp.current && (
+                                                                <span
+                                                                    className="px-2 py-0.5 text-[10px] uppercase"
+                                                                    style={{
+                                                                        backgroundColor: 'var(--accent-color)',
+                                                                        color: 'var(--bg-main)'
+                                                                    }}
+                                                                >
+                                                                    Current
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
 
-                                            {/* Actions/Description */}
+                                                {/* Actions/Description */}
+                                                <p
+                                                    className="text-sm font-mono pl-11"
+                                                    style={{ color: 'var(--text-main)' }}
+                                                >
+                                                    {exp.description}
+                                                </p>
+
+                                                {/* Touchpoints (Technologies) */}
+                                                <div className="flex flex-wrap gap-2 pl-11">
+                                                    {exp.technologies.slice(0, 5).map((tech) => (
+                                                        <span
+                                                            key={tech}
+                                                            className="text-[10px] font-mono px-2 py-1 border"
+                                                            style={{
+                                                                borderColor: 'var(--border-color)',
+                                                                color: 'var(--text-muted)'
+                                                            }}
+                                                        >
+                                                            {tech}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </ComponentBlueprint>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </WireframeSection>
+                </div>
+
+                {/* === RESULTS & IMPACT === */}
+                <div data-cursor-zone="impact">
+                    <WireframeSection
+                        id="impact"
+                        title="Results & Impact"
+                        subtitle="Quantified outcomes"
+                    >
+                        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
+                            {portfolioData.impactMetrics.map((metric, index) => (
+                                <ComponentBlueprint
+                                    key={metric.id}
+                                    title={metric.label}
+                                    componentType={metric.category}
+                                    hideTitleInHeader={true}
+                                >
+                                    <div className="flex flex-col items-center space-y-3 text-center h-full">
+                                        {/* Title - positioned right under the badge */}
+                                        <h3
+                                            className="text-sm font-mono font-bold uppercase tracking-wider flex-shrink-0 -mt-2"
+                                            style={{ color: 'var(--text-main)' }}
+                                        >
+                                            {metric.label}
+                                        </h3>
+
+                                        {/* Icon */}
+                                        <span className="text-2xl flex-shrink-0">{metric.icon}</span>
+
+                                        {/* Value */}
+                                        <div
+                                            className="text-3xl font-mono font-black flex-shrink-0"
+                                            style={{ color: 'var(--accent-color)' }}
+                                        >
+                                            {metric.value}
+                                        </div>
+
+                                        {/* Context */}
+                                        {metric.context && (
                                             <p
-                                                className="text-sm font-mono pl-11"
+                                                className="text-[10px] font-mono flex-shrink-0"
+                                                style={{ color: 'var(--text-muted)' }}
+                                            >
+                                                {metric.context}
+                                            </p>
+                                        )}
+
+                                        {/* Progress bar visualization */}
+                                        <div
+                                            className="h-1 w-full mx-auto mt-auto"
+                                            style={{ backgroundColor: 'var(--border-color)' }}
+                                        >
+                                            <div
+                                                className="h-full transition-all duration-500"
+                                                style={{
+                                                    backgroundColor: 'var(--accent-color)',
+                                                    width: `${(index + 1) * 25}%`
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                </ComponentBlueprint>
+                            ))}
+                        </div>
+                    </WireframeSection>
+                </div>
+
+                {/* === PROJECTS - CARD SORTING FORMAT === */}
+                <div data-cursor-zone="projects">
+                    <WireframeSection
+                        id="projects"
+                        title="Card Sorting"
+                        subtitle="Information architecture"
+                    >
+                        <div ref={setSectionRef('projects')} className="space-y-6">
+                            {/* Card Sorting Header */}
+                            <div className="flex items-center gap-2 mb-4">
+                                <span className="text-lg">🗂️</span>
+                                <span
+                                    className="text-[10px] font-mono uppercase tracking-widest px-2 py-1 border"
+                                    style={{ borderColor: 'var(--accent-color)', color: 'var(--accent-color)' }}
+                                >
+                                    Card Sorting
+                                </span>
+                            </div>
+
+                            {/* Category Tabs */}
+                            <div className="flex flex-wrap gap-2 mb-4">
+                                {['All', 'Web', 'Mobile', 'Design', 'AI'].map((cat, i) => (
+                                    <button
+                                        key={cat}
+                                        className="px-3 py-1 border text-xs font-mono uppercase tracking-wider cursor-pointer"
+                                        style={{
+                                            borderColor: i === 0 ? 'var(--accent-color)' : 'var(--border-color)',
+                                            color: i === 0 ? 'var(--accent-color)' : 'var(--text-muted)',
+                                            backgroundColor: i === 0 ? 'rgba(var(--accent-color-rgb), 0.1)' : 'transparent'
+                                        }}
+                                    >
+                                        {cat}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Sorted Cards Grid */}
+                            <div className="grid md:grid-cols-2 gap-6">
+                                {portfolioData.projects.slice(0, 4).map((project) => (
+                                    <ComponentBlueprint
+                                        key={project.id}
+                                        title={project.title}
+                                        componentType={project.category}
+                                        rulerLabelTop={project.timeline.duration}
+                                        rulerLabelLeft={project.role}
+                                    >
+                                        <div className="space-y-3">
+                                            {/* Hierarchy indicator */}
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <span
+                                                    className="text-[10px] font-mono uppercase px-2 py-0.5 border"
+                                                    style={{ borderColor: 'var(--accent-color)', color: 'var(--accent-color)' }}
+                                                >
+                                                    {project.category}
+                                                </span>
+                                            </div>
+                                            <p
+                                                className="text-sm font-mono"
                                                 style={{ color: 'var(--text-main)' }}
                                             >
-                                                {exp.description}
+                                                {project.description}
                                             </p>
-
-                                            {/* Touchpoints (Technologies) */}
-                                            <div className="flex flex-wrap gap-2 pl-11">
-                                                {exp.technologies.slice(0, 5).map((tech) => (
+                                            {/* Taxonomy tags */}
+                                            <div className="flex flex-wrap gap-2">
+                                                {project.technologies.slice(0, 4).map((tech) => (
                                                     <span
                                                         key={tech}
                                                         className="text-[10px] font-mono px-2 py-1 border"
@@ -598,318 +758,178 @@ export default function WireframeManualLayout() {
                                                     </span>
                                                 ))}
                                             </div>
+                                            <Link
+                                                href="/portfolio"
+                                                data-cursor-chat="card-open"
+                                                className="inline-block text-xs font-mono uppercase tracking-wider transition-colors"
+                                                style={{ color: 'var(--accent-color)' }}
+                                            >
+                                                Open Card →
+                                            </Link>
                                         </div>
                                     </ComponentBlueprint>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
-                    </div>
-                </WireframeSection>
-
-                {/* === RESULTS & IMPACT === */}
-                <WireframeSection
-                    id="impact"
-                    title="Results & Impact"
-                    subtitle="Quantified outcomes"
-                >
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
-                        {portfolioData.impactMetrics.map((metric, index) => (
-                            <ComponentBlueprint
-                                key={metric.id}
-                                title={metric.label}
-                                componentType={metric.category}
-                                hideTitleInHeader={true}
-                            >
-                                <div className="flex flex-col items-center space-y-3 text-center h-full">
-                                    {/* Title - positioned right under the badge */}
-                                    <h3
-                                        className="text-sm font-mono font-bold uppercase tracking-wider flex-shrink-0 -mt-2"
-                                        style={{ color: 'var(--text-main)' }}
-                                    >
-                                        {metric.label}
-                                    </h3>
-
-                                    {/* Icon */}
-                                    <span className="text-2xl flex-shrink-0">{metric.icon}</span>
-
-                                    {/* Value */}
-                                    <div
-                                        className="text-3xl font-mono font-black flex-shrink-0"
-                                        style={{ color: 'var(--accent-color)' }}
-                                    >
-                                        {metric.value}
-                                    </div>
-
-                                    {/* Context */}
-                                    {metric.context && (
-                                        <p
-                                            className="text-[10px] font-mono flex-shrink-0"
-                                            style={{ color: 'var(--text-muted)' }}
-                                        >
-                                            {metric.context}
-                                        </p>
-                                    )}
-
-                                    {/* Progress bar visualization */}
-                                    <div
-                                        className="h-1 w-full mx-auto mt-auto"
-                                        style={{ backgroundColor: 'var(--border-color)' }}
-                                    >
-                                        <div
-                                            className="h-full transition-all duration-500"
-                                            style={{
-                                                backgroundColor: 'var(--accent-color)',
-                                                width: `${(index + 1) * 25}%`
-                                            }}
-                                        />
-                                    </div>
-                                </div>
-                            </ComponentBlueprint>
-                        ))}
-                    </div>
-                </WireframeSection>
-
-                {/* === PROJECTS - CARD SORTING FORMAT === */}
-                <WireframeSection
-                    id="projects"
-                    title="Card Sorting"
-                    subtitle="Information architecture"
-                >
-                    <div ref={setSectionRef('projects')} className="space-y-6">
-                        {/* Card Sorting Header */}
-                        <div className="flex items-center gap-2 mb-4">
-                            <span className="text-lg">🗂️</span>
-                            <span
-                                className="text-[10px] font-mono uppercase tracking-widest px-2 py-1 border"
-                                style={{ borderColor: 'var(--accent-color)', color: 'var(--accent-color)' }}
-                            >
-                                Card Sorting
-                            </span>
-                        </div>
-
-                        {/* Category Tabs */}
-                        <div className="flex flex-wrap gap-2 mb-4">
-                            {['All', 'Web', 'Mobile', 'Design', 'AI'].map((cat, i) => (
-                                <button
-                                    key={cat}
-                                    className="px-3 py-1 border text-xs font-mono uppercase tracking-wider cursor-pointer"
-                                    style={{
-                                        borderColor: i === 0 ? 'var(--accent-color)' : 'var(--border-color)',
-                                        color: i === 0 ? 'var(--accent-color)' : 'var(--text-muted)',
-                                        backgroundColor: i === 0 ? 'rgba(var(--accent-color-rgb), 0.1)' : 'transparent'
-                                    }}
-                                >
-                                    {cat}
-                                </button>
-                            ))}
-                        </div>
-
-                        {/* Sorted Cards Grid */}
-                        <div className="grid md:grid-cols-2 gap-6">
-                            {portfolioData.projects.slice(0, 4).map((project) => (
-                                <ComponentBlueprint
-                                    key={project.id}
-                                    title={project.title}
-                                    componentType={project.category}
-                                    rulerLabelTop={project.timeline.duration}
-                                    rulerLabelLeft={project.role}
-                                >
-                                    <div className="space-y-3">
-                                        {/* Hierarchy indicator */}
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <span
-                                                className="text-[10px] font-mono uppercase px-2 py-0.5 border"
-                                                style={{ borderColor: 'var(--accent-color)', color: 'var(--accent-color)' }}
-                                            >
-                                                {project.category}
-                                            </span>
-                                        </div>
-                                        <p
-                                            className="text-sm font-mono"
-                                            style={{ color: 'var(--text-main)' }}
-                                        >
-                                            {project.description}
-                                        </p>
-                                        {/* Taxonomy tags */}
-                                        <div className="flex flex-wrap gap-2">
-                                            {project.technologies.slice(0, 4).map((tech) => (
-                                                <span
-                                                    key={tech}
-                                                    className="text-[10px] font-mono px-2 py-1 border"
-                                                    style={{
-                                                        borderColor: 'var(--border-color)',
-                                                        color: 'var(--text-muted)'
-                                                    }}
-                                                >
-                                                    {tech}
-                                                </span>
-                                            ))}
-                                        </div>
-                                        <Link
-                                            href="/portfolio"
-                                            className="inline-block text-xs font-mono uppercase tracking-wider transition-colors"
-                                            style={{ color: 'var(--accent-color)' }}
-                                        >
-                                            Open Card →
-                                        </Link>
-                                    </div>
-                                </ComponentBlueprint>
-                            ))}
-                        </div>
-                    </div>
-                </WireframeSection>
+                    </WireframeSection>
+                </div>
 
                 {/* === CONTACT - USABILITY TEST FORMAT === */}
-                <WireframeSection
-                    id="contact"
-                    title="Usability Test"
-                    subtitle="Test the connection"
-                    className="pb-20"
-                >
-                    <div ref={setSectionRef('contact')} className="space-y-6">
-                        {/* Usability Test Header */}
-                        <div className="flex items-center gap-2 mb-4">
-                            <span className="text-lg">🧪</span>
-                            <span
-                                className="text-[10px] font-mono uppercase tracking-widest px-2 py-1 border"
-                                style={{ borderColor: 'var(--accent-color)', color: 'var(--accent-color)' }}
-                            >
-                                Usability Test
-                            </span>
-                        </div>
+                <div data-cursor-zone="contact">
+                    <WireframeSection
+                        id="contact"
+                        title="Usability Test"
+                        subtitle="Test the connection"
+                        className="pb-20"
+                    >
+                        <div ref={setSectionRef('contact')} className="space-y-6">
+                            {/* Usability Test Header */}
+                            <div className="flex items-center gap-2 mb-4">
+                                <span className="text-lg">🧪</span>
+                                <span
+                                    className="text-[10px] font-mono uppercase tracking-widest px-2 py-1 border"
+                                    style={{ borderColor: 'var(--accent-color)', color: 'var(--accent-color)' }}
+                                >
+                                    Usability Test
+                                </span>
+                            </div>
 
-                        <div className="grid md:grid-cols-2 gap-8">
-                            {/* Test Scenario */}
-                            <ComponentBlueprint
-                                title="Test Scenario"
-                                componentType="task"
-                                rulerLabelTop="Objective"
-                                rulerLabelLeft="Task"
-                            >
-                                <div className="space-y-4">
-                                    <div
-                                        className="border-l-4 pl-3 py-2"
-                                        style={{ borderColor: 'var(--accent-color)' }}
-                                    >
-                                        <p
-                                            className="text-sm font-mono font-bold"
-                                            style={{ color: 'var(--text-main)' }}
+                            <div className="grid md:grid-cols-2 gap-8">
+                                {/* Test Scenario */}
+                                <ComponentBlueprint
+                                    title="Test Scenario"
+                                    componentType="task"
+                                    rulerLabelTop="Objective"
+                                    rulerLabelLeft="Task"
+                                >
+                                    <div className="space-y-4">
+                                        <div
+                                            className="border-l-4 pl-3 py-2"
+                                            style={{ borderColor: 'var(--accent-color)' }}
                                         >
-                                            Task: Initiate collaboration
-                                        </p>
-                                        <p
-                                            className="text-xs font-mono mt-1"
-                                            style={{ color: 'var(--text-muted)' }}
+                                            <p
+                                                className="text-sm font-mono font-bold"
+                                                style={{ color: 'var(--text-main)' }}
+                                            >
+                                                Task: Initiate collaboration
+                                            </p>
+                                            <p
+                                                className="text-xs font-mono mt-1"
+                                                style={{ color: 'var(--text-muted)' }}
+                                            >
+                                                Use any channel below to start a conversation
+                                            </p>
+                                        </div>
+
+                                        {/* Success Metrics */}
+                                        <div className="space-y-2">
+                                            <p className="text-[10px] font-mono uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
+                                                Success Metrics
+                                            </p>
+                                            <div className="flex items-center gap-2" style={{ color: 'var(--text-main)' }}>
+                                                <span style={{ color: 'var(--accent-color)' }}>✓</span>
+                                                <span className="text-xs font-mono">Response Time: &lt; 24 hours</span>
+                                            </div>
+                                            <div className="flex items-center gap-2" style={{ color: 'var(--text-main)' }}>
+                                                <span style={{ color: 'var(--accent-color)' }}>✓</span>
+                                                <span className="text-xs font-mono">Status: {portfolioData.contact.availability.toUpperCase()}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2" style={{ color: 'var(--text-main)' }}>
+                                                <span style={{ color: 'var(--accent-color)' }}>✓</span>
+                                                <span className="text-xs font-mono">Timezone: {portfolioData.contact.timezone}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </ComponentBlueprint>
+
+                                {/* Test Channels */}
+                                <ComponentBlueprint
+                                    title="Test Channels"
+                                    componentType="channels"
+                                    rulerLabelTop="Contact Methods"
+                                    rulerLabelLeft="Options"
+                                >
+                                    <div className="space-y-4">
+                                        <a
+                                            href={`mailto:${portfolioData.contact.email}`}
+                                            data-cursor-chat="link-email"
+                                            className="flex items-center gap-3 p-3 border group transition-all"
+                                            style={{ borderColor: 'var(--border-color)' }}
                                         >
-                                            Use any channel below to start a conversation
-                                        </p>
+                                            <span className="text-xl">📧</span>
+                                            <div>
+                                                <span
+                                                    className="text-xs font-mono block group-hover:underline"
+                                                    style={{ color: 'var(--accent-color)' }}
+                                                >
+                                                    {portfolioData.contact.email}
+                                                </span>
+                                                <span className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>Primary channel</span>
+                                            </div>
+                                        </a>
+                                        <a
+                                            href={portfolioData.social.linkedin}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            data-cursor-chat="link-linkedin"
+                                            className="flex items-center gap-3 p-3 border group transition-all"
+                                            style={{ borderColor: 'var(--border-color)' }}
+                                        >
+                                            <span className="text-xl">💼</span>
+                                            <div>
+                                                <span
+                                                    className="text-xs font-mono block group-hover:underline"
+                                                    style={{ color: 'var(--accent-color)' }}
+                                                >
+                                                    LinkedIn
+                                                </span>
+                                                <span className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>Professional network</span>
+                                            </div>
+                                        </a>
+                                        <a
+                                            href="tel:+919486582579"
+                                            data-cursor-chat="link-phone"
+                                            className="flex items-center gap-3 p-3 border group transition-all"
+                                            style={{ borderColor: 'var(--border-color)' }}
+                                        >
+                                            <span className="text-xl">📞</span>
+                                            <div>
+                                                <span
+                                                    className="text-xs font-mono block group-hover:underline"
+                                                    style={{ color: 'var(--accent-color)' }}
+                                                >
+                                                    +91 94865 82579
+                                                </span>
+                                                <span className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>Call only if it&apos;s urgent</span>
+                                            </div>
+                                        </a>
                                     </div>
+                                </ComponentBlueprint>
+                            </div>
 
-                                    {/* Success Metrics */}
-                                    <div className="space-y-2">
-                                        <p className="text-[10px] font-mono uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-                                            Success Metrics
-                                        </p>
-                                        <div className="flex items-center gap-2" style={{ color: 'var(--text-main)' }}>
-                                            <span style={{ color: 'var(--accent-color)' }}>✓</span>
-                                            <span className="text-xs font-mono">Response Time: &lt; 24 hours</span>
-                                        </div>
-                                        <div className="flex items-center gap-2" style={{ color: 'var(--text-main)' }}>
-                                            <span style={{ color: 'var(--accent-color)' }}>✓</span>
-                                            <span className="text-xs font-mono">Status: {portfolioData.contact.availability.toUpperCase()}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2" style={{ color: 'var(--text-main)' }}>
-                                            <span style={{ color: 'var(--accent-color)' }}>✓</span>
-                                            <span className="text-xs font-mono">Timezone: {portfolioData.contact.timezone}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </ComponentBlueprint>
-
-                            {/* Test Channels */}
-                            <ComponentBlueprint
-                                title="Test Channels"
-                                componentType="channels"
-                                rulerLabelTop="Contact Methods"
-                                rulerLabelLeft="Options"
-                            >
-                                <div className="space-y-4">
-                                    <a
-                                        href={`mailto:${portfolioData.contact.email}`}
-                                        className="flex items-center gap-3 p-3 border group transition-all"
-                                        style={{ borderColor: 'var(--border-color)' }}
-                                    >
-                                        <span className="text-xl">📧</span>
-                                        <div>
-                                            <span
-                                                className="text-xs font-mono block group-hover:underline"
-                                                style={{ color: 'var(--accent-color)' }}
-                                            >
-                                                {portfolioData.contact.email}
-                                            </span>
-                                            <span className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>Primary channel</span>
-                                        </div>
-                                    </a>
-                                    <a
-                                        href={portfolioData.social.linkedin}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center gap-3 p-3 border group transition-all"
-                                        style={{ borderColor: 'var(--border-color)' }}
-                                    >
-                                        <span className="text-xl">💼</span>
-                                        <div>
-                                            <span
-                                                className="text-xs font-mono block group-hover:underline"
-                                                style={{ color: 'var(--accent-color)' }}
-                                            >
-                                                LinkedIn
-                                            </span>
-                                            <span className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>Professional network</span>
-                                        </div>
-                                    </a>
-                                    <a
-                                        href={portfolioData.social.github}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center gap-3 p-3 border group transition-all"
-                                        style={{ borderColor: 'var(--border-color)' }}
-                                    >
-                                        <span className="text-xl">🐙</span>
-                                        <div>
-                                            <span
-                                                className="text-xs font-mono block group-hover:underline"
-                                                style={{ color: 'var(--accent-color)' }}
-                                            >
-                                                GitHub
-                                            </span>
-                                            <span className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>Code collaboration</span>
-                                        </div>
-                                    </a>
-                                </div>
-                            </ComponentBlueprint>
+                            {/* Run Test CTA */}
+                            <div className="flex justify-center pt-4">
+                                <a
+                                    href={`mailto:${portfolioData.contact.email}`}
+                                    data-cursor-chat="cta-run-test"
+                                    className="px-6 py-3 border-2 font-mono font-bold uppercase text-sm transition-all"
+                                    style={{
+                                        borderColor: 'var(--accent-color)',
+                                        backgroundColor: 'var(--accent-color)',
+                                        color: 'var(--bg-main)'
+                                    }}
+                                >
+                                    🧪 Run Test →
+                                </a>
+                            </div>
                         </div>
-
-                        {/* Run Test CTA */}
-                        <div className="flex justify-center pt-4">
-                            <a
-                                href={`mailto:${portfolioData.contact.email}`}
-                                className="px-6 py-3 border-2 font-mono font-bold uppercase text-sm transition-all"
-                                style={{
-                                    borderColor: 'var(--accent-color)',
-                                    backgroundColor: 'var(--accent-color)',
-                                    color: 'var(--bg-main)'
-                                }}
-                            >
-                                🧪 Run Test →
-                            </a>
-                        </div>
-                    </div>
-                </WireframeSection>
+                    </WireframeSection>
+                </div>
 
                 {/* Footer */}
                 <footer
                     className="border-t-2 px-6 py-8"
+                    data-cursor-zone="footer"
                     style={{ borderColor: 'var(--border-color)' }}
                 >
                     <div className="flex items-center justify-between">
