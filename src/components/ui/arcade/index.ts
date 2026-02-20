@@ -57,15 +57,10 @@
  * - Grid Avoider: Dodge falling obstacles
  *
  * ============ USAGE ============
- * ```tsx
- * import { GridArcade } from '@/components/ui/arcade';
- * <GridArcade />
- * ```
+ * Game registry used by LayoutClientShell for nav. Grid arcade UI removed (unused).
+ * import { getGameEntry, getDefaultGameId } from '@/components/ui/arcade/game-registry';
  */
 
-// Main components
-export { GridArcade, default } from './GridArcade';
-export { FullPageGridArcade } from './FullPageGridArcade';
 export { ArcadePlayButton } from './ArcadePlayButton';
 export { 
   PlayerArchetypeSelector, 

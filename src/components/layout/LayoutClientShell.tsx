@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic';
 import SimpleGameNav from "./SimpleGameNav";
 import DynamicContextBar from "./DynamicContextBar";
 import AppLoader from "@/components/ui/app-loader";
-import { getRandomGameId, getDefaultGameId, getGameEntry } from "@/components/ui/arcade/game-registry";
+import { getDefaultGameId, getGameEntry } from "@/components/ui/arcade/game-registry";
 import { useMissionTracker } from "@/hooks/useMissionTracker";
 import DetectiveStoryWrapper from "./DetectiveStoryWrapper";
 import { HelpBot } from "@/components/ui/HelpBot";
@@ -41,40 +41,19 @@ export default function LayoutClientShell({ children }: Readonly<LayoutClientShe
   // Keep the global layout stable; only show the gamified header + grid on chosen pages.
   const arcadeEnabled = pathname === '/';
   
-  // Game state lifted up for coordination between nav and arcade
+  // Game state for nav (play button opens game menu overlay)
   const [isGameActive, setIsGameActive] = useState(false);
-  const [gameId, setGameId] = useState(getDefaultGameId());
-  const [_score, setScore] = useState(0);
+  const gameId = getDefaultGameId();
   
-  // Mission tracking
-  const { trackInteraction, trackScore } = useMissionTracker();
-  
+  const { trackInteraction } = useMissionTracker();
   const gameEntry = getGameEntry(gameId);
   const gameName = gameEntry?.label || 'Game';
   const gameIcon = GAME_ICONS[gameId] ?? 'play';
   
   const handleToggleGame = useCallback(() => {
     setIsGameActive(prev => !prev);
-    if (!isGameActive) {
-      setScore(0);
-    }
     trackInteraction();
-  }, [isGameActive, trackInteraction]);
-  
-  const _handleRandomGame = useCallback(() => {
-    let newGameId = getRandomGameId();
-    while (newGameId === gameId) {
-      newGameId = getRandomGameId();
-    }
-    setGameId(newGameId);
-    setScore(0);
-    trackInteraction();
-  }, [gameId, trackInteraction]);
-  
-  const _handleScoreChange = useCallback((newScore: number) => {
-    setScore(newScore);
-    trackScore(newScore);
-  }, [trackScore]);
+  }, [trackInteraction]);
 
   return (
     <AppLoader enableLoader={true} loadingDuration={3500}>

@@ -1662,14 +1662,6 @@ body[data-style='absurd'] .coffee-stain::before {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Newspaper Print Effect */
-@media print {
-  .newspaper-layout {
-    background: white !important;
-    color: black !important;
-  }
-}
-
 /* Comic Style Borders */
 .comic-border {
   border: 3px solid #000;
@@ -1750,19 +1742,6 @@ body[data-style='absurd'] .coffee-stain::before {
   .section-character-container {
     width: 35vw;
   }
-}
-
-/* Scrollbar hide utility for horizontal scroll areas */
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  /* IE and Edge */
-  scrollbar-width: none;
-  /* Firefox */
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-  /* Chrome, Safari and Opera */
 }
 
 /* =========================================

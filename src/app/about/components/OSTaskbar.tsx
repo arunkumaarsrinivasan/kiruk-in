@@ -9,7 +9,7 @@ interface OSTaskbarProps {
 }
 
 export function OSTaskbar({ theme, width }: OSTaskbarProps) {
-  const { taskbar, id } = theme;
+  const { taskbar } = theme;
 
   const containerStyle: React.CSSProperties = {
     position: "absolute",

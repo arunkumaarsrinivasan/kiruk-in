@@ -110,9 +110,6 @@ export {
     type PageHelp,
 } from './help-bot-data';
 
-// Section Characters: Avatar data
-export * from './section-characters';
-
 // Personal Knowledge Base
 export * from './personal-knowledge-base';
 
@@ -156,7 +153,6 @@ export const getDataLayerConfig = (): DataLayerConfig => ({
         { name: 'design-systems', type: 'static' },
         { name: 'page-info', type: 'static' },
         { name: 'help-bot-data', type: 'static' },
-        { name: 'section-characters', type: 'static' },
         { name: 'personal-knowledge-base', type: 'static' },
     ],
 });

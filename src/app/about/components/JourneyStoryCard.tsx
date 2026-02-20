@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback, memo } from "react";
 import { OSWindowChrome } from "./OSWindowChrome";
 import { getOSTheme } from "@/data/os-theme-config";
 import type { OSThemeConfig } from "@/data/os-theme-config";
@@ -41,11 +41,13 @@ interface JourneyStoryCardProps {
     allEvents?: LifeEvent[];
 }
 
+const PROGRESS_TICKS = [0.25, 0.5, 0.75] as const;
+
 // ============================================================================
 // Timeline connector dots
 // ============================================================================
 
-function TimelineConnector({
+const TimelineConnector = memo(function TimelineConnector({
     totalEvents,
     currentIndex,
     theme,
@@ -95,13 +97,13 @@ function TimelineConnector({
             })}
         </div>
     );
-}
+});
 
 // ============================================================================
 // Expandable details section
 // ============================================================================
 
-function ExpandableDetails({
+const ExpandableDetails = memo(function ExpandableDetails({
     details,
     tags,
     isExpanded,
@@ -202,13 +204,13 @@ function ExpandableDetails({
             </AnimatePresence>
         </div>
     );
-}
+});
 
 // ============================================================================
 // Preview card for prev/next events
 // ============================================================================
 
-function PreviewCard({
+const PreviewCard = memo(function PreviewCard({
     event,
     position,
     onNavigate,
@@ -287,7 +289,7 @@ function PreviewCard({
             </OSWindowChrome>
         </div>
     );
-}
+});
 
 // ============================================================================
 // Main Component
@@ -344,13 +346,18 @@ export function JourneyStoryCard({
         setIsExpanded(true);
     }, [currentEventIndex]);
 
-    // Calculate indices for navigation
-    const previousIndex = previousEvent && allEvents.length > 0
-        ? allEvents.findIndex(e => e.id === previousEvent.id)
-        : -1;
-    const nextIndex = nextEvent && allEvents.length > 0
-        ? allEvents.findIndex(e => e.id === nextEvent.id)
-        : -1;
+    // Stable toggle for expandable details
+    const handleToggleExpand = useCallback(() => setIsExpanded((prev) => !prev), []);
+
+    // Memoize navigation indices to avoid recomputing on every render
+    const previousIndex = useMemo(
+        () => (previousEvent && allEvents.length > 0 ? allEvents.findIndex((e) => e.id === previousEvent.id) : -1),
+        [previousEvent, allEvents]
+    );
+    const nextIndex = useMemo(
+        () => (nextEvent && allEvents.length > 0 ? allEvents.findIndex((e) => e.id === nextEvent.id) : -1),
+        [nextEvent, allEvents]
+    );
 
     if (!isActive) return null;
 
@@ -542,7 +549,7 @@ export function JourneyStoryCard({
                                     details={content.details}
                                     tags={content.tags}
                                     isExpanded={isExpanded}
-                                    onToggle={() => setIsExpanded(!isExpanded)}
+                                    onToggle={handleToggleExpand}
                                     theme={theme}
                                 />
                             </div>
@@ -584,7 +591,7 @@ export function JourneyStoryCard({
                                             animate={{ width: `${levelProgress * 100}%` }}
                                             transition={{ duration: 0.5, ease: "easeOut" }}
                                         />
-                                        {[0.25, 0.5, 0.75].map((tick) => (
+                                        {PROGRESS_TICKS.map((tick) => (
                                             <div
                                                 key={tick}
                                                 className="absolute top-0 w-px h-1"

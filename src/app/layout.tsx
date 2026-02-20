@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 import LayoutClientShell from "@/components/layout/LayoutClientShell";
-import { CursorProvider } from "@/components/ui/CursorContext";
 import AnalyticsTracker from "@/components/analytics/AnalyticsTracker";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
@@ -41,12 +40,10 @@ export default function RootLayout({
           <DesignEraProvider>
             <GameModeProvider>
               <ContextBarProvider>
-                <CursorProvider>
-                  <AnalyticsTracker />
-                  <LayoutClientShell>
-                    {children}
-                  </LayoutClientShell>
-                </CursorProvider>
+                <AnalyticsTracker />
+                <LayoutClientShell>
+                  {children}
+                </LayoutClientShell>
               </ContextBarProvider>
             </GameModeProvider>
           </DesignEraProvider>
