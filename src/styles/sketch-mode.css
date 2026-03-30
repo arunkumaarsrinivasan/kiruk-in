@@ -1,0 +1,401 @@
+/* =========================================
+   SKETCH MODE — High-fidelity notebook aesthetic
+   Applied via .sketch-mode wrapper class
+   "Whatever the era, the idea starts from a sketch."
+   ========================================= */
+
+/* ── Core variable overrides ── */
+.sketch-mode {
+    --font-main: 'Left Hand', 'Bridges Not Walls', cursive;
+    --font-heading: 'Bridges Not Walls', 'Left Hand', cursive;
+    --bg-main: #f5f3ee;
+    --bg-card: #faf9f6;
+    --text-main: #1a1a1a;
+    --text-muted: #6b6b5d;
+    --border-color: #2a2826;
+    --border-width: 2px;
+    --border-radius: 0px;
+    --shadow-color: transparent;
+    --shadow-offset-x: 0px;
+    --shadow-offset-y: 0px;
+    --shadow-blur: 0px;
+    --accent-color: #5a6e7c;
+    --card-border-style: dashed;
+    --card-tilt: -0.8deg;
+    --card-shadow: none;
+    --card-background: var(--bg-card);
+    --grid-opacity: 0;
+    --surface-pattern: none;
+    --surface-pattern-opacity: 0;
+
+    /* Notebook anatomy */
+    --nb-line-height: 30px;
+    --nb-line-color: rgba(100, 90, 70, 0.13);
+    --nb-margin-color: rgba(210, 60, 60, 0.2);
+    --nb-margin-left: 52px;
+    --nb-paper: #f5f3ee;
+    --nb-paper-warm: #faf9f5;
+    --nb-ink: #1a1a1a;
+    --nb-ink-faint: rgba(26, 26, 26, 0.35);
+    --nb-ruler-color: rgba(100, 90, 70, 0.08);
+    --nb-hole-color: rgba(200, 195, 185, 0.7);
+    --nb-punch-shadow: rgba(0, 0, 0, 0.08);
+    --nb-spine-width: 28px;
+}
+
+/* ═══════════════════════════════════════════
+   PAPER BASE — warm off-white with grain
+   ═══════════════════════════════════════════ */
+.sketch-mode {
+    background-color: var(--nb-paper) !important;
+    position: relative;
+}
+
+/* ── Ruled lines + paper grain + margin ── */
+.sketch-mode::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+        /* Red left margin line */
+        linear-gradient(90deg,
+            transparent calc(var(--nb-margin-left) - 1px),
+            var(--nb-margin-color) calc(var(--nb-margin-left) - 1px),
+            var(--nb-margin-color) var(--nb-margin-left),
+            transparent var(--nb-margin-left)),
+        /* Horizontal ruled lines */
+        repeating-linear-gradient(transparent 0px,
+            transparent calc(var(--nb-line-height) - 1px),
+            var(--nb-line-color) calc(var(--nb-line-height) - 1px),
+            var(--nb-line-color) var(--nb-line-height)),
+        /* Subtle paper grain — layer 1 */
+        radial-gradient(ellipse at 25% 35%,
+            rgba(180, 160, 100, 0.03) 1px,
+            transparent 1px),
+        /* Subtle paper grain — layer 2 */
+        radial-gradient(ellipse at 72% 65%,
+            rgba(140, 120, 80, 0.025) 1px,
+            transparent 1px),
+        /* Very faint top rule (header area) */
+        linear-gradient(transparent 58px,
+            rgba(100, 90, 70, 0.07) 58px,
+            rgba(100, 90, 70, 0.07) 60px,
+            transparent 60px);
+    background-size:
+        100% 100%,
+        100% var(--nb-line-height),
+        47px 47px,
+        31px 31px,
+        100% 100%;
+    opacity: 1;
+}
+
+/* ── Spiral binding — left edge ── */
+.sketch-mode::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: var(--nb-spine-width);
+    pointer-events: none;
+    z-index: 998;
+    background:
+        /* Spine shading */
+        linear-gradient(90deg,
+            rgba(180, 165, 130, 0.22) 0px,
+            rgba(180, 165, 130, 0.1) 16px,
+            transparent var(--nb-spine-width));
+}
+
+/* ═══════════════════════════════════════════
+   TYPOGRAPHY
+   ═══════════════════════════════════════════ */
+
+/* All text → handwritten */
+.sketch-mode,
+.sketch-mode *:not(svg):not(path):not(rect):not(circle):not(g):not(line):not(polyline):not(polygon) {
+    font-family: 'Left Hand', cursive !important;
+}
+
+/* ── Alignment lock for inner sticky header ──
+   In split mode both panes render the same tree but sketch fonts
+   can produce different line-heights. Lock the inner header to a
+   fixed height so both panes stay vertically aligned.           */
+.sketch-mode [data-cursor-zone="inner-nav"] {
+    min-height: 44px !important;
+    max-height: 44px !important;
+    height: 44px !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+}
+
+/* Headings → Bridges Not Walls */
+.sketch-mode h1,
+.sketch-mode h2,
+.sketch-mode h3,
+.sketch-mode h4,
+.sketch-mode [class*="heading"],
+.sketch-mode [class*="title"],
+.sketch-mode [class*="KIRUK"],
+.sketch-mode [class*="header"] {
+    font-family: 'Bridges Not Walls', cursive !important;
+    letter-spacing: 0.02em;
+}
+
+/* KIRUK wordmark — larger, bolder */
+.sketch-mode h1 {
+    font-size: 1.1em !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.04em !important;
+    text-transform: uppercase;
+}
+
+/* Monospace → handwritten with slight tracking */
+.sketch-mode .font-mono,
+.sketch-mode [class*="font-mono"] {
+    font-family: 'Left Hand', cursive !important;
+    letter-spacing: 0.04em;
+}
+
+/* ═══════════════════════════════════════════
+   COLORS
+   ═══════════════════════════════════════════ */
+
+/* Accent → desaturated pencil-blue */
+.sketch-mode [style*="color: var(--accent-color)"],
+.sketch-mode [style*="color:var(--accent-color)"] {
+    filter: saturate(0.45) brightness(0.8) !important;
+}
+
+/* Terminal greens → deep forest ink */
+.sketch-mode [style*="color: #00ff00"],
+.sketch-mode [style*="color:#00ff00"],
+.sketch-mode [style*="color: rgb(0, 255, 0)"] {
+    color: #2a4a2a !important;
+}
+
+/* Accent override */
+.sketch-mode [style*="var(--accent-color)"] {
+    color: #3d5a6a !important;
+}
+
+/* ═══════════════════════════════════════════
+   BORDERS
+   ═══════════════════════════════════════════ */
+
+/* All borders → dashed ink */
+.sketch-mode [class*="border"],
+.sketch-mode [style*="border"] {
+    border-style: dashed !important;
+}
+
+.sketch-mode [style*="borderColor"],
+.sketch-mode [style*="border-color"] {
+    border-color: rgba(42, 40, 38, 0.6) !important;
+}
+
+/* Section separators */
+.sketch-mode [class*="separator"],
+.sketch-mode [class*="divider"],
+.sketch-mode hr {
+    border-style: dashed !important;
+    border-color: rgba(42, 40, 38, 0.25) !important;
+    opacity: 1 !important;
+}
+
+/* ═══════════════════════════════════════════
+   CARDS — pinned-to-notebook style
+   ═══════════════════════════════════════════ */
+
+.sketch-mode [class*="ComponentBlueprint"],
+.sketch-mode [class*="card"],
+.sketch-mode [class*="Card"],
+.sketch-mode [class*="te-card"] {
+    background: var(--nb-paper-warm) !important;
+    /* Subtle folded-paper shadow */
+    box-shadow:
+        2px 2px 0 rgba(0, 0, 0, 0.05),
+        4px 4px 0 rgba(0, 0, 0, 0.025) !important;
+    border-style: dashed !important;
+    border-color: rgba(42, 40, 38, 0.5) !important;
+    border-width: 1.5px !important;
+    transform: rotate(var(--card-tilt)) !important;
+    position: relative;
+}
+
+/* Pencil underline on card headers via pseudo */
+.sketch-mode [class*="ComponentBlueprint"]::before {
+    content: '';
+    position: absolute;
+    top: 30px;
+    left: 8px;
+    right: 8px;
+    height: 1px;
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(42, 40, 38, 0.2) 10%,
+            rgba(42, 40, 38, 0.2) 90%,
+            transparent);
+    pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════
+   SECTIONS
+   ═══════════════════════════════════════════ */
+
+.sketch-mode section,
+.sketch-mode article,
+.sketch-mode [class*="WireframeSection"] {
+    border-style: dashed !important;
+    border-color: rgba(42, 40, 38, 0.2) !important;
+}
+
+/* ═══════════════════════════════════════════
+   IMAGES
+   ═══════════════════════════════════════════ */
+
+.sketch-mode img:not([src*="dp-8bit"]) {
+    filter: sepia(0.3) saturate(0.65) contrast(0.9) brightness(1.04) !important;
+    border: 1.5px dashed rgba(42, 40, 38, 0.5) !important;
+}
+
+/* ═══════════════════════════════════════════
+   BUTTONS & LINKS
+   ═══════════════════════════════════════════ */
+
+.sketch-mode button,
+.sketch-mode a[class*="button"],
+.sketch-mode [class*="btn"] {
+    font-family: 'Bridges Not Walls', cursive !important;
+    border-style: dashed !important;
+    border-color: rgba(42, 40, 38, 0.6) !important;
+    background: var(--nb-paper-warm) !important;
+    color: #1a1a1a !important;
+    box-shadow: 1.5px 1.5px 0 rgba(0, 0, 0, 0.08) !important;
+    letter-spacing: 0.04em !important;
+}
+
+.sketch-mode button:hover {
+    transform: rotate(0.2deg) translateY(-1px) !important;
+    box-shadow: 2px 3px 0 rgba(0, 0, 0, 0.1) !important;
+}
+
+/* ═══════════════════════════════════════════
+   GLOWS & SHADOWS — all killed
+   ═══════════════════════════════════════════ */
+
+.sketch-mode [style*="box-shadow"],
+.sketch-mode [class*="glow"],
+.sketch-mode [class*="shadow"] {
+    box-shadow: none !important;
+    filter: none !important;
+    text-shadow: none !important;
+}
+
+/* ═══════════════════════════════════════════
+   GRID/BACKGROUND OVERRIDES
+   ═══════════════════════════════════════════ */
+
+/* Kill all injected background images (grid, gradient) */
+.sketch-mode [class*="GridBackground"],
+.sketch-mode [class*="grid-bg"] {
+    display: none !important;
+}
+
+/* Background element overrides — exclude sticky/fixed headers so they keep their background */
+.sketch-mode [style*="background"]:not([data-cursor-zone="inner-nav"]):not(header):not(main),
+.sketch-mode [style*="backgroundColor"]:not([data-cursor-zone="inner-nav"]):not(header):not(main),
+.sketch-mode [class*="bg-"]:not([data-cursor-zone="inner-nav"]):not(header):not(#navigation):not(main) {
+    background-color: transparent !important;
+    background-image: none !important;
+}
+
+/* Preserve the outer sketch-mode bg */
+.sketch-mode>* {
+    background-color: transparent !important;
+}
+
+/* Ensure sticky header inside sketch-mode keeps its sketch paper background */
+.sketch-mode [data-cursor-zone="inner-nav"],
+.sketch-mode header.sticky,
+.sketch-mode motion-header {
+    background-color: var(--nb-paper) !important;
+    background-image: none !important;
+}
+
+/* ═══════════════════════════════════════════
+   TAGS & BADGES
+   ═══════════════════════════════════════════ */
+
+.sketch-mode span[class*="border"],
+.sketch-mode span[style*="border"] {
+    border-style: dashed !important;
+    border-color: rgba(42, 40, 38, 0.55) !important;
+    font-family: 'Left Hand', cursive !important;
+    background: rgba(250, 249, 246, 0.8) !important;
+}
+
+/* ═══════════════════════════════════════════
+   TIMELINE — hand-drawn circles
+   ═══════════════════════════════════════════ */
+
+.sketch-mode [class*="rounded-full"] {
+    border-radius: 50% !important;
+    /* keep them round but sketchy via border */
+    border-style: dashed !important;
+    border-color: rgba(42, 40, 38, 0.5) !important;
+}
+
+/* ═══════════════════════════════════════════
+   PROGRESS BARS
+   ═══════════════════════════════════════════ */
+
+.sketch-mode [class*="progress"],
+.sketch-mode [class*="Progress"] {
+    border: 1.5px dashed rgba(42, 40, 38, 0.5) !important;
+    background: repeating-linear-gradient(-45deg,
+            rgba(42, 40, 38, 0.06),
+            rgba(42, 40, 38, 0.06) 2px,
+            transparent 2px,
+            transparent 6px) !important;
+}
+
+/* ═══════════════════════════════════════════
+   STICKY NOTE — washi tape top
+   ═══════════════════════════════════════════ */
+
+.sketch-mode [class*="sticky"],
+.sketch-mode [class*="Sticky"] {
+    position: relative;
+    background: #fef9c3 !important;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.08), 3px 3px 0 rgba(0, 0, 0, 0.04) !important;
+    transform: rotate(-0.5deg) !important;
+}
+
+.sketch-mode [class*="sticky"]::after,
+.sketch-mode [class*="Sticky"]::after {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-1deg);
+    width: 40px;
+    height: 10px;
+    background: rgba(200, 190, 160, 0.55);
+    border: 1px solid rgba(180, 170, 140, 0.4);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* ═══════════════════════════════════════════
+   PUNCH HOLES — 3 holes along left edge
+   (shows in split mode only, fixed position)
+   ═══════════════════════════════════════════ */
+
+.sketch-mode [class*="WireframeSection"]:first-of-type::before {
+    display: none;
+    /* override existing rule */
+}

@@ -26,7 +26,7 @@ const ICON_PATHS: Record<string, string> = {
   'bars': 'solid/bars-solid.svg',
   'times': 'solid/times-solid.svg',
   'times-circle': 'solid/times-circle-solid.svg',
-  
+
   // Media controls
   'play': 'solid/play-solid.svg',
   'pause': 'solid/pause-solid.svg',
@@ -36,7 +36,7 @@ const ICON_PATHS: Record<string, string> = {
   'headphones': 'solid/headphones-solid.svg',
   'sound-on': 'solid/sound-on-solid.svg',
   'sound-mute': 'solid/sound-mute-solid.svg',
-  
+
   // UI elements
   'clock': 'solid/clock-solid.svg',
   'calender': 'solid/calender-solid.svg',
@@ -54,6 +54,8 @@ const ICON_PATHS: Record<string, string> = {
   'eye': 'solid/eye-solid.svg',
   'eye-cross': 'solid/eye-cross-solid.svg',
   'bookmark': 'solid/bookmark-solid.svg',
+  'book': 'solid/book-heart-solid.svg', // Using book-heart as book icon
+  'book-heart': 'solid/book-heart-solid.svg',
   'flag': 'solid/flag-solid.svg',
   'flag-checkered': 'solid/flag-checkered-solid.svg',
   'check': 'solid/check-solid.svg',
@@ -64,7 +66,7 @@ const ICON_PATHS: Record<string, string> = {
   'minus': 'solid/minus-solid.svg',
   'exclaimation': 'solid/exclaimation-solid.svg',
   'exclamation-triangle': 'solid/exclamation-triangle-solid.svg',
-  
+
   // Arrows
   'arrow-left': 'solid/arrow-left-solid.svg',
   'arrow-right': 'solid/arrow-right-solid.svg',
@@ -85,7 +87,7 @@ const ICON_PATHS: Record<string, string> = {
   'chevron-up': 'solid/chevron-up-solid.svg',
   'chevron-down': 'solid/chevron-down-solid.svg',
   'expand': 'solid/expand-solid.svg',
-  
+
   // Misc
   'themes': 'solid/themes-solid.svg',
   'sun': 'solid/sun-solid.svg',
@@ -163,7 +165,6 @@ const ICON_PATHS: Record<string, string> = {
   'phone-ringing-low': 'solid/phone-ringing-low-solid.svg',
   'people-carry': 'solid/people-carry-solid.svg',
   'seedlings': 'solid/seedlings-solid.svg',
-  'book-heart': 'solid/book-heart-solid.svg',
   'table': 'solid/table-solid.svg',
   'paperclip': 'solid/paperclip-solid.svg',
   'file-import': 'solid/file-import-solid.svg',
@@ -211,7 +212,7 @@ const ICON_PATHS: Record<string, string> = {
   'line-height': 'solid/line-height-solid.svg',
   'quote-left': 'solid/quote-left-solid.svg',
   'quote-right': 'solid/quote-right-solid.svg',
-  
+
   // Regular icons (when needed)
   'bars-regular': 'regular/bars.svg',
   'clock-regular': 'regular/clock.svg',
@@ -231,12 +232,12 @@ export const PixelIcon: React.FC<PixelIconProps> = ({
   style,
 }) => {
   const iconPath = ICON_PATHS[name];
-  
+
   if (!iconPath) {
     // Fallback to text icon
     return (
-      <span 
-        className={cn('font-mono', className)} 
+      <span
+        className={cn('font-mono', className)}
         style={{ fontSize: size, ...style }}
       >
         ?
@@ -274,7 +275,7 @@ export const PixelIconInline: React.FC<PixelIconProps> = ({
 }) => {
   // Using CSS mask for color theming
   const iconPath = ICON_PATHS[name];
-  
+
   if (!iconPath) {
     return <span className={cn('font-mono', className)} style={{ fontSize: size, ...style }}>?</span>;
   }

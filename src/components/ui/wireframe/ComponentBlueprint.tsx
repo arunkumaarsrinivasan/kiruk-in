@@ -68,7 +68,7 @@ export function ComponentBlueprint({
             }}
         >
             {/* Blueprint label */}
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-2 min-h-[24px]">
                 <div className="flex items-center gap-2">
                     {/* Only show type badge if different from title or if title is hidden */}
                     {(componentType.toLowerCase() !== title.toLowerCase() || hideTitleInHeader) && (
@@ -85,12 +85,14 @@ export function ComponentBlueprint({
                         </span>
                     )}
                     {!hideTitleInHeader && (
-                        <h3
-                            className="text-sm font-mono font-bold uppercase tracking-wider"
-                            style={{ color: isHovered ? 'var(--accent-color)' : 'var(--text-main)', transition: 'color 0.15s ease' }}
-                        >
-                            {title}
-                        </h3>
+                        <div className="h-5 flex items-center">
+                            <h3
+                                className="text-sm font-mono font-bold uppercase tracking-wider leading-none"
+                                style={{ color: isHovered ? 'var(--accent-color)' : 'var(--text-main)', transition: 'color 0.15s ease' }}
+                            >
+                                {title}
+                            </h3>
+                        </div>
                     )}
                 </div>
                 {code && (
@@ -109,9 +111,11 @@ export function ComponentBlueprint({
             </div>
 
             {description && (
-                <p className="text-xs font-mono mb-3" style={{ color: 'var(--text-muted)' }}>
-                    {description}
-                </p>
+                <div className="h-4 flex items-center mb-3">
+                    <p className="text-xs font-mono leading-none" style={{ color: 'var(--text-muted)' }}>
+                        {description}
+                    </p>
+                </div>
             )}
 
             {/* Component container */}

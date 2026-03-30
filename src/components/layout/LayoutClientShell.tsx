@@ -2,21 +2,16 @@
 
 import { useState, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
-import dynamic from 'next/dynamic';
-import SimpleGameNav from "./SimpleGameNav";
+import SimpleGameNav, { SIMPLE_GAME_NAV_BOTTOM_CSS_VAR } from "./SimpleGameNav";
 import DynamicContextBar from "./DynamicContextBar";
 import AppLoader from "@/components/ui/app-loader";
 import { getDefaultGameId, getGameEntry } from "@/components/ui/arcade/game-registry";
 import { useMissionTracker } from "@/hooks/useMissionTracker";
 import DetectiveStoryWrapper from "./DetectiveStoryWrapper";
 import { HelpBot } from "@/components/ui/HelpBot";
+import SketchDigitalSplitLayout from "./SketchDigitalSplitLayout";
 import CustomCursor from "@/components/ui/CustomCursor";
-
-// Lazy load TimeMachine (heavy era switcher) only on non-home pages
-const TimeMachine = dynamic(
-  () => import('@/components/ui/TimeMachine'),
-  { ssr: false }
-);
+import { useLayoutMode } from "@/contexts/LayoutModeContext";
 
 interface LayoutClientShellProps {
   readonly children: React.ReactNode;
@@ -39,6 +34,16 @@ const GAME_ICONS: Record<string, string> = {
 
 export default function LayoutClientShell({ children }: Readonly<LayoutClientShellProps>) {
   const pathname = usePathname();
+  const { isSplitMode } = useLayoutMode();
+
+  let mainPaddingTop: string;
+  if (isSplitMode) {
+    mainPaddingTop = "0";
+  } else if (["/about", "/work", "/progress"].includes(pathname)) {
+    mainPaddingTop = `calc(var(${SIMPLE_GAME_NAV_BOTTOM_CSS_VAR}, 72px) + 40px + 8px)`;
+  } else {
+    mainPaddingTop = `calc(var(${SIMPLE_GAME_NAV_BOTTOM_CSS_VAR}, 72px) + 10px)`;
+  }
   // Keep the global layout stable; only show the gamified header + grid on chosen pages.
   const arcadeEnabled = pathname === '/';
 
@@ -87,25 +92,24 @@ export default function LayoutClientShell({ children }: Readonly<LayoutClientShe
       {/* Dynamic Context Bar - shows page-specific timeline and shortcuts */}
       <DynamicContextBar />
 
-      <DetectiveStoryWrapper>
-        <main
-          id="main-content"
-          tabIndex={-1}
-          style={{
-            paddingTop: ['/about', '/work', '/progress'].includes(pathname)
-              ? '100px' // 60px (main nav) + 40px (context bar) = 100px
-              : '60px'  // 60px (main nav only, no context bar)
-          }}
-        >
-          {children}
-        </main>
-      </DetectiveStoryWrapper>
+      <SketchDigitalSplitLayout>
+        <DetectiveStoryWrapper>
+          <main
+            id="main-content"
+            tabIndex={-1}
+            style={{
+              // Split panes are already offset below #navigation; skip nav padding to avoid a blank band.
+              paddingTop: mainPaddingTop,
+            }}
+          >
+            {children}
+          </main>
+        </DetectiveStoryWrapper>
+      </SketchDigitalSplitLayout>
 
       {/* Help Bot - Available on all pages */}
       <HelpBot />
-
-      {/* Time Machine - Era Switcher - Available on all pages except home */}
-      {pathname !== '/' && <TimeMachine />}
     </AppLoader>
   );
 }
+

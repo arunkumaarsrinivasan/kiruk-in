@@ -9,6 +9,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { DesignEraProvider } from "@/contexts/DesignEraContext";
 import { GameModeProvider } from "@/contexts/GameModeContext";
 import { ContextBarProvider } from "@/contexts/ContextBarContext";
+import { LayoutModeProvider } from "@/contexts/LayoutModeContext";
 
 export const metadata: Metadata = {
   title: "Kiruk | AI + UX Designer Portfolio",
@@ -33,17 +34,23 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className="antialiased">
+    <html lang="en" suppressHydrationWarning={true} data-antigravity-check="verified">
+      <body
+        className="antialiased"
+        data-era="1970"
+        suppressHydrationWarning={true}
+      >
         {/* Simplified layout - prioritizing magnetic font usage */}
         <ThemeProvider>
           <DesignEraProvider>
             <GameModeProvider>
               <ContextBarProvider>
-                <AnalyticsTracker />
-                <LayoutClientShell>
-                  {children}
-                </LayoutClientShell>
+                <LayoutModeProvider>
+                  <AnalyticsTracker />
+                  <LayoutClientShell>
+                    {children}
+                  </LayoutClientShell>
+                </LayoutModeProvider>
               </ContextBarProvider>
             </GameModeProvider>
           </DesignEraProvider>

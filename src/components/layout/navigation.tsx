@@ -630,6 +630,7 @@ const Navigation = () => {
     { href: '/case-studies', label: 'Projects', icon: 'folder', shortcut: '4', hint: 'Deep dives' },
     { href: '/progress', label: 'Progress', icon: 'chart', shortcut: '5', hint: 'Journey log' },
     { href: '/contact', label: 'Contact', icon: 'envelope', shortcut: '6', hint: 'Say hello' },
+    { href: '/blog', label: 'Blog', icon: 'book', shortcut: '7', hint: 'Read articles' },
   ];
 
   const BAR_HEIGHT = GRID_SIZE * 3;

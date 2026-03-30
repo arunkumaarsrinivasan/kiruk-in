@@ -224,11 +224,24 @@ export function GameModeProvider({ children }: { children: ReactNode }) {
         closeMenu();
         return;
       }
+      // Shift+M opens game menu (nav no longer exposes a menu button)
+      if (
+        e.key.toLowerCase() === 'm' &&
+        e.shiftKey &&
+        !e.metaKey &&
+        !e.ctrlKey &&
+        !e.altKey &&
+        document.activeElement?.tagName !== 'INPUT' &&
+        document.activeElement?.tagName !== 'TEXTAREA'
+      ) {
+        e.preventDefault();
+        toggleMenu();
+      }
     };
 
     globalThis.addEventListener('keydown', handleKeyDown);
     return () => globalThis.removeEventListener('keydown', handleKeyDown);
-  }, [isMenuOpen, closeMenu]);
+  }, [isMenuOpen, closeMenu, toggleMenu]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // CONTEXT VALUE

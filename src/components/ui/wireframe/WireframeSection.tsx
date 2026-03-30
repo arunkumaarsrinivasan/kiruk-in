@@ -90,26 +90,30 @@ export function WireframeSection({
                 {/* Section header */}
                 {title && (
                     <div className="mb-8 pl-8">
-                        <h2
-                            className="text-3xl md:text-4xl font-mono font-black uppercase tracking-tight"
-                            style={{ color: 'var(--text-main)' }}
-                        >
-                            {title}
-                        </h2>
-                        {subtitle && (
-                            <p
-                                className="text-sm font-mono mt-2"
-                                style={{ color: 'var(--text-muted)' }}
+                        <div className="h-10 md:h-12 flex items-center">
+                            <h2
+                                className="text-3xl md:text-4xl font-mono font-black uppercase tracking-tight leading-none"
+                                style={{ color: 'var(--text-main)' }}
                             >
-                                {subtitle}
-                            </p>
+                                {title}
+                            </h2>
+                        </div>
+                        {subtitle && (
+                            <div className="h-5 flex items-center mt-2">
+                                <p
+                                    className="text-sm font-mono leading-none"
+                                    style={{ color: 'var(--text-muted)' }}
+                                >
+                                    {subtitle}
+                                </p>
+                            </div>
                         )}
                         {/* Underline with measurement marks - extends full viewport width */}
                         <div className="relative mt-4" style={{ height: '12px' }}>
                             {/* Horizontal line extending full viewport width */}
                             <div
                                 className="absolute h-px pointer-events-none"
-                                style={{ 
+                                style={{
                                     backgroundColor: 'var(--accent-color)',
                                     left: 'calc(50% - 50vw)',
                                     width: '100vw',

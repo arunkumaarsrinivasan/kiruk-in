@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLayoutMode } from '@/contexts/LayoutModeContext';
 
 // Helper function for hex to rgba
 function hexToRgba(hex: string, alpha: number): string {
@@ -11,7 +12,7 @@ function hexToRgba(hex: string, alpha: number): string {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-type HatType = 'designer' | 'developer' | 'bridge' | null;
+type HatType = 'designer' | 'developer' | 'bridge';
 
 interface PixelParticle {
     id: number;
@@ -34,20 +35,39 @@ export function HeroWithHatSwitching({
     currentEra,
     isClient
 }: HeroWithHatSwitchingProps) {
-    const [activeHat, setActiveHat] = useState<HatType>('bridge');
+    const { layoutMode, setLayoutMode } = useLayoutMode();
+    // Matches default home layout (developer → full digital)
+    const [activeHat, setActiveHat] = useState<HatType>('developer');
     const [pixels, setPixels] = useState<PixelParticle[]>([]);
     const [bridgeClickCount, setBridgeClickCount] = useState(0);
     const [isSuperPowered, setIsSuperPowered] = useState(false);
     const [isBridgeHovered, setIsBridgeHovered] = useState(false);
 
-    // Handle bridge hat click - unlocks super power after 3 clicks
+    useEffect(() => {
+        if (layoutMode === 'full-sketch') {
+            setActiveHat('designer');
+        } else if (layoutMode === 'full-digital') {
+            setActiveHat('developer');
+        } else if (layoutMode === 'split-side' || layoutMode === 'split-top') {
+            setActiveHat('bridge');
+        }
+    }, [layoutMode]);
+
+    // Bridge / KIRUK: half split layout; triple-click while on bridge unlocks super power
     const handleBridgeClick = useCallback(() => {
+        if (activeHat !== 'bridge') {
+            setActiveHat('bridge');
+            setLayoutMode('split-side');
+            setBridgeClickCount(0);
+            setPixels([]);
+            return;
+        }
+
         const newCount = bridgeClickCount + 1;
         setBridgeClickCount(newCount);
 
-        if (activeHat === 'bridge' && newCount >= 3) {
+        if (newCount >= 3 && !isSuperPowered) {
             setIsSuperPowered(true);
-            // Create particle burst
             const newPixels: PixelParticle[] = [];
             for (let i = 0; i < 20; i++) {
                 newPixels.push({
@@ -59,10 +79,9 @@ export function HeroWithHatSwitching({
             setPixels(newPixels);
             setTimeout(() => setPixels([]), 1000);
         } else {
-            setActiveHat(activeHat === 'bridge' ? null : 'bridge');
             setPixels([]);
         }
-    }, [activeHat, bridgeClickCount, currentEra.colors.accent]);
+    }, [activeHat, bridgeClickCount, currentEra.colors.accent, isSuperPowered, setLayoutMode]);
 
     const cornerSize = 24;
 
@@ -108,15 +127,17 @@ export function HeroWithHatSwitching({
                     <div className="relative z-10 flex flex-col items-center gap-6 py-4">
 
                         {/* Introduction */}
-                        <motion.h2
-                            className="text-4xl md:text-5xl font-mono font-black uppercase text-center"
-                            style={{ color: 'var(--accent-color)' }}
-                            initial={isClient ? { opacity: 0, y: 20 } : { opacity: 1, y: 0 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={isClient ? { delay: 0.2 } : { duration: 0 }}
-                        >
-                            Hey, I'm Arun
-                        </motion.h2>
+                        <div className="h-12 md:h-16 flex items-center justify-center w-full">
+                            <motion.h2
+                                className="text-4xl md:text-5xl font-mono font-black uppercase text-center leading-none"
+                                style={{ color: 'var(--accent-color)' }}
+                                initial={isClient ? { opacity: 0, y: 20 } : { opacity: 1, y: 0 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={isClient ? { delay: 0.2 } : { duration: 0 }}
+                            >
+                                Hey, I'm Arun
+                            </motion.h2>
+                        </div>
 
                         {/* 8-Bit Character with Hats */}
                         <div className="relative">
@@ -240,13 +261,6 @@ export function HeroWithHatSwitching({
                                     <rect x="80" y="34" width="8" height="40" fill="#FDBF60" />
 
                                     {/* Hair */}
-                                    {!activeHat && (
-                                        <>
-                                            <rect x="36" y="26" width="48" height="12" fill="#4A4A4A" />
-                                            <rect x="32" y="30" width="8" height="8" fill="#4A4A4A" />
-                                            <rect x="80" y="30" width="8" height="8" fill="#4A4A4A" />
-                                        </>
-                                    )}
                                     {activeHat && (
                                         <>
                                             <rect x="32" y="34" width="6" height="12" fill="#4A4A4A" />
@@ -302,15 +316,17 @@ export function HeroWithHatSwitching({
                             </motion.div>
                         </div>
 
-                        <motion.p
-                            className="text-[10px] font-mono uppercase tracking-wider"
-                            style={{ color: 'var(--text-muted)' }}
-                            initial={isClient ? { opacity: 0 } : { opacity: 1 }}
-                            animate={{ opacity: 1 }}
-                            transition={isClient ? { delay: 0.6 } : { duration: 0 }}
-                        >
-                            Tap a hat to explore the mix
-                        </motion.p>
+                        <div className="h-6 flex items-center justify-center">
+                            <motion.p
+                                className="text-[10px] font-mono uppercase tracking-wider leading-none"
+                                style={{ color: 'var(--text-muted)' }}
+                                initial={isClient ? { opacity: 0 } : { opacity: 1 }}
+                                animate={{ opacity: 1 }}
+                                transition={isClient ? { delay: 0.6 } : { duration: 0 }}
+                            >
+                                Tap a hat to explore the mix
+                            </motion.p>
+                        </div>
 
                         {/* Role Description */}
                         <div className="flex flex-col items-center gap-4 max-w-lg text-center">
@@ -318,7 +334,7 @@ export function HeroWithHatSwitching({
                             <div className="flex flex-wrap justify-center gap-3">
                                 {/* Designer Button */}
                                 <motion.button
-                                    className="flex items-center gap-2 px-4 py-3 border-2 cursor-pointer"
+                                    className="flex items-center justify-center gap-2 px-4 h-12 border-2 cursor-pointer"
                                     data-cursor-chat="hat-designer"
                                     style={{
                                         borderColor: activeHat === 'designer' ? '#E91E63' : 'var(--border-color)',
@@ -328,7 +344,10 @@ export function HeroWithHatSwitching({
                                     whileHover={{ scale: 1.05, y: -2 }}
                                     whileTap={{ scale: 0.95 }}
                                     onClick={() => {
-                                        setActiveHat(activeHat === 'designer' ? null : 'designer');
+                                        setActiveHat('designer');
+                                        setLayoutMode('full-sketch');
+                                        setBridgeClickCount(0);
+                                        setIsSuperPowered(false);
                                         setPixels([]);
                                     }}
                                 >
@@ -346,7 +365,7 @@ export function HeroWithHatSwitching({
 
                                 {/* Bridge Button */}
                                 <motion.button
-                                    className="flex items-center gap-2 px-4 py-3 border-2 cursor-pointer"
+                                    className="flex items-center justify-center gap-2 px-4 h-12 border-2 cursor-pointer"
                                     data-cursor-chat="hat-bridge"
                                     style={{
                                         borderColor: activeHat === 'bridge' ? (isSuperPowered ? '#FFD700' : currentEra.colors.accent) : 'var(--border-color)',
@@ -377,7 +396,7 @@ export function HeroWithHatSwitching({
 
                                 {/* Developer Button */}
                                 <motion.button
-                                    className="flex items-center gap-2 px-4 py-3 border-2 cursor-pointer"
+                                    className="flex items-center justify-center gap-2 px-4 h-12 border-2 cursor-pointer"
                                     data-cursor-chat="hat-developer"
                                     style={{
                                         borderColor: activeHat === 'developer' ? '#2196F3' : 'var(--border-color)',
@@ -387,7 +406,10 @@ export function HeroWithHatSwitching({
                                     whileHover={{ scale: 1.05, y: -2 }}
                                     whileTap={{ scale: 0.95 }}
                                     onClick={() => {
-                                        setActiveHat(activeHat === 'developer' ? null : 'developer');
+                                        setActiveHat('developer');
+                                        setLayoutMode('full-digital');
+                                        setBridgeClickCount(0);
+                                        setIsSuperPowered(false);
                                         setPixels([]);
                                     }}
                                 >
@@ -405,24 +427,28 @@ export function HeroWithHatSwitching({
                                 </motion.button>
                             </div>
 
-                            <motion.h3
-                                className="text-2xl md:text-3xl font-mono font-black uppercase"
-                                style={{ color: 'var(--text-main)' }}
-                                initial={isClient ? { opacity: 0, y: 20 } : { opacity: 1, y: 0 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={isClient ? { delay: 0.4 } : { duration: 0 }}
-                            >
-                                DESIGNER WHO SHIPS
-                            </motion.h3>
-                            <motion.p
-                                className="text-sm font-mono leading-relaxed"
-                                style={{ color: 'var(--text-muted)' }}
-                                initial={isClient ? { opacity: 0, y: 20 } : { opacity: 1, y: 0 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={isClient ? { delay: 0.5 } : { duration: 0 }}
-                            >
-                                I blend product design and front-end engineering to deliver usable, beautiful experiences without translation loss.
-                            </motion.p>
+                            <div className="h-10 md:h-12 flex items-center justify-center">
+                                <motion.h3
+                                    className="text-2xl md:text-3xl font-mono font-black uppercase leading-none"
+                                    style={{ color: 'var(--text-main)' }}
+                                    initial={isClient ? { opacity: 0, y: 20 } : { opacity: 1, y: 0 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={isClient ? { delay: 0.4 } : { duration: 0 }}
+                                >
+                                    DESIGNER WHO SHIPS
+                                </motion.h3>
+                            </div>
+                            <div className="h-16 flex items-center justify-center">
+                                <motion.p
+                                    className="text-sm font-mono leading-relaxed"
+                                    style={{ color: 'var(--text-muted)' }}
+                                    initial={isClient ? { opacity: 0, y: 20 } : { opacity: 1, y: 0 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={isClient ? { delay: 0.5 } : { duration: 0 }}
+                                >
+                                    I blend product design and front-end engineering to deliver usable, beautiful experiences without translation loss.
+                                </motion.p>
+                            </div>
 
                             {/* CTA Buttons */}
                             <motion.div
@@ -434,7 +460,7 @@ export function HeroWithHatSwitching({
                                 <motion.a
                                     href="/portfolio"
                                     data-cursor-chat="cta-work"
-                                    className="px-6 py-3 border-2 font-mono font-bold uppercase text-sm cursor-pointer"
+                                    className="flex items-center justify-center px-6 h-12 border-2 font-mono font-bold uppercase text-sm cursor-pointer"
                                     style={{
                                         backgroundColor: 'var(--accent-color)',
                                         color: 'var(--bg-main)'
@@ -447,7 +473,7 @@ export function HeroWithHatSwitching({
                                 <motion.a
                                     href="#contact"
                                     data-cursor-chat="cta-contact"
-                                    className="px-6 py-3 border-2 font-mono font-bold uppercase text-sm cursor-pointer"
+                                    className="flex items-center justify-center px-6 h-12 border-2 font-mono font-bold uppercase text-sm cursor-pointer"
                                     style={{
                                         borderColor: 'var(--accent-color)',
                                         backgroundColor: 'transparent',

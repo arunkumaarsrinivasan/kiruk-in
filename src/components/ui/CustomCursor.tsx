@@ -1,30 +1,89 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
-import { motion, useMotionValue, useSpring } from 'framer-motion';
+import { AnimatePresence, motion, useMotionValue } from 'framer-motion';
+import {
+  cursorChatDominantVibe,
+  cursorChatPlainText,
+  cursorElementChats,
+  type CursorChatWord,
+} from '@/data/cursor-chat-data';
+
+const CURSOR_ATTR = 'data-custom-cursor-active';
+const DOT_PX = 8;
+const CURSOR_EMOJI_PX = 36;
+
+const CHAT_HOST_SELECTOR =
+  'a[href], button, [role="button"], [role="link"], input[type="submit"], input[type="button"], input[type="reset"]';
+
+function isCursorChatHost(el: HTMLElement | null): boolean {
+  return Boolean(el?.matches(CHAT_HOST_SELECTOR));
+}
+
+interface HapticBurst {
+  id: number;
+  x: number;
+  y: number;
+}
+
+let hapticId = 0;
 
 export default function CustomCursor() {
   const pathname = usePathname();
 
-  // Motion values for smooth physics
   const cursorX = useMotionValue(-100);
   const cursorY = useMotionValue(-100);
 
-  const springConfig = { damping: 25, stiffness: 400, mass: 0.5 };
-  const cursorXSpring = useSpring(cursorX, springConfig);
-  const cursorYSpring = useSpring(cursorY, springConfig);
-
+  const [enabled, setEnabled] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
 
-  // Interaction states
   const [isHovering, setIsHovering] = useState(false);
   const [isClicking, setIsClicking] = useState(false);
   const [isIdle, setIsIdle] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [isMoving, setIsMoving] = useState(false);
 
-  // Trigger navigation pulse effect
+  const [cursorChat, setCursorChat] = useState<CursorChatWord[] | null>(null);
+  const [hapticBursts, setHapticBursts] = useState<HapticBurst[]>([]);
+  const moveTimeout = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const lastPos = useRef({ x: 0, y: 0 });
+
+  const spawnHaptic = useCallback(() => {
+    const burst: HapticBurst = {
+      id: ++hapticId,
+      x: lastPos.current.x,
+      y: lastPos.current.y,
+    };
+    setHapticBursts(prev => [...prev, burst]);
+    setTimeout(() => {
+      setHapticBursts(prev => prev.filter(b => b.id !== burst.id));
+    }, 500);
+  }, []);
+
+  useEffect(() => {
+    const fine = window.matchMedia('(pointer: fine)');
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const sync = () => setEnabled(fine.matches && !reduce.matches);
+    sync();
+    fine.addEventListener('change', sync);
+    reduce.addEventListener('change', sync);
+    return () => {
+      fine.removeEventListener('change', sync);
+      reduce.removeEventListener('change', sync);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!enabled || !isVisible) {
+      document.documentElement.removeAttribute(CURSOR_ATTR);
+      return;
+    }
+    document.documentElement.setAttribute(CURSOR_ATTR, '');
+    return () => document.documentElement.removeAttribute(CURSOR_ATTR);
+  }, [enabled, isVisible]);
+
   useEffect(() => {
     setIsNavigating(true);
     const timeout = setTimeout(() => setIsNavigating(false), 500);
@@ -32,41 +91,65 @@ export default function CustomCursor() {
   }, [pathname]);
 
   useEffect(() => {
-    let idleTimeout: NodeJS.Timeout;
+    if (!enabled) return;
+
+    let idleTimeout: ReturnType<typeof setTimeout>;
 
     const handleMouseMove = (e: MouseEvent) => {
       cursorX.set(e.clientX);
       cursorY.set(e.clientY);
+      lastPos.current = { x: e.clientX, y: e.clientY };
+      setIsVisible(true);
 
-      if (!isVisible) setIsVisible(true);
+      setIsMoving(true);
+      clearTimeout(moveTimeout.current);
+      moveTimeout.current = setTimeout(() => setIsMoving(false), 120);
 
-      // Reset idle timer
       setIsIdle(false);
       clearTimeout(idleTimeout);
-      idleTimeout = setTimeout(() => setIsIdle(true), 3000); // 3 seconds to idle
+      idleTimeout = setTimeout(() => setIsIdle(true), 3000);
 
-      // Check what we're hovering over
       const target = e.target as HTMLElement;
-      if (target && target.closest) {
-        const interactiveEl = target.closest('a, button, input, select, textarea, [role="button"], [tabindex]:not([tabindex="-1"])') as HTMLElement;
-        if (interactiveEl) {
-          if (interactiveEl.hasAttribute('disabled') || interactiveEl.getAttribute('aria-disabled') === 'true') {
-            setIsDisabled(true);
-            setIsHovering(false);
-          } else {
-            setIsHovering(true);
-            setIsDisabled(false);
-          }
-        } else {
+      if (!target?.closest) return;
+
+      const interactiveEl = target.closest(
+        'a, button, input, select, textarea, [role="button"], [tabindex]:not([tabindex="-1"])'
+      ) as HTMLElement | null;
+      if (interactiveEl) {
+        if (
+          interactiveEl.hasAttribute('disabled') ||
+          interactiveEl.getAttribute('aria-disabled') === 'true'
+        ) {
+          setIsDisabled(true);
           setIsHovering(false);
+        } else {
+          setIsHovering(true);
           setIsDisabled(false);
         }
+      } else {
+        setIsHovering(false);
+        setIsDisabled(false);
+      }
+
+      const chatEl = target.closest('[data-cursor-chat]') as HTMLElement | null;
+      const chatKey = chatEl?.dataset.cursorChat?.trim();
+      if (chatKey && isCursorChatHost(chatEl)) {
+        const words = cursorElementChats[chatKey];
+        setCursorChat(words ?? null);
+      } else {
+        setCursorChat(null);
       }
     };
 
-    const handleMouseLeave = () => setIsVisible(false);
+    const handleMouseLeave = () => {
+      setIsVisible(false);
+      setCursorChat(null);
+    };
     const handleMouseEnter = () => setIsVisible(true);
-    const handleMouseDown = () => setIsClicking(true);
+    const handleMouseDown = () => {
+      setIsClicking(true);
+      spawnHaptic();
+    };
     const handleMouseUp = () => setIsClicking(false);
 
     window.addEventListener('mousemove', handleMouseMove);
@@ -82,85 +165,219 @@ export default function CustomCursor() {
       document.body.removeEventListener('mouseleave', handleMouseLeave);
       document.body.removeEventListener('mouseenter', handleMouseEnter);
       clearTimeout(idleTimeout);
+      clearTimeout(moveTimeout.current);
     };
-  }, [isVisible, cursorX, cursorY]);
+  }, [enabled, cursorX, cursorY, spawnHaptic]);
 
-  if (!isVisible) return null;
+  if (!enabled || !isVisible) return null;
 
-  const variants = {
-    default: { scale: 1, opacity: 1, rotate: 0, filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.3))" },
-    hover: { scale: 1, opacity: 1, rotate: 90, filter: "drop-shadow(0px 0px 12px var(--text-main))" },
-    click: { scale: 0.8, opacity: 1, filter: "drop-shadow(0px 1px 2px rgba(0,0,0,0.3))" },
-    idle: { scale: 0.8, opacity: 0.5, filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.3))" },
-    disabled: { scale: 1, opacity: 0.5, filter: "drop-shadow(0px 0px 0px rgba(0,0,0,0))" },
-    navigating: { scale: 1.2, opacity: 0.8, rotate: 180, filter: "drop-shadow(0px 4px 8px rgba(0,0,0,0.3))" }
+  const isEmojiPage = pathname === '/progress' || pathname === '/case-studies';
+  const emojiChar = pathname === '/progress' ? '🔭' : '🔦';
+  const eraShapeRadius = 'min(50%, var(--era-radius-full))';
+
+  const dotVariants = {
+    default: { scale: 1, opacity: 1 },
+    moving: { scale: 1.1, opacity: 1 },
+    hover: { scale: 1.6, opacity: 1 },
+    click: { scale: 0.5, opacity: 1 },
+    idle: { scale: 0.7, opacity: 0.35 },
+    disabled: { scale: 1, opacity: 0.3 },
+    navigating: { scale: 1.3, opacity: 0.8 },
   };
 
   const emojiVariants = {
-    default: { scale: 1, opacity: 1, rotate: 0, filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.3))" },
-    hover: { scale: 1, opacity: 1, rotate: 15, filter: "drop-shadow(0px 0px 12px var(--text-main))" },
-    click: { scale: 0.8, opacity: 1, filter: "drop-shadow(0px 1px 2px rgba(0,0,0,0.3))" },
-    idle: { scale: 0.8, opacity: 0.5, filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.3))" },
-    disabled: { scale: 1, opacity: 0.5, filter: "drop-shadow(0px 0px 0px rgba(0,0,0,0))" },
-    navigating: { scale: 1.2, opacity: 0.8, rotate: -15, filter: "drop-shadow(0px 4px 8px rgba(0,0,0,0.3))" }
+    default: { scale: 1, opacity: 1, rotate: 0 },
+    moving: { scale: 1.05, opacity: 1, rotate: 0 },
+    hover: { scale: 1.08, opacity: 1, rotate: 12 },
+    click: { scale: 0.85, opacity: 1, rotate: 0 },
+    idle: { scale: 0.85, opacity: 0.5, rotate: 0 },
+    disabled: { scale: 1, opacity: 0.45, rotate: 0 },
+    navigating: { scale: 1.15, opacity: 0.85, rotate: -12 },
   };
 
-  const currentState = isNavigating ? 'navigating' : isClicking ? 'click' : isHovering ? 'hover' : isDisabled ? 'disabled' : isIdle ? 'idle' : 'default';
+  const currentState = isNavigating
+    ? 'navigating'
+    : isClicking
+      ? 'click'
+      : isHovering
+        ? 'hover'
+        : isDisabled
+          ? 'disabled'
+          : isIdle
+            ? 'idle'
+            : isMoving
+              ? 'moving'
+              : 'default';
 
-  let CursorElement = () => (
-    <motion.svg
-      width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-      className="pointer-events-none"
-      variants={variants}
-      initial="default"
-      animate={currentState}
-      transition={{ type: "spring", stiffness: 400, damping: 25 }}
-    >
-      <path
-        d={isDisabled ? "M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 10.14 4.64 8.42 5.69 7.1L16.9 18.31C15.58 19.36 13.86 20 12 20ZM18.31 16.9L7.1 5.69C8.42 4.64 10.14 4 12 4C16.41 4 20 7.59 20 12C20 13.86 19.36 15.58 18.31 16.9Z" : "M11 2V11H2V13H11V22H13V13H22V11H13V2H11Z"}
-        style={{ fill: 'var(--text-main)', stroke: 'var(--bg-main)' }}
-        strokeWidth="1.5"
-      />
-    </motion.svg>
-  );
+  const dotTransition = {
+    type: 'spring' as const,
+    stiffness: 600,
+    damping: 22,
+    mass: 0.3,
+  };
 
-  if (pathname === '/progress') {
-    CursorElement = () => (
-      <motion.span
-        className="text-2xl pointer-events-none inline-block"
-        variants={emojiVariants}
-        initial="default"
-        animate={currentState}
-        transition={{ type: "spring", stiffness: 400, damping: 25 }}
-      >
-        🔭
-      </motion.span>
-    );
-  } else if (pathname === '/case-studies') {
-    CursorElement = () => (
-      <motion.span
-        className="text-2xl pointer-events-none inline-block"
-        variants={emojiVariants}
-        initial="default"
-        animate={currentState}
-        transition={{ type: "spring", stiffness: 400, damping: 25 }}
-      >
-        🔦
-      </motion.span>
-    );
-  }
+  const showChat = Boolean(cursorChat?.length);
+  const chatPlain = cursorChat?.length ? cursorChatPlainText(cursorChat) : '';
+  const dominantVibe = cursorChat?.length ? cursorChatDominantVibe(cursorChat) : 'neutral';
+
+  const HAPTIC_LINES = 6;
+  const hapticAngles = Array.from({ length: HAPTIC_LINES }, (_, i) => (360 / HAPTIC_LINES) * i);
 
   return (
-    <motion.div
-      className="fixed top-0 left-0 pointer-events-none z-[9999]"
-      style={{
-        x: cursorXSpring,
-        y: cursorYSpring,
-      }}
-    >
-      <div className="-translate-x-1/2 -translate-y-1/2">
-        <CursorElement />
-      </div>
-    </motion.div>
+    <>
+      {/* Haptic burst effects — rendered at click positions */}
+      <AnimatePresence>
+        {hapticBursts.map(burst => (
+          <motion.div
+            key={burst.id}
+            className="fixed top-0 left-0 pointer-events-none z-[9998]"
+            style={{ x: burst.x, y: burst.y }}
+            aria-hidden
+          >
+            <div className="-translate-x-1/2 -translate-y-1/2 relative" style={{ width: 2, height: 2 }}>
+              {hapticAngles.map((angle, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute top-1/2 left-1/2 pointer-events-none"
+                  style={{
+                    width: 2,
+                    height: 2,
+                    borderRadius: '50%',
+                    backgroundColor: isHovering ? 'var(--accent-color)' : 'var(--text-main)',
+                    transformOrigin: 'center',
+                  }}
+                  initial={{
+                    x: 0,
+                    y: 0,
+                    opacity: 0.8,
+                    scale: 1,
+                  }}
+                  animate={{
+                    x: Math.cos((angle * Math.PI) / 180) * 18,
+                    y: Math.sin((angle * Math.PI) / 180) * 18,
+                    opacity: 0,
+                    scale: 0.3,
+                  }}
+                  exit={{ opacity: 0 }}
+                  transition={{
+                    duration: 0.35,
+                    ease: [0.23, 1, 0.32, 1],
+                    delay: i * 0.015,
+                  }}
+                />
+              ))}
+              {/* Impact ring */}
+              <motion.div
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none"
+                style={{
+                  border: `1.5px solid ${isHovering ? 'var(--accent-color)' : 'var(--text-main)'}`,
+                }}
+                initial={{ width: 4, height: 4, opacity: 0.5 }}
+                animate={{ width: 32, height: 32, opacity: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+              />
+            </div>
+          </motion.div>
+        ))}
+      </AnimatePresence>
+
+      {/* Cursor dot */}
+      <motion.div
+        className="fixed top-0 left-0 pointer-events-none z-[10000]"
+        style={{ x: cursorX, y: cursorY }}
+        aria-hidden
+      >
+        <div className="-translate-x-1/2 -translate-y-1/2">
+          {isEmojiPage ? (
+            <motion.div
+              className="pointer-events-none flex items-center justify-center shrink-0"
+              style={{
+                width: CURSOR_EMOJI_PX,
+                height: CURSOR_EMOJI_PX,
+                backgroundColor: 'var(--text-main)',
+                borderRadius: eraShapeRadius,
+                border: '1px solid var(--bg-main)',
+                boxSizing: 'border-box',
+                filter: 'drop-shadow(0px 1px 3px rgba(0,0,0,0.25))',
+              }}
+              variants={emojiVariants}
+              initial="default"
+              animate={currentState}
+              transition={dotTransition}
+            >
+              <span className="text-xl leading-none">{emojiChar}</span>
+            </motion.div>
+          ) : (
+            <motion.div
+              className="pointer-events-none relative flex items-center justify-center shrink-0"
+              style={{
+                width: DOT_PX,
+                height: DOT_PX,
+                backgroundColor: isHovering || isClicking
+                  ? 'var(--accent-color)'
+                  : 'var(--text-main)',
+                borderRadius: eraShapeRadius,
+                boxSizing: 'border-box',
+                filter: 'drop-shadow(0px 1px 2px rgba(0,0,0,0.3))',
+                transition: 'background-color 0.12s ease',
+              }}
+              variants={dotVariants}
+              initial="default"
+              animate={currentState}
+              transition={dotTransition}
+            >
+              {isDisabled ? (
+                <span
+                  className="absolute left-1/2 top-1/2 w-[200%] h-px -translate-x-1/2 -translate-y-1/2 rotate-45 bg-[var(--bg-main)] pointer-events-none"
+                  aria-hidden
+                />
+              ) : null}
+            </motion.div>
+          )}
+
+          {/* Chat label — solid pill, positioned below-right of cursor */}
+          <AnimatePresence mode="wait">
+            {showChat && cursorChat ? (
+              <motion.div
+                key={chatPlain}
+                role="status"
+                aria-live="polite"
+                aria-label={chatPlain}
+                data-dominant-vibe={dominantVibe}
+                data-chat-hover={isHovering ? 'true' : 'false'}
+                data-chat-click={isClicking ? 'true' : 'false'}
+                initial={{ opacity: 0, y: 4, scale: 0.92 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 2, scale: 0.96 }}
+                transition={{
+                  type: 'spring',
+                  stiffness: 480,
+                  damping: 28,
+                  mass: 0.4,
+                }}
+                className="cursor-chat-label pointer-events-none absolute z-10 cursor-default select-none"
+                style={{
+                  left: isEmojiPage ? CURSOR_EMOJI_PX / 2 + 6 : DOT_PX / 2 + 10,
+                  top: isEmojiPage ? CURSOR_EMOJI_PX / 2 + 4 : DOT_PX / 2 + 6,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <span className="cursor-chat-label__words">
+                  {cursorChat.map((word, i) => (
+                    <span
+                      key={`${word.text}-${i}`}
+                      className={`cursor-chat-label__token ccl-${word.vibe ?? 'neutral'}`}
+                    >
+                      {word.text}
+                    </span>
+                  ))}
+                </span>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+        </div>
+      </motion.div>
+    </>
   );
 }

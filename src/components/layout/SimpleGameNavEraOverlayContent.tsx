@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { DesignSystemLab } from '@/components/ui/TimeMachine/components/DesignSystemLab';
-import { DesignLabEditor, type LabDesignTokens } from '@/components/ui/TimeMachine/components/DesignLabEditor';
+import { DesignSystemLab } from '@/components/ui/design-lab/DesignSystemLab';
+import { DesignLabEditor, type LabDesignTokens } from '@/components/ui/design-lab/DesignLabEditor';
 import type { ThemeConfig } from '@/data/portfolio-data';
 
 interface SimpleGameNavEraOverlayContentProps {

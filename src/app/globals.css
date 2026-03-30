@@ -1,6 +1,32 @@
 @import "tailwindcss";
 @import "../styles/typography-enhancements.css";
 @import "../styles/teenage-engineering-interactions.css";
+@import "../styles/sketch-mode.css";
+
+/* Sketch font declarations */
+@font-face {
+  font-family: 'Bridges Not Walls';
+  src: url('../assets/fonts/Bridges not walls.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Left Hand';
+  src: url('../assets/fonts/Left Hand.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Magnetic Drawing';
+  src: url('../assets/fonts/MagneticDrawing.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
 
 /* Custom font declarations - optimized for performance */
 @font-face {
@@ -682,12 +708,9 @@ body[data-style='absurd'] {
    GLOBAL STYLES
    ========================================= */
 
-* {
-  cursor: none !important;
-}
-
 html,
 body {
+  cursor: auto;
   width: 100%;
   height: auto;
   overflow-x: hidden;
@@ -696,6 +719,12 @@ body {
   color: var(--text-main);
   font-family: var(--font-main);
   transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+/* Custom cursor (mouse only): hide system pointer only while the client cursor is active */
+html[data-custom-cursor-active],
+html[data-custom-cursor-active] * {
+  cursor: none !important;
 }
 
 #__next {
@@ -1753,33 +1782,11 @@ body[data-style='absurd'] .coffee-stain::before {
    Global visual effects triggered by data-effects attribute
    ========================================= */
 
-/* CRT Scanlines - Terminal Era */
-body[data-effects*="crt-scanlines"]::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 9998;
-  background: repeating-linear-gradient(0deg,
-      transparent,
-      transparent 2px,
-      rgba(0, 0, 0, 0.08) 2px,
-      rgba(0, 0, 0, 0.08) 4px);
-  opacity: 0.6;
-}
+/* CRT Scanlines - DISABLED: removed full-screen shader overlay */
+/* body[data-effects*="crt-scanlines"]::before { ... } */
 
-/* Phosphor Glow - Terminal Era */
-body[data-effects*="phosphor-glow"]::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 9997;
-  background: radial-gradient(ellipse at center,
-      color-mix(in srgb, var(--accent-color) 15%, transparent) 0%,
-      transparent 70%);
-  animation: phosphor-pulse 3s ease-in-out infinite;
-}
+/* Phosphor Glow - DISABLED: removed full-screen shader overlay */
+/* body[data-effects*="phosphor-glow"]::after { ... } */
 
 @keyframes phosphor-pulse {
 
@@ -1793,12 +1800,8 @@ body[data-effects*="phosphor-glow"]::after {
   }
 }
 
-/* Screen Flicker - Terminal blink effect (reduced for accessibility) */
-@media (prefers-reduced-motion: no-preference) {
-  body[data-effects*="screen-flicker"] {
-    animation: screen-flicker 8s infinite;
-  }
-}
+/* Screen Flicker - DISABLED: removed full-page flicker animation */
+/* body[data-effects*="screen-flicker"] { animation: screen-flicker 8s infinite; } */
 
 @keyframes screen-flicker {
 
@@ -1909,25 +1912,13 @@ body[data-effects*="text-shadow-glow"] h3 {
   text-shadow: 0 0 10px color-mix(in srgb, var(--text-main) 50%, transparent);
 }
 
-/* Dynamic Grid Overlay - Uses era grid tokens */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 9990;
-  background-image:
-    linear-gradient(var(--text-main) 1px, transparent 1px),
-    linear-gradient(90deg, var(--text-main) 1px, transparent 1px);
-  background-size: var(--era-grid-size, 0) var(--era-grid-size, 0);
-  opacity: var(--era-grid-opacity, 0);
-  transition: opacity 0.5s ease, background-size 0.5s ease;
-}
+/* Dynamic Grid Overlay - DISABLED: removed full-screen grid shader */
+/* The grid is intentionally removed to keep the UI clean.
+   Era-specific grids can be added per-component if needed. */
 
-/* Hide grid when era has no grid (post-2022) */
-body[data-effects=""]::before,
-body:not([data-effects])::before {
-  opacity: 0;
+/* body::before was the global grid overlay — now cleared */
+body::before {
+  content: none;
 }
 
 /* Era-specific button radius classes */
@@ -2023,5 +2014,94 @@ select {
   body[data-effects*="backdrop-blur"] .wireframe-border {
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
+  }
+}
+
+/* Cursor chat — solid pill label */
+.cursor-chat-label {
+  font-family: var(--font-main);
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--bg-main);
+  background: var(--text-main);
+  padding: 4px 8px;
+  border-radius: min(4px, var(--era-radius-sm));
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--text-main) 20%, transparent);
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.cursor-chat-label__words {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: baseline;
+  gap: 0.3em;
+}
+
+.cursor-chat-label__token {
+  display: inline;
+  line-height: 1;
+}
+
+/* Hover state — accent pill */
+.cursor-chat-label[data-chat-hover="true"] {
+  background: var(--accent-color);
+  color: var(--bg-main);
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--accent-color) 30%, transparent);
+}
+
+/* Click state — pill presses */
+.cursor-chat-label[data-chat-click="true"] {
+  opacity: 0.85;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--text-main) 15%, transparent);
+}
+
+/* Vibe: scribble — slight tilt */
+.cursor-chat-label[data-dominant-vibe="scribble"] {
+  transform: rotate(-0.6deg);
+}
+
+/* Vibe: chaos — italic tilt */
+.cursor-chat-label[data-dominant-vibe="chaos"] {
+  transform: rotate(-1deg);
+}
+
+/* Per-word micro-styles */
+.cursor-chat-label .ccl-neutral {
+  opacity: 0.75;
+}
+
+.cursor-chat-label .ccl-scribble {
+  font-family: 'Magnetic Drawing', var(--font-main);
+  font-size: 1.12em;
+  letter-spacing: 0.02em;
+}
+
+.cursor-chat-label .ccl-spark {
+  opacity: 1;
+  font-weight: 600;
+}
+
+.cursor-chat-label .ccl-chaos {
+  font-style: italic;
+  letter-spacing: 0.04em;
+  opacity: 0.85;
+}
+
+.cursor-chat-label .ccl-forge {
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-style: wavy;
+  text-decoration-thickness: 1px;
+  text-decoration-color: currentColor;
+  text-underline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cursor-chat-label {
+    transform: none !important;
   }
 }

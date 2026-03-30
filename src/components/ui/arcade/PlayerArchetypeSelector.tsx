@@ -124,6 +124,9 @@ export const PlayerArchetypeSelector: React.FC<PlayerArchetypeSelectorProps> = (
   const handleSelect = useCallback((archetype: PlayerArchetype) => {
     setSelectedArchetype(archetype);
     localStorage.setItem('playerArchetype', archetype);
+    globalThis.dispatchEvent(
+      new CustomEvent('kiruk-player-archetype-change', { detail: archetype }),
+    );
     onSelect?.(archetype);
     setIsOpen(false);
   }, [onSelect]);
@@ -350,23 +353,46 @@ export const PlayerArchetypeSelector: React.FC<PlayerArchetypeSelectorProps> = (
 export default PlayerArchetypeSelector;
 
 // Hook to get current archetype anywhere
+export const PLAYER_ARCHETYPE_EVENT = 'kiruk-player-archetype-change';
+
 export const usePlayerArchetype = () => {
   const [archetype, setArchetype] = useState<PlayerArchetype | null>(null);
-  
+
   useEffect(() => {
-    const stored = localStorage.getItem('playerArchetype') as PlayerArchetype;
-    if (stored && ARCHETYPES[stored]) {
-      setArchetype(stored);
-    }
-    
-    // Listen for changes
-    const handleStorage = (e: StorageEvent) => {
-      if (e.key === 'playerArchetype') {
-        setArchetype(e.newValue as PlayerArchetype);
+    const read = () => {
+      try {
+        const stored = localStorage.getItem('playerArchetype') as PlayerArchetype;
+        if (stored && ARCHETYPES[stored]) {
+          setArchetype(stored);
+        } else {
+          setArchetype(null);
+        }
+      } catch {
+        setArchetype(null);
       }
     };
+
+    read();
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'playerArchetype') {
+        setArchetype((e.newValue as PlayerArchetype) || null);
+      }
+    };
+
+    const handleSameTab = (e: Event) => {
+      const ce = e as CustomEvent<PlayerArchetype>;
+      if (ce.detail && ARCHETYPES[ce.detail]) {
+        setArchetype(ce.detail);
+      }
+    };
+
     globalThis.addEventListener('storage', handleStorage);
-    return () => globalThis.removeEventListener('storage', handleStorage);
+    globalThis.addEventListener(PLAYER_ARCHETYPE_EVENT, handleSameTab);
+    return () => {
+      globalThis.removeEventListener('storage', handleStorage);
+      globalThis.removeEventListener(PLAYER_ARCHETYPE_EVENT, handleSameTab);
+    };
   }, []);
 
   return { archetype, info: archetype ? ARCHETYPES[archetype] : null };

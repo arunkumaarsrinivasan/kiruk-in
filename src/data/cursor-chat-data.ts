@@ -1,20 +1,17 @@
 /**
- * Data-driven cursor chat messages.
- * Each zone maps to a landing page section. The cursor picks a random message
- * when the user enters that zone. Individual elements can override via
- * `data-cursor-chat` attribute on the DOM node.
+ * Data-driven cursor chat messages for clickable UI only.
+ * Put `data-cursor-chat="key"` on the activatable node (link, button, etc.).
+ * Section-wide `data-cursor-zone` is not used by the cursor — add chat keys only where users click.
  */
 
 export interface CursorZone {
-    /** Multiple messages — one is picked at random each time the zone is entered */
+    /** Kept for reference / future use — not shown on hover without a click host */
     messages: string[];
-    /** Optional shorter idle label shown after the main message fades */
     idleLabel?: string;
 }
 
 /**
- * Zone map keyed by section ID / data-cursor-zone value.
- * Keep messages punchy — ≤60 chars ideally, TLDR style.
+ * Zone copy (optional reference). Cursor chat only targets elements with `data-cursor-chat`.
  */
 export const cursorZones: Record<string, CursorZone> = {
     hero: {
@@ -125,26 +122,125 @@ export const cursorZones: Record<string, CursorZone> = {
 };
 
 /**
- * Element-level overrides — mapped by a semantic key
- * that components can set via data-cursor-chat="key"
+ * Word-level vibes for cursor chat — data-driven personality:
+ * scribble = sketchy hand-energy, spark = creative burst, chaos = playful / “a little crazy”,
+ * forge = sketch → ship / making, neutral = glue words.
  */
-export const cursorElementMessages: Record<string, string> = {
-    "hat-designer": "🎨 Beret on = pixel-perfect mode activated",
-    "hat-developer": "💻 Cap on = terminal-first thinking",
-    "hat-bridge": "🌉 Hard hat on = build the bridge",
-    "cta-work": "Portfolio incoming. Brace yourself.",
-    "cta-contact": "Go ahead, say hi. He doesn't bite.",
-    "cta-run-test": "🧪 Click to run the collab test",
-    "link-email": "📧 Fastest way to reach Arun",
-    "link-linkedin": "💼 Professional network, professional vibes",
-    "link-phone": "📞 Only if it's really urgent tho",
-    "card-open": "📂 Open this case study",
-    "nav-section": "Jump to this section →",
+export type CursorChatVibe = "neutral" | "scribble" | "spark" | "chaos" | "forge";
+
+export interface CursorChatWord {
+    text: string;
+    vibe?: CursorChatVibe;
+}
+
+/** Flat text for measuring bubble width (a11y string mirrors visible words). */
+export function cursorChatPlainText(words: CursorChatWord[]): string {
+    return words.map((w) => w.text).join(" ");
+}
+
+/**
+ * Min/max `ch` for the chat bubble — scales with paragraph length, capped for readability.
+ */
+export function cursorChatBubbleMaxCh(plain: string): string {
+    const len = plain.trim().length;
+    const ch = Math.min(28, Math.max(11, 6 + len * 0.62));
+    return `${ch.toFixed(1)}ch`;
+}
+
+/** Most common vibe in the line — drives bubble chrome (border, tilt, paper tone). */
+export function cursorChatDominantVibe(words: CursorChatWord[]): CursorChatVibe {
+    const counts = new Map<CursorChatVibe, number>();
+    for (const w of words) {
+        const v = w.vibe ?? "neutral";
+        counts.set(v, (counts.get(v) ?? 0) + 1);
+    }
+    const priority: CursorChatVibe[] = ["scribble", "spark", "chaos", "forge", "neutral"];
+    let best: CursorChatVibe = "neutral";
+    let bestN = -1;
+    for (const v of priority) {
+        const n = counts.get(v) ?? 0;
+        if (n > bestN) {
+            best = v;
+            bestN = n;
+        }
+    }
+    return best;
+}
+
+/**
+ * Messages for clickable targets — each token is a word (or emoji chunk) + optional vibe.
+ */
+export const cursorElementChats: Record<string, CursorChatWord[]> = {
+    "hat-designer": [
+        { text: "🎨", vibe: "spark" },
+        { text: "picky", vibe: "chaos" },
+        { text: "pixels", vibe: "scribble" },
+        { text: "mode", vibe: "forge" },
+    ],
+    "hat-developer": [
+        { text: "💻", vibe: "spark" },
+        { text: "ship", vibe: "forge" },
+        { text: "mode", vibe: "forge" },
+        { text: "on", vibe: "chaos" },
+    ],
+    "hat-bridge": [
+        { text: "🌉", vibe: "spark" },
+        { text: "design", vibe: "scribble" },
+        { text: "and", vibe: "neutral" },
+        { text: "code", vibe: "forge" },
+    ],
+    "cta-work": [
+        { text: "✨", vibe: "spark" },
+        { text: "real", vibe: "forge" },
+        { text: "work", vibe: "forge" },
+        { text: "inside", vibe: "chaos" },
+    ],
+    "cta-contact": [
+        { text: "👋", vibe: "spark" },
+        { text: "say", vibe: "neutral" },
+        { text: "hi", vibe: "chaos" },
+        { text: "here", vibe: "scribble" },
+    ],
+    "cta-run-test": [
+        { text: "🧪", vibe: "spark" },
+        { text: "tiny", vibe: "chaos" },
+        { text: "test", vibe: "forge" },
+        { text: "click", vibe: "scribble" },
+    ],
+    "link-email": [
+        { text: "📧", vibe: "spark" },
+        { text: "email", vibe: "forge" },
+        { text: "me", vibe: "neutral" },
+        { text: "fast", vibe: "chaos" },
+    ],
+    "link-linkedin": [
+        { text: "💼", vibe: "spark" },
+        { text: "linkedin", vibe: "forge" },
+        { text: "say", vibe: "neutral" },
+        { text: "hi", vibe: "chaos" },
+    ],
+    "link-phone": [
+        { text: "📞", vibe: "spark" },
+        { text: "call", vibe: "forge" },
+        { text: "if", vibe: "neutral" },
+        { text: "loud", vibe: "chaos" },
+    ],
+    "card-open": [
+        { text: "📂", vibe: "spark" },
+        { text: "story", vibe: "scribble" },
+        { text: "in", vibe: "neutral" },
+        { text: "here", vibe: "forge" },
+    ],
+    "nav-section": [
+        { text: "⤵️", vibe: "spark" },
+        { text: "jump", vibe: "chaos" },
+        { text: "this", vibe: "neutral" },
+        { text: "section", vibe: "forge" },
+    ],
 };
 
 /**
- * Era-specific fallback messages when no zone is detected.
- * Used as generic cursor chat when hovering non-zone areas.
+ * Era-specific fallbacks (unused by cursor today; kept for experiments).
  */
 export const eraFallbacks: Record<string, string[]> = {
     retro: [
@@ -164,16 +260,10 @@ export const eraFallbacks: Record<string, string[]> = {
     ],
 };
 
-/**
- * Utility: pick a random item from an array.
- */
 export function pickRandom<T>(arr: T[]): T {
     return arr[Math.floor(Math.random() * arr.length)];
 }
 
-/**
- * Get era bucket for fallback messages.
- */
 export function getEraBucket(eraId: string): string {
     const year = parseInt(eraId, 10);
     if (isNaN(year)) return "default";

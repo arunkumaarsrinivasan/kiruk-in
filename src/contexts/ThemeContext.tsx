@@ -262,6 +262,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       }
     } else {
       clearCustomVars();
+      // Html inherits --bg-main from :root (white) while era tokens live on body[data-era],
+      // so the viewport can flash white behind fixed UI. Mirror page background on <html>.
+      root.style.setProperty('--bg-main', theme.colors.background);
     }
   }, [currentTheme]);
 

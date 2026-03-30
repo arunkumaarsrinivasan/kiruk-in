@@ -48,8 +48,8 @@ const getTileSize = () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // W: Wall, .: Floor, P: Player Start
-// 1-5, 7: Doors to games (Home, About, Work, Case Studies, Progress, Contact)
-// Position 6 (arcade) and 8 (lab) removed
+// 1-5, 7-8: Doors to games (Home, About, Work, Case Studies, Progress, Contact, Blog)
+// Position 6 (arcade) removed
 const MAP_LAYOUT = [
   "WWWWWWWWWWWWWWWWWWWWWWWWW",
   "W..1.......W.......2....W",
@@ -62,7 +62,7 @@ const MAP_LAYOUT = [
   "WWWW..W..WWWWWWW..W..WWWW",
   "W..5........W........7..W",
   "W..W..WWWW..W..WWWW..W..W",
-  "W.....W.....W.....W.....W",
+  "W.....W.....8........W..W",
   "WWWWWWWWWWWWWWWWWWWWWWWWW",
 ];
 
@@ -71,8 +71,8 @@ const NAVIGATION_GAMES = PAGE_GAMES.filter(game =>
   game.id !== 'arcade' && game.id !== 'lab'
 );
 
-// Map position to game index (1-5, 7 map to filtered games)
-// Position 6 (arcade) and 8 (lab) are removed
+// Map position to game index (1-5, 7-8 map to filtered games)
+// Position 6 (arcade) is removed
 const POSITION_TO_GAME_INDEX: Record<number, number> = {
   1: 0, // home
   2: 1, // about
@@ -80,9 +80,10 @@ const POSITION_TO_GAME_INDEX: Record<number, number> = {
   4: 3, // case-studies
   5: 4, // progress
   7: 5, // contact (keeping in original position)
+  8: 6, // blog
 };
 
-// Precompute door tile positions from the map (1-5, 7)
+// Precompute door tile positions from the map (1-5, 7-8)
 const DOOR_POSITIONS = (() => {
   const positions: Array<{ x: number; y: number; gameIndex: number }> = [];
   for (let y = 0; y < MAP_LAYOUT.length; y++) {
@@ -90,7 +91,7 @@ const DOOR_POSITIONS = (() => {
     for (let x = 0; x < row.length; x++) {
       const ch = row[x];
       const position = parseInt(ch, 10);
-      if ((position >= 1 && position <= 5) || position === 7) {
+      if ((position >= 1 && position <= 5) || position === 7 || position === 8) {
         const gameIndex = POSITION_TO_GAME_INDEX[position];
         if (gameIndex !== undefined) {
           positions.push({ x, y, gameIndex });
@@ -113,6 +114,7 @@ const getSimplifiedName = (gameId: string): string => {
     'case-studies': 'CASE STUDY',
     'contact': 'CONTACT',
     'progress': 'PROGRESS',
+    'blog': 'BLOG',
   };
   return nameMap[gameId] || gameId.toUpperCase();
 };
@@ -639,7 +641,7 @@ export const GameMenuOverlay = () => {
                 row.split('').map((tile, x) => {
                   const isWall = tile === 'W';
                   const doorPosition = parseInt(tile, 10);
-                  const isDoor = (doorPosition >= 1 && doorPosition <= 5) || doorPosition === 7;
+                  const isDoor = (doorPosition >= 1 && doorPosition <= 5) || doorPosition === 7 || doorPosition === 8;
                   
                   let game = null;
                   let isPlayerNearDoor = false;

@@ -136,9 +136,9 @@ export function PixelCharacter({
       >
         {/* Dynamic Shadow */}
         <ellipse
-          cx={config.width / 2}
-          cy={config.height - 2}
-          rx={config.width * 0.35 + (action !== "idle" ? 3 : 0)}
+          cx={(config?.width || 0) / 2}
+          cy={(config?.height || 0) - 2}
+          rx={(config?.width || 0) * 0.35 + (action !== "idle" ? 3 : 0)}
           ry={4 + (action !== "idle" ? 1 : 0)}
           fill="rgba(0,0,0,0.25)"
         />
