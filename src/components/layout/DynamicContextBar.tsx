@@ -4,7 +4,10 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { GRID_SIZE, cn } from '@/lib/utils';
-import { SIMPLE_GAME_NAV_BOTTOM_CSS_VAR } from '@/components/layout/SimpleGameNav';
+import {
+  SIMPLE_GAME_NAV_BAR_HEIGHT_PX,
+  SIMPLE_GAME_NAV_BOTTOM_CSS_VAR,
+} from '@/components/layout/SimpleGameNav';
 import { PixelIcon } from '@/components/ui/PixelIcon';
 import { useContextBar } from '@/contexts/ContextBarContext';
 
@@ -381,7 +384,7 @@ export default function DynamicContextBar() {
     <motion.header
       className="fixed left-0 right-0 border-b-2 bg-[var(--bg-card)]/95 backdrop-blur-md flex items-center"
       style={{
-        top: `var(${SIMPLE_GAME_NAV_BOTTOM_CSS_VAR}, 72px)`,
+        top: `var(${SIMPLE_GAME_NAV_BOTTOM_CSS_VAR}, ${SIMPLE_GAME_NAV_BAR_HEIGHT_PX}px)`,
         height: BAR_HEIGHT,
         borderColor: 'var(--border-color)',
         zIndex: 45, // Below main nav (z-50) but above content

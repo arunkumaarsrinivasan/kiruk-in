@@ -339,7 +339,7 @@ export const GameMenuOverlay = () => {
     if (globalThis.document) {
       resizeObserver.observe(globalThis.document.body);
     }
-    globalThis.addEventListener('resize', updateTileSize);
+    globalThis.addEventListener('resize', updateTileSize, { passive: true });
     return () => {
       globalThis.removeEventListener('resize', updateTileSize);
       resizeObserver.disconnect();

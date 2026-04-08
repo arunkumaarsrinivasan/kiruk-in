@@ -116,7 +116,7 @@ export default function DetectiveHintsOverlay({ children }: DetectiveHintsOverla
     };
 
     calculatePositions();
-    window.addEventListener('resize', calculatePositions);
+    window.addEventListener('resize', calculatePositions, { passive: true });
     const timer = setTimeout(calculatePositions, 500); // Delay to ensure DOM is ready
 
     return () => {

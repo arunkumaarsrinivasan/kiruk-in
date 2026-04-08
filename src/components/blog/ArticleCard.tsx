@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { PixelIcon } from '@/components/ui/PixelIcon'
@@ -41,11 +42,13 @@ export function ArticleCard({ article, index = 0 }: ArticleCardProps) {
         >
           {/* Cover Image */}
           {article.coverImage && (
-            <div className="mb-4 aspect-video overflow-hidden border-2 border-[var(--border-color)]">
-              <img
+            <div className="relative mb-4 aspect-video overflow-hidden border-2 border-[var(--border-color)]">
+              <Image
                 src={article.coverImage}
                 alt={article.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                fill
+                className="object-cover transition-transform group-hover:scale-105"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 400px"
               />
             </div>
           )}

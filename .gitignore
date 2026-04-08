@@ -80,6 +80,12 @@ Thumbs.db
 .cache/
 .temp/
 
+# Local tooling / CI artifacts
+build_output.txt
+lighthouse-report.json
+lh-verify.json
+.tmp-lh/
+
 # Logs
 logs/
 *.log

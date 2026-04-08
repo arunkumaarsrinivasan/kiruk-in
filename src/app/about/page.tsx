@@ -435,8 +435,9 @@ export default function About() {
 			}
 		};
 
-		globalThis.addEventListener("touchstart", handleTouch);
-		globalThis.addEventListener("touchend", handleTouchEnd);
+		const touchOpts = { passive: true } as const;
+		globalThis.addEventListener("touchstart", handleTouch, touchOpts);
+		globalThis.addEventListener("touchend", handleTouchEnd, touchOpts);
 		return () => {
 			globalThis.removeEventListener("touchstart", handleTouch);
 			globalThis.removeEventListener("touchend", handleTouchEnd);

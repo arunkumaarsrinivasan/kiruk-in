@@ -75,7 +75,7 @@ export function useResponsiveGrid(): GridAlignment {
     };
 
     calculateAlignment();
-    window.addEventListener('resize', calculateAlignment);
+    window.addEventListener('resize', calculateAlignment, { passive: true });
 
     return () => window.removeEventListener('resize', calculateAlignment);
   }, []);

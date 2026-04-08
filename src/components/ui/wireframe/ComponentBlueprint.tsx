@@ -57,6 +57,12 @@ export function ComponentBlueprint({
     const cornerSize = 12;
     const rulerExtend = 32;
 
+    // Single layout read per paint — avoids forced reflow from many getBoundingClientRect() calls
+    const rulerCr =
+        showRulers && isHovered && containerRef.current
+            ? containerRef.current.getBoundingClientRect()
+            : null;
+
     return (
         <div
             className={`relative ${className}`}
@@ -192,9 +198,9 @@ export function ComponentBlueprint({
                         <div
                             className="absolute w-px"
                             style={{
-                                left: containerRef.current?.getBoundingClientRect().left ?? 0,
+                                left: rulerCr?.left ?? 0,
                                 top: 0,
-                                height: containerRef.current?.getBoundingClientRect().top ?? 0,
+                                height: rulerCr?.top ?? 0,
                                 backgroundColor: 'var(--accent-color)',
                                 opacity: 0.3
                             }}
@@ -202,9 +208,9 @@ export function ComponentBlueprint({
                         <div
                             className="absolute w-px"
                             style={{
-                                left: (containerRef.current?.getBoundingClientRect().right ?? 0) - 1,
+                                left: (rulerCr?.right ?? 0) - 1,
                                 top: 0,
-                                height: containerRef.current?.getBoundingClientRect().top ?? 0,
+                                height: rulerCr?.top ?? 0,
                                 backgroundColor: 'var(--accent-color)',
                                 opacity: 0.3
                             }}
@@ -219,10 +225,10 @@ export function ComponentBlueprint({
                         <div
                             className="absolute w-px"
                             style={{
-                                left: containerRef.current?.getBoundingClientRect().left ?? 0,
-                                top: containerRef.current?.getBoundingClientRect().bottom ?? 0,
+                                left: rulerCr?.left ?? 0,
+                                top: rulerCr?.bottom ?? 0,
                                 bottom: 0,
-                                height: `calc(100vh - ${containerRef.current?.getBoundingClientRect().bottom ?? 0}px)`,
+                                height: `calc(100vh - ${rulerCr?.bottom ?? 0}px)`,
                                 backgroundColor: 'var(--accent-color)',
                                 opacity: 0.3
                             }}
@@ -230,9 +236,9 @@ export function ComponentBlueprint({
                         <div
                             className="absolute w-px"
                             style={{
-                                left: (containerRef.current?.getBoundingClientRect().right ?? 0) - 1,
-                                top: containerRef.current?.getBoundingClientRect().bottom ?? 0,
-                                height: `calc(100vh - ${containerRef.current?.getBoundingClientRect().bottom ?? 0}px)`,
+                                left: (rulerCr?.right ?? 0) - 1,
+                                top: rulerCr?.bottom ?? 0,
+                                height: `calc(100vh - ${rulerCr?.bottom ?? 0}px)`,
                                 backgroundColor: 'var(--accent-color)',
                                 opacity: 0.3
                             }}
@@ -247,9 +253,9 @@ export function ComponentBlueprint({
                         <div
                             className="absolute h-px"
                             style={{
-                                top: containerRef.current?.getBoundingClientRect().top ?? 0,
+                                top: rulerCr?.top ?? 0,
                                 left: 0,
-                                width: containerRef.current?.getBoundingClientRect().left ?? 0,
+                                width: rulerCr?.left ?? 0,
                                 backgroundColor: 'var(--accent-color)',
                                 opacity: 0.3
                             }}
@@ -257,9 +263,9 @@ export function ComponentBlueprint({
                         <div
                             className="absolute h-px"
                             style={{
-                                top: (containerRef.current?.getBoundingClientRect().bottom ?? 0) - 1,
+                                top: (rulerCr?.bottom ?? 0) - 1,
                                 left: 0,
-                                width: containerRef.current?.getBoundingClientRect().left ?? 0,
+                                width: rulerCr?.left ?? 0,
                                 backgroundColor: 'var(--accent-color)',
                                 opacity: 0.3
                             }}
@@ -268,7 +274,7 @@ export function ComponentBlueprint({
                         <div
                             className="absolute px-2 py-1"
                             style={{
-                                top: ((containerRef.current?.getBoundingClientRect().top ?? 0) + (containerRef.current?.getBoundingClientRect().bottom ?? 0)) / 2,
+                                top: ((rulerCr?.top ?? 0) + (rulerCr?.bottom ?? 0)) / 2,
                                 left: 8,
                                 transform: 'translateY(-50%)',
                                 backgroundColor: 'var(--bg-main)'
@@ -288,10 +294,10 @@ export function ComponentBlueprint({
                         <div
                             className="absolute h-px"
                             style={{
-                                top: containerRef.current?.getBoundingClientRect().top ?? 0,
-                                left: containerRef.current?.getBoundingClientRect().right ?? 0,
+                                top: rulerCr?.top ?? 0,
+                                left: rulerCr?.right ?? 0,
                                 right: 0,
-                                width: `calc(100vw - ${containerRef.current?.getBoundingClientRect().right ?? 0}px)`,
+                                width: `calc(100vw - ${rulerCr?.right ?? 0}px)`,
                                 backgroundColor: 'var(--accent-color)',
                                 opacity: 0.3
                             }}
@@ -299,9 +305,9 @@ export function ComponentBlueprint({
                         <div
                             className="absolute h-px"
                             style={{
-                                top: (containerRef.current?.getBoundingClientRect().bottom ?? 0) - 1,
-                                left: containerRef.current?.getBoundingClientRect().right ?? 0,
-                                width: `calc(100vw - ${containerRef.current?.getBoundingClientRect().right ?? 0}px)`,
+                                top: (rulerCr?.bottom ?? 0) - 1,
+                                left: rulerCr?.right ?? 0,
+                                width: `calc(100vw - ${rulerCr?.right ?? 0}px)`,
                                 backgroundColor: 'var(--accent-color)',
                                 opacity: 0.3
                             }}
@@ -310,7 +316,7 @@ export function ComponentBlueprint({
                         <div
                             className="absolute px-2 py-1"
                             style={{
-                                top: ((containerRef.current?.getBoundingClientRect().top ?? 0) + (containerRef.current?.getBoundingClientRect().bottom ?? 0)) / 2,
+                                top: ((rulerCr?.top ?? 0) + (rulerCr?.bottom ?? 0)) / 2,
                                 right: 8,
                                 transform: 'translateY(-50%)',
                                 backgroundColor: 'var(--bg-main)'

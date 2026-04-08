@@ -152,11 +152,12 @@ export default function CustomCursor() {
     };
     const handleMouseUp = () => setIsClicking(false);
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mousedown', handleMouseDown);
-    window.addEventListener('mouseup', handleMouseUp);
-    document.body.addEventListener('mouseleave', handleMouseLeave);
-    document.body.addEventListener('mouseenter', handleMouseEnter);
+    const passive = { passive: true } as const;
+    window.addEventListener('mousemove', handleMouseMove, passive);
+    window.addEventListener('mousedown', handleMouseDown, passive);
+    window.addEventListener('mouseup', handleMouseUp, passive);
+    document.body.addEventListener('mouseleave', handleMouseLeave, passive);
+    document.body.addEventListener('mouseenter', handleMouseEnter, passive);
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);

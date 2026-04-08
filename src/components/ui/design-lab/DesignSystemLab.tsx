@@ -305,7 +305,7 @@ function SmallEyeIcon({ accentColor }: { accentColor: string }) {
 
 export function DesignSystemLab({
   era,
-  onOpenLabEditor,
+  onOpenLabEditor: _onOpenLabEditor,
 }: DesignSystemLabProps) {
   const [showCustomizationLab, setShowCustomizationLab] = useState(false);
   const colors = era.colors;

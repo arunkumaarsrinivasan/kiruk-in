@@ -21,6 +21,7 @@
 import React, { useRef, useCallback, useEffect, useState, useMemo, useId } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLayoutMode } from '@/contexts/LayoutModeContext';
+import { SIMPLE_GAME_NAV_CONTEXT_BAR_TOP_PX } from '@/components/layout/SimpleGameNav';
 
 // ── Tear edge (paper ⟷ digital) — shared geometry for clip-path + overlay ─────
 /** Enough points for a smooth hand-torn line without “electric” buzzing. */
@@ -457,21 +458,29 @@ const SketchDigitalSplitLayout: React.FC<Props> = ({ children }) => {
     // Dynamic nav height — measured so the split container always sits exactly below the header
     // IMPORTANT: Target the fixed SimpleGameNav (#navigation), NOT any inner sticky header
     /** Distance from viewport top to start split panes (flush under #navigation). */
-    const [navStackBottom, setNavStackBottom] = useState(82);
+    const [navStackBottom, setNavStackBottom] = useState(
+        SIMPLE_GAME_NAV_CONTEXT_BAR_TOP_PX,
+    );
+    const navMeasureRaf = useRef(0);
     useEffect(() => {
         const nav = document.querySelector('#navigation') as HTMLElement | null;
         if (!nav) return;
         const measure = () => {
-            const bottom = Math.round(nav.getBoundingClientRect().bottom);
-            setNavStackBottom(bottom);
+            cancelAnimationFrame(navMeasureRaf.current);
+            navMeasureRaf.current = requestAnimationFrame(() => {
+                navMeasureRaf.current = 0;
+                const bottom = Math.round(nav.getBoundingClientRect().bottom);
+                setNavStackBottom(bottom);
+            });
         };
         const ro = new ResizeObserver(() => measure());
         ro.observe(nav);
         measure();
-        globalThis.addEventListener('resize', measure);
+        globalThis.addEventListener('resize', measure, { passive: true });
         return () => {
             ro.disconnect();
             globalThis.removeEventListener('resize', measure);
+            cancelAnimationFrame(navMeasureRaf.current);
         };
     }, []);
 

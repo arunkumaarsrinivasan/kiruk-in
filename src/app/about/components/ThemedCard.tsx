@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
@@ -82,8 +83,13 @@ export function ThemedCard({ theme, children, className, onClick, isCollapsed: _
   const XPHeader = () => (
     <div className="bg-gradient-to-r from-[#0058EE] via-[#3A93FF] to-[#0058EE] px-2 py-1 flex justify-between items-center border-b border-black mx-[2px] mt-[2px]">
       <span className="text-white font-bold text-xs font-[Tahoma] flex items-center gap-1">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="https://win98icons.alexmeub.com/icons/png/computer_explorer-0.png" className="w-3 h-3" alt="" />
+        <Image
+          src="https://win98icons.alexmeub.com/icons/png/computer_explorer-0.png"
+          alt=""
+          width={12}
+          height={12}
+          className="h-3 w-3"
+        />
         Kiruk.exe
       </span>
       <div className="flex gap-1">

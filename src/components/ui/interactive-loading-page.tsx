@@ -39,7 +39,7 @@ const InteractiveLoadingPage: React.FC<InteractiveLoadingPageProps> = ({
     };
     
     updateSize();
-    globalThis.addEventListener('resize', updateSize);
+    globalThis.addEventListener('resize', updateSize, { passive: true });
 
     const gridSize = 20; // Match CSS variable --surface-pattern-size
     // Calculate logical columns and rows based on CSS pixels

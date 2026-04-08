@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import Image from 'next/image'
 import Link from 'next/link'
 import { PixelIcon } from '@/components/ui/PixelIcon'
 import { GridBackground } from '@/components/ui/GridBackground'
@@ -134,11 +135,14 @@ export default function BlogArticlePage() {
 
           {/* Cover Image */}
           {article.coverImage && (
-            <div className="mb-8 border-2 border-[var(--border-color)] overflow-hidden">
-              <img
+            <div className="relative mb-8 aspect-[16/9] w-full max-h-[min(70vh,720px)] overflow-hidden border-2 border-[var(--border-color)]">
+              <Image
                 src={article.coverImage}
                 alt={article.title}
-                className="w-full h-auto"
+                fill
+                priority
+                className="object-contain object-top bg-[var(--bg-card)]"
+                sizes="(max-width: 896px) 100vw, 896px"
               />
             </div>
           )}

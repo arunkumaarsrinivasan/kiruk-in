@@ -10,7 +10,6 @@ import { portfolioData } from "@/data/portfolio-data";
 import { useDesignEra } from "@/contexts/DesignEraContext";
 import { useLayoutMode } from "@/contexts/LayoutModeContext";
 import { HeroWithHatSwitching } from "@/components/sections/HeroWithHatSwitching";
-import EraFooter from "@/components/sections/EraFooter";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -1164,8 +1163,6 @@ export default function WireframeManualLayout() {
             </div>
           </WireframeSection>
         </div>
-
-        <EraFooter />
       </main>
     </div>
   );

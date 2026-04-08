@@ -1,6 +1,7 @@
 'use client'
 
 import type { BlockObjectResponse } from '@notionhq/client/build/src/api-endpoints'
+import Image from 'next/image'
 import { cn } from '@/lib/utils'
 
 interface NotionRendererProps {
@@ -71,7 +72,7 @@ export function NotionRenderer({ blocks, className }: NotionRendererProps) {
 }
 
 function NotionBlock({ block }: { block: BlockObjectResponse }) {
-  const { type, id } = block
+  const { type } = block
 
   switch (type) {
     case 'paragraph':
@@ -185,31 +186,37 @@ function NotionBlock({ block }: { block: BlockObjectResponse }) {
         </pre>
       )
 
-    case 'image':
+    case 'image': {
       const imageUrl =
         block.image.type === 'external'
           ? block.image.external.url
           : block.image.type === 'file'
             ? block.image.file.url
             : ''
+      if (!imageUrl) return null
       return (
-        <div className="my-6">
-          <img
-            src={imageUrl}
-            alt={block.image.caption?.[0]?.plain_text || 'Article image'}
-            className="w-full border-2"
-            style={{ borderColor: 'var(--border-color)' }}
-          />
+        <figure className="my-6 w-full">
+          <div className="relative min-h-[12rem] w-full">
+            <Image
+              src={imageUrl}
+              alt={block.image.caption?.[0]?.plain_text || 'Article image'}
+              fill
+              className="border-2 object-contain"
+              style={{ borderColor: 'var(--border-color)' }}
+              sizes="(max-width: 896px) 100vw, 896px"
+            />
+          </div>
           {block.image.caption && block.image.caption.length > 0 && (
-            <p
-              className="text-sm font-mono mt-2 text-center"
+            <figcaption
+              className="mt-2 text-center text-sm font-mono"
               style={{ color: 'var(--text-muted)' }}
             >
               {block.image.caption.map((caption) => caption.plain_text).join('')}
-            </p>
+            </figcaption>
           )}
-        </div>
+        </figure>
       )
+    }
 
     case 'quote':
       return (

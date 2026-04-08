@@ -7,11 +7,6 @@ import { GRID_SIZE, cn } from '@/lib/utils';
 import { useDesignEra } from '@/contexts/DesignEraContext';
 import { PixelIcon } from '@/components/ui/PixelIcon';
 
-const TE_TIMING = {
-  instant: 0.08,
-  quick: 0.15,
-};
-
 // Z-index layers for proper stacking
 const Z_LAYERS = {
   base: 50,
@@ -21,14 +16,14 @@ const Z_LAYERS = {
 };
 
 
-// Pixelated Oval Eye for header
+// Rectangular Comic Style Eye for header
 const PixelEye = ({ size = 52 }: { size?: number }) => {
   const [pupilPos, setPupilPos] = useState({ x: 0, y: 0 });
   const [isBlinking, setIsBlinking] = useState(false);
   const eyeRef = useRef<HTMLDivElement>(null);
   
-  const cols = 13;
-  const rows = 9;
+  const cols = 14;
+  const rows = 8;
   const pixelSize = Math.floor(size / cols);
 
   useEffect(() => {
@@ -41,14 +36,14 @@ const PixelEye = ({ size = 52 }: { size?: number }) => {
       const deltaY = e.clientY - eyeCenterY;
       const angle = Math.atan2(deltaY, deltaX);
       const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-      const maxMove = pixelSize * 2;
-      const moveAmount = Math.min(distance / 10, maxMove);
+      const maxMove = pixelSize * 2.5;
+      const moveAmount = Math.min(distance / 15, maxMove);
       setPupilPos({
         x: Math.cos(angle) * moveAmount,
         y: Math.sin(angle) * moveAmount,
       });
     };
-    globalThis.addEventListener('mousemove', handleMouseMove);
+    globalThis.addEventListener('mousemove', handleMouseMove, { passive: true });
     return () => globalThis.removeEventListener('mousemove', handleMouseMove);
   }, [pixelSize]);
 
@@ -64,27 +59,25 @@ const PixelEye = ({ size = 52 }: { size?: number }) => {
   }, []);
 
   const eyePattern = [
-    [0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0],
-    [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
-    [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-    [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
-    [0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   ];
 
   const blinkPattern = [
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   ];
 
   const currentPattern = isBlinking ? blinkPattern : eyePattern;
@@ -92,23 +85,24 @@ const PixelEye = ({ size = 52 }: { size?: number }) => {
   return (
     <div 
       ref={eyeRef}
-      className="relative"
-      style={{ width: cols * pixelSize, height: rows * pixelSize }}
+      className="relative flex items-center justify-center pointer-events-none p-1"
+      style={{ width: cols * pixelSize + 8, height: rows * pixelSize + 8 }}
     >
       <div 
-        className="absolute inset-0 grid"
+        className="absolute inset-0 grid gap-[2px] bg-[var(--text-main)] border-[3px] border-[var(--text-main)] shadow-[4px_4px_0_var(--text-main)]"
         style={{ 
-          gridTemplateColumns: `repeat(${cols}, ${pixelSize}px)`,
-          gridTemplateRows: `repeat(${rows}, ${pixelSize}px)`,
+          gridTemplateColumns: `repeat(${cols}, 1fr)`,
+          gridTemplateRows: `repeat(${rows}, 1fr)`,
+          padding: '2px',
         }}
       >
         {currentPattern.flat().map((pixel, i) => (
           <div 
             key={i} 
             style={{ 
-              backgroundColor: pixel === 1 ? 'var(--bg-main)' : 'transparent',
-              width: pixelSize,
-              height: pixelSize,
+              backgroundColor: pixel === 1 ? 'var(--text-main)' : 'var(--bg-main)',
+              width: '100%',
+              height: '100%',
             }} 
           />
         ))}
@@ -116,29 +110,19 @@ const PixelEye = ({ size = 52 }: { size?: number }) => {
       
       {!isBlinking && (
         <motion.div
-          className="absolute"
+          className="absolute z-10"
           style={{
             left: '50%',
             top: '50%',
-            marginLeft: -pixelSize,
-            marginTop: -pixelSize,
+            marginLeft: -(pixelSize * 1.5),
+            marginTop: -(pixelSize * 1.5),
+            width: pixelSize * 3,
+            height: pixelSize * 3,
+            backgroundColor: 'var(--text-main)',
           }}
           animate={{ x: pupilPos.x, y: pupilPos.y }}
           transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-        >
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: `repeat(2, ${pixelSize}px)`,
-              gridTemplateRows: `repeat(2, ${pixelSize}px)`,
-            }}
-          >
-            <div style={{ width: pixelSize, height: pixelSize, backgroundColor: 'var(--text-main)' }} />
-            <div style={{ width: pixelSize, height: pixelSize, backgroundColor: 'var(--text-main)' }} />
-            <div style={{ width: pixelSize, height: pixelSize, backgroundColor: 'var(--text-main)' }} />
-            <div />
-          </div>
-        </motion.div>
+        />
       )}
     </div>
   );
@@ -258,7 +242,6 @@ const HeaderTimeline = ({
   const BAR_HEIGHT = GRID_SIZE * 3;
   const DEVICE_WIDTH = GRID_SIZE * 12; // 240px wide
 
-  // Pixel-style button component
   const PixelButton = ({ 
     children, 
     onClick, 
@@ -274,26 +257,25 @@ const HeaderTimeline = ({
   }) => (
     <motion.button
       className={cn(
-        'flex items-center justify-center group relative',
+        'flex items-center justify-center group relative cursor-pointer',
         'border-2 font-mono font-bold',
-        'transition-colors',
+        'transition-transform duration-[160ms] ease-out',
         active 
-          ? 'bg-[var(--accent-color)] text-[var(--bg-main)] border-[var(--accent-color)]' 
-          : 'bg-[var(--bg-card)] text-[var(--text-main)] border-[var(--border-color)] hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] hover:border-[var(--text-main)]'
+          ? 'bg-[var(--text-main)] text-[var(--bg-main)] border-[var(--text-main)] shadow-[2px_2px_0_var(--text-main)]' 
+          : 'bg-[var(--bg-card)] text-[var(--text-main)] border-[var(--text-main)] shadow-[inset_-2px_-2px_0_rgba(0,0,0,0.1)] hover:bg-[var(--text-main)] hover:text-[var(--bg-main)] hover:-translate-y-0.5 hover:shadow-[3px_3px_0_var(--text-main)]'
       )}
       style={{ 
         width, 
         height: BAR_HEIGHT - 8,
-        imageRendering: 'pixelated',
       }}
       onClick={onClick}
-      whileTap={{ scale: 0.92 }}
+      whileTap={{ scale: 0.94 }}
       title={title}
     >
       {children}
       {/* Tooltip */}
       {title && (
-        <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-[var(--text-main)] text-[var(--bg-main)] text-[7px] font-mono opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
+        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-[var(--text-main)] text-[var(--bg-main)] text-[10px] font-mono font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10 shadow-[2px_2px_0_rgba(0,0,0,0.5)]">
           {title}
         </div>
       )}
@@ -302,111 +284,112 @@ const HeaderTimeline = ({
 
   return (
     <>
-      {/* Device Housing - Pixel Art Style */}
+      {/* Device Housing - Comic Retro Style */}
       <div
-        className="relative flex items-center gap-1 px-1 bg-[var(--bg-card)] border-y border-r-2 border-[var(--border-color)]"
+        className="relative flex items-center gap-1.5 px-2 bg-[var(--bg-card)] border-[3px] border-[var(--text-main)] shadow-[4px_4px_0_var(--text-main)] border-l-0"
         style={{ 
           width: DEVICE_WIDTH, 
           height: BAR_HEIGHT,
-          imageRendering: 'pixelated',
         }}
       >
         {/* Keyboard hint */}
-        <span className="absolute top-0 left-1 text-[6px] font-mono opacity-30">T</span>
+        <span className="absolute -top-3 left-1 text-[8px] font-mono opacity-80 uppercase font-black bg-[var(--bg-main)] px-1 shadow-[2px_2px_0_var(--text-main)] border-2 border-[var(--text-main)] z-10">
+          Time Travel
+        </span>
 
         {/* REW Button - Go to Past */}
-        <PixelButton onClick={() => navigateEra(-1)} width={GRID_SIZE * 1.5} title="← Past era">
-          <PixelIcon name="angle-left" size={12} />
+        <PixelButton onClick={() => navigateEra(-1)} width={GRID_SIZE * 2.5} title="← Past era">
+          <PixelIcon name="angle-left" size={14} />
         </PixelButton>
 
         {/* LCD Screen - Main Display */}
         <motion.button
           className={cn(
-            'flex-1 flex items-center justify-between px-2 group',
-            'bg-[var(--bg-main)] border-2 border-[var(--border-color)]',
-            'cursor-pointer',
-            'hover:border-[var(--accent-color)]'
+            'flex-1 flex items-center justify-between px-3 group',
+            'bg-[var(--bg-main)] border-2 border-[var(--text-main)]',
+            'cursor-pointer shadow-inner',
+            'transition-colors duration-150',
+            'hover:bg-[var(--text-muted)] hover:text-[var(--bg-main)]'
           )}
           style={{ height: BAR_HEIGHT - 8 }}
           onClick={onToggle}
-          whileTap={{ scale: 0.98 }}
+          whileTap={{ scale: 0.97 }}
         >
           {/* Left: Era Period Label */}
-          <div className="flex flex-col items-start">
-            <span className="text-[6px] font-mono opacity-50 uppercase">
+          <div className="flex flex-col items-start pr-2">
+            <span className="text-[9px] font-mono uppercase font-bold opacity-80">
               {getEraPeriod(currentEraId)}
             </span>
             <motion.div 
               className={cn(
-                'w-2 h-2',
+                'w-2.5 h-2.5 mt-0.5 border border-[var(--bg-main)]',
                 isPlaying ? 'bg-green-500' : 'bg-[var(--accent-color)]'
               )}
-              animate={isPlaying ? { opacity: [1, 0.3, 1] } : {}}
+              animate={isPlaying ? { opacity: [1, 0.4, 1] } : {}}
               transition={{ duration: 0.4, repeat: Infinity }}
-              style={{ imageRendering: 'pixelated' }}
             />
           </div>
 
           {/* Center: Year */}
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center flex-1">
             <span 
-              className="font-mono font-black tracking-tight text-[var(--accent-color)]"
-              style={{ fontSize: 16, lineHeight: 1, fontFamily: 'monospace' }}
+              className="font-mono font-black tracking-tight group-hover:text-[var(--bg-main)] text-[var(--accent-color)]"
+              style={{ fontSize: 18, lineHeight: 1 }}
             >
               {currentEraId}
             </span>
-            {/* Progress pixels */}
-            <div className="flex gap-px mt-0.5">
+            {/* Progress blocks */}
+            <div className="flex gap-[2px] mt-1">
               {eras.slice(0, Math.min(eras.length, 12)).map((_, i) => (
                 <div
                   key={i}
                   className={cn(
-                    'w-1 h-1',
+                    'w-1.5 h-1.5 border border-transparent',
                     i === sliderIndex 
-                      ? 'bg-[var(--accent-color)]' 
+                      ? 'bg-[var(--accent-color)] border-[var(--text-main)]' 
                       : i < sliderIndex 
                         ? 'bg-[var(--text-main)]/50' 
                         : 'bg-[var(--text-main)]/20'
                   )}
-                  style={{ imageRendering: 'pixelated' }}
                 />
               ))}
               {eras.length > 12 && (
-                <span className="text-[6px] font-mono opacity-40 ml-0.5">+{eras.length - 12}</span>
+                <span className="text-[8px] font-mono opacity-60 ml-1 font-bold">+{eras.length - 12}</span>
               )}
             </div>
           </div>
 
           {/* Right: Expand hint */}
-          <div className="flex flex-col items-end">
-            <span className="text-[5px] font-mono opacity-40">PICK ERA</span>
+          <div className="flex flex-col items-end pl-2">
+            <span className="text-[8px] font-mono font-bold opacity-60">PICK</span>
             <motion.div
-              animate={{ y: [0, 2, 0] }}
-              transition={{ duration: 1, repeat: Infinity }}
+              animate={{ y: [0, 3, 0] }}
+              transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+              className="mt-0.5"
             >
-              <PixelIcon name="angle-down" size={10} />
+              <PixelIcon name="angle-down" size={12} />
             </motion.div>
           </div>
 
           {/* Tooltip */}
-          <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-[var(--text-main)] text-[var(--bg-main)] text-[7px] font-mono opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
-            Click to choose design era (T)
+          <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-[var(--text-main)] text-[var(--bg-main)] text-[10px] font-mono font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10 shadow-[2px_2px_0_rgba(0,0,0,0.5)] border-2 border-[var(--bg-main)]">
+            Choose Era (T)
           </div>
         </motion.button>
 
         {/* FF Button - Go to Future/Now */}
-        <PixelButton onClick={() => navigateEra(1)} width={GRID_SIZE * 1.5} title="Future era →">
-          <PixelIcon name="angle-right" size={12} />
+        <PixelButton onClick={() => navigateEra(1)} width={GRID_SIZE * 2.5} title="Future era →">
+          <PixelIcon name="angle-right" size={14} />
         </PixelButton>
 
         {/* Play/Pause Button - Auto-journey */}
         <PixelButton 
           onClick={() => setIsPlaying(!isPlaying)} 
           active={isPlaying}
-          width={GRID_SIZE * 1.5}
-          title={isPlaying ? 'Pause time travel' : 'Auto time travel'}
+          width={GRID_SIZE * 2.5}
+          title={isPlaying ? 'Pause' : 'Auto travel'}
         >
-          <PixelIcon name={isPlaying ? 'pause' : 'play'} size={10} />
+          <PixelIcon name={isPlaying ? 'pause' : 'play'} size={12} />
         </PixelButton>
       </div>
 
@@ -616,8 +599,6 @@ const Navigation = () => {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [isTimelineExpanded, setIsTimelineExpanded] = useState(false);
-  const [isNavExpanded, setIsNavExpanded] = useState(false); // Start collapsed
-  const [hoveredNav, setHoveredNav] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -633,19 +614,17 @@ const Navigation = () => {
     { href: '/blog', label: 'Blog', icon: 'book', shortcut: '7', hint: 'Read articles' },
   ];
 
-  const BAR_HEIGHT = GRID_SIZE * 3;
-  const IDENTITY_WIDTH = GRID_SIZE * 4;
-  const NAV_ITEM_WIDTH = GRID_SIZE * 3.5;
-  const NAV_COLLAPSED_WIDTH = GRID_SIZE * 2;
+  const BAR_HEIGHT = 48; // Increased height for bold impact
+  const IDENTITY_WIDTH = 56;
+  const NAV_ITEM_WIDTH = 64;
 
-  // Find current nav index for progress indicator
   const currentNavIndex = navItems.findIndex(item => item.href === pathname);
 
   return (
     <header
       id="navigation"
-      className="fixed top-0 left-0 right-0 z-50 flex"
-      style={{ height: BAR_HEIGHT }}
+      className="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-stretch"
+      style={{ width: '70%', minWidth: '800px', height: BAR_HEIGHT }}
       role="banner"
     >
       {/* ══════════════════════════════════════════════════════════════════
@@ -654,148 +633,100 @@ const Navigation = () => {
       <div className="relative flex">
         {/* Pixelated Eye - Brand Identity */}
         <motion.div
-          className="flex items-center justify-center bg-[var(--text-main)] text-[var(--bg-main)] border border-[var(--border-color)] cursor-pointer"
+          className="flex items-center justify-center bg-[var(--bg-main)] text-[var(--text-main)] border-[3px] border-[var(--text-main)] shadow-[4px_4px_0_var(--text-main)] cursor-pointer hover:bg-[var(--bg-card)] transition-colors z-20"
           style={{ width: IDENTITY_WIDTH, height: BAR_HEIGHT }}
           onClick={() => router.push('/')}
-          whileHover={{ scale: 0.95 }}
-          whileTap={{ scale: 0.9 }}
+          transition={{ duration: 0.16, ease: "easeOut" }}
+          whileHover={{ y: -2 }}
+          whileTap={{ scale: 0.96 }}
           title="Home"
         >
-          <PixelEye size={52} />
+          <PixelEye size={36} />
         </motion.div>
 
         {/* Timeline (inline expandable) */}
-        <HeaderTimeline 
-          isExpanded={isTimelineExpanded} 
-          onToggle={() => setIsTimelineExpanded(prev => !prev)} 
-        />
+        <div className="z-10 -ml-[3px]">
+          <HeaderTimeline 
+            isExpanded={isTimelineExpanded} 
+            onToggle={() => setIsTimelineExpanded(prev => !prev)} 
+          />
+        </div>
       </div>
 
-      {/* ══════════════════════════════════════════════════════════════════
-          CENTER SECTION: Spacer (Arcade controls positioned via fixed)
-          Clean background - arcade controls overlay this area
-          ══════════════════════════════════════════════════════════════════ */}
-      <div 
-        className="relative flex-1 border-y border-[var(--border-color)] bg-[var(--bg-main)]"
-      />
+      {/* Spacer to push Navigation menu to the right */}
+      <div className="flex-1" />
 
       {/* ══════════════════════════════════════════════════════════════════
-          RIGHT SECTION: Collapsible Navigation Menu
+          RIGHT SECTION: Permanent Navigation Menu
           ══════════════════════════════════════════════════════════════════ */}
-      <nav className="relative flex" aria-label="Main navigation" role="navigation">
-        <AnimatePresence mode="wait">
-          {isNavExpanded ? (
-            /* Expanded Navigation */
-            <motion.div 
-              key="expanded-nav"
-              initial={{ width: 0, opacity: 0 }}
-              animate={{ width: 'auto', opacity: 1 }}
-              exit={{ width: 0, opacity: 0 }}
-              transition={{ duration: TE_TIMING.quick }}
-              className="flex"
-            >
-              {navItems.map((item, index) => {
-                const isActive = mounted && pathname === item.href;
-                const isHovered = hoveredNav === item.href;
+      <nav className="relative flex bg-[var(--bg-card)] border-[3px] border-[var(--text-main)] shadow-[4px_4px_0_var(--text-main)]" aria-label="Main navigation" role="navigation">
+        <div className="flex h-full">
+          {navItems.map((item, index) => {
+            const isActive = mounted && pathname === item.href;
 
-                return (
-                  <motion.a
-                    key={item.href}
-                    href={item.href}
-                    aria-label={item.label}
-                    aria-current={isActive ? 'page' : undefined}
-                    className={cn(
-                      'relative flex flex-col items-center justify-center group',
-                      'border border-l-0 border-[var(--border-color)]',
-                      'transition-colors duration-100',
-                      isActive
-                        ? 'bg-[var(--accent-color)] text-[var(--bg-main)]'
-                        : 'bg-[var(--bg-card)] text-[var(--text-main)] hover:bg-[var(--text-main)] hover:text-[var(--bg-main)]'
-                    )}
-                    style={{ 
-                      width: NAV_ITEM_WIDTH, 
-                      height: BAR_HEIGHT,
-                    }}
-                    whileHover={{ scale: 0.95 }}
-                    whileTap={{ scale: 0.9 }}
-                    transition={{ duration: TE_TIMING.instant }}
-                    onMouseEnter={() => setHoveredNav(item.href)}
-                    onMouseLeave={() => setHoveredNav(null)}
+            return (
+              <motion.a
+                key={item.href}
+                href={item.href}
+                aria-label={item.label}
+                aria-current={isActive ? 'page' : undefined}
+                className={cn(
+                  'relative flex flex-col items-center justify-center group',
+                  'border-r-[3px] border-[var(--text-main)] last:border-r-0',
+                  'transition-all duration-150 ease-out',
+                  isActive
+                    ? 'bg-[var(--text-main)] text-[var(--bg-main)]'
+                    : 'bg-[var(--bg-card)] text-[var(--text-main)] hover:bg-[var(--text-main)] hover:text-[var(--bg-main)]'
+                )}
+                style={{ 
+                  width: NAV_ITEM_WIDTH, 
+                }}
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.94 }}
+              >
+                <span className="absolute top-1 left-1.5 text-[9px] font-mono opacity-50 font-bold">
+                  {item.shortcut}
+                </span>
+                
+                <motion.div 
+                  className="flex flex-col items-center pb-1 gap-1"
+                  animate={isActive ? { scale: [1, 1.05, 1] } : {}}
+                  transition={{ duration: 0.3 }}
+                >
+                  <PixelIcon name={item.icon} size={18} />
+                  <span className="text-[9px] font-mono uppercase tracking-wider font-bold">
+                    {item.label}
+                  </span>
+                </motion.div>
+                
+                {isActive && (
+                  <motion.span 
+                    className="absolute top-1 right-1.5 text-[8px]"
+                    animate={{ opacity: [1, 0.4, 1] }}
+                    transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
                   >
-                    <span className="absolute top-0.5 left-1 text-[6px] font-mono opacity-40">
-                      {item.shortcut}
-                    </span>
-                    <motion.div 
-                      className="leading-none"
-                      animate={isActive ? { scale: [1, 1.1, 1] } : isHovered ? { y: -2 } : {}}
-                      transition={{ duration: 0.5 }}
-                    >
-                      <PixelIcon name={item.icon} size={18} />
-                    </motion.div>
-                    <span className="text-[7px] font-mono uppercase tracking-wider mt-1">
-                      {item.label}
-                    </span>
-                    {isActive && (
-                      <motion.span 
-                        className="absolute bottom-0.5 text-[5px]"
-                        animate={{ opacity: [1, 0.5, 1] }}
-                        transition={{ duration: 1, repeat: Infinity }}
-                      >
-                        ◆
-                      </motion.span>
-                    )}
-                    {/* Progress bar under each item */}
-                    {index <= currentNavIndex && (
-                      <motion.div
-                        className="absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--accent-color)]"
-                        initial={{ scaleX: 0 }}
-                        animate={{ scaleX: 1 }}
-                        style={{ transformOrigin: 'left' }}
-                      />
-                    )}
-                    {/* Tooltip with hint */}
-                    <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-[var(--text-main)] text-[var(--bg-main)] text-[7px] font-mono opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
-                      {item.hint} ({item.shortcut})
-                    </div>
-                  </motion.a>
-                );
-              })}
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
+                    ◆
+                  </motion.span>
+                )}
 
-        {/* Collapse/Expand Toggle - Shows nav icon when collapsed */}
-        <motion.button
-          className={cn(
-            'relative flex flex-col items-center justify-center group',
-            'border border-l-0 border-[var(--border-color)]',
-            'cursor-pointer select-none',
-            'transition-colors duration-100',
-            'bg-[var(--bg-card)] text-[var(--text-main)]',
-            'hover:bg-[var(--text-main)] hover:text-[var(--bg-main)]'
-          )}
-          style={{ width: NAV_COLLAPSED_WIDTH, height: BAR_HEIGHT }}
-          onClick={() => setIsNavExpanded(prev => !prev)}
-          whileHover={{ scale: 0.95 }}
-          whileTap={{ scale: 0.9 }}
-          title={isNavExpanded ? "Collapse nav (N)" : "Expand nav (N)"}
-        >
-          <span className="absolute top-0.5 left-1 text-[6px] font-mono opacity-40">N</span>
-          <motion.div
-            initial={false}
-            animate={{ rotate: isNavExpanded ? 0 : 0 }}
-            transition={{ duration: TE_TIMING.quick }}
-          >
-            <PixelIcon name={isNavExpanded ? 'times' : 'bars'} size={16} />
-          </motion.div>
-          <span className="text-[5px] font-mono opacity-60">
-            {isNavExpanded ? 'LESS' : 'MENU'}
-          </span>
-          {/* Tooltip */}
-          <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-[var(--text-main)] text-[var(--bg-main)] text-[7px] font-mono opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
-            {isNavExpanded ? 'Minimize (N)' : 'Show menu (N)'}
-          </div>
-        </motion.button>
+                {/* Progress bar under each item */}
+                {index <= currentNavIndex && (
+                  <motion.div
+                    className="absolute bottom-0 left-0 right-0 h-[3px] bg-[var(--accent-color)] border-t-[1px] border-[var(--text-main)]"
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    style={{ transformOrigin: 'left' }}
+                  />
+                )}
+                
+                {/* Tooltip with hint */}
+                <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-[var(--text-main)] text-[var(--bg-main)] text-[10px] font-mono font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50 shadow-[2px_2px_0_var(--accent-color)] border-2 border-[var(--bg-main)]">
+                  {item.hint}
+                </div>
+              </motion.a>
+            );
+          })}
+        </div>
       </nav>
     </header>
   );
