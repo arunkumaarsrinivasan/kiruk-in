@@ -1,18 +1,4 @@
-import dynamic from 'next/dynamic';
-
-const WireframeManualLayout = dynamic(
-  () => import('@/components/layout/WireframeManualLayout'),
-  {
-    loading: () => (
-      <div className="h-screen flex items-center justify-center bg-[var(--bg-main)]">
-        <div className="text-sm font-mono" style={{ color: 'var(--accent-color)' }}>
-          Loading dossier...
-        </div>
-      </div>
-    ),
-    ssr: true,
-  }
-);
+import WireframeManualLayout from '@/components/layout/WireframeManualLayout';
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ??

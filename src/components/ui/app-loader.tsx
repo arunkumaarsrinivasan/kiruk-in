@@ -45,21 +45,24 @@ const AppLoader: React.FC<AppLoaderProps> = ({
     }, 100);
   };
 
-  if (isLoading) {
-    return (
-      <InteractiveLoadingPage 
-        onComplete={handleLoadingComplete}
-        duration={loadingDuration}
-        showProgress={true}
-      />
-    );
-  }
-
-  if (!showContent) {
-    return null;
-  }
-
-  return <>{children}</>;
+  // Always render children so SSR HTML contains real content for crawlers.
+  // Splash overlays on top while loading on the client.
+  return (
+    <>
+      {enableLoader && isLoading && (
+        <div className="fixed inset-0 z-[200]" aria-hidden="true">
+          <InteractiveLoadingPage
+            onComplete={handleLoadingComplete}
+            duration={loadingDuration}
+            showProgress={true}
+          />
+        </div>
+      )}
+      <div style={{ visibility: showContent ? "visible" : "hidden" }}>
+        {children}
+      </div>
+    </>
+  );
 };
 
 export default AppLoader;

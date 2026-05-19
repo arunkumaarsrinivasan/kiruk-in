@@ -127,28 +127,24 @@ export function HeroWithHatSwitching({
                     <div className="relative z-10 flex flex-col items-center gap-6 py-4">
 
                         {/* Introduction */}
-                        <div className="flex flex-col items-center justify-center w-full gap-1">
+                        <div className="flex flex-col items-center justify-center w-full gap-2 text-center">
                             <motion.h1
-                                className="text-4xl md:text-5xl font-mono font-black uppercase text-center leading-none"
+                                className="font-mono uppercase leading-none"
                                 style={{ color: 'var(--accent-color)' }}
                                 initial={isClient ? { opacity: 0, y: 20 } : { opacity: 1, y: 0 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={isClient ? { delay: 0.2 } : { duration: 0 }}
                             >
-                                Hey, I&apos;m Arun
-                                <span className="sr-only">
-                                    {' '}— Design Engineer &amp; AI UX Designer in Bengaluru, India
+                                <span className="block text-4xl md:text-5xl font-black">
+                                    Hey, I&apos;m Arun
+                                </span>
+                                <span
+                                    className="block text-sm md:text-base font-bold tracking-[0.2em] mt-3"
+                                    style={{ color: 'var(--text-main)' }}
+                                >
+                                    Design Engineer &amp; AI UX Designer in Bengaluru, India
                                 </span>
                             </motion.h1>
-                            <motion.p
-                                className="text-[10px] md:text-xs font-mono uppercase tracking-[0.3em] leading-none"
-                                style={{ color: 'var(--text-muted)' }}
-                                initial={isClient ? { opacity: 0 } : { opacity: 1 }}
-                                animate={{ opacity: 1 }}
-                                transition={isClient ? { delay: 0.3 } : { duration: 0 }}
-                            >
-                                Design Engineer · AI UX · Bengaluru, India
-                            </motion.p>
                         </div>
 
                         {/* 8-Bit Character with Hats */}
