@@ -14,6 +14,10 @@ import { useMissionTracker } from "@/hooks/useMissionTracker";
 import DetectiveStoryWrapper from "./DetectiveStoryWrapper";
 import SketchDigitalSplitLayout from "./SketchDigitalSplitLayout";
 import { useLayoutMode } from "@/contexts/LayoutModeContext";
+import { useTheme } from "@/contexts/ThemeContext";
+import EraTransitionOverlay from "@/components/ui/era-transition/EraTransitionOverlay";
+import EraChromeOverlay from "@/components/ui/era-chrome/EraChromeOverlay";
+import EraFilmstrip from "@/components/ui/era-machine/EraFilmstrip";
 
 const CustomCursor = dynamic(() => import("@/components/ui/CustomCursor"), {
   ssr: false,
@@ -47,6 +51,7 @@ const GAME_ICONS: Record<string, string> = {
 export default function LayoutClientShell({ children }: Readonly<LayoutClientShellProps>) {
   const pathname = usePathname();
   const { isSplitMode } = useLayoutMode();
+  const { currentTheme } = useTheme();
 
   let mainPaddingTop: string;
   if (isSplitMode) {
@@ -123,6 +128,23 @@ export default function LayoutClientShell({ children }: Readonly<LayoutClientShe
 
       {/* Help Bot - Available on all pages */}
       <HelpBot />
+
+      {/* Era chrome — per-family atmospheric overlay (home only) */}
+      {pathname === "/" && (
+        <>
+          <EraChromeOverlay
+            eraId={currentTheme.id}
+            accentColor={currentTheme.colors.accent}
+          />
+          <EraFilmstrip />
+        </>
+      )}
+
+      {/* Era transition — subtle crossfade + grain on theme change */}
+      <EraTransitionOverlay
+        signal={currentTheme.id}
+        accentColor={currentTheme.colors.accent}
+      />
     </AppLoader>
   );
 }
