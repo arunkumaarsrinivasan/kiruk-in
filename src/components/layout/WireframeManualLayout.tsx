@@ -411,12 +411,50 @@ export default function WireframeManualLayout() {
                 rulerLabelTop="Context"
                 rulerLabelLeft="Story"
               >
-                <div className="min-h-[96px]">
+                <div className="min-h-[96px] space-y-3">
                   <p
                     className="text-sm font-mono leading-relaxed"
                     style={{ color: "var(--text-main)" }}
                   >
                     {portfolioData.personal.bio}
+                  </p>
+                  <p
+                    className="text-xs font-mono leading-relaxed"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    Full timeline on the{' '}
+                    <Link
+                      href="/about"
+                      className="underline decoration-dotted underline-offset-2"
+                      style={{ color: "var(--accent-color)" }}
+                    >
+                      about page
+                    </Link>
+                    . Featured projects in the{' '}
+                    <Link
+                      href="/work"
+                      className="underline decoration-dotted underline-offset-2"
+                      style={{ color: "var(--accent-color)" }}
+                    >
+                      work archive
+                    </Link>
+                    {' '}and detailed{' '}
+                    <Link
+                      href="/case-studies"
+                      className="underline decoration-dotted underline-offset-2"
+                      style={{ color: "var(--accent-color)" }}
+                    >
+                      case studies
+                    </Link>
+                    . Process journals on the{' '}
+                    <Link
+                      href="/blog"
+                      className="underline decoration-dotted underline-offset-2"
+                      style={{ color: "var(--accent-color)" }}
+                    >
+                      blog
+                    </Link>
+                    .
                   </p>
                 </div>
               </ComponentBlueprint>

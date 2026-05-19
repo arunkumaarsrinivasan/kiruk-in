@@ -127,16 +127,28 @@ export function HeroWithHatSwitching({
                     <div className="relative z-10 flex flex-col items-center gap-6 py-4">
 
                         {/* Introduction */}
-                        <div className="h-12 md:h-16 flex items-center justify-center w-full">
-                            <motion.h2
+                        <div className="flex flex-col items-center justify-center w-full gap-1">
+                            <motion.h1
                                 className="text-4xl md:text-5xl font-mono font-black uppercase text-center leading-none"
                                 style={{ color: 'var(--accent-color)' }}
                                 initial={isClient ? { opacity: 0, y: 20 } : { opacity: 1, y: 0 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={isClient ? { delay: 0.2 } : { duration: 0 }}
                             >
-                                Hey, I'm Arun
-                            </motion.h2>
+                                Hey, I&apos;m Arun
+                                <span className="sr-only">
+                                    {' '}— Design Engineer &amp; AI UX Designer in Bengaluru, India
+                                </span>
+                            </motion.h1>
+                            <motion.p
+                                className="text-[10px] md:text-xs font-mono uppercase tracking-[0.3em] leading-none"
+                                style={{ color: 'var(--text-muted)' }}
+                                initial={isClient ? { opacity: 0 } : { opacity: 1 }}
+                                animate={{ opacity: 1 }}
+                                transition={isClient ? { delay: 0.3 } : { duration: 0 }}
+                            >
+                                Design Engineer · AI UX · Bengaluru, India
+                            </motion.p>
                         </div>
 
                         {/* 8-Bit Character with Hats */}
@@ -438,7 +450,7 @@ export function HeroWithHatSwitching({
                                     DESIGNER WHO SHIPS
                                 </motion.h3>
                             </div>
-                            <div className="h-16 flex items-center justify-center">
+                            <div className="min-h-16 flex items-center justify-center">
                                 <motion.p
                                     className="text-sm font-mono leading-relaxed"
                                     style={{ color: 'var(--text-muted)' }}
@@ -446,7 +458,36 @@ export function HeroWithHatSwitching({
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={isClient ? { delay: 0.5 } : { duration: 0 }}
                                 >
-                                    I blend product design and front-end engineering to deliver usable, beautiful experiences without translation loss.
+                                    I blend product design and front-end engineering for{' '}
+                                    <a
+                                        href="https://www.hp.com/us-en/printers/print-ai.html"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="underline decoration-dotted underline-offset-2"
+                                        style={{ color: 'var(--accent-color)' }}
+                                    >
+                                        HP Print AI
+                                    </a>
+                                    {' '}and selective freelance clients — usable, accessible experiences without translation loss. Built with{' '}
+                                    <a
+                                        href="https://react.dev"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="underline decoration-dotted underline-offset-2"
+                                        style={{ color: 'var(--accent-color)' }}
+                                    >
+                                        React
+                                    </a>
+                                    {' '}and{' '}
+                                    <a
+                                        href="https://www.figma.com"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="underline decoration-dotted underline-offset-2"
+                                        style={{ color: 'var(--accent-color)' }}
+                                    >
+                                        Figma
+                                    </a>.
                                 </motion.p>
                             </div>
 

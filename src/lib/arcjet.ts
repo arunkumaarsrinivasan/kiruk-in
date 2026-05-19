@@ -35,8 +35,11 @@ export const aj = hasValidKey ? arcjet({
     detectBot({
       mode: isDevelopment ? "DRY_RUN" : "LIVE",
       allow: [
-        "CATEGORY:SEARCH_ENGINE", // Allow legitimate search engines
-        "CATEGORY:PREVIEW", // Allow social media previews
+        "CATEGORY:SEARCH_ENGINE", // Google, Bing, DuckDuckGo, Yandex…
+        "CATEGORY:PREVIEW",       // Social media link unfurls
+        "CATEGORY:AI",            // GPTBot, ClaudeBot, PerplexityBot, etc — required for AEO indexing
+        "CATEGORY:ARCHIVE",       // Wayback / archival
+        "CATEGORY:GOOGLE",        // Google-Extended and friends
       ],
     }),
   ],
