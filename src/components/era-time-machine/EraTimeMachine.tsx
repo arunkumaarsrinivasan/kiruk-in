@@ -24,7 +24,7 @@ import {
 import { EyeTimelineOverlay } from "@/components/layout/EraTimelineOverlay";
 import { CustomizationLab } from "@/components/ui/design-lab/CustomizationLab";
 import type { EraSurfaceProps } from "./shared/EraSurface";
-import { useEraKeys } from "./shared/useEraKeys";
+import { useEraNavigation } from "./shared/useEraNavigation";
 import { EraTransition } from "./EraTransition";
 import { EraNavRail } from "./EraNavRail";
 import { TerminalArchetype } from "./archetypes/TerminalArchetype";
@@ -138,7 +138,7 @@ export const EraTimeMachine: React.FC<EraTimeMachineProps> = ({
     onClose();
   }, [showLab, onClose]);
 
-  useEraKeys({
+  useEraNavigation({
     enabled: isOpen && !!archetypeId && !showLab,
     onPrev: goPrev,
     onNext: goNext,
