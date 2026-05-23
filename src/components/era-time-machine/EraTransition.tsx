@@ -1,18 +1,10 @@
 "use client";
 
 /**
- * EraTransition — orchestrates a shutdown → boot beat when switching eras.
+ * EraTransition — directional slide between era landing pages.
  *
- * The dispatcher renders one archetype at a time. When the era id changes,
- * EraTransition keeps the *outgoing* archetype mounted with phase="exiting"
- * for `exitMs`, then swaps to the *incoming* archetype with phase="entering"
- * for `enterMs`, then settles to phase="active".
- *
- * Each archetype reads `phase` and plays its own exit/enter frames — there
- * is no chrome imposed by this engine. A neutral veil flashes briefly at
- * the swap point so the screen never reads as a half-rendered frame.
- *
- * Reduced motion: collapses to a 1-frame crossfade.
+ * Outgoing and incoming archetypes stay visible during the swap so each era's
+ * full preview reads clearly. Reduced motion falls back to a short crossfade.
  */
 
 import { useEffect, useRef, useState } from "react";
@@ -26,18 +18,22 @@ interface RenderFn {
 
 interface EraTransitionProps {
   era: ThemeConfig;
+  direction: number;
   render: RenderFn;
   reduceMotion: boolean;
   exitMs?: number;
   enterMs?: number;
 }
 
+const EASE = [0.22, 1, 0.36, 1] as const;
+
 export function EraTransition({
   era,
+  direction,
   render,
   reduceMotion,
-  exitMs = 360,
-  enterMs = 260,
+  exitMs = 320,
+  enterMs = 360,
 }: EraTransitionProps) {
   const [outgoing, setOutgoing] = useState<ThemeConfig | null>(null);
   const [incoming, setIncoming] = useState<ThemeConfig>(era);
@@ -45,6 +41,7 @@ export function EraTransition({
   const lastEraId = useRef(era.id);
   const incomingRef = useRef(era);
   const timersRef = useRef<number[]>([]);
+  const slideDir = direction >= 0 ? 1 : -1;
 
   useEffect(() => {
     incomingRef.current = incoming;
@@ -65,7 +62,6 @@ export function EraTransition({
       return;
     }
 
-    // start exit on outgoing era
     setOutgoing(fromEra);
     setIncoming(era);
     setPhase("entering");
@@ -88,16 +84,19 @@ export function EraTransition({
     };
   }, []);
 
+  const exitOffset = slideDir * -28;
+  const enterFrom = slideDir * 28;
+
   return (
-    <>
-      <AnimatePresence>
-        {outgoing && (
+    <div className="relative h-full w-full overflow-hidden">
+      <AnimatePresence initial={false}>
+        {outgoing && !reduceMotion && (
           <motion.div
             key={`out-${outgoing.id}`}
-            className="absolute inset-0"
-            initial={{ opacity: 1 }}
-            animate={{ opacity: 0 }}
-            transition={{ duration: exitMs / 1000, ease: "easeInOut" }}
+            className="absolute inset-0 z-[1]"
+            initial={{ opacity: 1, x: 0 }}
+            animate={{ opacity: 0, x: `${exitOffset}%` }}
+            transition={{ duration: exitMs / 1000, ease: EASE }}
           >
             {render(outgoing, "exiting")}
           </motion.div>
@@ -106,32 +105,21 @@ export function EraTransition({
 
       <motion.div
         key={`in-${incoming.id}`}
-        className="absolute inset-0"
-        initial={reduceMotion ? { opacity: 1 } : { opacity: 0 }}
-        animate={{ opacity: 1 }}
+        className="absolute inset-0 z-[2]"
+        initial={
+          reduceMotion
+            ? { opacity: 1 }
+            : { opacity: 0, x: `${enterFrom}%` }
+        }
+        animate={{ opacity: 1, x: 0 }}
         transition={{
-          duration: reduceMotion ? 0 : enterMs / 1000,
+          duration: reduceMotion ? 0.12 : enterMs / 1000,
           delay: reduceMotion ? 0 : exitMs / 1000,
-          ease: "easeOut",
+          ease: EASE,
         }}
       >
         {render(incoming, phase)}
       </motion.div>
-
-      {/* neutral veil — covers the swap seam without imposing chrome */}
-      {!reduceMotion && outgoing && (
-        <motion.div
-          className="absolute inset-0 pointer-events-none"
-          style={{ backgroundColor: "#000" }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: [0, 0.18, 0] }}
-          transition={{
-            duration: (exitMs + enterMs) / 1000,
-            times: [0, exitMs / (exitMs + enterMs), 1],
-            ease: "easeInOut",
-          }}
-        />
-      )}
-    </>
+    </div>
   );
 }

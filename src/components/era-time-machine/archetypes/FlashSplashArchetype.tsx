@@ -12,6 +12,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import type { EraSurfaceProps } from "../shared/EraSurface";
+import { hideArchetypeTransport } from "../shared/eraChrome";
 
 // Palette — mirror FlashSplashHomePage
 const DESKTOP_BG_A = "#3aa6c4";
@@ -28,7 +29,6 @@ const WINDOW_BORDER = "#7a93a8";
 const WINDOW_SHADOW = "0 14px 30px rgba(20,40,70,0.35), 0 4px 8px rgba(20,40,70,0.25)";
 
 const TRAFFIC_RED = "#ff5f57";
-const TRAFFIC_YELLOW = "#ffbd2e";
 const TRAFFIC_GREEN = "#28c840";
 
 const INK = "#1a2a38";
@@ -50,9 +50,10 @@ export const FlashSplashArchetype: React.FC<EraSurfaceProps> = ({
   total,
   onPrev,
   onNext,
-  onCustomize,
   onClose,
+  embedMode,
 }) => {
+  const hideTransport = hideArchetypeTransport({ embedMode });
   type TabId = "intro" | "palette" | "type" | "tokens" | "elements" | "exit";
   const tabs: Array<{ id: TabId; num: string; tag: string; title: string; accent: string }> = [
     { id: "intro",    num: "01", tag: "INTRO",    title: "Welcome",            accent: ACCENT },
@@ -314,11 +315,12 @@ export const FlashSplashArchetype: React.FC<EraSurfaceProps> = ({
             userSelect: "none",
           }}
         >
-          <div style={{ display: "flex", gap: 5 }}>
-            <Light color={TRAFFIC_RED} symbol="×" onClick={onClose} title="Close" />
-            <Light color={TRAFFIC_YELLOW} symbol="–" onClick={onCustomize} title="Customize" />
-            <Light color={TRAFFIC_GREEN} symbol="+" onClick={onClose} title="Use this era" />
-          </div>
+          {!hideTransport && (
+            <div style={{ display: "flex", gap: 5 }}>
+              <Light color={TRAFFIC_RED} symbol="×" onClick={onClose} title="Close" />
+              <Light color={TRAFFIC_GREEN} symbol="+" onClick={onClose} title="Use this era" />
+            </div>
+          )}
           <div
             style={{
               fontFamily: FONT_DISPLAY,
@@ -589,29 +591,29 @@ export const FlashSplashArchetype: React.FC<EraSurfaceProps> = ({
         </div>
       </div>
 
-      {/* Era nav buttons (Aqua) */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: 70,
-          left: "50%",
-          transform: "translateX(-50%)",
-          zIndex: 6,
-          display: "flex",
-          gap: 6,
-        }}
-      >
-        <AquaPill onClick={onPrev} disabled={!prevEra}>
-          ◂ Prev Era
-        </AquaPill>
-        <AquaPill onClick={onCustomize}>⚙ Customize</AquaPill>
-        <AquaPill onClick={onClose} primary>
-          ▶ Use Era {era.id}
-        </AquaPill>
-        <AquaPill onClick={onNext} disabled={!nextEra}>
-          Next Era ▸
-        </AquaPill>
-      </div>
+      {!hideTransport && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: 70,
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 6,
+            display: "flex",
+            gap: 6,
+          }}
+        >
+          <AquaPill onClick={onPrev} disabled={!prevEra}>
+            ◂ Prev Era
+          </AquaPill>
+          <AquaPill onClick={onClose} primary>
+            ▶ Use Era {era.id}
+          </AquaPill>
+          <AquaPill onClick={onNext} disabled={!nextEra}>
+            Next Era ▸
+          </AquaPill>
+        </div>
+      )}
 
       {/* Dock */}
       <div

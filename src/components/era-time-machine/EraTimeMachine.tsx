@@ -7,13 +7,11 @@
  * without further changes. Behaviour:
  *
  *  1. If the current era id has a registered archetype, render
- *     <ArchetypeComponent> inside <EraTransition> with a shared <EraNavRail>.
+ *     <ArchetypeComponent> inside <EraTransition> with unified chrome.
  *  2. Otherwise, render <EyeTimelineOverlay> (legacy data-driven view).
- *
- * That keeps the site working while archetypes ship one era at a time.
  */
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { AVAILABLE_THEMES } from "@/data/portfolio-data";
 import {
@@ -22,11 +20,10 @@ import {
   type EraArchetypeId,
 } from "@/data/era-archetypes";
 import { EyeTimelineOverlay } from "@/components/layout/EraTimelineOverlay";
-import { CustomizationLab } from "@/components/ui/design-lab/CustomizationLab";
 import type { EraSurfaceProps } from "./shared/EraSurface";
 import { useEraNavigation } from "./shared/useEraNavigation";
 import { EraTransition } from "./EraTransition";
-import { EraNavRail } from "./EraNavRail";
+import { EraTimeMachineChrome } from "./EraTimeMachineChrome";
 import { TerminalArchetype } from "./archetypes/TerminalArchetype";
 import { SpatialArchetype } from "./archetypes/SpatialArchetype";
 import { XeroxArchetype } from "./archetypes/XeroxArchetype";
@@ -44,11 +41,6 @@ import { IssueTrackerArchetype } from "./archetypes/IssueTrackerArchetype";
 import { AiNativeArchetype } from "./archetypes/AiNativeArchetype";
 import { PromptUIArchetype } from "./archetypes/PromptUIArchetype";
 
-/**
- * Registry of implemented archetypes. Add an entry here ONLY when the
- * archetype component is live and reviewed. Unregistered archetypes (or eras
- * with no archetype mapping at all) fall through to the legacy overlay.
- */
 const ARCHETYPE_COMPONENTS: Partial<
   Record<EraArchetypeId, React.ComponentType<EraSurfaceProps>>
 > = {
@@ -84,13 +76,18 @@ export const EraTimeMachine: React.FC<EraTimeMachineProps> = ({
   onEraSelect,
 }) => {
   const [selectedEraId, setSelectedEraId] = useState(currentEraId);
-  const [showLab, setShowLab] = useState(false);
+  const [direction, setDirection] = useState(0);
+  const lastIndexRef = useRef(
+    AVAILABLE_THEMES.findIndex((e) => e.id === currentEraId),
+  );
   const reduced = useReducedMotion() ?? false;
 
   useEffect(() => {
     if (isOpen) {
+      const idx = AVAILABLE_THEMES.findIndex((e) => e.id === currentEraId);
       setSelectedEraId(currentEraId);
-      setShowLab(false);
+      lastIndexRef.current = idx >= 0 ? idx : 0;
+      setDirection(0);
     }
   }, [isOpen, currentEraId]);
 
@@ -113,10 +110,14 @@ export const EraTimeMachine: React.FC<EraTimeMachineProps> = ({
 
   const selectEra = useCallback(
     (id: string) => {
-      if (id !== selectedEraId) {
-        setSelectedEraId(id);
-        onEraSelect(id);
+      if (id === selectedEraId) return;
+      const newIndex = AVAILABLE_THEMES.findIndex((e) => e.id === id);
+      if (newIndex >= 0) {
+        setDirection(newIndex > lastIndexRef.current ? 1 : -1);
+        lastIndexRef.current = newIndex;
       }
+      setSelectedEraId(id);
+      onEraSelect(id);
     },
     [selectedEraId, onEraSelect],
   );
@@ -130,26 +131,17 @@ export const EraTimeMachine: React.FC<EraTimeMachineProps> = ({
       selectEra(AVAILABLE_THEMES[selectedIndex + 1].id);
   }, [selectedIndex, selectEra]);
 
-  const handleClose = useCallback(() => {
-    if (showLab) {
-      setShowLab(false);
-      return;
-    }
-    onClose();
-  }, [showLab, onClose]);
-
   useEraNavigation({
-    enabled: isOpen && !!archetypeId && !showLab,
+    enabled: isOpen && !!archetypeId,
     onPrev: goPrev,
     onNext: goNext,
-    onClose: handleClose,
+    onClose,
   });
 
   const ArchetypeComponent = archetypeId
     ? ARCHETYPE_COMPONENTS[archetypeId]
     : undefined;
 
-  // ── Legacy fallback: no archetype registered → render existing overlay.
   if (!ArchetypeComponent) {
     return (
       <EyeTimelineOverlay
@@ -183,59 +175,42 @@ export const EraTimeMachine: React.FC<EraTimeMachineProps> = ({
           transition={{ duration: reduced ? 0.2 : 0.5, ease: [0.22, 1, 0.36, 1] }}
           className="fixed inset-0 z-[100] overflow-hidden"
         >
-          {showLab ? (
-            <div className="absolute inset-0 z-[110]">
-              <CustomizationLab era={era} onClose={() => setShowLab(false)} />
-            </div>
-          ) : (
-            <>
-              <EraTransition
-                era={era}
-                reduceMotion={reduced}
-                render={(activeEra, phase) => (
-                  <ArchetypeComponent
-                    era={activeEra}
-                    prevEra={prevEra}
-                    nextEra={nextEra}
-                    allEras={AVAILABLE_THEMES}
-                    index={selectedIndex}
-                    total={AVAILABLE_THEMES.length}
-                    phase={phase}
-                    reduceMotion={reduced}
-                    onPrev={goPrev}
-                    onNext={goNext}
-                    onSelect={selectEra}
-                    onCustomize={() => setShowLab(true)}
-                    onClose={onClose}
-                    overrides={getArchetypeOverrides(activeEra.id)}
-                  />
-                )}
-              />
-
-              <EraNavRail
-                eras={AVAILABLE_THEMES}
-                era={era}
-                selectedIndex={selectedIndex >= 0 ? selectedIndex : 0}
-                onSelect={selectEra}
-                onCustomize={() => setShowLab(true)}
-              />
-
-              <button
-                type="button"
-                onClick={onClose}
-                aria-label="Close era time machine"
-                className="absolute top-3 right-3 z-[70] px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider border backdrop-blur-sm"
-                style={{
-                  borderColor: `${era.colors.text}25`,
-                  color: era.colors.text,
-                  borderRadius: Math.min(era.designTokens.borderRadius, 6),
-                  backgroundColor: `${era.colors.background}aa`,
-                }}
-              >
-                ✕ Close
-              </button>
-            </>
-          )}
+          <EraTimeMachineChrome
+            era={era}
+            eras={AVAILABLE_THEMES}
+            selectedIndex={selectedIndex >= 0 ? selectedIndex : 0}
+            total={AVAILABLE_THEMES.length}
+            prevEra={prevEra}
+            nextEra={nextEra}
+            onClose={onClose}
+            onPrev={goPrev}
+            onNext={goNext}
+            onSelect={selectEra}
+          >
+            <EraTransition
+              era={era}
+              direction={direction}
+              reduceMotion={reduced}
+              render={(activeEra, phase) => (
+                <ArchetypeComponent
+                  era={activeEra}
+                  prevEra={prevEra}
+                  nextEra={nextEra}
+                  allEras={AVAILABLE_THEMES}
+                  index={selectedIndex}
+                  total={AVAILABLE_THEMES.length}
+                  phase={phase}
+                  reduceMotion={reduced}
+                  embedMode
+                  onPrev={goPrev}
+                  onNext={goNext}
+                  onSelect={selectEra}
+                  onClose={onClose}
+                  overrides={getArchetypeOverrides(activeEra.id)}
+                />
+              )}
+            />
+          </EraTimeMachineChrome>
         </motion.div>
       )}
     </AnimatePresence>

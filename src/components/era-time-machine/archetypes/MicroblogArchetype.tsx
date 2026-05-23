@@ -11,6 +11,7 @@
 
 import React, { useMemo, useState } from "react";
 import type { EraSurfaceProps } from "../shared/EraSurface";
+import { hideArchetypeTransport } from "../shared/eraChrome";
 
 // Palette mirror
 const PAGE_BG = "#f6f6ef";
@@ -40,9 +41,10 @@ export const MicroblogArchetype: React.FC<EraSurfaceProps> = ({
   total,
   onPrev,
   onNext,
-  onCustomize,
   onClose,
+  embedMode,
 }) => {
+  const hideTransport = hideArchetypeTransport({ embedMode });
   const [sort, setSort] = useState<"hot" | "top" | "new">("hot");
   const [openIdx, setOpenIdx] = useState<number>(0);
   const [votes, setVotes] = useState<Record<number, 1 | -1 | undefined>>({});
@@ -149,10 +151,13 @@ export const MicroblogArchetype: React.FC<EraSurfaceProps> = ({
             era {era.id} · disc {index + 1}/{total}
           </span>
           <span style={{ marginLeft: "auto", display: "flex", gap: 5 }}>
-            <NavBtn onClick={onPrev} disabled={!prevEra}>◂ Prev</NavBtn>
-            <NavBtn onClick={onCustomize}>⚙ Customize</NavBtn>
-            <NavBtn onClick={onClose} primary>▶ Use Era</NavBtn>
-            <NavBtn onClick={onNext} disabled={!nextEra}>Next ▸</NavBtn>
+            {!hideTransport && (
+              <>
+                <NavBtn onClick={onPrev} disabled={!prevEra}>◂ Prev</NavBtn>
+                <NavBtn onClick={onClose} primary>▶ Use Era</NavBtn>
+                <NavBtn onClick={onNext} disabled={!nextEra}>Next ▸</NavBtn>
+              </>
+            )}
           </span>
         </header>
 

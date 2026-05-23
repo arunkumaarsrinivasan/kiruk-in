@@ -16,6 +16,7 @@
 import React, { useMemo, useState } from "react";
 import { Pixelify_Sans } from "next/font/google";
 import type { EraSurfaceProps } from "../shared/EraSurface";
+import { hideArchetypeTransport } from "../shared/eraChrome";
 
 const pixelify = Pixelify_Sans({
   weight: ["400", "500", "700"],
@@ -46,9 +47,10 @@ export const XeroxArchetype: React.FC<EraSurfaceProps> = ({
   total,
   onPrev,
   onNext,
-  onCustomize,
   onClose,
+  embedMode,
 }) => {
+  const hideTransport = hideArchetypeTransport({ embedMode });
   const stamp = useMemo(
     () =>
       new Date().toLocaleString("en-US", {
@@ -107,6 +109,7 @@ export const XeroxArchetype: React.FC<EraSurfaceProps> = ({
         onClose={onClose}
         prevDisabled={!prevEra}
         nextDisabled={!nextEra}
+        hideTransport={hideTransport}
       />
 
       {/* ── Scrollable body ─────────────────────────────────────────── */}
@@ -363,15 +366,13 @@ export const XeroxArchetype: React.FC<EraSurfaceProps> = ({
             </BevelWindow>
           </div>
 
-          {/* CTA row */}
-          <div className="flex flex-wrap gap-2 justify-center mt-2">
-            <PixelActionButton onClick={onCustomize}>
-              CUSTOMIZE · ADAPT ERA
-            </PixelActionButton>
-            <PixelActionButton onClick={onClose} primary>
-              USE {era.id} ▸
-            </PixelActionButton>
-          </div>
+          {!hideTransport && (
+            <div className="flex flex-wrap gap-2 justify-center mt-2">
+              <PixelActionButton onClick={onClose} primary>
+                USE {era.id} ▸
+              </PixelActionButton>
+            </div>
+          )}
         </div>
       </div>
 
@@ -393,6 +394,7 @@ function DesktopBar({
   onClose,
   prevDisabled,
   nextDisabled,
+  hideTransport,
 }: {
   stamp: string;
   index: number;
@@ -403,6 +405,7 @@ function DesktopBar({
   onClose: () => void;
   prevDisabled: boolean;
   nextDisabled: boolean;
+  hideTransport: boolean;
 }) {
   return (
     <div
@@ -437,61 +440,62 @@ function DesktopBar({
         </span>
       </div>
 
-      {/* Transport row */}
-      <div
-        style={{
-          padding: "6px 10px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 8,
-          backgroundColor: GRAY,
-          borderBottom: `1px solid ${BLACK}`,
-        }}
-      >
-        <PixelActionButton onClick={onClose} compact>
-          ✕ CLOSE
-        </PixelActionButton>
-
+      {!hideTransport && (
         <div
           style={{
+            padding: "6px 10px",
             display: "flex",
             alignItems: "center",
-            gap: 6,
+            justifyContent: "space-between",
+            gap: 8,
+            backgroundColor: GRAY,
+            borderBottom: `1px solid ${BLACK}`,
           }}
         >
-          <PixelActionButton
-            onClick={onPrev}
-            disabled={prevDisabled}
-            compact
-          >
-            ◂ PREV
+          <PixelActionButton onClick={onClose} compact>
+            ✕ CLOSE
           </PixelActionButton>
-          <span
+
+          <div
             style={{
-              minWidth: 96,
-              padding: "4px 8px",
-              backgroundColor: TITLE_BG,
-              color: TITLE_TEXT,
-              border: `1px solid ${BLACK}`,
-              fontFamily: FONT_MONO,
-              fontSize: 12,
-              fontWeight: 700,
-              letterSpacing: 1,
-              textAlign: "center",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
             }}
           >
-            ERA {eraId} · {index + 1}/{total}
-          </span>
-          <PixelActionButton
-            onClick={onNext}
-            disabled={nextDisabled}
-            compact
-          >
-            NEXT ▸
-          </PixelActionButton>
+            <PixelActionButton
+              onClick={onPrev}
+              disabled={prevDisabled}
+              compact
+            >
+              ◂ PREV
+            </PixelActionButton>
+            <span
+              style={{
+                minWidth: 96,
+                padding: "4px 8px",
+                backgroundColor: TITLE_BG,
+                color: TITLE_TEXT,
+                border: `1px solid ${BLACK}`,
+                fontFamily: FONT_MONO,
+                fontSize: 12,
+                fontWeight: 700,
+                letterSpacing: 1,
+                textAlign: "center",
+              }}
+            >
+              ERA {eraId} · {index + 1}/{total}
+            </span>
+            <PixelActionButton
+              onClick={onNext}
+              disabled={nextDisabled}
+              compact
+            >
+              NEXT ▸
+            </PixelActionButton>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

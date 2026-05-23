@@ -10,6 +10,7 @@
 
 import React, { useMemo, useState } from "react";
 import type { EraSurfaceProps } from "../shared/EraSurface";
+import { hideArchetypeTransport } from "../shared/eraChrome";
 
 const BG = "#ffffff";
 const BG_DIM = "#fbfaf8";
@@ -34,9 +35,10 @@ export const BlockEditorArchetype: React.FC<EraSurfaceProps> = ({
   total,
   onPrev,
   onNext,
-  onCustomize,
   onClose,
+  embedMode,
 }) => {
+  const hideTransport = hideArchetypeTransport({ embedMode });
   type PageId = "overview" | "palette" | "type" | "tokens" | "parts" | "heritage";
   const pages: Array<{ id: PageId; emoji: string; title: string }> = [
     { id: "overview", emoji: "📄", title: "Overview" },
@@ -121,10 +123,13 @@ export const BlockEditorArchetype: React.FC<EraSurfaceProps> = ({
             >
               🔍 Search · /
             </button>
-            <NavBtn onClick={onPrev} disabled={!prevEra}>◂</NavBtn>
-            <NavBtn onClick={onCustomize}>⚙</NavBtn>
-            <NavBtn onClick={onClose} primary>▶ Use</NavBtn>
-            <NavBtn onClick={onNext} disabled={!nextEra}>▸</NavBtn>
+            {!hideTransport && (
+              <>
+                <NavBtn onClick={onPrev} disabled={!prevEra}>◂</NavBtn>
+                <NavBtn onClick={onClose} primary>▶ Use</NavBtn>
+                <NavBtn onClick={onNext} disabled={!nextEra}>▸</NavBtn>
+              </>
+            )}
           </div>
         </header>
 

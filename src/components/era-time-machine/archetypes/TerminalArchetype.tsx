@@ -6,7 +6,7 @@
  * Full-screen CRT. Phosphor green on black, scanlines, slight curvature,
  * screen-flicker, vignette. Era data renders as a man(1) page that types
  * itself out character-by-character. A bash prompt at the bottom accepts
- * commands: next, prev, jump <year>, list, customize, exit.
+ * commands: next, prev, jump <year>, list, exit.
  *
  * Lifecycle:
  *  - phase="entering" → CRT power-on (bright dot expands, scanlines warm)
@@ -45,7 +45,7 @@ function buildManPage(era: EraSurfaceProps["era"]): ManSection[] {
     },
     {
       heading: "SYNOPSIS",
-      body: [`era --select ${era.id} [--customize] [--play]`],
+      body: [`era --select ${era.id} [--play]`],
     },
     {
       heading: "DESCRIPTION",
@@ -102,7 +102,6 @@ function buildManPage(era: EraSurfaceProps["era"]): ManSection[] {
         "  prev                  step backward one era",
         "  jump <year>           jump directly to era id",
         "  list                  show every era",
-        "  customize             open customization lab",
         "  exit                  close time machine",
       ],
     },
@@ -141,7 +140,6 @@ export const TerminalArchetype: React.FC<EraSurfaceProps> = ({
   onPrev,
   onNext,
   onSelect,
-  onCustomize,
   onClose,
 }) => {
   const manPage = useMemo(() => buildManPage(era), [era]);
@@ -238,11 +236,6 @@ export const TerminalArchetype: React.FC<EraSurfaceProps> = ({
         ]);
         return;
       }
-      if (cmd === "customize") {
-        setHistory([...newHistory, "→ opening customization lab"]);
-        onCustomize();
-        return;
-      }
       if (cmd === "exit" || cmd === "quit" || cmd === "close") {
         setHistory([...newHistory, "→ closing"]);
         onClose();
@@ -268,10 +261,10 @@ export const TerminalArchetype: React.FC<EraSurfaceProps> = ({
       }
       setHistory([
         ...newHistory,
-        `era: ${cmd}: command not found. try 'next', 'prev', 'list', 'jump <year>', 'customize', 'exit'.`,
+        `era: ${cmd}: command not found. try 'next', 'prev', 'list', 'jump <year>', 'exit'.`,
       ]);
     },
-    [history, onNext, onPrev, onSelect, onCustomize, onClose],
+    [history, onNext, onPrev, onSelect, onClose],
   );
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -395,7 +388,7 @@ export const TerminalArchetype: React.FC<EraSurfaceProps> = ({
       <div
         className="absolute inset-x-0 z-20 flex items-center gap-2 px-5 md:px-10 py-3 font-mono text-[13px] border-t backdrop-blur-sm"
         style={{
-          bottom: 56, // sits above EraNavRail
+          bottom: 56, // sits above era browser footer
           color: phosphor,
           borderColor: `${phosphor}22`,
           backgroundColor: `${bg}ee`,

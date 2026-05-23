@@ -547,9 +547,20 @@ body {
 }
 
 /* Custom cursor (mouse only): hide system pointer only while the client cursor is active */
-html[data-custom-cursor-active],
-html[data-custom-cursor-active] * {
+html[data-custom-cursor-active]:not([data-era-picker-active]),
+html[data-custom-cursor-active]:not([data-era-picker-active]) * {
   cursor: none !important;
+}
+
+/* Era picker: native pointer + smooth hover affordance */
+html[data-era-picker-active],
+html[data-era-picker-active] * {
+  cursor: default;
+}
+
+html[data-era-picker-active] button,
+html[data-era-picker-active] [role="button"] {
+  cursor: pointer;
 }
 
 #__next {

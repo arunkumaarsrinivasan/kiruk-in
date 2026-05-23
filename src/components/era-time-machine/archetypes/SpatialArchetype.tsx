@@ -12,6 +12,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import type { EraSurfaceProps } from "../shared/EraSurface";
+import { hideArchetypeTransport } from "../shared/eraChrome";
 
 const PURPLE_FALLBACK = "#8b5cf6";
 const BLUE_FALLBACK = "#3b82f6";
@@ -46,9 +47,10 @@ export const SpatialArchetype: React.FC<EraSurfaceProps> = ({
   reduceMotion,
   onPrev,
   onNext,
-  onCustomize,
   onClose,
+  embedMode,
 }) => {
+  const hideTransport = hideArchetypeTransport({ embedMode });
   const reduced = useReducedMotion() ?? reduceMotion;
   const { x, y } = useParallax();
 
@@ -97,20 +99,24 @@ export const SpatialArchetype: React.FC<EraSurfaceProps> = ({
         className="absolute top-0 inset-x-0 z-20 flex items-center justify-between px-4 md:px-6 py-3"
         style={{ pointerEvents: "auto" }}
       >
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close era time machine"
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-[11px] uppercase tracking-[0.22em] backdrop-blur-md transition-colors"
-          style={{
-            borderColor: `${text}22`,
-            color: text,
-            backgroundColor: `${text}06`,
-            fontFamily: FONT_MONO,
-          }}
-        >
-          ✕ Close
-        </button>
+        {!hideTransport ? (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close era time machine"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-[11px] uppercase tracking-[0.22em] backdrop-blur-md transition-colors"
+            style={{
+              borderColor: `${text}22`,
+              color: text,
+              backgroundColor: `${text}06`,
+              fontFamily: FONT_MONO,
+            }}
+          >
+            ✕ Close
+          </button>
+        ) : (
+          <span />
+        )}
 
         <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1">
           <span
@@ -121,42 +127,46 @@ export const SpatialArchetype: React.FC<EraSurfaceProps> = ({
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
-          <TransportButton
-            label="Prev"
-            arrow="‹"
-            disabled={!prevEra}
-            onClick={onPrev}
-            text={text}
-            accent={accent}
-          />
-          <div
-            className="flex flex-col items-center justify-center min-w-[3.5rem] px-1"
-            style={{ fontFamily: FONT_MONO }}
-          >
-            <span
-              className="text-[11px] font-bold tabular-nums leading-none"
-              style={{ color: accent }}
+        {!hideTransport ? (
+          <div className="flex items-center gap-2">
+            <TransportButton
+              label="Prev"
+              arrow="‹"
+              disabled={!prevEra}
+              onClick={onPrev}
+              text={text}
+              accent={accent}
+            />
+            <div
+              className="flex flex-col items-center justify-center min-w-[3.5rem] px-1"
+              style={{ fontFamily: FONT_MONO }}
             >
-              {era.id}
-            </span>
-            <span
-              className="text-[9px] tabular-nums mt-0.5"
-              style={{ color: `${text}45` }}
-            >
-              {index + 1}
-              <span style={{ opacity: 0.45 }}>/{total}</span>
-            </span>
+              <span
+                className="text-[11px] font-bold tabular-nums leading-none"
+                style={{ color: accent }}
+              >
+                {era.id}
+              </span>
+              <span
+                className="text-[9px] tabular-nums mt-0.5"
+                style={{ color: `${text}45` }}
+              >
+                {index + 1}
+                <span style={{ opacity: 0.45 }}>/{total}</span>
+              </span>
+            </div>
+            <TransportButton
+              label="Next"
+              arrow="›"
+              disabled={!nextEra}
+              onClick={onNext}
+              text={text}
+              accent={accent}
+            />
           </div>
-          <TransportButton
-            label="Next"
-            arrow="›"
-            disabled={!nextEra}
-            onClick={onNext}
-            text={text}
-            accent={accent}
-          />
-        </div>
+        ) : (
+          <span />
+        )}
       </nav>
 
       {/* ── Body ────────────────────────────────────────────────────── */}
@@ -363,42 +373,26 @@ export const SpatialArchetype: React.FC<EraSurfaceProps> = ({
             </GlassPanel>
           </div>
 
-          {/* CTA row */}
-          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center pt-2">
-            <motion.button
-              type="button"
-              onClick={onCustomize}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              transition={{ duration: 0.15 }}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border text-[12px] uppercase tracking-[0.22em] font-bold"
-              style={{
-                borderColor: accent,
-                color: accent,
-                backgroundColor: `${accent}10`,
-                fontFamily: FONT_MONO,
-                backdropFilter: "blur(12px)",
-              }}
-            >
-              Customize · adapt this era
-            </motion.button>
-            <motion.button
-              type="button"
-              onClick={onClose}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              transition={{ duration: 0.15 }}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-[12px] uppercase tracking-[0.22em] font-bold"
-              style={{
-                color: bg,
-                backgroundColor: accent,
-                fontFamily: FONT_MONO,
-                boxShadow: `0 8px 30px ${accent}55`,
-              }}
-            >
-              Use {era.id} →
-            </motion.button>
-          </div>
+          {!hideTransport && (
+            <div className="flex flex-col sm:flex-row gap-3 justify-center items-center pt-2">
+              <motion.button
+                type="button"
+                onClick={onClose}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ duration: 0.15 }}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-[12px] uppercase tracking-[0.22em] font-bold"
+                style={{
+                  color: bg,
+                  backgroundColor: accent,
+                  fontFamily: FONT_MONO,
+                  boxShadow: `0 8px 30px ${accent}55`,
+                }}
+              >
+                Use {era.id} →
+              </motion.button>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -10,6 +10,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import type { EraSurfaceProps } from "../shared/EraSurface";
+import { hideArchetypeTransport } from "../shared/eraChrome";
 
 const BG = "#0c0a1d";
 const PANEL = "rgba(255,255,255,0.05)";
@@ -36,9 +37,10 @@ export const AiNativeArchetype: React.FC<EraSurfaceProps> = ({
   reduceMotion,
   onPrev,
   onNext,
-  onCustomize,
   onClose,
+  embedMode,
 }) => {
+  const hideTransport = hideArchetypeTransport({ embedMode });
   // Mini streamed answer about the era.
   const answer = useMemo(
     () =>
@@ -146,10 +148,13 @@ export const AiNativeArchetype: React.FC<EraSurfaceProps> = ({
             >
               <span style={{ color: PINK }}>✦</span> Designer
             </span>
-            <NavBtn onClick={onPrev} disabled={!prevEra}>◂</NavBtn>
-            <NavBtn onClick={onCustomize}>⚙</NavBtn>
-            <NavBtn onClick={onClose} primary>▶ Use</NavBtn>
-            <NavBtn onClick={onNext} disabled={!nextEra}>▸</NavBtn>
+            {!hideTransport && (
+              <>
+                <NavBtn onClick={onPrev} disabled={!prevEra}>◂</NavBtn>
+                <NavBtn onClick={onClose} primary>▶ Use</NavBtn>
+                <NavBtn onClick={onNext} disabled={!nextEra}>▸</NavBtn>
+              </>
+            )}
           </span>
         </header>
 

@@ -10,6 +10,7 @@
 
 import React, { useMemo, useState } from "react";
 import type { EraSurfaceProps } from "../shared/EraSurface";
+import { hideArchetypeTransport } from "../shared/eraChrome";
 
 const DESK = "#1a1f2a";
 const DESK_2 = "#0a0c14";
@@ -36,9 +37,10 @@ export const IphoneSkeuArchetype: React.FC<EraSurfaceProps> = ({
   total,
   onPrev,
   onNext,
-  onCustomize,
   onClose,
+  embedMode,
 }) => {
+  const hideTransport = hideArchetypeTransport({ embedMode });
   type AppId = "palette" | "type" | "tokens" | "elements" | "heritage" | "lesson";
   const apps: Array<{ id: AppId; label: string; icon: string; bg: string }> = [
     { id: "palette",  label: "Palette",  icon: "🎨", bg: era.colors.primary },
@@ -517,12 +519,13 @@ export const IphoneSkeuArchetype: React.FC<EraSurfaceProps> = ({
         </div>
 
         {/* Era nav row */}
-        <div style={{ display: "flex", gap: 5, marginTop: 4 }}>
-          <NavBtn onClick={onPrev} disabled={!prevEra}>◂ Prev</NavBtn>
-          <NavBtn onClick={onCustomize}>⚙ Customize</NavBtn>
-          <NavBtn onClick={onClose} primary>▶ Use Era {era.id}</NavBtn>
-          <NavBtn onClick={onNext} disabled={!nextEra}>Next ▸</NavBtn>
-        </div>
+        {!hideTransport && (
+          <div style={{ display: "flex", gap: 5, marginTop: 4 }}>
+            <NavBtn onClick={onPrev} disabled={!prevEra}>◂ Prev</NavBtn>
+            <NavBtn onClick={onClose} primary>▶ Use Era {era.id}</NavBtn>
+            <NavBtn onClick={onNext} disabled={!nextEra}>Next ▸</NavBtn>
+          </div>
+        )}
         <div
           style={{
             fontFamily: FONT_MONO,

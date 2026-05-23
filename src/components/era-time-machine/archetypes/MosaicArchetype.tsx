@@ -11,6 +11,7 @@
 
 import React, { useMemo, useState } from "react";
 import type { EraSurfaceProps } from "../shared/EraSurface";
+import { hideArchetypeTransport } from "../shared/eraChrome";
 
 const GRAY = "#c0c0c0";
 const GRAY_LIGHT = "#dcdcdc";
@@ -38,9 +39,10 @@ export const MosaicArchetype: React.FC<EraSurfaceProps> = ({
   total,
   onPrev,
   onNext,
-  onCustomize,
   onClose,
+  embedMode,
 }) => {
+  const hideTransport = hideArchetypeTransport({ embedMode });
   const [status, setStatus] = useState("Document: Done.");
   const stamp = useMemo(
     () =>
@@ -138,18 +140,19 @@ export const MosaicArchetype: React.FC<EraSurfaceProps> = ({
               flexWrap: "wrap",
             }}
           >
-            <ToolbarBtn onClick={onPrev} disabled={!prevEra} title="Previous era">
-              ◂ Back
-            </ToolbarBtn>
-            <ToolbarBtn onClick={onNext} disabled={!nextEra} title="Next era">
-              Fwd ▸
-            </ToolbarBtn>
-            <ToolbarBtn onClick={onClose} title="Close (Quit)">
-              ✕ Quit
-            </ToolbarBtn>
-            <ToolbarBtn onClick={onCustomize} title="Customize this era">
-              ✎ Customize
-            </ToolbarBtn>
+            {!hideTransport && (
+              <>
+                <ToolbarBtn onClick={onPrev} disabled={!prevEra} title="Previous era">
+                  ◂ Back
+                </ToolbarBtn>
+                <ToolbarBtn onClick={onNext} disabled={!nextEra} title="Next era">
+                  Fwd ▸
+                </ToolbarBtn>
+                <ToolbarBtn onClick={onClose} title="Close (Quit)">
+                  ✕ Quit
+                </ToolbarBtn>
+              </>
+            )}
             <div
               style={{
                 marginLeft: "auto",
@@ -425,19 +428,20 @@ export const MosaicArchetype: React.FC<EraSurfaceProps> = ({
             <BeveledRule />
 
             {/* CTAs */}
-            <div
-              style={{
-                display: "flex",
-                gap: 8,
-                justifyContent: "center",
-                marginTop: 8,
-              }}
-            >
-              <BevelBtn onClick={onCustomize}>Customize this Era</BevelBtn>
-              <BevelBtn onClick={onClose} primary>
-                Use Era {era.id} ▸
-              </BevelBtn>
-            </div>
+            {!hideTransport && (
+              <div
+                style={{
+                  display: "flex",
+                  gap: 8,
+                  justifyContent: "center",
+                  marginTop: 8,
+                }}
+              >
+                <BevelBtn onClick={onClose} primary>
+                  Use Era {era.id} ▸
+                </BevelBtn>
+              </div>
+            )}
 
             <p
               style={{

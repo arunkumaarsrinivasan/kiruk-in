@@ -12,6 +12,7 @@
 
 import React, { useEffect, useState } from "react";
 import type { EraSurfaceProps } from "../shared/EraSurface";
+import { hideArchetypeTransport } from "../shared/eraChrome";
 
 // Palette — mirror Web2CandyHomePage
 const SKY = "#6699cc";
@@ -41,9 +42,10 @@ export const Web2CandyArchetype: React.FC<EraSurfaceProps> = ({
   total,
   onPrev,
   onNext,
-  onCustomize,
   onClose,
+  embedMode,
 }) => {
+  const hideTransport = hideArchetypeTransport({ embedMode });
   const [mood, setMood] = useState("🚀 shipping");
   const [friendStatus, setFriendStatus] = useState<"add" | "pending" | "friends">("add");
   const palette = [
@@ -155,10 +157,11 @@ export const Web2CandyArchetype: React.FC<EraSurfaceProps> = ({
               </a>
             ))}
           </nav>
-          <div style={{ marginLeft: "auto", display: "flex", gap: 6 }}>
-            <Gel onClick={onCustomize}>⚙ Customize</Gel>
-            <Gel primary onClick={onClose}>▶ Use Era {era.id}</Gel>
-          </div>
+          {!hideTransport && (
+            <div style={{ marginLeft: "auto", display: "flex", gap: 6 }}>
+              <Gel primary onClick={onClose}>▶ Use Era {era.id}</Gel>
+            </div>
+          )}
         </header>
 
         <div
@@ -302,55 +305,48 @@ export const Web2CandyArchetype: React.FC<EraSurfaceProps> = ({
                 </div>
               </div>
 
-              {/* Era-nav contact box */}
-              <Panel heading="Contacting Era">
-                <table style={{ width: "100%", fontSize: 11 }}>
-                  <tbody>
-                    <tr>
-                      <td style={{ width: 16, padding: "2px 4px", color: ORANGE, textAlign: "center" }}>◂</td>
-                      <td>
-                        <button
-                          type="button"
-                          onClick={prevEra ? onPrev : undefined}
-                          disabled={!prevEra}
-                          style={linkBtn(!prevEra)}
-                        >
-                          Previous Era
-                        </button>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style={{ width: 16, padding: "2px 4px", color: ORANGE, textAlign: "center" }}>▸</td>
-                      <td>
-                        <button
-                          type="button"
-                          onClick={nextEra ? onNext : undefined}
-                          disabled={!nextEra}
-                          style={linkBtn(!nextEra)}
-                        >
-                          Next Era
-                        </button>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style={{ width: 16, padding: "2px 4px", color: ORANGE, textAlign: "center" }}>⚙</td>
-                      <td>
-                        <button type="button" onClick={onCustomize} style={linkBtn(false)}>
-                          Customize Era
-                        </button>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style={{ width: 16, padding: "2px 4px", color: ORANGE, textAlign: "center" }}>★</td>
-                      <td>
-                        <button type="button" onClick={onClose} style={linkBtn(false)}>
-                          Use This Era
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </Panel>
+              {!hideTransport && (
+                <Panel heading="Contacting Era">
+                  <table style={{ width: "100%", fontSize: 11 }}>
+                    <tbody>
+                      <tr>
+                        <td style={{ width: 16, padding: "2px 4px", color: ORANGE, textAlign: "center" }}>◂</td>
+                        <td>
+                          <button
+                            type="button"
+                            onClick={prevEra ? onPrev : undefined}
+                            disabled={!prevEra}
+                            style={linkBtn(!prevEra)}
+                          >
+                            Previous Era
+                          </button>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style={{ width: 16, padding: "2px 4px", color: ORANGE, textAlign: "center" }}>▸</td>
+                        <td>
+                          <button
+                            type="button"
+                            onClick={nextEra ? onNext : undefined}
+                            disabled={!nextEra}
+                            style={linkBtn(!nextEra)}
+                          >
+                            Next Era
+                          </button>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style={{ width: 16, padding: "2px 4px", color: ORANGE, textAlign: "center" }}>★</td>
+                        <td>
+                          <button type="button" onClick={onClose} style={linkBtn(false)}>
+                            Use This Era
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </Panel>
+              )}
             </div>
 
             {/* Right col */}

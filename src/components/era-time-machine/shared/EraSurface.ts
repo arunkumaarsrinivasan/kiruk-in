@@ -28,8 +28,10 @@ export interface EraSurfaceProps {
   onPrev: () => void;
   onNext: () => void;
   onSelect: (eraId: string) => void;
-  onCustomize: () => void;
   onClose: () => void;
+
+  /** When true, EraTimeMachineChrome owns close/era transport UI. */
+  embedMode?: boolean;
 
   overrides: EraArchetypeOverrides;
 }

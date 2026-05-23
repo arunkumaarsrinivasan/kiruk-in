@@ -79,8 +79,9 @@ export default function LayoutClientShell({ children }: Readonly<LayoutClientShe
     process.env.NEXT_PUBLIC_SPLASH_LOADER !== "false";
 
   return (
-    <AppLoader enableLoader={splashLoaderEnabled} loadingDuration={400}>
+    <>
       <CustomCursor />
+      <AppLoader enableLoader={splashLoaderEnabled} loadingDuration={400}>
       {/* Skip Links for Accessibility */}
       <a
         href="#main-content"
@@ -127,7 +128,8 @@ export default function LayoutClientShell({ children }: Readonly<LayoutClientShe
 
       {/* Era-specific atmospheric shell layer (scanlines, glass, etc) */}
       <EraShell />
-    </AppLoader>
+      </AppLoader>
+    </>
   );
 }
 

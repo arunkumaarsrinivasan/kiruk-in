@@ -10,6 +10,7 @@
 
 import React, { useMemo, useState } from "react";
 import type { EraSurfaceProps } from "../shared/EraSurface";
+import { hideArchetypeTransport } from "../shared/eraChrome";
 
 const BG = "#f2f2f7";
 const CARD = "#ffffff";
@@ -35,9 +36,10 @@ export const PinboardArchetype: React.FC<EraSurfaceProps> = ({
   total,
   onPrev,
   onNext,
-  onCustomize,
   onClose,
+  embedMode,
 }) => {
+  const hideTransport = hideArchetypeTransport({ embedMode });
   const [view, setView] = useState<"board" | "deck">("board");
   const [flipped, setFlipped] = useState<Record<string, boolean>>({});
   const toggle = (id: string) =>
@@ -382,9 +384,11 @@ export const PinboardArchetype: React.FC<EraSurfaceProps> = ({
             <div style={{ fontFamily: FONT_DISPLAY, fontSize: 14, fontWeight: 200, letterSpacing: -0.3, lineHeight: 1 }}>
               kiruk · pinboard
             </div>
-            <div style={{ fontSize: 9, color: INK_DIM, letterSpacing: 0.3 }}>
-              era {era.id} · disc {index + 1}/{total}
-            </div>
+            {!hideTransport && (
+              <div style={{ fontSize: 9, color: INK_DIM, letterSpacing: 0.3 }}>
+                era {era.id} · disc {index + 1}/{total}
+              </div>
+            )}
           </div>
           <div
             style={{
@@ -407,10 +411,13 @@ export const PinboardArchetype: React.FC<EraSurfaceProps> = ({
               <Seg active={view === "board"} onClick={() => setView("board")}>📌 Board</Seg>
               <Seg active={view === "deck"} onClick={() => setView("deck")}>🃏 Deck</Seg>
             </div>
-            <NavBtn onClick={onPrev} disabled={!prevEra}>◂</NavBtn>
-            <NavBtn onClick={onCustomize}>⚙</NavBtn>
-            <NavBtn onClick={onClose} primary>▶ Use</NavBtn>
-            <NavBtn onClick={onNext} disabled={!nextEra}>▸</NavBtn>
+            {!hideTransport && (
+              <>
+                <NavBtn onClick={onPrev} disabled={!prevEra}>◂</NavBtn>
+                <NavBtn onClick={onClose} primary>▶ Use</NavBtn>
+                <NavBtn onClick={onNext} disabled={!nextEra}>▸</NavBtn>
+              </>
+            )}
           </div>
         </header>
 

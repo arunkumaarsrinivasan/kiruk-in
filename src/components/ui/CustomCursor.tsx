@@ -47,6 +47,7 @@ export default function CustomCursor() {
 
   const [cursorChat, setCursorChat] = useState<CursorChatWord[] | null>(null);
   const [hapticBursts, setHapticBursts] = useState<HapticBurst[]>([]);
+  const [eraPickerActive, setEraPickerActive] = useState(false);
   const moveTimeout = useRef<ReturnType<typeof setTimeout>>(undefined);
   const lastPos = useRef({ x: 0, y: 0 });
 
@@ -76,12 +77,44 @@ export default function CustomCursor() {
   }, []);
 
   useEffect(() => {
-    if (!enabled || !isVisible) {
-      document.documentElement.removeAttribute(CURSOR_ATTR);
-      return;
-    }
-    document.documentElement.setAttribute(CURSOR_ATTR, '');
-    return () => document.documentElement.removeAttribute(CURSOR_ATTR);
+    const root = document.documentElement;
+    const sync = () =>
+      setEraPickerActive(root.hasAttribute("data-era-picker-active"));
+    sync();
+    const obs = new MutationObserver(sync);
+    obs.observe(root, {
+      attributes: true,
+      attributeFilter: ["data-era-picker-active"],
+    });
+    return () => obs.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const syncCursorAttr = () => {
+      if (root.hasAttribute('data-era-picker-active')) {
+        root.removeAttribute(CURSOR_ATTR);
+        return;
+      }
+      if (!enabled || !isVisible) {
+        root.removeAttribute(CURSOR_ATTR);
+        return;
+      }
+      root.setAttribute(CURSOR_ATTR, '');
+    };
+
+    syncCursorAttr();
+
+    const obs = new MutationObserver(syncCursorAttr);
+    obs.observe(root, {
+      attributes: true,
+      attributeFilter: ['data-era-picker-active'],
+    });
+
+    return () => {
+      obs.disconnect();
+      root.removeAttribute(CURSOR_ATTR);
+    };
   }, [enabled, isVisible]);
 
   useEffect(() => {
@@ -170,7 +203,7 @@ export default function CustomCursor() {
     };
   }, [enabled, cursorX, cursorY, spawnHaptic]);
 
-  if (!enabled || !isVisible) return null;
+  if (!enabled || !isVisible || eraPickerActive) return null;
 
   const isEmojiPage = pathname === '/progress' || pathname === '/case-studies';
   const emojiChar = pathname === '/progress' ? '🔭' : '🔦';

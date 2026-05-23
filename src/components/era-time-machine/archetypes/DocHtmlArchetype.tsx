@@ -12,6 +12,7 @@
 
 import React, { useMemo, useState } from "react";
 import type { EraSurfaceProps } from "../shared/EraSurface";
+import { hideArchetypeTransport } from "../shared/eraChrome";
 
 const TEXT = "#000000";
 const MUTED = "#444444";
@@ -32,9 +33,10 @@ export const DocHtmlArchetype: React.FC<EraSurfaceProps> = ({
   total,
   onPrev,
   onNext,
-  onCustomize,
   onClose,
+  embedMode,
 }) => {
+  const hideTransport = hideArchetypeTransport({ embedMode });
   const [hoverUrl, setHoverUrl] = useState("");
   const [visited, setVisited] = useState<Set<string>>(new Set());
 
@@ -109,51 +111,65 @@ export const DocHtmlArchetype: React.FC<EraSurfaceProps> = ({
             {era.era}.
           </p>
 
-          {/* Top transport — as prose */}
-          <p
-            style={{
-              fontFamily: FONT_MONO,
-              fontSize: 12,
-              color: SOFT,
-              margin: "10px 0 0",
-            }}
-          >
-            <PNavLink
-              href="prev"
-              onClick={onPrev}
-              disabled={!prevEra}
-              visited={visited}
-              visit={visit}
-              setHoverUrl={setHoverUrl}
+          {!hideTransport ? (
+            <p
+              style={{
+                fontFamily: FONT_MONO,
+                fontSize: 12,
+                color: SOFT,
+                margin: "10px 0 0",
+              }}
             >
-              ◂ previous era
-            </PNavLink>
-            {" · "}
-            <strong style={{ color: TEXT }}>
-              {era.id} · entry {index + 1} of {total}
-            </strong>
-            {" · "}
-            <PNavLink
-              href="next"
-              onClick={onNext}
-              disabled={!nextEra}
-              visited={visited}
-              visit={visit}
-              setHoverUrl={setHoverUrl}
+              <PNavLink
+                href="prev"
+                onClick={onPrev}
+                disabled={!prevEra}
+                visited={visited}
+                visit={visit}
+                setHoverUrl={setHoverUrl}
+              >
+                ◂ previous era
+              </PNavLink>
+              {" · "}
+              <strong style={{ color: TEXT }}>
+                {era.id} · entry {index + 1} of {total}
+              </strong>
+              {" · "}
+              <PNavLink
+                href="next"
+                onClick={onNext}
+                disabled={!nextEra}
+                visited={visited}
+                visit={visit}
+                setHoverUrl={setHoverUrl}
+              >
+                next era ▸
+              </PNavLink>
+              {" · "}
+              <PNavLink
+                href="close"
+                onClick={onClose}
+                visited={visited}
+                visit={visit}
+                setHoverUrl={setHoverUrl}
+              >
+                close
+              </PNavLink>
+            </p>
+          ) : (
+            <p
+              style={{
+                fontFamily: FONT_MONO,
+                fontSize: 12,
+                color: SOFT,
+                margin: "10px 0 0",
+              }}
             >
-              next era ▸
-            </PNavLink>
-            {" · "}
-            <PNavLink
-              href="close"
-              onClick={onClose}
-              visited={visited}
-              visit={visit}
-              setHoverUrl={setHoverUrl}
-            >
-              close
-            </PNavLink>
-          </p>
+              <strong style={{ color: TEXT }}>
+                {era.id} · entry {index + 1} of {total}
+              </strong>
+            </p>
+          )}
 
           <Rule />
 
@@ -305,16 +321,6 @@ export const DocHtmlArchetype: React.FC<EraSurfaceProps> = ({
 
           {/* Action paragraph */}
           <p style={{ margin: 0 }}>
-            <PNavLink
-              href="customize"
-              onClick={onCustomize}
-              visited={visited}
-              visit={visit}
-              setHoverUrl={setHoverUrl}
-            >
-              customize this era ▸
-            </PNavLink>
-            {"  ·  "}
             <PNavLink
               href="use"
               onClick={onClose}

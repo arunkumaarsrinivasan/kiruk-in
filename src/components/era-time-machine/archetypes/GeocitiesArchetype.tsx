@@ -12,6 +12,7 @@
 
 import React, { useMemo } from "react";
 import type { EraSurfaceProps } from "../shared/EraSurface";
+import { hideArchetypeTransport } from "../shared/eraChrome";
 
 const NAVY = "#000033";
 const CREAM = "#ffff99";
@@ -49,9 +50,10 @@ export const GeocitiesArchetype: React.FC<EraSurfaceProps> = ({
   total,
   onPrev,
   onNext,
-  onCustomize,
   onClose,
+  embedMode,
 }) => {
+  const hideTransport = hideArchetypeTransport({ embedMode });
   const stars = useMemo(() => makeStars(90), []);
   const swatches = [
     ["primary", era.colors.primary],
@@ -116,61 +118,73 @@ export const GeocitiesArchetype: React.FC<EraSurfaceProps> = ({
             textAlign: "center",
           }}
         >
-          {/* Top web-ring style nav as prose */}
-          <div
-            style={{
-              fontFamily: FONT_COMIC,
-              fontSize: 13,
-              color: CYAN,
-              marginBottom: 18,
-            }}
-          >
-            <a
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                if (prevEra) onPrev();
-              }}
+          {!hideTransport ? (
+            <div
               style={{
-                color: prevEra ? CYAN : "#555",
-                textDecoration: prevEra ? "underline" : "none",
-                marginRight: 12,
-                pointerEvents: prevEra ? "auto" : "none",
+                fontFamily: FONT_COMIC,
+                fontSize: 13,
+                color: CYAN,
+                marginBottom: 18,
               }}
             >
-              ◂ Previous Era
-            </a>
-            <span style={{ color: HOT_PINK }}>
-              era {era.id} · {index + 1}/{total}
-            </span>
-            <a
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                if (nextEra) onNext();
-              }}
-              style={{
-                color: nextEra ? CYAN : "#555",
-                textDecoration: nextEra ? "underline" : "none",
-                marginLeft: 12,
-                pointerEvents: nextEra ? "auto" : "none",
-              }}
-            >
-              Next Era ▸
-            </a>
-            <span style={{ marginLeft: 12 }}>
               <a
                 href="#"
                 onClick={(e) => {
                   e.preventDefault();
-                  onClose();
+                  if (prevEra) onPrev();
                 }}
-                style={{ color: YELLOW, textDecoration: "underline" }}
+                style={{
+                  color: prevEra ? CYAN : "#555",
+                  textDecoration: prevEra ? "underline" : "none",
+                  marginRight: 12,
+                  pointerEvents: prevEra ? "auto" : "none",
+                }}
               >
-                ✕ Close
+                ◂ Previous Era
               </a>
-            </span>
-          </div>
+              <span style={{ color: HOT_PINK }}>
+                era {era.id} · {index + 1}/{total}
+              </span>
+              <a
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (nextEra) onNext();
+                }}
+                style={{
+                  color: nextEra ? CYAN : "#555",
+                  textDecoration: nextEra ? "underline" : "none",
+                  marginLeft: 12,
+                  pointerEvents: nextEra ? "auto" : "none",
+                }}
+              >
+                Next Era ▸
+              </a>
+              <span style={{ marginLeft: 12 }}>
+                <a
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onClose();
+                  }}
+                  style={{ color: YELLOW, textDecoration: "underline" }}
+                >
+                  ✕ Close
+                </a>
+              </span>
+            </div>
+          ) : (
+            <div
+              style={{
+                fontFamily: FONT_COMIC,
+                fontSize: 13,
+                color: HOT_PINK,
+                marginBottom: 18,
+              }}
+            >
+              era {era.id} · {index + 1}/{total}
+            </div>
+          )}
 
           {/* Rainbow heading */}
           <h1
@@ -376,19 +390,20 @@ export const GeocitiesArchetype: React.FC<EraSurfaceProps> = ({
           <RainbowRule />
 
           {/* CTAs */}
-          <div
-            style={{
-              display: "flex",
-              gap: 10,
-              justifyContent: "center",
-              flexWrap: "wrap",
-            }}
-          >
-            <SignBtn onClick={onCustomize}>✎ Customize this Era</SignBtn>
-            <SignBtn onClick={onClose} primary>
-              ✿ Use Era {era.id}
-            </SignBtn>
-          </div>
+          {!hideTransport && (
+            <div
+              style={{
+                display: "flex",
+                gap: 10,
+                justifyContent: "center",
+                flexWrap: "wrap",
+              }}
+            >
+              <SignBtn onClick={onClose} primary>
+                ✿ Use Era {era.id}
+              </SignBtn>
+            </div>
+          )}
 
           <p
             style={{

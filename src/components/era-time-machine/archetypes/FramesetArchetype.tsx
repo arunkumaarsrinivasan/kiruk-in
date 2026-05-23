@@ -12,6 +12,7 @@
 
 import React, { useMemo, useState } from "react";
 import type { EraSurfaceProps } from "../shared/EraSurface";
+import { hideArchetypeTransport } from "../shared/eraChrome";
 
 // Palette — match FramesetHomePage
 const WINE = "#6b1f2e";
@@ -38,9 +39,10 @@ export const FramesetArchetype: React.FC<EraSurfaceProps> = ({
   total,
   onPrev,
   onNext,
-  onCustomize,
   onClose,
+  embedMode,
 }) => {
+  const hideTransport = hideArchetypeTransport({ embedMode });
   const palette = useMemo(
     () =>
       [
@@ -162,7 +164,7 @@ export const FramesetArchetype: React.FC<EraSurfaceProps> = ({
             <div style={{ display: "flex", gap: 4 }}>
               <WinBtn label="_" />
               <WinBtn label="□" />
-              <WinBtn label="✕" onClick={onClose} />
+              {!hideTransport && <WinBtn label="✕" onClick={onClose} />}
             </div>
           </header>
 
@@ -177,22 +179,25 @@ export const FramesetArchetype: React.FC<EraSurfaceProps> = ({
               borderBottom: `1px solid ${WINE_DARK}66`,
             }}
           >
-            <ChromeBtn onClick={onPrev} disabled={!prevEra} title="Previous disc">
-              ◂ Back
-            </ChromeBtn>
-            <ChromeBtn onClick={onNext} disabled={!nextEra} title="Next disc">
-              Forward ▸
-            </ChromeBtn>
+            {!hideTransport && (
+              <>
+                <ChromeBtn onClick={onPrev} disabled={!prevEra} title="Previous disc">
+                  ◂ Back
+                </ChromeBtn>
+                <ChromeBtn onClick={onNext} disabled={!nextEra} title="Next disc">
+                  Forward ▸
+                </ChromeBtn>
+              </>
+            )}
             <ChromeBtn onClick={() => setActive("preface")} title="Home chapter">
               ⌂ Home
             </ChromeBtn>
-            <ChromeBtn onClick={onCustomize} title="Customize era">
-              ⚙ Customize
-            </ChromeBtn>
             <div style={{ flex: 1 }} />
-            <ChromeBtn onClick={onClose} title="Use this era" primary>
-              ▶ Use Era {era.id}
-            </ChromeBtn>
+            {!hideTransport && (
+              <ChromeBtn onClick={onClose} title="Use this era" primary>
+                ▶ Use Era {era.id}
+              </ChromeBtn>
+            )}
           </div>
 
           {/* ── Two-pane body ──────────────────────────────────── */}

@@ -10,6 +10,7 @@
 
 import React, { useEffect, useState } from "react";
 import type { EraSurfaceProps } from "../shared/EraSurface";
+import { hideArchetypeTransport } from "../shared/eraChrome";
 
 const BG = "#070809";
 const BG_2 = "#0c0e10";
@@ -33,9 +34,10 @@ export const PromptUIArchetype: React.FC<EraSurfaceProps> = ({
   reduceMotion,
   onPrev,
   onNext,
-  onCustomize,
   onClose,
+  embedMode,
 }) => {
+  const hideTransport = hideArchetypeTransport({ embedMode });
   const a = era.colors.primary;
   const b = era.colors.accent;
 
@@ -75,10 +77,13 @@ export const PromptUIArchetype: React.FC<EraSurfaceProps> = ({
           <span style={{ fontSize: 12.5, fontWeight: 600 }}>kiruk.build</span>
           <span style={{ color: INK_MUTE, fontSize: 10, fontFamily: FONT_MONO }}>era {era.id}</span>
           <span style={{ marginLeft: "auto", display: "flex", gap: 4 }}>
-            <NavBtn onClick={onPrev} disabled={!prevEra}>◂</NavBtn>
-            <NavBtn onClick={onCustomize}>⚙</NavBtn>
-            <NavBtn onClick={onClose} primary a={a} b={b}>▶ Use</NavBtn>
-            <NavBtn onClick={onNext} disabled={!nextEra}>▸</NavBtn>
+            {!hideTransport && (
+              <>
+                <NavBtn onClick={onPrev} disabled={!prevEra}>◂</NavBtn>
+                <NavBtn onClick={onClose} primary a={a} b={b}>▶ Use</NavBtn>
+                <NavBtn onClick={onNext} disabled={!nextEra}>▸</NavBtn>
+              </>
+            )}
           </span>
         </header>
 

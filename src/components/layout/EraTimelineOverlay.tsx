@@ -13,7 +13,6 @@ import {
   useReducedMotion,
 } from "framer-motion";
 import { AVAILABLE_THEMES, type ThemeConfig } from "@/data/portfolio-data";
-import { CustomizationLab } from "@/components/ui/design-lab/CustomizationLab";
 
 export interface EyeTimelineOverlayProps {
   isOpen: boolean;
@@ -240,7 +239,6 @@ export const EyeTimelineOverlay: React.FC<EyeTimelineOverlayProps> = ({
   onEraSelect,
 }) => {
   const [selectedEraId, setSelectedEraId] = useState(currentEraId);
-  const [showLab, setShowLab] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
@@ -248,7 +246,6 @@ export const EyeTimelineOverlay: React.FC<EyeTimelineOverlayProps> = ({
   useEffect(() => {
     if (isOpen) {
       setSelectedEraId(currentEraId);
-      setShowLab(false);
     }
   }, [isOpen, currentEraId]);
 
@@ -306,16 +303,12 @@ export const EyeTimelineOverlay: React.FC<EyeTimelineOverlayProps> = ({
         goNext();
       } else if (e.key === "Escape") {
         e.preventDefault();
-        if (showLab) {
-          setShowLab(false);
-        } else {
-          onClose();
-        }
+        onClose();
       }
     };
     globalThis.addEventListener("keydown", onKey);
     return () => globalThis.removeEventListener("keydown", onKey);
-  }, [isOpen, goPrev, goNext, onClose, showLab]);
+  }, [isOpen, goPrev, goNext, onClose]);
 
   useEffect(() => {
     if (!timelineRef.current) return;
@@ -472,15 +465,7 @@ export const EyeTimelineOverlay: React.FC<EyeTimelineOverlayProps> = ({
             ref={scrollRef}
             className="relative z-10 flex-1 overflow-y-auto scrollbar-hide"
           >
-            {showLab ? (
-              <div className="h-full">
-                <CustomizationLab
-                  era={era}
-                  onClose={() => setShowLab(false)}
-                />
-              </div>
-            ) : (
-              <AnimatePresence mode="wait" initial={false}>
+            <AnimatePresence mode="wait" initial={false}>
                 <motion.div
                   key={selectedEraId}
                   initial={{ opacity: 0 }}
@@ -973,7 +958,6 @@ export const EyeTimelineOverlay: React.FC<EyeTimelineOverlayProps> = ({
                   </Stagger>
                 </motion.div>
               </AnimatePresence>
-            )}
           </div>
 
           {/* ─── Bottom nav ─── */}
@@ -1032,25 +1016,6 @@ export const EyeTimelineOverlay: React.FC<EyeTimelineOverlayProps> = ({
               >
                 Tap a year · keys ← →
               </span>
-
-              <motion.button
-                onClick={() => setShowLab(true)}
-                className="px-4 py-2 font-mono text-[9px] font-bold uppercase tracking-wider border-2 flex-shrink-0"
-                style={{
-                  borderColor: era.colors.accent,
-                  color: era.colors.accent,
-                  borderRadius: `${Math.min(r, 8)}px`,
-                  backgroundColor: `${era.colors.accent}0c`,
-                }}
-                whileHover={{
-                  backgroundColor: era.colors.accent,
-                  color: era.colors.background,
-                }}
-                whileTap={{ scale: 0.96 }}
-                transition={{ duration: 0.15 }}
-              >
-                Customize
-              </motion.button>
             </div>
           </div>
         </motion.div>

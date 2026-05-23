@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import type { ThemeConfig } from "@/data/portfolio-data";
 import { EraShaderCanvas } from "./EraShaderCanvas";
-import { CustomizationLab } from "./CustomizationLab";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -307,7 +306,6 @@ export function DesignSystemLab({
   era,
   onOpenLabEditor: _onOpenLabEditor,
 }: DesignSystemLabProps) {
-  const [showCustomizationLab, setShowCustomizationLab] = useState(false);
   const colors = era.colors;
   const fonts = era.fonts;
   const tokens = era.designTokens;
@@ -332,18 +330,6 @@ export function DesignSystemLab({
       previewAccent,
     ],
   );
-
-  // If customization lab is open, render it instead
-  if (showCustomizationLab) {
-    return (
-      <div className="flex flex-col h-full">
-        <CustomizationLab
-          era={era}
-          onClose={() => setShowCustomizationLab(false)}
-        />
-      </div>
-    );
-  }
 
   // Grid configuration
   const gridSize = tokens?.gridSize ?? null;
@@ -685,24 +671,6 @@ export function DesignSystemLab({
             )}
           </div>
         </div>
-      </div>
-
-      {/* Action Button */}
-      <div className="mt-2">
-        <motion.button
-          onClick={() => setShowCustomizationLab(true)}
-          className={cn(
-            "w-full py-2 lg:py-3 font-mono text-[10px] lg:text-xs font-bold uppercase",
-            "border-2 border-[var(--accent-color)]",
-            "bg-[var(--accent-color)] text-[var(--bg-main)]",
-            "hover:brightness-110 transition-all flex items-center justify-center gap-2",
-          )}
-          style={{ borderRadius: `${borderRadius}px` }}
-          whileHover={{ scale: 1.01 }}
-          whileTap={{ scale: 0.99 }}
-        >
-          <span>🔬</span> OPEN CUSTOMIZATION LAB
-        </motion.button>
       </div>
     </div>
   );

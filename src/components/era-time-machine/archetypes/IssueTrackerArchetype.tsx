@@ -10,6 +10,7 @@
 
 import React, { useMemo, useState } from "react";
 import type { EraSurfaceProps } from "../shared/EraSurface";
+import { hideArchetypeTransport } from "../shared/eraChrome";
 
 const BG = "#08090a";
 const SURF = "#16171a";
@@ -48,9 +49,10 @@ export const IssueTrackerArchetype: React.FC<EraSurfaceProps> = ({
   total,
   onPrev,
   onNext,
-  onCustomize,
   onClose,
+  embedMode,
 }) => {
+  const hideTransport = hideArchetypeTransport({ embedMode });
   const issues = useMemo<
     Array<{
       id: string;
@@ -137,10 +139,13 @@ export const IssueTrackerArchetype: React.FC<EraSurfaceProps> = ({
             >
               ⌘K
             </button>
-            <NavBtn onClick={onPrev} disabled={!prevEra}>◂</NavBtn>
-            <NavBtn onClick={onCustomize}>⚙</NavBtn>
-            <NavBtn onClick={onClose} primary>▶ Use</NavBtn>
-            <NavBtn onClick={onNext} disabled={!nextEra}>▸</NavBtn>
+            {!hideTransport && (
+              <>
+                <NavBtn onClick={onPrev} disabled={!prevEra}>◂</NavBtn>
+                <NavBtn onClick={onClose} primary>▶ Use</NavBtn>
+                <NavBtn onClick={onNext} disabled={!nextEra}>▸</NavBtn>
+              </>
+            )}
           </span>
         </header>
 
