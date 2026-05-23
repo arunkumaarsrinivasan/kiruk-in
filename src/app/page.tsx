@@ -1,4 +1,5 @@
 import WireframeManualLayout from '@/components/layout/WireframeManualLayout';
+import { EraPageArchetype } from '@/components/era-shell/EraPageArchetype';
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ??
@@ -84,7 +85,9 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(profileJsonLd) }}
       />
-      <WireframeManualLayout />
+      <EraPageArchetype pageKey="home">
+        <WireframeManualLayout />
+      </EraPageArchetype>
     </>
   );
 }

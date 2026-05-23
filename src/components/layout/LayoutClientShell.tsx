@@ -14,6 +14,7 @@ import { useMissionTracker } from "@/hooks/useMissionTracker";
 import DetectiveStoryWrapper from "./DetectiveStoryWrapper";
 import SketchDigitalSplitLayout from "./SketchDigitalSplitLayout";
 import { useLayoutMode } from "@/contexts/LayoutModeContext";
+import { EraShell } from "@/components/era-shell/EraShell";
 
 const CustomCursor = dynamic(() => import("@/components/ui/CustomCursor"), {
   ssr: false,
@@ -123,6 +124,9 @@ export default function LayoutClientShell({ children }: Readonly<LayoutClientShe
 
       {/* Help Bot - Available on all pages */}
       <HelpBot />
+
+      {/* Era-specific atmospheric shell layer (scanlines, glass, etc) */}
+      <EraShell />
     </AppLoader>
   );
 }

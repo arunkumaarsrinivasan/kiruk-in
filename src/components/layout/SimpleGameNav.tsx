@@ -5,22 +5,15 @@
  * Game menu also: Shift+M.
  */
 
-import React, { useState, useMemo, useRef, useLayoutEffect, useCallback } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import React, { useState, useMemo, useRef, useEffect, useLayoutEffect, useCallback } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useRouter, usePathname } from "next/navigation";
-import { Press_Start_2P } from "next/font/google";
 import { GRID_SIZE, cn } from "@/lib/utils";
 import { useDesignEra } from "@/contexts/DesignEraContext";
 import { useGameMode } from "@/contexts/GameModeContext";
 import { GameMenuOverlay } from "./GameMenuOverlay";
-import { EyeTimelineOverlay } from "./EraTimelineOverlay";
-
-const fontPixelBrand = Press_Start_2P({
-  weight: "400",
-  subsets: ["latin"],
-  display: "swap",
-  adjustFontFallback: true,
-});
+import { EraTimeMachine } from "@/components/era-time-machine/EraTimeMachine";
+import { EraEye } from "./EraEye";
 
 /** Top inset of the nav bar from the viewport (0 = flush with top). */
 export const SIMPLE_GAME_NAV_FLOAT_TOP_PX = 0;
@@ -76,7 +69,16 @@ const SimpleGameNav: React.FC<SimpleGameNavProps> = ({
   const { toggleMenu } = useGameMode();
   const pathname = usePathname();
   const [isTimelineOpen, setIsTimelineOpen] = useState(false);
+  const [hubOpen, setHubOpen] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
+
+  // Esc closes the expanded eye
+  useEffect(() => {
+    if (!hubOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setHubOpen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [hubOpen]);
 
   const router = useRouter();
   const handleEraSelect = (eraId: string) => {
@@ -130,13 +132,37 @@ const SimpleGameNav: React.FC<SimpleGameNavProps> = ({
     };
   }, [publishNavBottom]);
 
-  const seg =
-    "flex h-full shrink-0 touch-manipulation items-center justify-center border-r border-[var(--border-color)] px-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--text-main)] transition-colors duration-200 ease-out hover:bg-[color-mix(in_srgb,var(--text-main)_5%,var(--bg-card))] sm:px-3 sm:text-[11px] sm:tracking-[0.14em] [font-family:var(--font-main,ui-sans-serif,system-ui)]";
-  const segFocus =
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] focus-visible:ring-inset";
-
   const onPortfolioPath =
     pathname === "/portfolio" || pathname.startsWith("/portfolio/");
+
+  const accentColor = currentEra.colors.accent || currentEra.colors.primary;
+
+  // Eye expands into an inline capsule revealing these
+  const hubItems: Array<{
+    key: string;
+    icon: string;
+    label: string;
+    primary?: boolean;
+    active?: boolean;
+    run: () => void;
+  }> = [
+    { key: "works", icon: "◳", label: "Works", active: onPortfolioPath, run: () => router.push("/portfolio") },
+    { key: "eras", icon: "◷", label: "Eras", primary: true, run: () => setIsTimelineOpen(true) },
+    { key: "menu", icon: "☰", label: "Menu", run: () => toggleMenu() },
+  ];
+
+  const runHub = (fn: () => void, confirm = false) => {
+    navHaptic(confirm ? "confirm" : "tap");
+    setHubOpen(false);
+    fn();
+  };
+
+  const eyeH = 44;
+  const eyeW = Math.round(eyeH * 1.62); // wide 1.6:1 mark
+  const knobW = eyeW + 16;
+  const capsuleH = eyeH + 14;
+  const collapsedW = eyeW + 18;
+  const expandedW = 340;
 
   const navShadow = useMemo(
     () =>
@@ -158,106 +184,101 @@ const SimpleGameNav: React.FC<SimpleGameNavProps> = ({
         <motion.div
           ref={navRef}
           id="navigation"
-          className="pointer-events-auto box-border flex min-h-0 w-full min-w-0 items-stretch overflow-visible border border-[var(--border-color)] bg-[var(--bg-card)]/90 text-[var(--text-main)] backdrop-blur-md"
+          className="pointer-events-auto relative box-border flex min-h-0 w-full min-w-0 items-stretch justify-between overflow-visible border border-[var(--border-color)] bg-[var(--bg-card)]/90 text-[var(--text-main)] backdrop-blur-md"
           style={{ boxShadow: navShadow, height: SIMPLE_GAME_NAV_BAR_HEIGHT_PX, marginTop: SIMPLE_GAME_NAV_FLOAT_TOP_PX }}
           animate={{ borderRadius: borderRadiusPx }}
           transition={navTransition}
         >
-          <motion.button
-            type="button"
-            className={cn(seg, "normal-case tracking-normal", segFocus)}
-            transition={tapTransition}
-            whileHover={reduceMotion ? undefined : { y: -2 }}
-            whileTap={reduceMotion ? undefined : { scale: 0.98 }}
-            onClick={() => {
-              navHaptic("tap");
-              router.push("/");
-            }}
-            aria-label="Home — KIRUK.IN"
-          >
-            <span
-              className={cn(
-                fontPixelBrand.className,
-                "inline-block whitespace-nowrap leading-none tracking-tight [-webkit-font-smoothing:none] text-[8px] sm:text-[9px]",
-              )}
-            >
-              KIRUK.IN
-            </span>
-          </motion.button>
-
-          <div className="flex min-h-0 min-w-0 flex-1 items-stretch">
-            <motion.button
-              type="button"
-              className={cn(
-                seg,
-                "min-w-[3.75rem] flex-col gap-0.5 py-1 sm:min-w-[4.75rem]",
-                segFocus,
-              )}
-              transition={tapTransition}
-              whileHover={reduceMotion ? undefined : { y: -2 }}
-              whileTap={reduceMotion ? undefined : { scale: 0.98 }}
-              onClick={() => {
-                navHaptic("tap");
-                setIsTimelineOpen(true);
+          {/* the all-seeing eye that EXPANDS into an inline capsule control */}
+          <div className="pointer-events-none absolute inset-0 z-[60] flex items-center justify-center">
+            <motion.div
+              className="pointer-events-auto relative flex items-center overflow-hidden rounded-full border backdrop-blur-md"
+              animate={{
+                width: hubOpen ? expandedW : collapsedW,
+                borderColor: hubOpen ? accentColor : "var(--border-color)",
               }}
-              aria-label={`ERA ${currentEraId}, ${currentEra.name}. Open era timeline.`}
+              transition={reduceMotion ? { duration: 0.2 } : { type: "spring", stiffness: 260, damping: 26 }}
+              style={{
+                height: capsuleH,
+                borderWidth: 2,
+                background: "color-mix(in srgb, var(--bg-card) 92%, transparent)",
+                boxShadow: hubOpen
+                  ? `0 0 30px color-mix(in srgb, ${accentColor} 40%, transparent), 0 8px 24px rgba(0,0,0,0.35)`
+                  : `0 4px 14px rgba(0,0,0,0.25)`,
+              }}
             >
-              <span className="text-[8px] tracking-[0.2em] text-[var(--text-muted)] sm:text-[9px]">
-                ERA
-              </span>
-              <span className="text-[11px] font-semibold tabular-nums text-[var(--accent-color)] sm:text-xs">
-                {currentEraId}
-              </span>
-            </motion.button>
-
-            <div className="flex min-h-0 min-w-0 flex-1 items-stretch justify-end">
+              {/* eye knob — toggles expand */}
               <motion.button
                 type="button"
-                className={cn(
-                  seg,
-                  "border-l border-[var(--border-color)]",
-                  onPortfolioPath &&
-                    "bg-[color-mix(in_srgb,var(--accent-color)_10%,var(--bg-card))] text-[var(--accent-color)]",
-                  segFocus,
-                )}
-                transition={tapTransition}
-                whileHover={reduceMotion ? undefined : { y: -2 }}
-                whileTap={reduceMotion ? undefined : { scale: 0.98 }}
-                onClick={() => {
-                  navHaptic("tap");
-                  router.push("/portfolio");
-                }}
-                aria-label="WORKS, portfolio"
+                className="grid shrink-0 place-items-center focus-visible:outline-none"
+                style={{ width: knobW, height: capsuleH }}
+                whileTap={reduceMotion ? undefined : { scale: 0.9 }}
+                onClick={() => { navHaptic("tap"); setHubOpen((o) => !o); }}
+                aria-label={hubOpen ? "Close menu" : `Era ${currentEraId} — open menu`}
+                aria-expanded={hubOpen}
               >
-                WORKS
+                <EraEye era={currentEra} height={eyeH} />
               </motion.button>
 
-              <motion.button
-                type="button"
-                className={cn(
-                  seg,
-                  "min-w-[6rem] px-3 sm:min-w-[7rem] sm:px-4",
-                  segFocus,
+              {/* inline options revealed as the capsule expands */}
+              <AnimatePresence>
+                {hubOpen && (
+                  <motion.div
+                    className="flex min-w-0 flex-1 items-center pr-1"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.18 }}
+                  >
+                    {hubItems.map((it, i) => (
+                      <motion.button
+                        key={it.key}
+                        type="button"
+                        className="flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-full px-1 py-1 focus-visible:outline-none"
+                        initial={reduceMotion ? { opacity: 0 } : { opacity: 0, x: -14, scale: 0.7 }}
+                        animate={{ opacity: 1, x: 0, scale: 1 }}
+                        exit={reduceMotion ? { opacity: 0 } : { opacity: 0, x: -8, scale: 0.8 }}
+                        transition={reduceMotion ? { duration: 0.12 } : { duration: 0.32, delay: 0.06 + i * 0.07, ease: [0.22, 1, 0.36, 1] }}
+                        whileHover={reduceMotion ? undefined : { y: -2 }}
+                        whileTap={reduceMotion ? undefined : { scale: 0.92 }}
+                        onClick={() => runHub(it.run, it.primary)}
+                        aria-label={it.label}
+                        style={{ color: it.primary || it.active ? accentColor : "var(--text-main)" }}
+                      >
+                        <span className="text-[15px] leading-none">{it.icon}</span>
+                        <span className="text-[8.5px] font-semibold uppercase tracking-[0.14em] [font-family:var(--font-main,ui-sans-serif,system-ui)]">
+                          {it.label}
+                        </span>
+                      </motion.button>
+                    ))}
+                  </motion.div>
                 )}
-                transition={tapTransition}
-                whileHover={reduceMotion ? undefined : { y: -2 }}
-                whileTap={reduceMotion ? undefined : { scale: 0.98 }}
-                onClick={() => {
-                  navHaptic("confirm");
-                  toggleMenu();
-                }}
-                aria-label="MENU, open navigation"
-              >
-                MENU
-              </motion.button>
-            </div>
+              </AnimatePresence>
+            </motion.div>
           </div>
         </motion.div>
       </header>
 
+      {/* scrim — dims page while the eye is open */}
+      <AnimatePresence>
+        {hubOpen && (
+          <motion.div
+            key="hub-scrim"
+            className="fixed inset-0 z-[40]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            style={{ background: "color-mix(in srgb, var(--bg-main, #000) 50%, transparent)", backdropFilter: "blur(3px)" }}
+            onClick={() => setHubOpen(false)}
+            aria-hidden
+          />
+        )}
+      </AnimatePresence>
+
       <GameMenuOverlay />
 
-      <EyeTimelineOverlay
+      <EraTimeMachine
         isOpen={isTimelineOpen}
         onClose={() => setIsTimelineOpen(false)}
         currentEraId={currentEraId}

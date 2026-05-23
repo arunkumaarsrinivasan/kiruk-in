@@ -101,3 +101,10 @@ lerna-debug.log*
 **/*key*
 **/*token*
 **/*password*
+
+# AI tooling / local agents
+.claude/
+.cursor/
+.agents/
+.claude-*/
+ONBOARDING.md

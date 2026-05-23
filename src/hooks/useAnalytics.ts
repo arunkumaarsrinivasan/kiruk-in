@@ -53,7 +53,7 @@ export const useAnalytics = () => {
   }, [sessionId]);
 
   // Track interaction
-  const trackInteraction = useCallback((action: string, data?: any) => {
+  const trackInteraction = useCallback((action: string, data?: unknown) => {
     if (typeof window === 'undefined' || !sessionId) return;
     
     fetch('/api/analytics', {

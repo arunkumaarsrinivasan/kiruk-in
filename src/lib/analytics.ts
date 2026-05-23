@@ -1,4 +1,4 @@
-import { supabaseAdmin } from './supabase';
+import { supabaseAdmin } from "./supabase-admin";
 
 // Analytics utility for tracking user interactions
 export class PortfolioAnalytics {
@@ -29,7 +29,7 @@ export class PortfolioAnalytics {
   // Track user interactions (portfolio interactions, clicks, etc.)
   static async trackInteraction(
     action: string,
-    data?: any,
+    data?: unknown,
     sessionId?: string,
     userAgent?: string,
     ip?: string

@@ -139,252 +139,227 @@ body[data-era='1970'] {
 
 /* 1981: Xerox Alto GUI */
 body[data-era='1981'] {
-  --bg-main: #dcdcdc;
-  --bg-card: #f2f2f2;
-  --text-main: #1a1a1a;
-  --text-muted: #5c5c5c;
-  --border-color: #808080;
+  --bg-main: #c0c0c0;
+  --bg-card: #c0c0c0;
+  --text-main: #000000;
+  --text-muted: #404040;
+  --border-color: #000000;
   --border-width: 2px;
   --border-radius: 0px;
-  --shadow-color: #ffffff;
+  --shadow-color: #000000;
   --shadow-offset-x: 2px;
   --shadow-offset-y: 2px;
   --shadow-blur: 0px;
-  --font-main: 'Helvetica', 'Arial', sans-serif;
-  --font-heading: 'Helvetica', 'Arial', sans-serif;
-  --accent-color: #0066cc;
+  --font-main: 'Pixelify Sans', 'IBM Plex Sans', 'Helvetica', sans-serif;
+  --font-heading: 'Pixelify Sans', 'IBM Plex Sans', 'Helvetica', sans-serif;
+  --accent-color: #000080;
   --btn-hover-transform: translate(1px, 1px);
   --grid-opacity: 0;
 
   --notepad-bg: #ffffff;
-  --notepad-border: #9e9e9e;
-  --notepad-text: #1a1a1a;
-  --notepad-inner-bg: #f7f7f7;
+  --notepad-border: #000000;
+  --notepad-text: #000000;
+  --notepad-inner-bg: #ffffff;
 }
 
 /* 1991: HTML 1.0 */
 body[data-era='1991'] {
   --bg-main: #ffffff;
-  --bg-card: #fafafa;
-  --text-main: #111111;
-  --text-muted: #555555;
-  --border-color: #b3b3ff;
+  --bg-card: #ffffff;
+  --text-main: #000000;
+  --text-muted: #444444;
+  --border-color: #000000;
   --border-width: 1px;
   --border-radius: 0px;
   --shadow-color: rgba(0, 0, 0, 0);
   --shadow-offset-x: 0px;
   --shadow-offset-y: 0px;
   --shadow-blur: 0px;
-  --font-main: 'Times New Roman', serif;
-  --font-heading: 'Times New Roman', serif;
-  --accent-color: #0000ff;
+  --font-main: 'Times New Roman', 'Iowan Old Style', Georgia, serif;
+  --font-heading: 'Times New Roman', 'Iowan Old Style', Georgia, serif;
+  --accent-color: #0000ee;
   --btn-hover-transform: none;
   --grid-opacity: 0;
 
   --notepad-bg: #ffffff;
-  --notepad-border: #b3b3ff;
-  --notepad-text: #111111;
+  --notepad-border: #000000;
+  --notepad-text: #000000;
   --notepad-inner-bg: #ffffff;
 }
 
 /* 1993: Mosaic & Netscape */
 body[data-era='1993'] {
-  --bg-main: #fff8ff;
-  --bg-card: #fff0ff;
-  --text-main: #111111;
-  --text-muted: #6b2c82;
-  --border-color: #ff00ff;
-  --border-width: 3px;
+  --bg-main: #c0c0c0;
+  --bg-card: #ffffff;
+  --text-main: #000000;
+  --text-muted: #444444;
+  --border-color: #000000;
+  --border-width: 2px;
   --border-radius: 0px;
-  --shadow-color: rgba(255, 0, 255, 0.3);
-  --shadow-offset-x: 0px;
-  --shadow-offset-y: 6px;
-  --shadow-blur: 16px;
-  --font-main: 'Comic Sans MS', 'Arial', cursive;
-  --font-heading: 'Arial Black', 'Arial', sans-serif;
-  --accent-color: #ff00ff;
-  --btn-hover-transform: translate(-1px, -1px);
+  --shadow-color: #000000;
+  --shadow-offset-x: 2px;
+  --shadow-offset-y: 2px;
+  --shadow-blur: 0px;
+  --font-main: 'Arial', 'Helvetica', sans-serif;
+  --font-heading: '"Arial Black"', 'Impact', 'Arial', sans-serif;
+  --accent-color: #0000ff;
+  --btn-hover-transform: translate(1px, 1px);
   --grid-opacity: 0;
 
-  --notepad-bg: #ffe6ff;
-  --notepad-border: #ff00ff;
-  --notepad-text: #6b2c82;
-  --notepad-inner-bg: #fffafc;
+  --notepad-bg: #ffffff;
+  --notepad-border: #000000;
+  --notepad-text: #000000;
+  --notepad-inner-bg: #ffffff;
 }
 
 /* 1995: GeoCities Wild Web */
 body[data-era='1995'] {
-  --bg-main: #0b0025;
-  --bg-card: #1a004a;
-  --text-main: #fdfd96;
-  --text-muted: #ff9bd7;
+  --bg-main: #000033;
+  --bg-card: #000033;
+  --text-main: #ffff99;
+  --text-muted: #ff00ff;
   --border-color: #ff00ff;
-  --border-width: 2px;
+  --border-width: 1px;
   --border-radius: 0px;
-  --shadow-color: rgba(255, 0, 255, 0.6);
+  --shadow-color: rgba(255, 0, 255, 0.5);
   --shadow-offset-x: 0px;
-  --shadow-offset-y: 10px;
-  --shadow-blur: 30px;
-  --font-main: 'Arial Black', 'Comic Sans MS', sans-serif;
-  --font-heading: 'Arial Black', 'Courier New', sans-serif;
-  --accent-color: #ffff00;
-  --btn-hover-transform: scale(1.02);
+  --shadow-offset-y: 0px;
+  --shadow-blur: 12px;
+  --font-main: 'Comic Sans MS', 'Chalkboard', 'Comic Neue', cursive;
+  --font-heading: 'Comic Sans MS', 'Chalkboard', 'Comic Neue', cursive;
+  --accent-color: #00ffff;
+  --btn-hover-transform: scale(1.04);
   --grid-opacity: 0;
 
-  --notepad-bg: #2b006a;
+  --notepad-bg: #000033;
   --notepad-border: #ff00ff;
-  --notepad-text: #fdfd96;
-  --notepad-inner-bg: #140034;
+  --notepad-text: #ffff99;
+  --notepad-inner-bg: #110044;
 }
 
-/* 1997: Tabled Corporate Web */
+/* 1997: KIRUK · A Practitioner Profile (multimedia CD-ROM) */
 body[data-era='1997'] {
-  --bg-main: #002347;
-  --bg-card: #003a6b;
-  --text-main: #f4f4f4;
-  --text-muted: #ffcc00;
-  --border-color: #ffcc00;
-  --border-width: 2px;
+  --bg-main: #2a1f1a;
+  --bg-card: #f5ecd7;
+  --text-main: #2a1f1a;
+  --text-muted: #6b5a4b;
+  --border-color: #6b1f2e;
+  --border-width: 1px;
   --border-radius: 0px;
-  --shadow-color: rgba(0, 0, 0, 0.4);
+  --shadow-color: rgba(0, 0, 0, 0.3);
   --shadow-offset-x: 0px;
-  --shadow-offset-y: 8px;
-  --shadow-blur: 20px;
-  --font-main: 'Verdana', 'Arial', sans-serif;
-  --font-heading: 'Verdana', 'Arial', sans-serif;
+  --shadow-offset-y: 2px;
+  --shadow-blur: 6px;
+  --font-main: 'Verdana', 'Tahoma', 'Arial', sans-serif;
+  --font-heading: 'Georgia', 'Bookman Old Style', 'Times New Roman', serif;
+  --accent-color: #b8941c;
+  --btn-hover-transform: translateY(-1px);
+  --grid-opacity: 0;
+
+  --notepad-bg: #f5ecd7;
+  --notepad-border: #6b1f2e;
+  --notepad-text: #2a1f1a;
+  --notepad-inner-bg: #faf5e6;
+}
+
+/* 2000: Macromedia Flash / Y2K Chrome */
+body[data-era='2000'] {
+  --bg-main: #0a1428;
+  --bg-card: #1a2942;
+  --text-main: #e8f1ff;
+  --text-muted: #9bb3d4;
+  --border-color: #4a6ea3;
+  --border-width: 1px;
+  --border-radius: 8px;
+  --shadow-color: rgba(43, 216, 255, 0.25);
+  --shadow-offset-x: 0px;
+  --shadow-offset-y: 0px;
+  --shadow-blur: 18px;
+  --font-main: 'Trebuchet MS', 'Verdana', 'Helvetica Neue', sans-serif;
+  --font-heading: 'Trebuchet MS', 'Verdana', 'Helvetica Neue', sans-serif;
+  --accent-color: #2bd8ff;
+  --btn-hover-transform: translateY(-1px);
+  --grid-opacity: 0;
+
+  --notepad-bg: #1a2942;
+  --notepad-border: #2bd8ff;
+  --notepad-text: #e8f1ff;
+  --notepad-inner-bg: #0f1d36;
+}
+
+/* 2003: MySpace · Web 2.0 social profile */
+body[data-era='2003'] {
+  --bg-main: #6699cc;
+  --bg-card: #ffffff;
+  --text-main: #1a1a1a;
+  --text-muted: #555566;
+  --border-color: #003366;
+  --border-width: 1px;
+  --border-radius: 0px;
+  --shadow-color: rgba(0, 51, 102, 0.25);
+  --shadow-offset-x: 0px;
+  --shadow-offset-y: 2px;
+  --shadow-blur: 6px;
+  --font-main: 'Verdana', 'Geneva', 'Arial', sans-serif;
+  --font-heading: 'Verdana', 'Geneva', 'Arial', sans-serif;
   --accent-color: #ff6600;
   --btn-hover-transform: translateY(-1px);
   --grid-opacity: 0;
 
-  --notepad-bg: #00325b;
-  --notepad-border: #ffcc00;
-  --notepad-text: #f4f4f4;
-  --notepad-inner-bg: #00223b;
-}
-
-/* 2000: CSS Awakening */
-body[data-era='2000'] {
-  --bg-main: #eef2f5;
-  --bg-card: #ffffff;
-  --text-main: #1f2933;
-  --text-muted: #52606d;
-  --border-color: #b0c4de;
-  --border-width: 1px;
-  --border-radius: 0px;
-  --shadow-color: rgba(0, 0, 0, 0.1);
-  --shadow-offset-x: 0px;
-  --shadow-offset-y: 4px;
-  --shadow-blur: 8px;
-  --font-main: 'Trebuchet MS', 'Verdana', sans-serif;
-  --font-heading: 'Trebuchet MS', 'Verdana', sans-serif;
-  --accent-color: #0066cc;
-  --btn-hover-transform: translateY(-1px);
-  --grid-opacity: 0;
-
-  --notepad-bg: #ffffcc;
-  --notepad-border: #e6e600;
-  --notepad-text: #666600;
-  --notepad-inner-bg: #ffffff;
-}
-
-/* 2003: Web 2.0 Gloss */
-body[data-era='2003'] {
-  --bg-main: #f3f1ff;
-  --bg-card: #ffffff;
-  --text-main: #1f1b24;
-  --text-muted: #6b6478;
-  --border-color: #ffd6de;
-  --border-width: 1px;
-  --border-radius: 0px;
-  --shadow-color: rgba(51, 102, 153, 0.25);
-  --shadow-offset-x: 0px;
-  --shadow-offset-y: 8px;
-  --shadow-blur: 20px;
-  --font-main: 'Lucida Grande', 'Arial', sans-serif;
-  --font-heading: 'Lucida Grande', 'Arial', sans-serif;
-  --accent-color: #ff6b6b;
-  --btn-hover-transform: translateY(-2px);
-  --grid-opacity: 0;
-
   --notepad-bg: #ffffff;
-  --notepad-border: #ffd6de;
-  --notepad-text: #1f1b24;
-  --notepad-inner-bg: #fdfaff;
+  --notepad-border: #003366;
+  --notepad-text: #1a1a1a;
+  --notepad-inner-bg: #f4f8ff;
 }
 
-/* 2006: Refined Web 2.0 */
+/* 2006: Digg-style link aggregator (vote arrows + threads) */
 body[data-era='2006'] {
-  --bg-main: #f5f5f5;
+  --bg-main: #f6f6ef;
   --bg-card: #ffffff;
   --text-main: #1a1a1a;
-  --text-muted: #757575;
-  --border-color: #e0e0e0;
+  --text-muted: #555555;
+  --border-color: #d8d8c8;
   --border-width: 1px;
-  --border-radius: 0px;
-  --shadow-color: rgba(0, 0, 0, 0.12);
-  --shadow-offset-x: 0px;
-  --shadow-offset-y: 6px;
-  --shadow-blur: 16px;
-  --font-main: 'Helvetica', 'Arial', sans-serif;
-  --font-heading: 'Helvetica', 'Arial', sans-serif;
-  --accent-color: #0088cc;
-  --btn-hover-transform: translateY(-1px);
-  --grid-opacity: 0;
-
-  --notepad-bg: #ffffff;
-  --notepad-border: #ff8800;
-  --notepad-text: #ff8800;
-  --notepad-inner-bg: #fafafa;
-}
-
-/* 2009: Early Responsive */
-body[data-era='2009'] {
-  --bg-main: #fafafa;
-  --bg-card: #ffffff;
-  --text-main: #1f1f1f;
-  --text-muted: #5f6b76;
-  --border-color: #d0d7e2;
-  --border-width: 1px;
-  --border-radius: 0px;
+  --border-radius: 3px;
   --shadow-color: rgba(0, 0, 0, 0.08);
   --shadow-offset-x: 0px;
-  --shadow-offset-y: 6px;
-  --shadow-blur: 14px;
-  --font-main: 'Helvetica Neue', 'Arial', sans-serif;
-  --font-heading: 'Helvetica Neue', 'Arial', sans-serif;
-  --accent-color: #00c7be;
+  --shadow-offset-y: 1px;
+  --shadow-blur: 3px;
+  --font-main: 'Verdana', 'Geneva', 'Arial', sans-serif;
+  --font-heading: 'Verdana', 'Geneva', 'Arial', sans-serif;
+  --accent-color: #ee7600;
   --btn-hover-transform: translateY(-1px);
   --grid-opacity: 0;
 
   --notepad-bg: #ffffff;
-  --notepad-border: #00c7be;
-  --notepad-text: #1f1f1f;
-  --notepad-inner-bg: #f5f7fb;
+  --notepad-border: #d8d8c8;
+  --notepad-text: #1a1a1a;
+  --notepad-inner-bg: #fafaf3;
 }
 
-/* 2010: Flat Precursor */
-body[data-era='2010'] {
-  --bg-main: #fafafa;
+/* 2009: iPhone OS 3 · skeuomorphic */
+body[data-era='2009'] {
+  --bg-main: #2a2f3a;
   --bg-card: #ffffff;
-  --text-main: #1e1e1e;
-  --text-muted: #6d6d6d;
-  --border-color: #e0e0e0;
+  --text-main: #1f1f1f;
+  --text-muted: #6b7281;
+  --border-color: #b8c1cc;
   --border-width: 1px;
-  --border-radius: 0px;
-  --shadow-color: rgba(0, 0, 0, 0.18);
+  --border-radius: 12px;
+  --shadow-color: rgba(0, 0, 0, 0.4);
   --shadow-offset-x: 0px;
-  --shadow-offset-y: 3px;
-  --shadow-blur: 8px;
-  --font-main: 'San Francisco', 'Helvetica Neue', sans-serif;
-  --font-heading: 'San Francisco', 'Helvetica Neue', sans-serif;
-  --accent-color: #0099cc;
+  --shadow-offset-y: 6px;
+  --shadow-blur: 20px;
+  --font-main: 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+  --font-heading: 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+  --accent-color: #007aff;
   --btn-hover-transform: translateY(-1px);
   --grid-opacity: 0;
 
   --notepad-bg: #fff9c4;
-  --notepad-border: #fbc02d;
-  --notepad-text: #f57f17;
-  --notepad-inner-bg: #ffffff;
+  --notepad-border: #c8a800;
+  --notepad-text: #2a2300;
+  --notepad-inner-bg: #fffde8;
 }
 
 /* 2013: Flat Revolution */
@@ -412,81 +387,6 @@ body[data-era='2013'] {
   --notepad-inner-bg: #f9f9fb;
 }
 
-/* 2014: Material Design */
-body[data-era='2014'] {
-  --bg-main: #fafafa;
-  --bg-card: #ffffff;
-  --text-main: #1f1f1f;
-  --text-muted: #5c5c5c;
-  --border-color: #e0e0e0;
-  --border-width: 1px;
-  --border-radius: 0px;
-  --shadow-color: rgba(0, 0, 0, 0.2);
-  --shadow-offset-x: 0px;
-  --shadow-offset-y: 6px;
-  --shadow-blur: 18px;
-  --font-main: 'Roboto', 'Open Sans', sans-serif;
-  --font-heading: 'Roboto', 'Open Sans', sans-serif;
-  --accent-color: #2196f3;
-  --btn-hover-transform: translateY(-1px);
-  --grid-opacity: 0;
-
-  --notepad-bg: #ffffff;
-  --notepad-border: #ff5722;
-  --notepad-text: #1f1f1f;
-  --notepad-inner-bg: #f6f6f6;
-}
-
-/* 2015: Flat Maturity */
-body[data-era='2015'] {
-  --bg-main: #ffffff;
-  --bg-card: #f7f7f7;
-  --text-main: #121212;
-  --text-muted: #5a5a5a;
-  --border-color: #e5e5e5;
-  --border-width: 1px;
-  --border-radius: 0px;
-  --shadow-color: rgba(0, 0, 0, 0.1);
-  --shadow-offset-x: 0px;
-  --shadow-offset-y: 8px;
-  --shadow-blur: 20px;
-  --font-main: 'San Francisco', 'system-ui', sans-serif;
-  --font-heading: 'San Francisco', 'system-ui', sans-serif;
-  --accent-color: #2196f3;
-  --btn-hover-transform: translateY(-1px);
-  --grid-opacity: 0;
-
-  --notepad-bg: #ffffff;
-  --notepad-border: #4caf50;
-  --notepad-text: #121212;
-  --notepad-inner-bg: #f5f5f5;
-}
-
-/* 2016: Design Systems Rise */
-body[data-era='2016'] {
-  --bg-main: #0b0b0b;
-  --bg-card: #151515;
-  --text-main: #f5f5f5;
-  --text-muted: #ffb4d6;
-  --border-color: #ff4081;
-  --border-width: 2px;
-  --border-radius: 0px;
-  --shadow-color: rgba(0, 0, 0, 0.65);
-  --shadow-offset-x: 0px;
-  --shadow-offset-y: 12px;
-  --shadow-blur: 24px;
-  --font-main: 'Google Sans', 'system-ui', sans-serif;
-  --font-heading: 'Google Sans', 'system-ui', sans-serif;
-  --accent-color: #00e676;
-  --btn-hover-transform: translateY(-2px);
-  --grid-opacity: 0;
-
-  --notepad-bg: #151515;
-  --notepad-border: #ff4081;
-  --notepad-text: #f5f5f5;
-  --notepad-inner-bg: #0f0f0f;
-}
-
 /* 2018: Accessibility & Dark Prep */
 body[data-era='2018'] {
   --bg-main: #ffffff;
@@ -512,154 +412,79 @@ body[data-era='2018'] {
   --notepad-inner-bg: #f2f6ff;
 }
 
-/* 2020: Dark Mode & Neumorphism */
-body[data-era='2020'] {
-  --bg-main: #121212;
-  --bg-card: #1f1f1f;
-  --text-main: #f1f1f1;
-  --text-muted: #a5a5a5;
-  --border-color: #2a2a2a;
+/* 2021: Linear-style issue tracker */
+body[data-era='2021'] {
+  --bg-main: #08090a;
+  --bg-card: #16171a;
+  --text-main: #f7f7f8;
+  --text-muted: #9095a0;
+  --border-color: #25262c;
   --border-width: 1px;
-  --border-radius: 0px;
-  --shadow-color: rgba(255, 255, 255, 0.1);
-  --shadow-offset-x: -6px;
-  --shadow-offset-y: -6px;
-  --shadow-blur: 18px;
-  --font-main: 'Inter', 'system-ui', sans-serif;
-  --font-heading: 'Inter', 'system-ui', sans-serif;
-  --accent-color: #bb86fc;
+  --border-radius: 6px;
+  --shadow-color: rgba(94, 106, 210, 0.25);
+  --shadow-offset-x: 0px;
+  --shadow-offset-y: 4px;
+  --shadow-blur: 14px;
+  --font-main: 'Inter', '-apple-system', 'system-ui', sans-serif;
+  --font-heading: 'Inter', '-apple-system', 'system-ui', sans-serif;
+  --accent-color: #5e6ad2;
   --btn-hover-transform: translateY(-1px);
   --grid-opacity: 0;
 
-  --notepad-bg: #1f1f1f;
-  --notepad-border: #2a2a2a;
-  --notepad-text: #f1f1f1;
-  --notepad-inner-bg: #161616;
+  --notepad-bg: #16171a;
+  --notepad-border: #25262c;
+  --notepad-text: #f7f7f8;
+  --notepad-inner-bg: #1d1e21;
 }
 
-/* 2021: Material You */
-body[data-era='2021'] {
-  --bg-main: #f9f5ff;
-  --bg-card: #ffffff;
-  --text-main: #1d1d1f;
-  --text-muted: #5c5c74;
-  --border-color: #dac9ff;
-  --border-width: 2px;
-  --border-radius: 0px;
-  --shadow-color: rgba(124, 77, 255, 0.25);
-  --shadow-offset-x: 0px;
-  --shadow-offset-y: 8px;
-  --shadow-blur: 22px;
-  --font-main: 'system-ui', '-apple-system', sans-serif;
-  --font-heading: 'San Francisco', 'system-ui', sans-serif;
-  --accent-color: #7c4dff;
-  --btn-hover-transform: translateY(-1px);
-  --grid-opacity: 0.1;
-
-  --notepad-bg: #ffffff;
-  --notepad-border: #ffb74d;
-  --notepad-text: #1d1d1f;
-  --notepad-inner-bg: #f8f1ff;
-}
-
-/* 2022: Glassmorphism Era */
-body[data-era='2022'] {
-  --bg-main: #0f172a;
-  --bg-card: #111827;
-  --text-main: #e2e8f0;
-  --text-muted: #93c5fd;
-  --border-color: #93c5fd;
-  --border-width: 3px;
-  --border-radius: 0px;
-  --shadow-color: rgba(15, 23, 42, 0.6);
-  --shadow-offset-x: 0px;
-  --shadow-offset-y: 14px;
-  --shadow-blur: 28px;
-  --font-main: 'Space Grotesk', 'Courier New', sans-serif;
-  --font-heading: 'Space Grotesk', 'Courier New', sans-serif;
-  --accent-color: #06b6d4;
-  --btn-hover-transform: translate(-2px, -2px);
-  --grid-opacity: 0.4;
-
-  --notepad-bg: #111827;
-  --notepad-border: #93c5fd;
-  --notepad-text: #e2e8f0;
-  --notepad-inner-bg: #0b1222;
-}
-
-/* 2023: AI Glass Playgrounds */
+/* 2023: AI-Native Interfaces */
 body[data-era='2023'] {
-  --bg-main: #1e1b4b;
-  --bg-card: #2b1b63;
-  --text-main: #f8fafc;
-  --text-muted: #e879f9;
-  --border-color: #a855f7;
-  --border-width: 3px;
-  --border-radius: 0px;
-  --shadow-color: rgba(168, 85, 247, 0.45);
+  --bg-main: #0c0a1d;
+  --bg-card: #14112e;
+  --text-main: #f1f5f9;
+  --text-muted: #b3a9d9;
+  --border-color: rgba(168, 85, 247, 0.35);
+  --border-width: 1px;
+  --border-radius: 18px;
+  --shadow-color: rgba(168, 85, 247, 0.40);
   --shadow-offset-x: 0px;
   --shadow-offset-y: 16px;
-  --shadow-blur: 30px;
-  --font-main: 'Clash Display', 'Space Grotesk', sans-serif;
-  --font-heading: 'Clash Display', 'Space Grotesk', sans-serif;
-  --accent-color: #06b6d4;
-  --btn-hover-transform: translate(-3px, -3px);
-  --grid-opacity: 0.5;
+  --shadow-blur: 40px;
+  --font-main: 'General Sans', 'DM Sans', sans-serif;
+  --font-heading: 'Clash Display', 'Satoshi', sans-serif;
+  --accent-color: #a855f7;
+  --btn-hover-transform: translateY(-2px);
+  --grid-opacity: 0;
 
-  --notepad-bg: #2b1b63;
-  --notepad-border: #f472b6;
-  --notepad-text: #f8fafc;
-  --notepad-inner-bg: #1a103c;
+  --notepad-bg: #14112e;
+  --notepad-border: rgba(168, 85, 247, 0.35);
+  --notepad-text: #f1f5f9;
+  --notepad-inner-bg: #0c0a1d;
 }
 
-/* 2024: Maximalism Renaissance */
-body[data-era='2024'] {
-  --bg-main: #0b021a;
-  --bg-card: #16042f;
-  --text-main: #f5f3ff;
-  --text-muted: #f472b6;
-  --border-color: #ec4899;
-  --border-width: 3px;
-  --border-radius: 0px;
-  --shadow-color: rgba(236, 72, 153, 0.45);
+/* 2026: Agentic Mission Control */
+body[data-era='2026'] {
+  --bg-main: #070809;
+  --bg-card: rgba(255, 255, 255, 0.035);
+  --text-main: #e9f0ee;
+  --text-muted: rgba(233, 240, 238, 0.58);
+  --border-color: rgba(94, 234, 212, 0.22);
+  --border-width: 1px;
+  --border-radius: 14px;
+  --shadow-color: rgba(94, 234, 212, 0.18);
   --shadow-offset-x: 0px;
   --shadow-offset-y: 18px;
-  --shadow-blur: 34px;
-  --font-main: 'Whyte', 'Space Grotesk', sans-serif;
-  --font-heading: 'Whyte', 'Space Grotesk', sans-serif;
-  --accent-color: #06b6d4;
-  --btn-hover-transform: translate(-3px, -3px);
-  --grid-opacity: 0.6;
+  --shadow-blur: 50px;
+  --font-main: 'Geist', 'Inter', sans-serif;
+  --font-heading: 'Geist', 'Inter', sans-serif;
+  --accent-color: #5eead4;
+  --btn-hover-transform: translateY(-2px);
+  --grid-opacity: 0;
 
-  --notepad-bg: #16042f;
-  --notepad-border: #ec4899;
-  --notepad-text: #f5f3ff;
-  --notepad-inner-bg: #0c021c;
-}
-
-/* 2025: Spatial Wireframe */
-body[data-era='2025'] {
-  --bg-main: #ffffff;
-  --bg-card: #ffffff;
-  --text-main: #000000;
-  --text-muted: #666666;
-  --border-color: #000000;
-  --border-width: 1px;
-  --border-radius: 0px;
-  --shadow-color: transparent;
-  --shadow-offset-x: 0px;
-  --shadow-offset-y: 0px;
-  --shadow-blur: 0px;
-  --font-main: 'StackSansText', monospace;
-  --font-heading: 'StackSansHeadline', monospace;
-  --accent-color: #14b8a6;
-  --btn-hover-transform: translate(-2px, -2px);
-  --grid-opacity: 1;
-
-  --notepad-bg: #fffbeb;
-  --notepad-border: #fde047;
-  --notepad-text: #a16207;
-  --notepad-inner-bg: #ffffff;
+  --notepad-bg: rgba(255, 255, 255, 0.035);
+  --notepad-border: rgba(94, 234, 212, 0.3);
+  --notepad-text: #e9f0ee;
+  --notepad-inner-bg: rgba(255, 255, 255, 0.05);
 }
 
 /* =========================================
