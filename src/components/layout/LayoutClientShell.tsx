@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { ModuleOverlayHost } from "@/components/modules/ModuleOverlay";
+import { EraNavBar } from "./EraNavBar";
 import AppLoader from "@/components/ui/app-loader";
 import DetectiveStoryWrapper from "./DetectiveStoryWrapper";
 import SketchDigitalSplitLayout from "./SketchDigitalSplitLayout";
@@ -44,6 +45,9 @@ export default function LayoutClientShell({ children }: Readonly<LayoutClientShe
       >
         Skip to main content
       </a>
+
+      {/* Persistent era-switcher bar */}
+      <EraNavBar />
 
       {/* Module fullscreen overlays — triggers live inline in each era's content */}
       <ModuleOverlayHost />
