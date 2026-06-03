@@ -175,6 +175,7 @@ export function TelescopeBox({
 }) {
   const uid = useId().replace(/[:]/g, "");
   const wrapRef = useRef<HTMLDivElement>(null);
+  const fieldRef = useRef<HTMLDivElement>(null);
   const [focus, setFocus] = useState<number | null>(null);
   const [lensing, setLensing] = useState(false);
   const [reduce, setReduce] = useState(false);
@@ -211,11 +212,13 @@ export function TelescopeBox({
   const f = focus != null ? pts[focus] : null;
 
   const onMove = (e: React.PointerEvent) => {
-    const el = wrapRef.current;
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    el.style.setProperty("--mx", `${e.clientX - r.left}px`);
-    el.style.setProperty("--my", `${e.clientY - r.top}px`);
+    // Measure from the FIELD container (below the header) so the lens, loupe and
+    // ring sit exactly under the cursor — not offset by the header height.
+    const field = fieldRef.current;
+    if (!field) return;
+    const r = field.getBoundingClientRect();
+    field.style.setProperty("--mx", `${e.clientX - r.left}px`);
+    field.style.setProperty("--my", `${e.clientY - r.top}px`);
     if (!lensing) setLensing(true);
   };
 
@@ -269,7 +272,7 @@ export function TelescopeBox({
         <span className="opacity-70">move the eyepiece · click to open ⤢</span>
       </div>
 
-      <div className="relative" style={{ height }}>
+      <div ref={fieldRef} className="relative" style={{ height }}>
         {/* BASE — naked-eye minimal field */}
         <svg viewBox="0 0 100 72" preserveAspectRatio="xMidYMid slice" className="absolute inset-0 h-full w-full">
           <Starfield ns={`b${uid}`} mode="minimal" interactive onFocus={setFocus} onOpen={onOpen} {...fieldProps} />

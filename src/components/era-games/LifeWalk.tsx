@@ -38,6 +38,7 @@ export function LifeWalk({
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const movedRef = useRef(false);
   const [current, setCurrent] = useState(0);
   const [reachedEnd, setReachedEnd] = useState(false);
 
@@ -112,11 +113,19 @@ export function LifeWalk({
     };
     const down = (e: KeyboardEvent) => set(e, true);
     const up = (e: KeyboardEvent) => set(e, false);
+    const clear = () => {
+      W.current.keys.l = false;
+      W.current.keys.r = false;
+    };
     el.addEventListener("keydown", down);
-    el.addEventListener("keyup", up);
+    // keyup/blur on window so a release after focus-loss still clears the key
+    // (otherwise a held arrow would walk the character forever).
+    window.addEventListener("keyup", up);
+    window.addEventListener("blur", clear);
     return () => {
       el.removeEventListener("keydown", down);
-      el.removeEventListener("keyup", up);
+      window.removeEventListener("keyup", up);
+      window.removeEventListener("blur", clear);
     };
   }, [onOpen]);
 
@@ -155,6 +164,7 @@ export function LifeWalk({
       const dt = Math.min(2, (t - (S.last || t)) / 16.67);
       S.last = t;
       const live = S.inView;
+      if (!live) return; // paused offscreen — skip movement + repaint
       const { w, h } = S;
       const groundY = h - 30;
 
@@ -278,6 +288,7 @@ export function LifeWalk({
 
   // drag-to-scrub
   const onDown = (e: React.PointerEvent) => {
+    movedRef.current = false;
     W.current.drag = { startPx: e.clientX, startChar: W.current.charX };
     (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
   };
@@ -285,6 +296,7 @@ export function LifeWalk({
     const d = W.current.drag;
     if (!d) return;
     const dx = e.clientX - d.startPx;
+    if (Math.abs(dx) > 4) movedRef.current = true;
     W.current.charX = Math.max(20, Math.min(worldW - 20, d.startChar + dx * 1.4));
     W.current.moving = true;
     W.current.legPhase += 0.2;
@@ -305,6 +317,10 @@ export function LifeWalk({
       onPointerMove={onMove}
       onPointerUp={onUp}
       onPointerLeave={onUp}
+      onClick={() => {
+        // tap opens; a drag-scrub does not
+        if (!movedRef.current) onOpen();
+      }}
       className={`group/walk relative w-full cursor-pointer select-none overflow-hidden outline-none ${className ?? ""}`}
       style={{
         background: palette.bg,
