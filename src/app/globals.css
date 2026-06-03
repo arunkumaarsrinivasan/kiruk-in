@@ -68,6 +68,9 @@
   --text-muted: #666666;
   --border-color: #000000;
   --border-width: 1px;
+  /* Nav bar removed; archetypes still read this offset — pin to 0 so their
+     content sits at the true top (the module dock floats above it). */
+  --simple-game-nav-bottom: 0px;
   --border-radius: 0px;
   --shadow-color: transparent;
   --shadow-offset-x: 0px;

@@ -21,7 +21,9 @@
 import React, { useRef, useCallback, useEffect, useState, useMemo, useId } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLayoutMode } from '@/contexts/LayoutModeContext';
-import { SIMPLE_GAME_NAV_CONTEXT_BAR_TOP_PX } from '@/components/layout/SimpleGameNav';
+
+/** Nav bar removed — split panes start at the viewport top; the module dock floats over them. */
+const SPLIT_TOP_OFFSET_PX = 0;
 
 // ── Tear edge (paper ⟷ digital) — shared geometry for clip-path + overlay ─────
 /** Enough points for a smooth hand-torn line without “electric” buzzing. */
@@ -459,7 +461,7 @@ const SketchDigitalSplitLayout: React.FC<Props> = ({ children }) => {
     // IMPORTANT: Target the fixed SimpleGameNav (#navigation), NOT any inner sticky header
     /** Distance from viewport top to start split panes (flush under #navigation). */
     const [navStackBottom, setNavStackBottom] = useState(
-        SIMPLE_GAME_NAV_CONTEXT_BAR_TOP_PX,
+        SPLIT_TOP_OFFSET_PX,
     );
     const navMeasureRaf = useRef(0);
     useEffect(() => {

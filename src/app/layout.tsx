@@ -9,6 +9,7 @@ import { DesignEraProvider } from "@/contexts/DesignEraContext";
 import { GameModeProvider } from "@/contexts/GameModeContext";
 import { ContextBarProvider } from "@/contexts/ContextBarContext";
 import { LayoutModeProvider } from "@/contexts/LayoutModeContext";
+import { ModuleProvider } from "@/contexts/ModuleContext";
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ??
@@ -221,10 +222,12 @@ export default function RootLayout({
             <GameModeProvider>
               <ContextBarProvider>
                 <LayoutModeProvider>
-                  <AnalyticsTracker />
-                  <LayoutClientShell>
-                    {children}
-                  </LayoutClientShell>
+                  <ModuleProvider>
+                    <AnalyticsTracker />
+                    <LayoutClientShell>
+                      {children}
+                    </LayoutClientShell>
+                  </ModuleProvider>
                 </LayoutModeProvider>
               </ContextBarProvider>
             </GameModeProvider>

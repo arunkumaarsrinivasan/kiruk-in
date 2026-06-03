@@ -213,35 +213,8 @@ export function GameModeProvider({ children }: { children: ReactNode }) {
     [progress]
   );
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // KEYBOARD SHORTCUTS
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Escape closes menu
-      if (e.key === 'Escape' && isMenuOpen) {
-        closeMenu();
-        return;
-      }
-      // Shift+M opens game menu (nav no longer exposes a menu button)
-      if (
-        e.key.toLowerCase() === 'm' &&
-        e.shiftKey &&
-        !e.metaKey &&
-        !e.ctrlKey &&
-        !e.altKey &&
-        document.activeElement?.tagName !== 'INPUT' &&
-        document.activeElement?.tagName !== 'TEXTAREA'
-      ) {
-        e.preventDefault();
-        toggleMenu();
-      }
-    };
-
-    globalThis.addEventListener('keydown', handleKeyDown);
-    return () => globalThis.removeEventListener('keydown', handleKeyDown);
-  }, [isMenuOpen, closeMenu, toggleMenu]);
+  // Menu keyboard shortcut removed with the nav/maze overlay. The Eras module
+  // now owns Shift+M (see ModuleContext). Menu state below is retained but inert.
 
   // ═══════════════════════════════════════════════════════════════════════════
   // CONTEXT VALUE

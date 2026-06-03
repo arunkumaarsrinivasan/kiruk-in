@@ -24,6 +24,14 @@ import {
   CARD_SORTING,
   USABILITY_TEST,
 } from "../shared/landing-content";
+import { useModules, type ModuleId } from "@/contexts/ModuleContext";
+import {
+  TelescopeBox,
+  type TelescopeNode,
+} from "@/components/era-games/TelescopeBox";
+import { LifeWalk } from "@/components/era-games/LifeWalk";
+import { LIFE_MOMENTS } from "@/data/life-moments";
+import type { GamePalette } from "@/components/era-games/types";
 
 const vt323 = VT323({
   weight: "400",
@@ -80,6 +88,7 @@ function wrap(text: string, width: number): string[] {
 export function TerminalHomePage() {
   const reduced = useReducedMotion();
   const { setLayoutMode } = useLayoutMode();
+  const { open: openModule } = useModules();
 
   useEffect(() => {
     setLayoutMode("full-digital");
@@ -90,6 +99,16 @@ export function TerminalHomePage() {
   const openStamp = useMemo(() => stamp(new Date()), []);
   const openTime = openStamp.slice(11, 19);
   const nodes = useMemo(buildTimeline, []);
+  const careerStars: TelescopeNode[] = useMemo(
+    () =>
+      nodes.map((n) => ({
+        label: n.position,
+        sub: `${n.org} — ${n.detail}`,
+        meta: n.year,
+        live: n.live,
+      })),
+    [nodes],
+  );
 
   return (
     <main
@@ -175,6 +194,12 @@ export function TerminalHomePage() {
           </div>
         </motion.div>
 
+        {/* meta nav — interface history + time machine, by the masthead */}
+        <div className="mb-8 flex flex-wrap items-center gap-x-6 gap-y-2">
+          <TermNavLink module="era-story" label="This Era" open={openModule} />
+          <TermNavLink module="eras" label="Travel Eras" open={openModule} />
+        </div>
+
         {/* ── RECORD 001 — WHY KIRUK ─────────────────────── */}
         <LogStamp seq={1} file="why-kiruk.txt" subtitle="hook · pain · bridge · close" time={openTime} delay={0.10} reduced={reduced} />
         <motion.section
@@ -241,6 +266,21 @@ export function TerminalHomePage() {
             BACKGROUND
           </div>
           <NumberedBlock startLine={1} lines={wrap(PERSONA.background, 68)} />
+        </motion.section>
+
+        {/* ── ABOUT · constellation (interactive nav box) ──── */}
+        <motion.section
+          initial={reduced ? { opacity: 1 } : { opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.32, delay: 0.17, ease: "easeOut" }}
+          className="mb-10"
+        >
+          <LifeWalk
+            palette={TERMINAL_PALETTE}
+            moments={LIFE_MOMENTS}
+            onOpen={() => openModule("about")}
+            height={210}
+          />
         </motion.section>
 
         {/* ── RECORD 003 — EMPATHY MAP ───────────────────── */}
@@ -488,6 +528,27 @@ export function TerminalHomePage() {
           </ol>
         </motion.section>
 
+        {/* progress link — by the journey/impact records */}
+        <div className="mb-10 -mt-4">
+          <TermNavLink module="progress" label="Progress · the long game" open={openModule} />
+        </div>
+
+        {/* ── WORK · constellation of real projects (nav box) ─ */}
+        <motion.section
+          initial={reduced ? { opacity: 1 } : { opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.32, delay: 0.17, ease: "easeOut" }}
+          className="mb-10"
+        >
+          <TelescopeBox
+            palette={TERMINAL_PALETTE}
+            title="WORK.scope"
+            nodes={careerStars}
+            onOpen={() => openModule("work")}
+            height={240}
+          />
+        </motion.section>
+
         {/* ── RECORD 007 — USABILITY TEST ────────────────── */}
         <LogStamp seq={7} file="usability-test.sh" subtitle="test the connection" time={openTime} delay={0.34} reduced={reduced} />
         <motion.section
@@ -561,6 +622,12 @@ export function TerminalHomePage() {
           </Panel>
         </motion.section>
 
+        {/* contact + blog links — close the file */}
+        <div className="mb-8 flex flex-wrap items-center gap-x-6 gap-y-2">
+          <TermNavLink module="contact" label="Contact · channels" open={openModule} />
+          <TermNavLink module="blog" label="Field Notes · Blog" open={openModule} />
+        </div>
+
         {/* ── EOF ────────────────────────────────────────── */}
         <motion.div
           initial={reduced ? { opacity: 1 } : { opacity: 0, y: 6 }}
@@ -576,7 +643,7 @@ export function TerminalHomePage() {
             {RULE_DOUBLE}
             {"\n"}
             {`  END OF FILE  ·  7 records printed  ·  closed ${openStamp} UTC\n`}
-            {`  NAVIGATE: top-right MENU  ·  ERA chip ◂▸ time machine\n`}
+            {`  NAVIGATE: ABOUT.walk ⊳  ·  WORK.scope 🔭  ·  links ▸ inline above\n`}
             {RULE_DOUBLE}
           </pre>
         </motion.div>
@@ -746,6 +813,51 @@ function NumberedBlock({
         </div>
       ))}
     </pre>
+  );
+}
+
+// ─── Navigation: palette, data, inline links ──────────────────────────────
+
+const TERMINAL_PALETTE: GamePalette = {
+  bg: "#000000",
+  fg: "#00ff41",
+  dim: "rgba(0,255,65,0.45)",
+  bright: "#39ff14",
+  accent: "#7CFC00",
+  danger: "#ff5577",
+  font: '"VT323", "IBM Plex Mono", monospace',
+  glow: 8,
+  scanlines: true,
+};
+
+function TermNavLink({
+  module,
+  label,
+  open,
+}: {
+  module: ModuleId;
+  label: string;
+  open: (module: ModuleId, origin?: { x: number; y: number }) => void;
+}) {
+  return (
+    <button
+      type="button"
+      data-station={module}
+      aria-haspopup="dialog"
+      aria-label={`Open ${label}`}
+      onClick={(e) => {
+        const r = e.currentTarget.getBoundingClientRect();
+        open(module, { x: r.left + r.width / 2, y: r.top + r.height / 2 });
+      }}
+      className="group inline-flex items-center gap-1.5 text-[15px] uppercase tracking-[0.14em] transition-transform hover:translate-x-0.5 focus-visible:outline-none"
+      style={{ color: PHOSPHOR_BRIGHT }}
+    >
+      <span style={{ color: PHOSPHOR_FAINT }}>▸</span>
+      {label}
+      <span className="opacity-40 transition-opacity group-hover:opacity-100">
+        ⤢
+      </span>
+    </button>
   );
 }
 
