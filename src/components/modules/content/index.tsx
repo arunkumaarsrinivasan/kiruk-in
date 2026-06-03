@@ -11,11 +11,9 @@ import type { ModuleId } from "@/contexts/ModuleContext";
 import EraStoryContent from "./EraStoryContent";
 import { WorkObservatory } from "./WorkObservatory";
 import { AboutExperience } from "./AboutExperience";
-import {
-  ContactContent,
-  BlogContent,
-  ProgressContent,
-} from "./StubContents";
+import { ProgressExperience } from "./ProgressExperience";
+import { BlogExperience } from "./BlogExperience";
+import { ContactExperience } from "./ContactExperience";
 
 export interface ModuleMeta {
   id: ModuleId;
@@ -44,9 +42,9 @@ export const MODULE_CONTENT: Partial<
   "era-story": EraStoryContent,
   work: WorkObservatory,
   about: AboutExperience,
-  progress: ProgressContent,
-  blog: BlogContent,
-  contact: ContactContent,
+  progress: ProgressExperience,
+  blog: BlogExperience,
+  contact: ContactExperience,
 };
 
 export function getModuleMeta(id: ModuleId): ModuleMeta | undefined {
