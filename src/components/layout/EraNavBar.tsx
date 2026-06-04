@@ -1,14 +1,15 @@
 "use client";
 
 /**
- * EraNavBar — persistent, interactive era navigator. Shows the era's CHARACTER
- * (the gazing EraEye + year + label) and, on hover/focus, reveals the CONCEPT
- * behind it (the era's design lesson + signature traits). Steps eras with ◂ / ▸
- * and opens the full EraTimeMachine via the eye or ◷. Era-token themed, fixed
- * top-center.
+ * EraNavBar — persistent, interactive era navigator. Fixed top-center, FIXED
+ * width (so ◂ / ▸ never shift between eras), and it publishes its own height to
+ * `--simple-game-nav-bottom` so era content sits below it instead of hiding
+ * behind it. Shows the era's CHARACTER (gazing EraEye + year + label); on
+ * hover/focus reveals the era's nostalgic idea + the design behind it (like the
+ * landing content). ◂ / ▸ step eras; eye / ◷ open the EraTimeMachine.
  */
 
-import React, { useMemo, useState } from "react";
+import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useDesignEra } from "@/contexts/DesignEraContext";
 import { useModules } from "@/contexts/ModuleContext";
@@ -21,6 +22,7 @@ export function EraNavBar() {
   const { open } = useModules();
   const reduce = useReducedMotion();
   const [expanded, setExpanded] = useState(false);
+  const rowRef = useRef<HTMLDivElement>(null);
 
   const { idx, prev, next } = useMemo(() => {
     const i = eras.findIndex((e) => e.id === currentEraId);
@@ -30,6 +32,27 @@ export function EraNavBar() {
       next: i >= 0 && i < eras.length - 1 ? eras[i + 1] : null,
     };
   }, [eras, currentEraId]);
+
+  // Publish the collapsed bar's bottom so era content clears it (no hiding).
+  useLayoutEffect(() => {
+    const publish = () => {
+      const el = rowRef.current;
+      if (!el) return;
+      const bottom = Math.ceil(el.getBoundingClientRect().bottom + 6);
+      document.documentElement.style.setProperty(
+        "--simple-game-nav-bottom",
+        `${bottom}px`,
+      );
+    };
+    publish();
+    const ro = new ResizeObserver(publish);
+    if (rowRef.current) ro.observe(rowRef.current);
+    window.addEventListener("resize", publish, { passive: true });
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", publish);
+    };
+  }, []);
 
   const stepBtn =
     "grid h-8 w-8 shrink-0 place-items-center rounded-full border text-[15px] leading-none transition-transform focus-visible:outline-none disabled:opacity-25 disabled:cursor-default";
@@ -42,25 +65,23 @@ export function EraNavBar() {
     >
       <motion.div
         id="era-nav"
-        layout
         onHoverStart={() => setExpanded(true)}
         onHoverEnd={() => setExpanded(false)}
         onFocusCapture={() => setExpanded(true)}
         onBlurCapture={() => setExpanded(false)}
-        className="pointer-events-auto flex max-w-[94vw] flex-col overflow-hidden border backdrop-blur-md"
+        className="pointer-events-auto flex w-[min(94vw,420px)] flex-col overflow-hidden border backdrop-blur-md"
         style={{
           borderColor: "var(--border-color)",
-          background: "color-mix(in srgb, var(--bg-card) 88%, transparent)",
+          background: "color-mix(in srgb, var(--bg-card) 90%, transparent)",
           color: "var(--text-main)",
           fontFamily: "var(--font-main)",
           borderRadius: "var(--era-radius-lg, 18px)",
           boxShadow:
             "0 8px 26px color-mix(in srgb, var(--text-main) 16%, transparent)",
         }}
-        transition={{ duration: reduce ? 0.15 : 0.34, ease: EASE_OUT }}
       >
-        {/* ── main row ── */}
-        <div className="flex items-center gap-2 px-2 py-1.5">
+        {/* ── main row (fixed layout — arrows never move) ── */}
+        <div ref={rowRef} className="flex items-center gap-2 px-2 py-1.5">
           <motion.button
             type="button"
             className={stepBtn}
@@ -75,17 +96,17 @@ export function EraNavBar() {
             ◂
           </motion.button>
 
-          {/* era identity (character) — opens the time machine */}
+          {/* era identity (character) — flexes to fill, label truncates */}
           <button
             type="button"
             onClick={() => open("eras")}
             aria-label={`Era ${currentEra.name} — travel all eras`}
-            className="flex min-w-0 items-center gap-2.5 rounded-full px-2 py-1 transition-colors focus-visible:outline-none"
+            className="flex min-w-0 flex-1 items-center gap-2.5 rounded-full px-2 py-1 focus-visible:outline-none"
           >
             <span className="shrink-0">
               <EraEye era={currentEra} height={26} gaze />
             </span>
-            <span className="flex min-w-0 flex-col items-start leading-none">
+            <span className="flex min-w-0 flex-1 flex-col items-start leading-none">
               <span className="flex items-baseline gap-1.5">
                 <span
                   className="text-[17px] font-bold tabular-nums leading-none"
@@ -101,7 +122,7 @@ export function EraNavBar() {
                 </span>
               </span>
               <span
-                className="mt-1 max-w-[42vw] truncate text-[10px] font-semibold uppercase tracking-[0.16em] sm:max-w-[240px]"
+                className="mt-1 w-full truncate text-left text-[10px] font-semibold uppercase tracking-[0.16em]"
                 style={{ color: "var(--text-muted)" }}
               >
                 {currentEra.era}
@@ -124,7 +145,7 @@ export function EraNavBar() {
           </motion.button>
 
           <span
-            className="mx-0.5 h-6 w-px shrink-0"
+            className="h-6 w-px shrink-0"
             style={{ background: "var(--border-color)", opacity: 0.5 }}
             aria-hidden
           />
@@ -145,7 +166,7 @@ export function EraNavBar() {
           </button>
         </div>
 
-        {/* ── concept reveal (character + concept behind this era) ── */}
+        {/* ── concept reveal: nostalgic idea + the design behind it ── */}
         <AnimatePresence initial={false}>
           {expanded && (
             <motion.div
@@ -157,31 +178,29 @@ export function EraNavBar() {
               className="overflow-hidden"
             >
               <div
-                className="mx-2 mb-2 flex flex-col gap-2 border-t px-2 pt-2"
+                className="mx-2 mb-2 flex flex-col gap-2.5 border-t px-2 pt-2.5"
                 style={{ borderColor: "var(--border-color)" }}
               >
-                <div className="flex items-baseline gap-2">
+                <div className="flex items-baseline justify-between gap-2">
                   <span
-                    className="text-[9px] font-semibold uppercase tracking-[0.28em]"
-                    style={{ color: "var(--accent-color)" }}
-                  >
-                    The concept
-                  </span>
-                  <span
-                    className="truncate text-[11px] font-semibold"
+                    className="truncate text-[12px] font-bold"
                     style={{ color: "var(--text-main)" }}
                   >
                     {currentEra.name}
                   </span>
+                  <span
+                    className="shrink-0 text-[9px] uppercase tracking-[0.2em]"
+                    style={{ color: "var(--accent-color)" }}
+                  >
+                    {currentEra.era}
+                  </span>
                 </div>
-                <p
-                  className="max-w-[min(86vw,420px)] text-[12px] leading-snug"
-                  style={{ color: "var(--text-muted)" }}
-                >
-                  {currentEra.lesson}
-                </p>
+
+                <Block label="Nostalgia" body={currentEra.description} clamp accent="var(--text-muted)" />
+                <Block label="Design behind it" body={currentEra.lesson} accent="var(--text-main)" />
+
                 <div className="flex flex-wrap gap-1.5">
-                  {currentEra.keyElements?.slice(0, 4).map((k) => (
+                  {currentEra.keyElements?.slice(0, 5).map((k) => (
                     <span
                       key={k}
                       className="rounded-full border px-2 py-0.5 text-[9px] uppercase tracking-[0.1em]"
@@ -196,6 +215,7 @@ export function EraNavBar() {
                     </span>
                   ))}
                 </div>
+
                 <button
                   type="button"
                   onClick={() => open("era-story")}
@@ -209,6 +229,35 @@ export function EraNavBar() {
           )}
         </AnimatePresence>
       </motion.div>
+    </div>
+  );
+}
+
+function Block({
+  label,
+  body,
+  clamp,
+  accent,
+}: {
+  label: string;
+  body: string;
+  clamp?: boolean;
+  accent: string;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <span
+        className="text-[9px] font-semibold uppercase tracking-[0.26em]"
+        style={{ color: "var(--accent-color)" }}
+      >
+        {label}
+      </span>
+      <p
+        className={`text-[12px] leading-snug ${clamp ? "line-clamp-3" : ""}`}
+        style={{ color: accent }}
+      >
+        {body}
+      </p>
     </div>
   );
 }
