@@ -21,7 +21,8 @@ import {
   buildTimeline,
   IMPACT_METRICS,
   CARD_SORTING,
-} from "../shared/landing-content";
+  USABILITY_TEST,
+} from "@/data/era-page-content";
 
 const pixelify = Pixelify_Sans({
   weight: ["400", "500", "700"],
@@ -69,7 +70,7 @@ const ERA_1981 = {
     backgroundIntro: "RECORD: BIO STREAM, CHRONOLOGICAL.",
   },
   empathy: {
-    saysQuote: '"I CAN BRIDGE DESIGN ↔ DEVELOPMENT."',
+    saysQuote: `"${EMPATHY_MAP.says.quote.toUpperCase()}"`,
   },
   metrics: {
     headerNote: "OUTPUT: AGGREGATED METRICS · LAST PRINT CYCLE",
@@ -78,13 +79,9 @@ const ERA_1981 = {
     headerNote: "TAXONOMY: PROJECT INDEX · 4 CARDS LOADED",
   },
   usability: {
-    taskTitle: "INITIATE COLLABORATION",
-    taskBody: "USE ANY CHANNEL BELOW TO OPEN A SESSION.",
-    metrics: [
-      "RESPONSE TIME < 24 HRS",
-      "STATUS: AVAILABLE",
-      "TIMEZONE: IST (GMT+5:30)",
-    ],
+    taskTitle: USABILITY_TEST.task.toUpperCase(),
+    taskBody: USABILITY_TEST.taskBody.toUpperCase(),
+    metrics: USABILITY_TEST.successMetrics.map((m) => m.toUpperCase()),
   },
 };
 
@@ -842,12 +839,12 @@ export function XeroxBitmapHomePage() {
             </SunkenPanel>
             <SunkenPanel header="07.B TEST CHANNELS" subtitle="contact methods">
               <ul className="flex flex-col gap-1.5">
-                {[
-                  { label: "EMAIL", value: "arunkumaar.srinivasan@gmail.com", href: "mailto:arunkumaar.srinivasan@gmail.com", role: "PRIMARY CHANNEL" },
-                  { label: "LINKEDIN", value: "linkedin.com/in/arun-kumaar-sreenivasan", href: "https://linkedin.com/in/arun-kumaar-sreenivasan", role: "PROFESSIONAL NETWORK" },
-                  { label: "GITHUB", value: "github.com/arun-ks", href: "https://github.com/", role: "CODE ARCHIVE" },
-                  { label: "PHONE", value: "+91 94865 82579", href: "tel:+919486582579", role: "VOICE / URGENT ONLY" },
-                ].map((c) => (
+                {USABILITY_TEST.channels.map((c) => ({
+                  label: c.label.toUpperCase(),
+                  value: c.value,
+                  href: c.href,
+                  role: c.role.toUpperCase(),
+                })).map((c) => (
                   <li key={c.label}>
                     <a
                       href={c.href}

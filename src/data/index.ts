@@ -125,6 +125,28 @@ export {
   type LineStyle,
 } from './timeline-era-config';
 
+// Era Page Archetype: shared home content for all era shell variants
+export {
+  ERA_BRAND,
+  ERA_SUBJECT,
+  ERA_NARRATIVE,
+  HERO,
+  WHY_KIRUK,
+  PERSONA,
+  EMPATHY_MAP,
+  IMPACT_METRICS,
+  CARD_SORTING,
+  USABILITY_TEST,
+  buildTimeline,
+  buildUsabilityChannels,
+  getEraPageContent,
+  type EraTimelineNode,
+  type EraProjectCard,
+  type EraContactChannel,
+  type EraPageContent,
+  type TimelineNode,
+} from './era-page-content';
+
 // ============================================
 // DATA LAYER CONFIGURATION
 // ============================================
@@ -154,6 +176,7 @@ export const getDataLayerConfig = (): DataLayerConfig => ({
         { name: 'page-info', type: 'static' },
         { name: 'help-bot-data', type: 'static' },
         { name: 'personal-knowledge-base', type: 'static' },
+        { name: 'era-page-content', type: 'static' },
     ],
 });
 

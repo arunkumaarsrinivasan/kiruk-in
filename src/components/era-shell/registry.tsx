@@ -4,6 +4,8 @@
  * Era Shell Registry — single source of truth for which era archetypes
  * provide which slots (global atmosphere, page variants, future nav/footer).
  *
+ * Archetype home copy and facts: `@/data/era-page-content` (not in components).
+ *
  * Adding a new archetype = create the components + register here.
  * Adding a new page variant = create the component + register here.
  *

@@ -42,11 +42,13 @@ import {
   WHY_KIRUK,
   PERSONA,
   EMPATHY_MAP,
+  ERA_BRAND,
+  ERA_SUBJECT,
   buildTimeline,
   IMPACT_METRICS,
   CARD_SORTING,
   USABILITY_TEST,
-} from "../shared/landing-content";
+} from "@/data/era-page-content";
 
 // ── Palette — Digg 2006 ──────────────────────────────────────────────
 
@@ -1181,12 +1183,12 @@ export function MicroblogHomePage() {
 
             <SideCard heading="Active Diggers" foot="click to filter by handle">
               {([
-                ["kiruk",      "Arun Kumaar",   "#cc6600"],
+                [ERA_SUBJECT.handle, ERA_SUBJECT.shortName, "#cc6600"],
                 ["donnorman",  "Don Norman",    "#003366"],
                 ["worrydream", "Bret Victor",   "#cc0066"],
                 ["figma",      "Figma",         "#a259ff"],
                 ["sona",       "Sona College",  "#9933cc"],
-                ["hpprintai",  "HP Print AI",   "#0066cc"],
+                ["hpprintai",  ERA_BRAND.employerDisplay, "#0066cc"],
               ] as const).map(([h, n, bg]) => {
                 const active = authorFilter === h;
                 const myCount = stories.filter((s) => s.by === h).length;

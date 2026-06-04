@@ -123,28 +123,22 @@ export function ModuleOverlayHost() {
               <button
                 type="button"
                 onClick={close}
-                aria-label="Close"
-                className="group/close inline-flex items-center gap-2 rounded-[var(--era-radius-full,999px)] border px-3.5 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] transition-transform hover:-translate-y-0.5 focus-visible:outline-none"
-                style={{
-                  borderColor: "var(--border-color)",
-                  color: "var(--text-main)",
-                }}
+                aria-label="Cancel (Esc)"
+                className="rounded-[var(--era-radius-sm,4px)] px-2.5 py-1 text-xs font-medium transition-colors hover:bg-[color-mix(in_srgb,var(--text-main)_6%,transparent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--border-color)]"
+                style={{ color: "var(--text-muted)", fontFamily: "var(--font-main)" }}
               >
-                <span
-                  className="hidden opacity-60 sm:inline"
-                  style={{ fontSize: 10 }}
-                >
-                  Esc
-                </span>
-                <span aria-hidden className="text-base leading-none">
-                  ✕
-                </span>
-                Close
+                Cancel
               </button>
             </div>
 
-            {/* body — full height scroll */}
-            <div className="min-h-0 flex-1 overflow-y-auto">
+            {/* body — full height scroll (work module is self-contained) */}
+            <div
+              className={`min-h-0 flex-1 ${
+                renderId === "work" || renderId === "observatory"
+                  ? "overflow-hidden"
+                  : "overflow-y-auto"
+              }`}
+            >
               {Content ? <Content /> : null}
             </div>
           </motion.div>

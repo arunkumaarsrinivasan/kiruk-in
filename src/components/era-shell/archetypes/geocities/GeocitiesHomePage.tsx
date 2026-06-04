@@ -28,7 +28,7 @@ import {
   buildTimeline,
   IMPACT_METRICS,
   CARD_SORTING,
-} from "../shared/landing-content";
+} from "@/data/era-page-content";
 
 const comic = Comic_Neue({
   weight: ["400", "700"],

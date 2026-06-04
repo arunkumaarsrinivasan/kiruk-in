@@ -1,7 +1,7 @@
 "use client";
 
-/** Contact module → the real /contact experience (typing game → telephone /
- * channels). Opens fullscreen from the Contact trigger; Close/Esc dismisses. */
+/** Contact module → the real /contact experience (channels + scheduler).
+ * Opens fullscreen from the Contact trigger; Close/Esc dismisses. */
 
 import React from "react";
 import dynamic from "next/dynamic";

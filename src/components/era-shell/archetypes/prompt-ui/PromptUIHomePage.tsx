@@ -39,7 +39,7 @@ import {
   IMPACT_METRICS,
   CARD_SORTING,
   USABILITY_TEST,
-} from "../shared/landing-content";
+} from "@/data/era-page-content";
 
 const FONT_MONO = "'Geist Mono', 'JetBrains Mono', 'SFMono-Regular', monospace";
 const nodes = buildTimeline();

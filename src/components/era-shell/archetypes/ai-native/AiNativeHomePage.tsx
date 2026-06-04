@@ -46,7 +46,7 @@ import {
   IMPACT_METRICS,
   CARD_SORTING,
   USABILITY_TEST,
-} from "../shared/landing-content";
+} from "@/data/era-page-content";
 
 // ── Palette — 2023 AI aurora ─────────────────────────────────────────
 

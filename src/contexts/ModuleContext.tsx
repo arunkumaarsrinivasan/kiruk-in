@@ -22,11 +22,14 @@ import React, {
 export type ModuleId =
   | "about"
   | "work"
+  | "case-studies"
+  | "observatory"
   | "era-story"
   | "contact"
   | "blog"
   | "progress"
-  | "eras";
+  | "eras"
+  | "footer-game";
 
 export type ModulePhase =
   | "collapsed"
@@ -37,11 +40,14 @@ export type ModulePhase =
 const MODULE_IDS: ModuleId[] = [
   "about",
   "work",
+  "case-studies",
+  "observatory",
   "era-story",
   "contact",
   "blog",
   "progress",
   "eras",
+  "footer-game",
 ];
 
 function isModuleId(v: string | null): v is ModuleId {

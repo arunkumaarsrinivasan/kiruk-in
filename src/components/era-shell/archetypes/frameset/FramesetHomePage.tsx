@@ -34,7 +34,7 @@ import {
   IMPACT_METRICS,
   CARD_SORTING,
   USABILITY_TEST,
-} from "../shared/landing-content";
+} from "@/data/era-page-content";
 
 // Palette — Encarta-era warm earth tones
 const WINE = "#6b1f2e";

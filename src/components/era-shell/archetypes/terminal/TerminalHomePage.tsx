@@ -6,12 +6,12 @@
  * Meta-narrative: this portfolio is a UX research file with Arun as the
  * subject. Each RECORD is a UX artifact applied to him — persona, empathy
  * map, journey map, impact metrics, card sorting (IA), usability test. The
- * content lives in shared/landing-content.ts so every era archetype tells the
+ * content lives in @/data/era-page-content so every era archetype tells the
  * same story.
  */
 
-import React, { useEffect, useMemo } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import React, { useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { VT323 } from "next/font/google";
 import { useLayoutMode } from "@/contexts/LayoutModeContext";
 import {
@@ -23,7 +23,7 @@ import {
   IMPACT_METRICS,
   CARD_SORTING,
   USABILITY_TEST,
-} from "../shared/landing-content";
+} from "@/data/era-page-content";
 import { useModules, type ModuleId } from "@/contexts/ModuleContext";
 import {
   TelescopeBox,
@@ -89,10 +89,18 @@ export function TerminalHomePage() {
   const reduced = useReducedMotion();
   const { setLayoutMode } = useLayoutMode();
   const { open: openModule } = useModules();
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     setLayoutMode("full-digital");
   }, [setLayoutMode]);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 12);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const greenTextShadow =
     "0 0 6px rgba(0,255,65,0.55), 0 0 18px rgba(0,255,65,0.35)";
@@ -122,26 +130,38 @@ export function TerminalHomePage() {
         paddingTop: "var(--simple-game-nav-bottom, 56px)",
       }}
     >
-      {/* Fixed top status strip */}
-      <div
-        className="fixed inset-x-0 z-[55] border-b flex items-center justify-between px-4 py-1 text-[14px] uppercase tracking-[0.18em]"
-        style={{
-          top: "var(--simple-game-nav-bottom, 56px)",
-          backgroundColor: "rgba(0,0,0,0.78)",
-          borderColor: PHOSPHOR_GHOST,
-          color: "rgba(0,255,65,0.85)",
-        }}
-      >
-        <span>
-          tty1 · kiruk@1970 · {HERO.location.split(",")[0].trim()}
-        </span>
-        <span className="hidden md:inline">
-          era 1970 — phosphor &amp; ascii
-        </span>
-        <span>{openStamp} UTC</span>
-      </div>
+      <AnimatePresence initial={false}>
+        {!scrolled && (
+          <motion.div
+            key="tty-status"
+            className="fixed inset-x-0 z-[55] flex items-center justify-between border-b px-4 py-1 text-[14px] uppercase tracking-[0.18em]"
+            style={{
+              top: "var(--simple-game-nav-bottom, 56px)",
+              backgroundColor: "rgba(0,0,0,0.78)",
+              borderColor: PHOSPHOR_GHOST,
+              color: "rgba(0,255,65,0.85)",
+            }}
+            initial={reduced ? { opacity: 0 } : { opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={reduced ? { opacity: 0 } : { opacity: 0, y: -6 }}
+            transition={{ duration: reduced ? 0.12 : 0.22, ease: "easeOut" }}
+          >
+            <span>
+              tty1 · kiruk@1970 · {HERO.location.split(",")[0].trim()}
+            </span>
+            <span className="hidden md:inline">
+              era 1970 — phosphor &amp; ascii
+            </span>
+            <span>{openStamp} UTC</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      <div className="relative max-w-3xl mx-auto px-4 sm:px-8 pt-14 pb-20 text-[18px] leading-[1.4]">
+      <div
+        className={`relative mx-auto max-w-3xl px-4 pb-20 text-[18px] leading-[1.4] sm:px-8 ${
+          scrolled ? "pt-6" : "pt-14"
+        }`}
+      >
         {/* ── RESEARCH FILE HEADER ───────────────────────── */}
         <motion.section
           initial={reduced ? { opacity: 1 } : { opacity: 0, y: -4 }}
@@ -544,7 +564,7 @@ export function TerminalHomePage() {
             palette={TERMINAL_PALETTE}
             title="WORK.scope"
             nodes={careerStars}
-            onOpen={() => openModule("work")}
+            onOpen={() => openModule("observatory")}
             height={240}
           />
         </motion.section>

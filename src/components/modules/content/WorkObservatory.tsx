@@ -1,15 +1,15 @@
 "use client";
 
 /**
- * WorkObservatory — the WORK module's full-screen experience: the real
- * ObservatoryView telescope (skill/experience star map with timeline + journey
- * log). Opening the landing WORK.scope box expands straight into this; the
- * module overlay's Close/Esc dismisses it. No stub list, no extra "open full
- * experience" step.
+ * WorkObservatory — skills telescope (ObservatoryView). Opened from the
+ * landing WORK.scope telescope box via the `observatory` module; navbar WORK
+ * opens the project showcase deck instead.
  */
 
-import React from "react";
+import React, { useEffect } from "react";
 import dynamic from "next/dynamic";
+import { useContextBar } from "@/contexts/ContextBarContext";
+import { useExperience } from "@/hooks/usePortfolioData";
 
 const ObservatoryView = dynamic(
   () =>
@@ -30,9 +30,31 @@ const ObservatoryView = dynamic(
 );
 
 export function WorkObservatory() {
+  const { setWorkData } = useContextBar();
+  const experiencesData = useExperience();
+
+  useEffect(() => {
+    if (!experiencesData?.length) return;
+
+    const experiences = experiencesData.map((exp) => ({
+      id: exp.id,
+      company: exp.company,
+      start: exp.startDate,
+      end: exp.endDate,
+      current: exp.current,
+    }));
+
+    const currentExp = experiencesData.find((e) => e.current);
+
+    setWorkData({
+      experiences,
+      currentExperienceId: currentExp?.id ?? experiencesData[0]?.id,
+    });
+  }, [experiencesData, setWorkData]);
+
   return (
-    <div className="h-full w-full overflow-hidden">
-      <ObservatoryView />
+    <div className="h-full min-h-0 w-full overflow-hidden">
+      <ObservatoryView embedded />
     </div>
   );
 }

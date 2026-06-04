@@ -25,7 +25,7 @@ const folders: ProjectFolder[] = [
     icon: 'folder-open',
     color: '#FFD93D',
     url: '/portfolio',
-    description: 'Figma portfolio slides and design work',
+    description: 'Figma slides — full project deck',
     type: 'portfolio',
     side: 'designer',
     highlighted: true,
@@ -36,7 +36,7 @@ const folders: ProjectFolder[] = [
     icon: 'pencil-ruler',
     color: '#1769FF',
     url: 'https://www.behance.net/arunkusriniva',
-    description: 'Detailed case studies with full design process',
+    description: 'Case studies with full process',
     type: 'behance',
     side: 'designer',
   },
@@ -44,9 +44,9 @@ const folders: ProjectFolder[] = [
     id: 'playbook',
     name: 'Playbook',
     icon: 'book-heart',
-    color: '#000000',
+    color: '#111111',
     url: 'https://playbook.com/arunkumaar',
-    description: 'Quick project snapshots and insights',
+    description: 'Quick snapshots & insights',
     type: 'playbook',
     side: 'designer',
   },
@@ -56,30 +56,30 @@ const folders: ProjectFolder[] = [
     icon: 'code-block',
     color: '#181717',
     url: 'https://github.com/arunkumaarsrinivasan',
-    description: 'Code repositories and projects',
+    description: 'Repos & shipped code',
     type: 'github',
     side: 'developer',
+  },
+  {
+    id: 'figma',
+    name: 'Figma',
+    icon: 'pencil-ruler',
+    color: '#F24E1E',
+    url: 'https://www.figma.com/@arunkumaar',
+    description: 'Design files & prototypes',
+    type: 'figma',
+    side: 'designer',
   },
   {
     id: 'codepen',
     name: 'CodePen',
     icon: 'code',
-    color: '#000000',
+    color: '#111111',
     url: 'https://codepen.io/arunkumaar',
-    description: 'Frontend experiments and prototypes',
+    description: 'Frontend experiments',
     type: 'codepen',
     side: 'developer',
     comingSoon: true,
-  },
-  {
-    id: 'figma',
-    name: 'Figma Files',
-    icon: 'pencil-ruler',
-    color: '#F24E1E',
-    url: 'https://www.figma.com/@arunkumaar',
-    description: 'Design files and prototypes',
-    type: 'figma',
-    side: 'designer',
   },
 ];
 
@@ -97,13 +97,12 @@ export function ProjectFolders({ onFolderClick, activeSide }: ProjectFoldersProp
     if (folder.type === 'portfolio' && folder.url?.startsWith('/')) {
       router.push(folder.url);
     } else if (folder.url && folder.type !== 'case-study') {
-      globalThis.open(folder.url, '_blank');
+      globalThis.open(folder.url, '_blank', 'noopener,noreferrer');
     } else {
       onFolderClick?.(folder);
     }
   };
 
-  // Sort: matching side first when a side is active
   const sorted = activeSide
     ? [...folders].sort((a, b) => {
         if (a.side === activeSide && b.side !== activeSide) return -1;
@@ -113,116 +112,89 @@ export function ProjectFolders({ onFolderClick, activeSide }: ProjectFoldersProp
     : folders;
 
   return (
-    <div className="max-w-5xl mx-auto">
-      <div className="relative py-4">
-        <div className="relative grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 z-10">
-          {sorted.map((folder, index) => {
-            const matches = !activeSide || folder.side === activeSide;
-            return (
-              <motion.div
-                key={folder.id}
-                layout
-                initial={{ opacity: 0, y: 20, scale: 0.9 }}
-                animate={{
-                  opacity: matches ? 1 : 0.35,
-                  y: 0,
-                  scale: matches ? 1 : 0.95,
-                }}
-                transition={{
-                  delay: index * 0.06,
-                  layout: { duration: 0.35, ease: [0.22, 1, 0.36, 1] },
-                  opacity: { duration: 0.3 },
-                  scale: { duration: 0.3 },
-                }}
-                className="relative"
-              >
-                <motion.button
-                  type="button"
-                  onClick={() => handleFolderClick(folder)}
-                  disabled={folder.comingSoon}
-                  className={`w-full wireframe-border p-6 flex flex-col items-center justify-center gap-3 group relative ${
-                    folder.highlighted && matches ? 'ring-4 ring-[var(--accent-color)] ring-offset-2 ring-offset-[var(--bg-main)]' : ''
-                  }`}
-                  style={{
-                    backgroundColor: folder.highlighted && matches
-                      ? 'color-mix(in srgb, var(--accent-color) 15%, var(--bg-card))'
-                      : 'var(--bg-card)',
-                    minHeight: '160px',
-                    cursor: folder.comingSoon ? 'not-allowed' : 'pointer',
-                    boxShadow: folder.highlighted && matches
-                      ? '0 0 24px color-mix(in srgb, var(--accent-color) 40%, transparent)'
-                      : undefined,
-                    filter: matches ? 'none' : 'grayscale(0.6)',
-                    pointerEvents: matches ? 'auto' : 'none',
-                  }}
-                  whileHover={folder.comingSoon || !matches ? {} : { scale: 1.05, y: -4 }}
-                  whileTap={folder.comingSoon || !matches ? {} : { scale: 0.95 }}
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-3">
+      {sorted.map((folder, index) => {
+        const matches = !activeSide || folder.side === activeSide;
+        return (
+          <motion.div
+            key={folder.id}
+            layout
+            initial={{ opacity: 0, y: 12 }}
+            animate={{
+              opacity: matches ? 1 : 0.45,
+              y: 0,
+              scale: matches ? 1 : 0.98,
+            }}
+            transition={{
+              delay: index * 0.04,
+              layout: { duration: 0.35, ease: [0.22, 1, 0.36, 1] },
+            }}
+          >
+            <motion.button
+              type="button"
+              onClick={() => handleFolderClick(folder)}
+              disabled={folder.comingSoon}
+              aria-disabled={folder.comingSoon}
+              className="group relative flex w-full flex-col items-start gap-3 overflow-hidden p-4 text-left transition-colors sm:p-5"
+              style={{
+                minHeight: '148px',
+                cursor: folder.comingSoon ? 'not-allowed' : 'pointer',
+                border: `1px solid ${folder.highlighted && matches ? 'var(--accent-color)' : 'var(--border-color)'}`,
+                borderRadius: 'var(--era-radius-md, 10px)',
+                background:
+                  folder.highlighted && matches
+                    ? 'color-mix(in srgb, var(--accent-color) 10%, var(--bg-card))'
+                    : 'var(--bg-card)',
+                boxShadow: 'var(--era-shadow, none)',
+              }}
+              whileHover={
+                folder.comingSoon ? undefined : { y: -3, transition: { duration: 0.18 } }
+              }
+              whileTap={folder.comingSoon ? undefined : { scale: 0.98 }}
+            >
+              <span
+                className="absolute inset-x-0 top-0 h-1"
+                style={{ background: folder.color }}
+                aria-hidden
+              />
+
+              <div className="flex w-full items-start justify-between gap-2">
+                <PixelIcon name={folder.icon} size={40} className="shrink-0 text-current" />
+                {!folder.comingSoon && folder.url && (
+                  <span
+                    className="text-sm opacity-40 transition-opacity group-hover:opacity-100"
+                    style={{ color: 'var(--accent-color)' }}
+                    aria-hidden
+                  >
+                    ↗
+                  </span>
+                )}
+              </div>
+
+              <div>
+                <h3
+                  className="text-sm font-bold uppercase tracking-wide"
+                  style={{ color: 'var(--text-main)', fontFamily: 'var(--font-main)' }}
                 >
-                  <div className="mb-2 flex items-center justify-center">
-                    <PixelIcon name={folder.icon} size={64} className="text-current" />
-                  </div>
+                  {folder.name}
+                </h3>
+                <p className="mt-1 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                  {folder.description}
+                </p>
+              </div>
 
-                  <div className="text-center">
-                    <h3
-                      className="font-mono text-sm font-bold uppercase mb-1"
-                      style={{ color: 'var(--text-main)' }}
-                    >
-                      {folder.name}
-                    </h3>
-                    <p
-                      className="font-mono text-xs"
-                      style={{ color: 'var(--text-muted)' }}
-                    >
-                      {folder.description}
-                    </p>
-                  </div>
-
-                  <div
-                    className="absolute -top-2 left-1/2 transform -translate-x-1/2 wireframe-border px-4 py-1"
-                    style={{
-                      backgroundColor: folder.color,
-                      width: '60%',
-                    }}
-                  >
-                    <div className="h-1" />
-                  </div>
-
-                  <div
-                    className="absolute inset-0 opacity-5 pointer-events-none"
-                    style={{
-                      backgroundImage: `
-                        repeating-linear-gradient(0deg, transparent, transparent 4px, var(--border-color) 4px, var(--border-color) 5px),
-                        repeating-linear-gradient(90deg, transparent, transparent 4px, var(--border-color) 4px, var(--border-color) 5px)
-                      `,
-                      backgroundSize: '8px 8px',
-                    }}
-                  />
-                </motion.button>
-
-                {folder.comingSoon && (
-                  <div
-                    className="absolute top-2 right-2 wireframe-border px-2 py-1"
-                    style={{ backgroundColor: 'var(--accent-color)' }}
-                  >
-                    <span
-                      className="font-mono text-[8px] font-bold uppercase"
-                      style={{ color: 'var(--bg-main)' }}
-                    >
-                      COMING SOON
-                    </span>
-                  </div>
-                )}
-
-                {folder.url && folder.type !== 'case-study' && !folder.comingSoon && (
-                  <div className="absolute top-2 right-2">
-                    <span className="text-xs">↗</span>
-                  </div>
-                )}
-              </motion.div>
-            );
-          })}
-        </div>
-      </div>
+              {folder.comingSoon && (
+                <span
+                  className="mt-auto text-[9px] font-bold uppercase tracking-wider"
+                  style={{ color: 'var(--accent-color)' }}
+                >
+                  Coming soon
+                </span>
+              )}
+            </motion.button>
+          </motion.div>
+        );
+      })}
     </div>
   );
 }

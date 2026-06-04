@@ -205,8 +205,8 @@ export default function CustomCursor() {
 
   if (!enabled || !isVisible || eraPickerActive) return null;
 
-  const isEmojiPage = pathname === '/progress' || pathname === '/case-studies';
-  const emojiChar = pathname === '/progress' ? '🔭' : '🔦';
+  const isEmojiPage = pathname === '/progress';
+  const emojiChar = '🔭';
   const eraShapeRadius = 'min(50%, var(--era-radius-full))';
 
   const dotVariants = {

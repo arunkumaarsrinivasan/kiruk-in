@@ -64,7 +64,7 @@ const CONSTELLATION_COLORS: Record<string, string> = {
  * - Timeline slider & journey log
  * - Mobile responsive with bottom sheet
  */
-export function ObservatoryView() {
+export function ObservatoryView({ embedded = false }: { embedded?: boolean }) {
     const {
         skills,
         gridConfig,
@@ -230,7 +230,10 @@ export function ObservatoryView() {
         : selectedSkill;
 
     return (
-        <div className="w-full h-[calc(100vh-100px)] relative overflow-hidden flex" style={{ backgroundColor: 'var(--bg-main)' }}>
+        <div
+            className={`w-full relative overflow-hidden flex ${embedded ? "h-full min-h-0" : "h-[calc(100vh-100px)]"}`}
+            style={{ backgroundColor: 'var(--bg-main)' }}
+        >
 
             {/* LEFT: Unified Control Panel (Desktop) */}
             {!isMobile && (
@@ -688,7 +691,7 @@ export function ObservatoryView() {
                 </div>
 
                 {/* Timeline Slider (Bottom) */}
-                <div className="border-t-2" style={{ borderColor: 'var(--border-color)' }}>
+                <div id="work-timeline-slider" className="border-t-2" style={{ borderColor: 'var(--border-color)' }}>
                     <TimelineSlider
                         experiences={experiences}
                         currentDate={timelineDate}

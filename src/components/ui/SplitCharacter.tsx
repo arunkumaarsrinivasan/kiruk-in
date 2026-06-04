@@ -520,17 +520,8 @@ export function SplitCharacterCanvas({
       pointer.current.x += (pointer.current.tx - pointer.current.x) * 0.06;
       pointer.current.y += (pointer.current.ty - pointer.current.y) * 0.06;
 
-      // Subtle radial glow around the character (no solid bg)
       const charCx = W * 0.5;
       const charCy = H * 0.42;
-      const gx = charCx + pointer.current.x * 40;
-      const gy = charCy + pointer.current.y * 25;
-      const gr = ctx.createRadialGradient(gx, gy, 10, gx, gy, W * 0.4);
-      gr.addColorStop(0, `rgba(${ar},${ag},${ab},${profile.glow * 0.8})`);
-      gr.addColorStop(0.5, `rgba(${ar},${ag},${ab},${profile.glow * 0.2})`);
-      gr.addColorStop(1, "rgba(0,0,0,0)");
-      ctx.fillStyle = gr;
-      ctx.fillRect(0, 0, W, H);
 
       const headR = clamp(Math.min(W, H) * 0.18, 50, 90);
 
@@ -584,18 +575,6 @@ export function SplitCharacterCanvas({
         const hintY = charCy + headR * 2.8 + breathe;
         ctx.fillText("← click a side to filter →", charCx, hintY);
         ctx.textAlign = "left";
-      }
-
-      // Scanline overlay
-      if (profile.scanlines) {
-        ctx.globalAlpha = 1;
-        ctx.fillStyle = "rgba(0,0,0,0.07)";
-        for (let y = 0; y < H; y += 3) {
-          ctx.fillRect(0, y, W, 1);
-        }
-        const flickerAlpha = 0.02 + 0.01 * Math.sin(elapsed * 12);
-        ctx.fillStyle = `rgba(255,255,255,${flickerAlpha.toFixed(4)})`;
-        ctx.fillRect(0, 0, W, H);
       }
 
       ctx.globalAlpha = 1;
