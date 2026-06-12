@@ -88,10 +88,6 @@
   --font-main: 'StackSansText', monospace;
   --font-heading: 'StackSansHeadline', monospace;
   --accent-color: #000000;
-  /* Nav bar — frosted surface + text tuned for contrast on that surface */
-  --nav-surface: var(--bg-card);
-  --nav-text: var(--text-main);
-  --nav-text-muted: var(--text-muted);
   --btn-hover-transform: translate(-2px, -2px);
   --grid-opacity: 1;
   --surface-pattern: linear-gradient(to right, color-mix(in srgb, var(--border-color), transparent 90%) 1px, transparent 1px), linear-gradient(to bottom, color-mix(in srgb, var(--border-color), transparent 90%) 1px, transparent 1px);
@@ -127,6 +123,14 @@
   --notepad-inner-bg: #ffffff;
 }
 
+/* Nav bar — declare on body so var(--bg-card) resolves to the active era.
+   On :root these aliases incorrectly freeze to the default white/black pair. */
+body[data-era] {
+  --nav-surface: var(--bg-card);
+  --nav-text: var(--text-main);
+  --nav-text-muted: var(--text-muted);
+}
+
 /* 1970: Terminal & ASCII */
 body[data-era='1970'] {
   --bg-main: #000000;
@@ -143,6 +147,9 @@ body[data-era='1970'] {
   --font-main: 'Courier New', Courier, monospace;
   --font-heading: 'Courier New', Courier, monospace;
   --accent-color: #00ff00;
+  --nav-surface: #000000;
+  --nav-text: #39ff14;
+  --nav-text-muted: #00cc00;
   --btn-hover-transform: none;
   --grid-opacity: 0;
 
@@ -244,6 +251,9 @@ body[data-era='1995'] {
   --font-main: 'Comic Sans MS', 'Chalkboard', 'Comic Neue', cursive;
   --font-heading: 'Comic Sans MS', 'Chalkboard', 'Comic Neue', cursive;
   --accent-color: #00ffff;
+  --nav-surface: #000033;
+  --nav-text: #ffff99;
+  --nav-text-muted: #ff99ff;
   --btn-hover-transform: scale(1.04);
   --grid-opacity: 0;
 
@@ -297,6 +307,9 @@ body[data-era='2000'] {
   --font-main: 'Trebuchet MS', 'Verdana', 'Helvetica Neue', sans-serif;
   --font-heading: 'Trebuchet MS', 'Verdana', 'Helvetica Neue', sans-serif;
   --accent-color: #2bd8ff;
+  --nav-surface: #0f1a30;
+  --nav-text: #e8f1ff;
+  --nav-text-muted: #9bb3d4;
   --btn-hover-transform: translateY(-1px);
   --grid-opacity: 0;
 
@@ -450,6 +463,9 @@ body[data-era='2021'] {
   --font-main: 'Inter', '-apple-system', 'system-ui', sans-serif;
   --font-heading: 'Inter', '-apple-system', 'system-ui', sans-serif;
   --accent-color: #5e6ad2;
+  --nav-surface: #121316;
+  --nav-text: #f7f7f8;
+  --nav-text-muted: #a8adb8;
   --btn-hover-transform: translateY(-1px);
   --grid-opacity: 0;
 
@@ -475,6 +491,9 @@ body[data-era='2023'] {
   --font-main: 'General Sans', 'DM Sans', sans-serif;
   --font-heading: 'Clash Display', 'Satoshi', sans-serif;
   --accent-color: #a855f7;
+  --nav-surface: #0e0b22;
+  --nav-text: #f1f5f9;
+  --nav-text-muted: #c4b8e8;
   --btn-hover-transform: translateY(-2px);
   --grid-opacity: 0;
 

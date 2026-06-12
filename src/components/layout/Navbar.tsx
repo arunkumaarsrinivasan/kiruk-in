@@ -160,11 +160,11 @@ export function Navbar() {
               color: "var(--nav-text)",
               // era-tinted frosted band on --nav-surface (contrasts with --nav-text per era)
               background: scrolled
-                ? "color-mix(in srgb, var(--nav-surface) 94%, transparent)"
-                : "color-mix(in srgb, var(--nav-surface) 90%, transparent)",
+                ? "color-mix(in srgb, var(--nav-surface) 97%, transparent)"
+                : "color-mix(in srgb, var(--nav-surface) 95%, transparent)",
               backdropFilter: "blur(14px) saturate(1.15)",
               WebkitBackdropFilter: "blur(14px) saturate(1.15)",
-              borderBottom: "1px solid color-mix(in srgb, var(--nav-text) 14%, transparent)",
+              borderBottom: "1px solid color-mix(in srgb, var(--nav-text) 22%, transparent)",
               boxShadow: scrolled ? "0 8px 30px color-mix(in srgb, var(--nav-text) 12%, transparent)" : "none",
             }}
           >
