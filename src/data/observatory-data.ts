@@ -683,7 +683,8 @@ export const EXPERIENCE_DATES: Record<string, { start: string; end?: string }> =
     'freelance-general': { start: '2020-01-01', end: '2023-12-31' },
     'peoplegamez-intern': { start: '2022-11-01', end: '2023-01-31' },
     'sns-square-product-designer': { start: '2023-02-01', end: '2023-07-31' },
-    'hp-ux-designer': { start: '2023-08-01' }, // Current
+    'hp-ux-designer': { start: '2023-02-01', end: '2026-02-01' },
+    'spera-design-lead': { start: '2026-02-01' }, // Current
 };
 
 /**

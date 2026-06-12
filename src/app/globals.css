@@ -88,6 +88,10 @@
   --font-main: 'StackSansText', monospace;
   --font-heading: 'StackSansHeadline', monospace;
   --accent-color: #000000;
+  /* Nav bar — frosted surface + text tuned for contrast on that surface */
+  --nav-surface: var(--bg-card);
+  --nav-text: var(--text-main);
+  --nav-text-muted: var(--text-muted);
   --btn-hover-transform: translate(-2px, -2px);
   --grid-opacity: 1;
   --surface-pattern: linear-gradient(to right, color-mix(in srgb, var(--border-color), transparent 90%) 1px, transparent 1px), linear-gradient(to bottom, color-mix(in srgb, var(--border-color), transparent 90%) 1px, transparent 1px);
@@ -253,8 +257,11 @@ body[data-era='1995'] {
 body[data-era='1997'] {
   --bg-main: #2a1f1a;
   --bg-card: #f5ecd7;
-  --text-main: #2a1f1a;
-  --text-muted: #6b5a4b;
+  --text-main: #f5ecd7;
+  --text-muted: #c9b99a;
+  --nav-surface: #f5ecd7;
+  --nav-text: #2a1f1a;
+  --nav-text-muted: #6b5a4b;
   --border-color: #6b1f2e;
   --border-width: 1px;
   --border-radius: 0px;
@@ -353,8 +360,11 @@ body[data-era='2006'] {
 body[data-era='2009'] {
   --bg-main: #2a2f3a;
   --bg-card: #ffffff;
-  --text-main: #1f1f1f;
-  --text-muted: #6b7281;
+  --text-main: #f0f1f5;
+  --text-muted: #a8adb8;
+  --nav-surface: #ffffff;
+  --nav-text: #1f1f1f;
+  --nav-text-muted: #6b7281;
   --border-color: #b8c1cc;
   --border-width: 1px;
   --border-radius: 12px;
@@ -480,6 +490,9 @@ body[data-era='2026'] {
   --bg-card: rgba(255, 255, 255, 0.035);
   --text-main: #e9f0ee;
   --text-muted: rgba(233, 240, 238, 0.58);
+  --nav-surface: #0e1012;
+  --nav-text: #e9f0ee;
+  --nav-text-muted: rgba(233, 240, 238, 0.72);
   --border-color: rgba(94, 234, 212, 0.22);
   --border-width: 1px;
   --border-radius: 14px;

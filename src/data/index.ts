@@ -113,6 +113,17 @@ export {
 // Personal Knowledge Base
 export * from './personal-knowledge-base';
 
+// Project media: thumbnails, Behance, NDA flags
+export {
+    BEHANCE_PROFILE,
+    PROJECT_MEDIA,
+    getProjectThumbnail,
+    isProjectNda,
+    getProjectBehanceUrl,
+    type ProjectMediaConfig,
+    getProjectCoverLabel,
+} from './project-media';
+
 // Timeline Era: About page journey design system (age-based phases)
 export {
   ERA_CONFIG,

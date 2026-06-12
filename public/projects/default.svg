@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="480" viewBox="0 0 840 480" fill="none">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#18181b"/>
+      <stop offset="1" stop-color="#27272a"/>
+    </linearGradient>
+  </defs>
+  <rect width="840" height="480" fill="url(#g)"/>
+  <rect x="48" y="48" width="744" height="384" rx="16" fill="#09090b" stroke="#3f3f46" stroke-width="2"/>
+  <text x="420" y="248" text-anchor="middle" fill="#a1a1aa" font-family="system-ui,sans-serif" font-size="28" font-weight="600" letter-spacing="6">KIRUK</text>
+  <text x="420" y="284" text-anchor="middle" fill="#52525b" font-family="system-ui,sans-serif" font-size="14">Selected work</text>
+</svg>

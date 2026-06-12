@@ -1,6 +1,6 @@
 "use client";
 
-/** Case studies module — deep dives & platform links (same body as /case-studies). */
+/** Work module — deep dives & platform links (same body as /case-studies). */
 
 import React from "react";
 import dynamic from "next/dynamic";

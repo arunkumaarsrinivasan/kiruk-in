@@ -30,7 +30,7 @@ export const ERA_SUBJECT = {
 } as const;
 
 export const ERA_BRAND = {
-  employerDisplay: "HP Print AI",
+  employerDisplay: "Spera.bot",
   nightHandle: "@kirukism",
   studyFraming:
     "This portfolio is a UX research file. The user under study is me. Each section below is the artifact a researcher would produce — applied to my own way of working.",
@@ -41,30 +41,30 @@ export const ERA_BRAND = {
 export const ERA_NARRATIVE = {
   persona: {
     goals: [
-      "Ship user-centered products fast",
-      "Bridge the design-engineering gap",
-      "Build scalable design systems",
+      "Build design tools and experimental websites",
+      "Own design, frontend, and interaction end-to-end",
+      "Leverage UX craft so complex products feel human",
     ],
     frustrations: [
       "Siloed design and dev teams",
-      "Slow design-to-prod handoffs",
-      "Lost context in translation",
+      "Products that ship without soul",
+      "Lost context between research and code",
     ],
   },
   empathy: {
-    saysQuote: "I can bridge design and development.",
+    saysQuote: "I build whatever feels right — and make it work for people.",
     thinks: [
-      "Design IS engineering",
-      "Ship fast, iterate faster",
-      "User problems → solutions",
+      "Design IS the experience",
+      "Experimental can still ship",
+      "UX is leverage, not decoration",
     ],
     feels: [
       "Passionate about craft & detail",
-      "Excited by gamified experiences",
-      "Curious about AI integration",
+      "Excited by gamified and playful interfaces",
+      "Curious about AI, fintech, and new mediums",
     ],
     /** Skill names appended to portfolio “does” list in empathy map. */
-    extraDoesSkills: ["MongoDB", "Spring Boot", "Flutter"],
+    extraDoesSkills: ["Howler.js", "GSAP", "Prompt Engineering"],
   },
   /** Career journey map nodes (years/phases); “Now” merges current experience. */
   careerJourney: [
@@ -93,20 +93,20 @@ export const ERA_NARRATIVE = {
     {
       year: "2023",
       phase: "Mastery",
-      position: "R&D Intern → SDE 1",
-      org: "HP Inc · Bengaluru",
-      detail: "Observability, services, prompts, design-system seeds.",
+      position: "UX Design Engineer",
+      org: "HP Inc · Innovation for India",
+      detail: "HP Print AI, Mudra Stack, Get my Prints, PLC, onboarding.",
     },
   ] as const,
   currentJourney: {
-    year: "2025",
+    year: "2026",
     phase: "Now",
     detailSuffix: (nightHandle: string) =>
-      `${ERA_BRAND.employerDisplay} by day, ${nightHandle} by night. Process journals span both.`,
+      `${ERA_BRAND.employerDisplay} by day — design, frontend, interaction. ${nightHandle} by night.`,
   },
   cardSort: {
     /** Max project cards on era home pages. */
-    projectLimit: 4,
+    projectLimit: 6,
     taxonomy: ["All", "Web", "Mobile", "Design", "AI"] as const,
   },
 } as const;

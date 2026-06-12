@@ -16,18 +16,26 @@ export const personalKnowledgeBase: KnowledgeItem[] = [
     id: 'core-identity',
     category: 'identity',
     title: 'Professional Identity',
-    content: `Arun Kumaar Srinivasan is a versatile AX (AI Experience) Designer and Software Development Engineer 1 at HP Inc. He specializes in bridging artificial intelligence with human-centered design principles. With expertise spanning cloud engineering, microservices, UX/UI design, and full-stack development, Arun brings a unique perspective that combines technical depth with design thinking. He's passionate about creating seamless experiences that make complex AI systems accessible and intuitive for users.`,
+    content: `Arun Kumaar Srinivasan (KIRUK) is Co-founder and Design & Frontend Lead at Spera.bot (from Feb 2026) — building the platform to design, backtest, and paper trade crypto strategies without a developer. He previously spent three years as UX Design Engineer on HP's Innovation for India team. He builds design tools, experimental websites, and whatever feels right — always leveraging UX craft to make complex products feel human. Portfolio: kiruk.in · Behance: behance.net/arunkusriniva · GitHub: github.com/arunkumaarsrinivasan`,
     tags: ['identity', 'ax-designer', 'ai', 'ux', 'engineering'],
     priority: 10
   },
 
   // Current Role & Responsibilities
   {
-    id: 'current-role-hp',
+    id: 'current-role-spera',
     category: 'work',
-    title: 'Software Development Engineer 1 at HP Inc',
-    content: `Currently working as SDE 1 at HP Inc (February 2023 - Present) in the WPP Connectivity team. Specializes in cloud microservices engineering using cutting-edge technologies including AWS services (SQS, SNS, DynamoDB), Spring Boot, Splunk for monitoring, and Prometheus for metrics. Responsible for improving microservice reliability, implementing robust cloud architectures, and ensuring high-performance distributed systems. Works extensively with Java, Spring Boot framework, and AWS ecosystem to deliver scalable solutions.`,
-    tags: ['hp-inc', 'sde', 'aws', 'spring-boot', 'microservices', 'cloud'],
+    title: 'Co-founder · Design & Frontend Lead at Spera',
+    content: `Co-founder at Spera (spera.bot) from February 2026. Leading all design, frontend, interaction, and product experience for a platform where traders build, backtest, and paper trade crypto strategies without a developer. Key surfaces: Visual Logic Deck, reproducible backtests, AI-assisted drafting, run manifests. Website: https://www.spera.bot`,
+    tags: ['spera', 'co-founder', 'design-lead', 'frontend', 'crypto', 'fintech', 'ai'],
+    priority: 10
+  },
+  {
+    id: 'previous-role-hp',
+    category: 'work',
+    title: 'UX Design Engineer at HP Inc — Innovation for India',
+    content: `UX Design Engineer on HP's Innovation for India team (February 2023 - February 2026). Main design engineer for the team. Key work: HP Print AI, Mudra AI Stack, Get my Prints, Print Learn Center, HP Onboarding App. Case study visuals under NDA. Public HP Print AI: hp.com/us-en/printers/ai-printers.html`,
+    tags: ['hp-inc', 'ux-design-engineer', 'hp-print-ai', 'design-systems', 'innovation-for-india', 'nda'],
     priority: 9
   },
 
@@ -83,22 +91,46 @@ export const personalKnowledgeBase: KnowledgeItem[] = [
 
   // Freelance Experience
   {
-    id: 'freelance-sns-square',
+    id: 'sns-square-square-bridge',
     category: 'work',
-    title: 'Freelance Design Lead at SNS Square',
-    content: `Worked as a Freelance Design Lead at SNS Square, managing comprehensive design initiatives encompassing branding, UX research, UI design, and creative direction. Led end-to-end design processes from conceptualization to implementation. Responsible for brand identity development, user experience strategy, interface design, and ensuring consistent design language across multiple platforms. Collaborated with cross-functional teams and managed client relationships while delivering high-quality design solutions.`,
-    tags: ['freelance', 'design-lead', 'branding', 'ux-research', 'ui-design'],
+    title: 'Subject Matter Expert — Square Bridge at SNS Square',
+    content: `Subject Matter Expert for Square Bridge at SNS Square (Feb–Jul 2023). Defined UX strategy for Placement Officers, led three designers across Student, Recruiter, and PO personas. Portfolio Builder boosted engagement 45%; recruiter dashboards cut discovery time 40%; 98% design-to-code accuracy on Node.js/MongoDB.`,
+    tags: ['sns-square', 'square-bridge', 'ux-strategy', 'design-lead', 'recruitment'],
     priority: 8
+  },
+  {
+    id: 'peoplegamez-intern',
+    category: 'work',
+    title: 'Interaction Design Intern at PeopleGamez.com',
+    content: `Interaction Design Intern at PeopleGamez.com (Nov 2022 – Jan 2023). Designed gamified HR experiences, 100+ game assets, performance dashboards, and interaction documentation. Worked on products like 4Plantz and Motivuz.`,
+    tags: ['peoplegamez', 'interaction-design', 'gamification', 'hr-tech'],
+    priority: 7
   },
 
   // Project Examples
   {
-    id: 'project-crypto-dashboard',
+    id: 'project-spera-platform',
     category: 'projects',
-    title: 'Cryptocurrency Bot Dashboard - Spera',
-    content: `Led complete branding and website design for Spera cryptocurrency platform. Managed end-to-end design process including brand identity creation, user-friendly dashboard design for cryptocurrency trading bots, and user management interface. Focused on creating intuitive data visualization, streamlined user flows, and professional visual design that makes complex financial data accessible to users. Project involved understanding fintech requirements, compliance considerations, and creating trustworthy digital experiences.`,
-    tags: ['cryptocurrency', 'dashboard', 'branding', 'fintech', 'data-visualization'],
+    title: 'Spera — Build & backtest crypto strategies',
+    content: `Co-founding Spera (https://www.spera.bot) — platform to design, backtest, and paper trade crypto strategies without hiring a developer. Visual Logic Deck, reproducible backtests with pinned data, AI inline drafts, walk-forward validation, run manifests. Leading design and frontend.`,
+    tags: ['spera', 'crypto', 'fintech', 'ai', 'backtesting', 'co-founder'],
+    priority: 9
+  },
+  {
+    id: 'project-prags-website',
+    category: 'projects',
+    title: 'PRAGS — Interactive Musician Website',
+    content: `Built https://www.prahatheesvar.in/ — scroll-to-play website for pianist Prahatheesvar (Prags). Howler.js audio, Three.js visuals, GSAP animation. Every visit feels like a mini live session.`,
+    tags: ['experimental', 'web-audio', 'threejs', 'gsap', 'freelance'],
     priority: 7
+  },
+  {
+    id: 'project-hp-print-ai',
+    category: 'projects',
+    title: 'HP Print AI',
+    content: `Key contributor to HP Print AI — designing the industry's first intelligent print experience by translating complex AI logic into human-centered workflows. Part of HP Innovation for India team.`,
+    tags: ['hp', 'print-ai', 'ai-ux', 'innovation'],
+    priority: 8
   },
 
   {
@@ -107,15 +139,6 @@ export const personalKnowledgeBase: KnowledgeItem[] = [
     title: 'HR Engagement Game Design - PeopleGamez.com',
     content: `Designed engaging game experiences specifically for HR stakeholders at PeopleGamez.com. Created comprehensive user flows, interaction designs, and gamification strategies to improve employee engagement and HR processes. Focused on making HR activities more interactive and enjoyable while maintaining professional standards. Involved understanding HR workflows, employee psychology, and creating game mechanics that enhance workplace culture and productivity.`,
     tags: ['hr-tech', 'game-design', 'user-flows', 'gamification', 'employee-engagement'],
-    priority: 7
-  },
-
-  {
-    id: 'project-ngo-cms',
-    category: 'projects',
-    title: 'NGO Website & CMS Platform - Life Savers NGO',
-    content: `Developed comprehensive website and content management system for Life Savers NGO. Integrated payment functionality for streamlined donation processes, created intuitive content management interfaces, and designed user-friendly donation flows. Focused on building trust through design, optimizing conversion rates for donations, and providing easy-to-use tools for NGO staff to manage content and track donations. Project demonstrated ability to work with non-profit organizations and create meaningful social impact through design and technology.`,
-    tags: ['ngo', 'cms', 'payment-integration', 'social-impact', 'donations'],
     priority: 7
   },
 

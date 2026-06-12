@@ -1,7 +1,6 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { usePathname } from "next/navigation";
 import { ModuleOverlayHost } from "@/components/modules/ModuleOverlay";
 import { Navbar } from "./Navbar";
 import AppLoader from "@/components/ui/app-loader";
@@ -9,7 +8,6 @@ import DetectiveStoryWrapper from "./DetectiveStoryWrapper";
 import SketchDigitalSplitLayout from "./SketchDigitalSplitLayout";
 import { useLayoutMode } from "@/contexts/LayoutModeContext";
 import { EraShell } from "@/components/era-shell/EraShell";
-import { EraFooter } from "@/components/footer/EraFooter";
 
 const CustomCursor = dynamic(() => import("@/components/ui/CustomCursor"), {
   ssr: false,
@@ -27,8 +25,6 @@ interface LayoutClientShellProps {
 
 export default function LayoutClientShell({ children }: Readonly<LayoutClientShellProps>) {
   const { isSplitMode } = useLayoutMode();
-  const pathname = usePathname();
-  const hideFooter = pathname?.startsWith("/case-studies") ?? false;
 
   // Nav bar removed; module triggers live inline in the era content. Archetypes
   // own their top padding, so the shell adds none.
@@ -67,7 +63,6 @@ export default function LayoutClientShell({ children }: Readonly<LayoutClientShe
             }}
           >
             {children}
-            {!isSplitMode && !hideFooter && <EraFooter />}
           </main>
         </DetectiveStoryWrapper>
       </SketchDigitalSplitLayout>

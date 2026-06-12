@@ -162,13 +162,13 @@ export function TimeMachine({
         aria-expanded={open}
         aria-label={`Era ${current?.id ?? ""} — ${eraLabel(current?.name ?? "")}. Open time machine`}
         whileTap={reduce ? undefined : { scale: 0.97 }}
-        className="pointer-events-auto flex items-center gap-2.5 rounded-full border py-1 pl-1.5 pr-3 outline-none transition-colors duration-200 hover:border-[color-mix(in_srgb,var(--text-main)_26%,transparent)]"
+        className="pointer-events-auto flex items-center gap-2.5 rounded-full border py-1 pl-1.5 pr-3 outline-none transition-colors duration-200 hover:border-[color-mix(in_srgb,var(--nav-text)_26%,transparent)]"
         style={{
-          borderColor: open ? "var(--accent-color)" : "color-mix(in srgb, var(--text-main) 14%, transparent)",
+          borderColor: open ? "var(--accent-color)" : "color-mix(in srgb, var(--nav-text) 18%, transparent)",
           background: open
-            ? "color-mix(in srgb, var(--text-main) 9%, transparent)"
-            : "color-mix(in srgb, var(--text-main) 4%, transparent)",
-          color: "var(--text-main)",
+            ? "color-mix(in srgb, var(--nav-text) 9%, transparent)"
+            : "color-mix(in srgb, var(--nav-text) 5%, transparent)",
+          color: "var(--nav-text)",
         }}
       >
         <span
@@ -178,17 +178,17 @@ export function TimeMachine({
           <MiniEye eraId={current?.id ?? eras[0].id} size={26} />
         </span>
         <span className="flex flex-col items-start leading-none">
-          <span className="text-[14px] font-bold tabular-nums leading-none" style={{ color: "var(--text-main)" }}>
+          <span className="text-[14px] font-bold tabular-nums leading-none" style={{ color: "var(--nav-text)" }}>
             {current?.id}
           </span>
-          <span className="mt-1 hidden max-w-[110px] truncate text-[8px] font-medium uppercase tracking-[0.14em] sm:block" style={{ color: "var(--text-muted)" }}>
+          <span className="mt-1 hidden max-w-[110px] truncate text-[8px] font-medium uppercase tracking-[0.14em] sm:block" style={{ color: "var(--nav-text-muted)" }}>
             {eraLabel(current?.name ?? "")}
           </span>
         </span>
         <motion.span
           aria-hidden
           className="ml-0.5 text-[8px]"
-          style={{ color: "var(--text-muted)" }}
+          style={{ color: "var(--nav-text-muted)" }}
           animate={{ rotate: open ? 180 : 0 }}
           transition={{ duration: 0.18, ease: EASE_OUT }}
         >

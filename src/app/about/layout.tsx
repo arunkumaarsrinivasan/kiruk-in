@@ -6,7 +6,7 @@ const SITE_URL =
 
 const TITLE = "About Arun Kumaar Sreenivasan (Kiruk) — Design Engineer";
 const DESCRIPTION =
-  "Interactive time-travel through Arun Kumaar Sreenivasan's life — from a creative joint family in Salem to design engineering at HP Print AI, Bengaluru.";
+  "Interactive time-travel through Arun Kumaar Sreenivasan's life — from a creative joint family in Salem to design engineering at HP Innovation for India and Spera.bot.";
 
 export const metadata: Metadata = {
   title: "About — Design engineer's time-travel timeline",

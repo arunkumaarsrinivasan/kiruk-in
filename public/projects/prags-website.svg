@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="480" viewBox="0 0 840 480" fill="none">
+  <rect width="840" height="480" fill="#0a0a0a"/>
+  <rect x="48" y="48" width="744" height="384" rx="4" fill="#111" stroke="#262626"/>
+  <text x="80" y="104" fill="#a3a3a3" font-family="Georgia,serif" font-size="14" letter-spacing="4">PRAHATHEESVAR</text>
+  <text x="80" y="152" fill="#fafafa" font-family="Georgia,serif" font-size="32" font-weight="700">Pianist portfolio</text>
+  <text x="80" y="190" fill="#737373" font-family="Georgia,serif" font-size="17">Classical · concerts · biography</text>
+  <g transform="translate(80 220)">
+    <rect width="360" height="72" rx="4" fill="#171717" stroke="#404040"/>
+    <rect x="0" y="0" width="24" height="72" fill="#fafafa"/>
+    <rect x="36" y="0" width="16" height="72" fill="#0a0a0a"/>
+    <rect x="60" y="0" width="24" height="72" fill="#fafafa"/>
+    <rect x="96" y="0" width="16" height="72" fill="#0a0a0a"/>
+    <rect x="120" y="0" width="24" height="72" fill="#fafafa"/>
+    <rect x="156" y="0" width="16" height="72" fill="#0a0a0a"/>
+    <rect x="180" y="0" width="24" height="72" fill="#fafafa"/>
+    <rect x="216" y="0" width="16" height="72" fill="#0a0a0a"/>
+    <rect x="240" y="0" width="24" height="72" fill="#fafafa"/>
+    <rect x="276" y="0" width="16" height="72" fill="#0a0a0a"/>
+    <rect x="300" y="0" width="24" height="72" fill="#fafafa"/>
+    <rect x="336" y="0" width="24" height="72" fill="#fafafa"/>
+  </g>
+  <g transform="translate(520 120)">
+    <path d="M40 200 Q120 40 200 200" stroke="#d4d4d4" stroke-width="2" fill="none"/>
+    <circle cx="120" cy="120" r="48" fill="#171717" stroke="#525252"/>
+    <text x="120" y="128" text-anchor="middle" fill="#e5e5e5" font-family="Georgia,serif" font-size="32">?</text>
+  </g>
+</svg>

@@ -17,7 +17,7 @@ const faqJsonLd = {
       name: 'Who is Kiruk?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Kiruk is the studio name of Arun Kumaar Sreenivasan, a design engineer and AI UX designer based in Bengaluru, India. He works on AI product design at HP Print AI and takes on independent design engineering projects.',
+        text: 'Kiruk is the studio name of Arun Kumaar Sreenivasan, a design engineer based in Bengaluru, India. He leads design, frontend, and interaction at Spera.bot and builds experimental websites, design tools, and human-centered product experiences.',
       },
     },
     {
@@ -41,7 +41,7 @@ const faqJsonLd = {
       name: 'What does the Kiruk portfolio cover?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'The portfolio covers AI UX flows for HP Print AI, design systems for SNS Square, gamified onboarding for PeopleGamez, and personal experiments in motion, illustration, and design engineering.',
+        text: 'The portfolio covers Spera.bot, HP Print AI and Mudra Stack, Square Bridge at SNS Square, PeopleGamez gamified HR, and personal experiments — PRAGS scroll-to-play sites, Foodies Buddies, Desirable, and this era-themed portfolio.',
       },
     },
   ],

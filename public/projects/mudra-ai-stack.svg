@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="480" viewBox="0 0 840 480" fill="none">
+  <rect width="840" height="480" fill="#0c0a09"/>
+  <rect x="40" y="40" width="760" height="400" rx="24" fill="#1c1917" stroke="#292524"/>
+  <text x="72" y="100" fill="#fbbf24" font-family="system-ui,sans-serif" font-size="14" letter-spacing="3">MUDRA AI STACK</text>
+  <text x="72" y="148" fill="#fafaf9" font-family="system-ui,sans-serif" font-size="30" font-weight="700">Multimodal AI layer</text>
+  <text x="72" y="182" fill="#a8a29e" font-family="system-ui,sans-serif" font-size="16">HP Innovation for India</text>
+  <g transform="translate(72 210)">
+    <polygon points="80,0 160,46 160,138 80,184 0,138 0,46" fill="#7c3aed" fill-opacity="0.25" stroke="#a78bfa" stroke-width="2"/>
+    <polygon points="200,20 260,55 260,125 200,160 140,125 140,55" fill="#f59e0b" fill-opacity="0.25" stroke="#fbbf24" stroke-width="2"/>
+    <polygon points="320,0 400,46 400,138 320,184 240,138 240,46" fill="#06b6d4" fill-opacity="0.25" stroke="#22d3ee" stroke-width="2"/>
+    <circle cx="80" cy="92" r="22" fill="#a78bfa"/>
+    <circle cx="200" cy="90" r="18" fill="#fbbf24"/>
+    <circle cx="320" cy="92" r="22" fill="#22d3ee"/>
+    <path d="M160 92h80" stroke="#57534e" stroke-width="2"/>
+    <path d="M260 90h80" stroke="#57534e" stroke-width="2"/>
+  </g>
+  <rect x="72" y="372" width="72" height="28" rx="8" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="108" y="391" text-anchor="middle" fill="#b45309" font-family="system-ui,sans-serif" font-size="11" font-weight="800">NDA</text>
+</svg>

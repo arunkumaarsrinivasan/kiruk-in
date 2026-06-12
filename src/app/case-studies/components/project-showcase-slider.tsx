@@ -3,8 +3,13 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { portfolioData } from "@/data/portfolio-data";
+import { isProjectNda } from "@/data/project-media";
+import {
+  ProjectCategoryCover,
+  isRasterThumbnail,
+} from "@/components/ui/ProjectCategoryCover";
+import { ProjectThumbnail } from "@/components/ui/ProjectThumbnail";
 import type { CharacterSide } from "@/components/ui/SplitCharacter";
 
 const EASE_OUT = [0.23, 1, 0.32, 1] as const;
@@ -36,15 +41,12 @@ function matchesSide(p: Project, side: CharacterSide): boolean {
   return s === "both" || s === side;
 }
 
-const CARD_ACCENTS = ["#FFD93D", "#1769FF", "#F24E1E", "#22c55e", "#8b5cf6"];
-
 interface ProjectShowcaseSliderProps {
   readonly activeSide: CharacterSide;
 }
 
 export function ProjectShowcaseSlider({ activeSide }: ProjectShowcaseSliderProps) {
   const reduce = useReducedMotion();
-  const router = useRouter();
   const scrollRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLElement | null)[]>([]);
   const [category, setCategory] = useState<(typeof CATEGORIES)[number]>("All");
@@ -123,18 +125,24 @@ export function ProjectShowcaseSlider({ activeSide }: ProjectShowcaseSliderProps
     return () => window.removeEventListener("keydown", onKey);
   }, [activeIndex, projects.length, scrollTo]);
 
+  const primaryProjectUrl = (p: Project): string | undefined => {
+    if (isProjectNda(p.id)) return undefined;
+    return p.links?.live ?? p.links?.demo ?? p.links?.figma ?? p.links?.behance ?? p.links?.github;
+  };
+
+  const primaryCtaLabel = (p: Project): string => {
+    if (p.links?.live) return "Live site";
+    if (p.links?.figma) return "Figma";
+    if (p.links?.behance) return "Behance";
+    if (p.links?.github) return "GitHub";
+    return "View project";
+  };
+
+  const showPrimaryCta = (p: Project): boolean => !!primaryProjectUrl(p);
+
   const openProject = (p: Project) => {
-    if (p.id === "portfolio-v3") {
-      router.push("/portfolio");
-      return;
-    }
-    if (p.links?.live) {
-      globalThis.open(p.links.live, "_blank", "noopener,noreferrer");
-      return;
-    }
-    if (p.links?.github) {
-      globalThis.open(p.links.github, "_blank", "noopener,noreferrer");
-    }
+    const url = primaryProjectUrl(p);
+    if (url) globalThis.open(url, "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -145,13 +153,13 @@ export function ProjectShowcaseSlider({ activeSide }: ProjectShowcaseSliderProps
             className="text-[11px] font-semibold uppercase tracking-[0.28em]"
             style={{ color: "var(--accent-color)" }}
           >
-            Card sort · selected work
+            Work · deep dives
           </p>
           <h2
             className="mt-1 text-xl font-bold sm:text-2xl"
             style={{ fontFamily: "var(--font-heading)", color: "var(--text-main)" }}
           >
-            Project showcase
+            Selected work
           </h2>
         </div>
 
@@ -196,7 +204,6 @@ export function ProjectShowcaseSlider({ activeSide }: ProjectShowcaseSliderProps
               style={{ scrollPaddingInline: "max(1rem, 8vw)" }}
             >
               {projects.map((p, i) => {
-                const accent = CARD_ACCENTS[i % CARD_ACCENTS.length];
                 const active = i === activeIndex;
                 return (
                   <motion.article
@@ -212,7 +219,7 @@ export function ProjectShowcaseSlider({ activeSide }: ProjectShowcaseSliderProps
                     transition={{ delay: i * 0.06, duration: 0.4, ease: EASE_OUT }}
                   >
                     <div
-                      className="flex h-full min-h-[340px] flex-col overflow-hidden border-2 transition-[transform,box-shadow] duration-300"
+                      className="flex h-full min-h-[460px] flex-col overflow-hidden border-2 transition-[transform,box-shadow] duration-300"
                       style={{
                         borderColor: active ? "var(--accent-color)" : "var(--border-color)",
                         borderRadius: "var(--era-radius-md, 10px)",
@@ -223,32 +230,45 @@ export function ProjectShowcaseSlider({ activeSide }: ProjectShowcaseSliderProps
                         transform: active ? "scale(1)" : "scale(0.97)",
                       }}
                     >
-                      <div
-                        className="relative h-36 shrink-0 overflow-hidden"
-                        style={{
-                          background: `linear-gradient(135deg, color-mix(in srgb, ${accent} 35%, var(--bg-main)), var(--bg-main))`,
-                        }}
-                      >
+                      <div className="relative h-44 shrink-0 overflow-hidden">
+                        {p.images?.thumbnail && isRasterThumbnail(p.images.thumbnail) ? (
+                          <ProjectThumbnail src={p.images.thumbnail} />
+                        ) : (
+                          <ProjectCategoryCover
+                            projectId={p.id}
+                            title={p.title}
+                            category={p.category}
+                          />
+                        )}
                         <span
-                          className="absolute left-4 top-4 text-[11px] font-bold tabular-nums uppercase tracking-[0.2em]"
-                          style={{ color: "var(--text-muted)" }}
+                          className="absolute left-4 top-4 z-[1] text-[12px] font-bold tabular-nums uppercase tracking-[0.2em]"
+                          style={{
+                            color: "rgba(255,255,255,0.55)",
+                            textShadow: "0 1px 10px rgba(0,0,0,0.6)",
+                          }}
                         >
                           {["I", "II", "III", "IV", "V"][i] ?? i + 1}
                         </span>
-                        <span
-                          className="absolute right-4 top-4 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
-                          style={{
-                            border: "1px solid var(--border-color)",
-                            borderRadius: "var(--era-radius-full, 999px)",
-                            color: "var(--text-main)",
-                            background: "color-mix(in srgb, var(--bg-card) 80%, transparent)",
-                          }}
-                        >
-                          {p.category}
-                        </span>
+                        {isProjectNda(p.id) ? (
+                          <span
+                            className="absolute right-4 top-12 z-[1] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider"
+                            style={{
+                              background: "rgba(245,158,11,0.18)",
+                              border: "1px solid rgba(245,158,11,0.7)",
+                              borderRadius: "var(--era-radius-sm, 4px)",
+                              color: "#fbbf24",
+                            }}
+                          >
+                            NDA
+                          </span>
+                        ) : null}
                         <div
                           className="absolute inset-x-0 bottom-0 h-px"
-                          style={{ background: "var(--border-color)" }}
+                          style={{
+                            background: active
+                              ? "var(--accent-color)"
+                              : "color-mix(in srgb, var(--border-color) 80%, transparent)",
+                          }}
                         />
                       </div>
 
@@ -280,24 +300,75 @@ export function ProjectShowcaseSlider({ activeSide }: ProjectShowcaseSliderProps
                             </span>
                           ))}
                         </div>
+                        {p.metrics?.impact ? (
+                          <div
+                            className="flex items-start gap-2 rounded-[var(--era-radius-sm,4px)] px-2.5 py-2"
+                            style={{
+                              background: "color-mix(in srgb, var(--accent-color) 8%, transparent)",
+                              border: "1px solid color-mix(in srgb, var(--accent-color) 22%, transparent)",
+                            }}
+                          >
+                            <span aria-hidden style={{ color: "var(--accent-color)" }}>
+                              ↗
+                            </span>
+                            <p
+                              className="text-[11px] leading-snug"
+                              style={{ color: "var(--text-main)" }}
+                            >
+                              {p.metrics.impact}
+                            </p>
+                          </div>
+                        ) : null}
                         <p className="text-[11px] uppercase tracking-[0.12em]" style={{ color: "var(--text-muted)" }}>
                           {p.role} · {p.timeline.duration}
                         </p>
                         <div className="mt-auto flex flex-wrap gap-2 pt-2">
-                          <button
-                            type="button"
-                            onClick={() => openProject(p)}
-                            className="inline-flex items-center gap-1.5 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] transition-transform hover:-translate-y-0.5"
-                            style={{
-                              background: "var(--accent-color)",
-                              color: "var(--bg-main)",
-                              borderRadius: "var(--era-radius-full, 999px)",
-                            }}
-                          >
-                            {p.id === "portfolio-v3" ? "View slides" : p.links?.live ? "Live site" : "View project"}
-                            <span aria-hidden>→</span>
-                          </button>
-                          {p.links?.github && (
+                          {showPrimaryCta(p) ? (
+                            <button
+                              type="button"
+                              onClick={() => openProject(p)}
+                              className="inline-flex items-center gap-1.5 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] transition-transform hover:-translate-y-0.5"
+                              style={{
+                                background: "var(--accent-color)",
+                                color: "var(--bg-main)",
+                                borderRadius: "var(--era-radius-full, 999px)",
+                              }}
+                            >
+                              {primaryCtaLabel(p)}
+                              <span aria-hidden>→</span>
+                            </button>
+                          ) : null}
+                          {!isProjectNda(p.id) && p.links?.figma && p.links.figma !== primaryProjectUrl(p) ? (
+                            <Link
+                              href={p.links.figma}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] transition-opacity hover:opacity-70"
+                              style={{
+                                border: "1px solid var(--border-color)",
+                                borderRadius: "var(--era-radius-full, 999px)",
+                                color: "var(--text-main)",
+                              }}
+                            >
+                              Figma
+                            </Link>
+                          ) : null}
+                          {!isProjectNda(p.id) && p.links?.behance && p.links.behance !== primaryProjectUrl(p) ? (
+                            <Link
+                              href={p.links.behance}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] transition-opacity hover:opacity-70"
+                              style={{
+                                border: "1px solid var(--border-color)",
+                                borderRadius: "var(--era-radius-full, 999px)",
+                                color: "var(--text-main)",
+                              }}
+                            >
+                              Behance
+                            </Link>
+                          ) : null}
+                          {!isProjectNda(p.id) && p.links?.github && p.links.github !== primaryProjectUrl(p) ? (
                             <Link
                               href={p.links.github}
                               target="_blank"
@@ -311,7 +382,7 @@ export function ProjectShowcaseSlider({ activeSide }: ProjectShowcaseSliderProps
                             >
                               GitHub
                             </Link>
-                          )}
+                          ) : null}
                         </div>
                       </div>
                     </div>

@@ -66,8 +66,8 @@ export default function OpengraphImage() {
               lineHeight: 1.3,
             }}
           >
-            Arun Kumaar Sreenivasan — Bengaluru, India. Crafting AI-driven
-            product experiences, design systems, and front-end at HP Print AI.
+            Arun Kumaar Sreenivasan — Bengaluru, India. Design & frontend lead
+            at Spera.bot · ex-HP Innovation for India.
           </div>
         </div>
 

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="480" viewBox="0 0 840 480" fill="none">
+  <rect width="840" height="480" fill="#fefce8"/>
+  <path d="M40 60 Q120 20 200 80 T360 50 T520 90 T700 40" stroke="#facc15" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M60 400 Q200 360 320 420 T560 380 T780 410" stroke="#fbbf24" stroke-width="3" fill="none" stroke-linecap="round" stroke-dasharray="8 12"/>
+  <text x="72" y="120" fill="#a16207" font-family="'Comic Sans MS',cursive" font-size="16" transform="rotate(-2 72 120)">kiruk.in v3</text>
+  <text x="72" y="168" fill="#422006" font-family="'Comic Sans MS',cursive" font-size="34" font-weight="700">Scribble portfolio</text>
+  <text x="72" y="208" fill="#854d0e" font-family="'Comic Sans MS',cursive" font-size="18">Hand-drawn · eras · AI chat</text>
+  <g transform="translate(72 240)">
+    <ellipse cx="100" cy="100" rx="88" ry="96" fill="#fff" stroke="#422006" stroke-width="3"/>
+    <circle cx="72" cy="88" r="10" fill="#422006"/>
+    <circle cx="128" cy="88" r="10" fill="#422006"/>
+    <path d="M70 130 Q100 155 130 130" stroke="#422006" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M30 60 Q10 20 50 10" stroke="#422006" stroke-width="3" fill="none"/>
+    <path d="M170 60 Q190 20 150 10" stroke="#422006" stroke-width="3" fill="none"/>
+  </g>
+  <g transform="translate(380 200)">
+    <rect width="200" height="140" rx="16" fill="#fff" stroke="#422006" stroke-width="3" transform="rotate(3 100 70)"/>
+    <rect x="20" y="24" width="80" height="12" rx="6" fill="#fde68a"/>
+    <rect x="20" y="48" width="160" height="8" rx="4" fill="#fef3c7"/>
+    <rect x="20" y="64" width="120" height="8" rx="4" fill="#fef3c7"/>
+    <circle cx="160" cy="110" r="20" fill="#facc15" stroke="#422006" stroke-width="2"/>
+    <text x="160" y="116" text-anchor="middle" fill="#422006" font-size="16">?</text>
+  </g>
+  <path d="M300 360 L340 320 L360 350 L400 300" stroke="#ef4444" stroke-width="3" fill="none" stroke-linecap="round"/>
+</svg>

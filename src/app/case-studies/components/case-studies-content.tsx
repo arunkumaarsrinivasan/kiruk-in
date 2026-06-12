@@ -113,17 +113,18 @@ export function CaseStudiesContent() {
               className="text-[11px] font-semibold uppercase tracking-[0.28em]"
               style={{ color: 'var(--accent-color)' }}
             >
-              Work · deep dives & platforms
+              Work · selected projects
             </p>
             <h1
               className="mt-2 text-2xl font-bold uppercase sm:text-3xl lg:text-4xl"
               style={{ fontFamily: 'var(--font-heading)', color: 'var(--text-main)' }}
             >
-              Half designer / half developer
+              Design engineer · co-founder
             </h1>
             <p className="mt-3 max-w-md text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-              Tap a side of the character — or use the filters — to sort the showcase. Swipe through
-              selected projects, then jump to external platforms for full case studies.
+              Spera, HP Innovation for India, Square Bridge, PeopleGamez, and experiments in
+              between. Tap a side — or filter — then swipe through work and jump to live sites,
+              Figma, and Behance.
             </p>
 
             <div className="mt-5 flex flex-wrap justify-center gap-2 lg:justify-start">

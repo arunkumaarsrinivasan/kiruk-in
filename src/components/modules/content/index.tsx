@@ -10,8 +10,8 @@ import type React from "react";
 import type { ModuleId } from "@/contexts/ModuleContext";
 import EraStoryContent from "./EraStoryContent";
 import { WorkObservatory } from "./WorkObservatory";
-import { WorkProjectShowcase } from "./WorkProjectShowcase";
 import { CaseStudiesExperience } from "./CaseStudiesExperience";
+import { WorkOS } from "../work-os/WorkOS";
 import { AboutExperience } from "./AboutExperience";
 import { ProgressExperience } from "./ProgressExperience";
 import { BlogExperience } from "./BlogExperience";
@@ -31,8 +31,7 @@ export interface ModuleMeta {
 export const MODULES: ModuleMeta[] = [
   { id: "era-story", label: "This Era", icon: "❖", blurb: "Why this screen" },
   { id: "eras", label: "Eras", icon: "◉", blurb: "Travel the timeline" },
-  { id: "work", label: "Work", icon: "▦", blurb: "Selected projects" },
-  { id: "case-studies", label: "Work · deep dives", icon: "▦", blurb: "Deep dives & platforms" },
+  { id: "work", label: "Work", icon: "▦", blurb: "Deep dives & platforms" },
   { id: "observatory", label: "Observatory", icon: "🔭", blurb: "Skills telescope" },
   { id: "about", label: "About", icon: "☺", blurb: "Who is Arun" },
   { id: "progress", label: "Progress", icon: "▲", blurb: "The long game" },
@@ -46,7 +45,8 @@ export const MODULE_CONTENT: Partial<
   Record<ModuleId, React.ComponentType>
 > = {
   "era-story": EraStoryContent,
-  work: WorkProjectShowcase,
+  work: WorkOS,
+  /** @deprecated URL alias — original slider deep-dive body */
   "case-studies": CaseStudiesExperience,
   observatory: WorkObservatory,
   about: AboutExperience,

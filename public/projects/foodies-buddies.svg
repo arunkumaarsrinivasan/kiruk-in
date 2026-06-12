@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="480" viewBox="0 0 840 480" fill="none">
+  <defs>
+    <linearGradient id="warm" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#fff1f2"/>
+      <stop offset="1" stop-color="#ffe4e6"/>
+    </linearGradient>
+  </defs>
+  <rect width="840" height="480" fill="url(#warm)"/>
+  <circle cx="700" cy="120" r="100" fill="#fb7185" fill-opacity="0.2"/>
+  <text x="72" y="108" fill="#e11d48" font-family="system-ui,sans-serif" font-size="14" letter-spacing="3">FOODIES BUDDIES</text>
+  <text x="72" y="156" fill="#881337" font-family="system-ui,sans-serif" font-size="32" font-weight="700">Match over meals</text>
+  <text x="72" y="194" fill="#9f1239" font-family="system-ui,sans-serif" font-size="17">Dating app · food-first profiles</text>
+  <g transform="translate(72 220)">
+    <circle cx="80" cy="80" r="72" fill="#fff" stroke="#fda4af" stroke-width="3"/>
+    <path d="M50 95 Q80 55 110 95" fill="#fecdd3"/>
+    <circle cx="65" cy="72" r="6" fill="#881337"/>
+    <circle cx="95" cy="72" r="6" fill="#881337"/>
+    <path d="M200 80 L260 80" stroke="#fb7185" stroke-width="3"/>
+    <path d="M230 50 L230 110" stroke="#fb7185" stroke-width="3"/>
+    <circle cx="340" cy="80" r="72" fill="#fff" stroke="#fda4af" stroke-width="3"/>
+    <path d="M310 95 Q340 55 370 95" fill="#fecdd3"/>
+    <circle cx="325" cy="72" r="6" fill="#881337"/>
+    <circle cx="355" cy="72" r="6" fill="#881337"/>
+  </g>
+  <g transform="translate(520 100)">
+    <rect width="200" height="280" rx="28" fill="#881337"/>
+    <rect x="12" y="12" width="176" height="256" rx="20" fill="#fff"/>
+    <rect x="28" y="40" width="144" height="100" rx="12" fill="#ffe4e6"/>
+    <text x="100" y="100" text-anchor="middle" fill="#e11d48" font-size="36">??</text>
+    <rect x="28" y="156" width="144" height="36" rx="18" fill="#fb7185"/>
+    <text x="100" y="180" text-anchor="middle" fill="#fff" font-family="system-ui,sans-serif" font-size="13" font-weight="700">Swipe &amp; dine</text>
+  </g>
+</svg>

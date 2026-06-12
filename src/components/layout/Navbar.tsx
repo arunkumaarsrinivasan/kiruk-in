@@ -53,7 +53,7 @@ function NavLink({
       aria-label={label}
       aria-current={active ? "true" : undefined}
       className="group pointer-events-auto relative px-1 py-2 text-[11px] uppercase tracking-[0.18em] outline-none transition-colors duration-200 hover:text-[var(--accent-color)] focus-visible:text-[var(--accent-color)]"
-      style={{ color: active ? "var(--accent-color)" : "var(--text-main)" }}
+      style={{ color: active ? "var(--accent-color)" : "var(--nav-text)" }}
     >
       <span className="leading-none">{label}</span>
       <span
@@ -157,15 +157,15 @@ export function Navbar() {
             style={{
               height: scrolled ? 54 : 64,
               fontFamily: fontMain,
-              color: "var(--text-main)",
-              // always-on, era-tinted frosted band so the nav reads on any era
+              color: "var(--nav-text)",
+              // era-tinted frosted band on --nav-surface (contrasts with --nav-text per era)
               background: scrolled
-                ? "color-mix(in srgb, var(--bg-main) 88%, transparent)"
-                : "color-mix(in srgb, var(--bg-main) 68%, transparent)",
+                ? "color-mix(in srgb, var(--nav-surface) 94%, transparent)"
+                : "color-mix(in srgb, var(--nav-surface) 90%, transparent)",
               backdropFilter: "blur(14px) saturate(1.15)",
               WebkitBackdropFilter: "blur(14px) saturate(1.15)",
-              borderBottom: "1px solid color-mix(in srgb, var(--text-main) 12%, transparent)",
-              boxShadow: scrolled ? "0 8px 30px color-mix(in srgb, var(--text-main) 14%, transparent)" : "none",
+              borderBottom: "1px solid color-mix(in srgb, var(--nav-text) 14%, transparent)",
+              boxShadow: scrolled ? "0 8px 30px color-mix(in srgb, var(--nav-text) 12%, transparent)" : "none",
             }}
           >
             {/* LEFT — eye + wordmark → full era browser */}
@@ -180,8 +180,8 @@ export function Navbar() {
             >
               <KirukEye bare gaze />
               <span className="hidden items-start sm:flex">
-                <KirukWordmark size={19} />
-                <sup className="ml-0.5 text-[9px]" style={{ color: "var(--text-muted)" }}>
+                <KirukWordmark size={19} color="var(--nav-text)" />
+                <sup className="ml-0.5 text-[9px]" style={{ color: "var(--nav-text-muted)" }}>
                   ®
                 </sup>
               </span>
@@ -205,7 +205,7 @@ export function Navbar() {
                 aria-label={menuOpen ? "Close menu" : "Open menu"}
                 aria-expanded={menuOpen}
                 className="pointer-events-auto flex h-8 w-8 items-center justify-center md:hidden"
-                style={{ color: "var(--text-main)" }}
+                style={{ color: "var(--nav-text)" }}
               >
                 <span className="relative block h-3 w-5">
                   <span className="absolute left-0 block h-px w-full transition-all duration-300" style={{ background: "currentColor", top: menuOpen ? "6px" : "1px", transform: menuOpen ? "rotate(45deg)" : "none" }} />
@@ -223,7 +223,7 @@ export function Navbar() {
             <motion.div
               key="mobile-menu"
               className="pointer-events-auto fixed inset-0 z-[94] flex flex-col justify-center gap-1 px-8 md:hidden"
-              style={{ background: "color-mix(in srgb, var(--bg-main) 94%, transparent)", fontFamily: fontMain }}
+              style={{ background: "color-mix(in srgb, var(--nav-surface) 96%, transparent)", fontFamily: fontMain }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -238,7 +238,7 @@ export function Navbar() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.05 + i * 0.05, duration: 0.3, ease: EASE_OUT }}
                   className="py-2 text-left text-3xl uppercase tracking-[0.06em]"
-                  style={{ color: openId === l.id ? "var(--accent-color)" : "var(--text-main)" }}
+                  style={{ color: openId === l.id ? "var(--accent-color)" : "var(--nav-text)" }}
                 >
                   {l.label}
                 </motion.button>

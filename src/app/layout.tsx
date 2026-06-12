@@ -18,7 +18,7 @@ const SITE_URL =
 const SITE_NAME = "Kiruk — Arun Kumaar Sreenivasan";
 const TITLE = "Kiruk — Design Engineer & AI UX Designer in India";
 const DESCRIPTION =
-  "Portfolio of Arun Kumaar Sreenivasan (Kiruk), a Bengaluru-based design engineer crafting AI UX, design systems, and playful product experiences in India.";
+  "Portfolio of Arun Kumaar Sreenivasan (Kiruk) — Co-founder at Spera.bot. Former UX Design Engineer on HP Innovation for India. Experimental websites, design tools, and human-centered UX from Bengaluru.";
 const OG_IMAGE = `${SITE_URL}/images/dp.jpeg`;
 
 const LAST_MODIFIED = "2026-05-19";
@@ -44,7 +44,8 @@ export const metadata: Metadata = {
     "Arun Kumaar Sreenivasan",
     "Kiruk",
     "Kirukism",
-    "HP Print AI designer",
+    "Spera.bot designer",
+    "HP Print AI",
     "design systems",
     "AI product design",
   ],
@@ -122,8 +123,8 @@ const personJsonLd = {
   description: DESCRIPTION,
   worksFor: {
     "@type": "Organization",
-    name: "HP Inc.",
-    url: "https://www.hp.com",
+    name: "Spera.bot",
+    url: "https://www.spera.bot",
   },
   address: {
     "@type": "PostalAddress",

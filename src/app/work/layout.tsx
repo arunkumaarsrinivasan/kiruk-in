@@ -6,7 +6,7 @@ const SITE_URL =
 
 const TITLE = "Work archive — Design engineering projects by Kiruk";
 const DESCRIPTION =
-  "Featured design engineering projects by Kiruk — HP Print AI, SNS Square design systems, PeopleGamez interaction design, and freelance work from Bengaluru.";
+  "Featured design engineering projects by Kiruk — Spera.bot, HP Print AI, Mudra Stack, Square Bridge, PeopleGamez, and experimental web work from Bengaluru.";
 
 export const metadata: Metadata = {
   title: "Work — Design engineering projects",

@@ -118,7 +118,7 @@ export default function CaseStudyPage() {
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <a
-              href="https://www.behance.net/arunkumaarsrinivasan"
+              href="https://www.behance.net/arunkusriniva"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 rounded-none bg-blue-500 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-600"
