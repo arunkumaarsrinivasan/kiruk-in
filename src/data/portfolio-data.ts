@@ -1301,7 +1301,9 @@ export const portfolioData: PortfolioData = {
         thumbnail: '/projects/hp-print-learn-center.svg',
         gallery: [],
       },
-      links: {},
+      links: {
+        live: 'https://www.printlearncenter.com/',
+      },
       timeline: {
         startDate: '2024-06-01',
         endDate: '2025-12-01',

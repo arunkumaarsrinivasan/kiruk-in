@@ -456,7 +456,7 @@ export function HeroWithHatSwitching({
                                 >
                                     I blend product design and front-end engineering for{' '}
                                     <a
-                                        href="https://www.hp.com/us-en/printers/print-ai.html"
+                                        href="https://www.hp.com/us-en/printers/ai-printers.html"
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="underline decoration-dotted underline-offset-2"

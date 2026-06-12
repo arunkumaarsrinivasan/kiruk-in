@@ -716,13 +716,6 @@ export function FlashSplashHomePage() {
   // Hit counter
   const [hits] = useState(() => 13497 + Math.floor(Math.random() * 200));
 
-  // Pop-up ad — appears after delay, dismissible
-  const [adOpen, setAdOpen] = useState(false);
-  useEffect(() => {
-    const t = window.setTimeout(() => setAdOpen(true), 2400);
-    return () => window.clearTimeout(t);
-  }, []);
-
   // Context menu (right-click on title bar)
   const [ctx, setCtx] = useState<{ id: string; x: number; y: number } | null>(null);
   useEffect(() => {
@@ -787,11 +780,6 @@ export function FlashSplashHomePage() {
         @keyframes kiruk-2000-win-pop {
           0%   { opacity: 0; transform: scale(0.95) translateY(8px); }
           100% { opacity: 1; transform: scale(1) translateY(0); }
-        }
-        @keyframes kiruk-2000-ad-fly {
-          0%   { transform: scale(0.6) rotate(-3deg); opacity: 0; }
-          70%  { transform: scale(1.05) rotate(1deg); opacity: 1; }
-          100% { transform: scale(1) rotate(-1deg); opacity: 1; }
         }
         .kiruk-2000-pinstripes {
           background-image:
@@ -1202,9 +1190,6 @@ export function FlashSplashHomePage() {
           ]}
         />
       )}
-
-      {/* ── POP-UP AD ─────────────────────────────────────── */}
-      {adOpen && <PopupAd onClose={() => setAdOpen(false)} />}
     </main>
   );
 }
@@ -1969,88 +1954,6 @@ function AquaTab({
     >
       {children}
     </button>
-  );
-}
-
-function PopupAd({ onClose }: { onClose: () => void }) {
-  return (
-    <div
-      role="dialog"
-      onClick={onClose}
-      style={{
-        position: "fixed",
-        right: 30,
-        top: 120,
-        zIndex: 90,
-        width: 260,
-        cursor: "pointer",
-        animation: "kiruk-2000-ad-fly 600ms cubic-bezier(0.34, 1.56, 0.64, 1)",
-      }}
-    >
-      <div
-        style={{
-          padding: "14px 14px 12px",
-          background:
-            `linear-gradient(135deg, ${ACCENT_HOT} 0%, ${ORANGE} 100%)`,
-          color: "#fff",
-          border: `2px solid #fff`,
-          borderRadius: 10,
-          boxShadow:
-            "0 14px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.6)",
-          textAlign: "center",
-        }}
-      >
-        <div style={{ fontFamily: FONT_DISPLAY, fontSize: 11, letterSpacing: 3, fontWeight: 900, opacity: 0.9 }}>
-          ★ SPECIAL OFFER ★
-        </div>
-        <div
-          style={{
-            fontFamily: FONT_DISPLAY,
-            fontSize: 18,
-            fontWeight: 900,
-            lineHeight: 1.1,
-            margin: "4px 0 4px",
-            letterSpacing: -0.3,
-          }}
-        >
-          You have been selected to hire one design engineer.
-        </div>
-        <div
-          style={{
-            fontFamily: FONT_UI,
-            fontSize: 11,
-            opacity: 0.95,
-            fontStyle: "italic",
-          }}
-        >
-          Click anywhere to claim this prize.
-        </div>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onClose();
-          }}
-          style={{
-            position: "absolute",
-            top: 4,
-            right: 4,
-            width: 18,
-            height: 18,
-            background: "#fff",
-            color: ACCENT_HOT,
-            border: "none",
-            borderRadius: 4,
-            fontFamily: FONT_DISPLAY,
-            fontSize: 11,
-            fontWeight: 900,
-            cursor: "pointer",
-          }}
-        >
-          ×
-        </button>
-      </div>
-    </div>
   );
 }
 

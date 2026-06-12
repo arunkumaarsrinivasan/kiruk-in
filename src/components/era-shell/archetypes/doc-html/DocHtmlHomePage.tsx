@@ -64,7 +64,7 @@ const FOOTNOTES: Footnote[] = [
     n: 1,
     body:
       'HP Print AI — Sreenivasan, A. (2023–present). Co-shipped the industry-first intelligent print experience. Email/webmail print workflows in Spring Boot + Node, mobile-first Flutter onboarding, AI Stack design system used by 500+ HP employees, Splunk observability across 7+ microservices.',
-    href: "https://www.hp.com/us-en/printers/print-ai.html",
+    href: "https://www.hp.com/us-en/printers/ai-printers.html",
   },
   {
     n: 2,

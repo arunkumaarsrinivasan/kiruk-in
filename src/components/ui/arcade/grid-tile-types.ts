@@ -119,6 +119,15 @@ export const PROJECT_TILES: ProjectTileContent[] = [
     teaser: 'Design system for 500+ employees + GenAI prompts',
   },
   {
+    id: 'hp-print-learn-center',
+    title: 'HP Print Learn Center (PLC)',
+    company: 'HP Inc.',
+    year: '2024–25',
+    tags: ['EdTech', 'WhatsApp', 'Parents'],
+    teaser: 'WhatsApp-native worksheet delivery for parents',
+    link: 'https://www.printlearncenter.com/',
+  },
+  {
     id: 'square-bridge',
     title: 'Square Bridge',
     company: 'SNS Square',

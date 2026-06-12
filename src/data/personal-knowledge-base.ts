@@ -34,7 +34,7 @@ export const personalKnowledgeBase: KnowledgeItem[] = [
     id: 'previous-role-hp',
     category: 'work',
     title: 'UX Design Engineer at HP Inc — Innovation for India',
-    content: `UX Design Engineer on HP's Innovation for India team (February 2023 - February 2026). Main design engineer for the team. Key work: HP Print AI, Mudra AI Stack, Get my Prints, Print Learn Center, HP Onboarding App. Case study visuals under NDA. Public HP Print AI: hp.com/us-en/printers/ai-printers.html`,
+    content: `UX Design Engineer on HP's Innovation for India team (February 2023 - February 2026). Main design engineer for the team. Key work: HP Print AI, Mudra AI Stack, Get my Prints, Print Learn Center, HP Onboarding App. Case study visuals under NDA. Public links: HP Print AI — https://www.hp.com/us-en/printers/ai-printers.html · Print Learn Center — https://www.printlearncenter.com/`,
     tags: ['hp-inc', 'ux-design-engineer', 'hp-print-ai', 'design-systems', 'innovation-for-india', 'nda'],
     priority: 9
   },
@@ -128,9 +128,17 @@ export const personalKnowledgeBase: KnowledgeItem[] = [
     id: 'project-hp-print-ai',
     category: 'projects',
     title: 'HP Print AI',
-    content: `Key contributor to HP Print AI — designing the industry's first intelligent print experience by translating complex AI logic into human-centered workflows. Part of HP Innovation for India team.`,
+    content: `Key contributor to HP Print AI — designing the industry's first intelligent print experience by translating complex AI logic into human-centered workflows. Part of HP Innovation for India team. Public site: https://www.hp.com/us-en/printers/ai-printers.html`,
     tags: ['hp', 'print-ai', 'ai-ux', 'innovation'],
     priority: 8
+  },
+  {
+    id: 'project-hp-print-learn-center',
+    category: 'projects',
+    title: 'HP Print Learn Center (PLC)',
+    content: `Worked on HP Print Learn Center (PLC) — integrated and optimized the WhatsApp API experience for parents accessing learning worksheets. Public site: https://www.printlearncenter.com/`,
+    tags: ['hp', 'plc', 'edtech', 'whatsapp'],
+    priority: 7
   },
 
   {
