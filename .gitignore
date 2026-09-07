@@ -94,13 +94,30 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
-# API Keys and Tokens (extra protection)
+# API keys and tokens (extra protection).
+# Scoped to data/config files on purpose. A bare `**/*token*` also matched
+# source — it silently excluded src/lib/sketch-ink/tokenize.ts, which
+# sketch-ink/index.ts imports, so clean checkouts failed to build.
 **/api-keys.json
 **/tokens.json
-**/*secret*
-**/*key*
-**/*token*
-**/*password*
+**/*.pem
+**/*.key
+**/*secret*.json
+**/*secret*.txt
+**/*secret*.yaml
+**/*secret*.yml
+**/*token*.json
+**/*token*.txt
+**/*token*.yaml
+**/*token*.yml
+**/*key*.json
+**/*key*.txt
+**/*key*.yaml
+**/*key*.yml
+**/*password*.json
+**/*password*.txt
+**/*password*.yaml
+**/*password*.yml
 
 # Kiruk OS content staging — raw scan originals are not committed;
 # processed assets live under public/. inbox/thoughts/ IS tracked (raw notebook).
