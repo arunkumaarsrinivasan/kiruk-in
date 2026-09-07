@@ -1,8 +1,13 @@
 import type { MetadataRoute } from "next";
+import { getBlogPosts } from "@/lib/content/blog";
+import { getNotes } from "@/lib/content/notes";
+import { SITE_URL } from "@/lib/site";
 
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ??
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://kiruk.in");
+/**
+ * Sitemap — built directly from the content kernel (no HTTP self-fetch, which
+ * coupled the build to network/SITE_URL and mis-read the article date field).
+ * `lastModified` uses each post's real `publishedDate`.
+ */
 
 type Route = {
   path: string;
@@ -23,22 +28,7 @@ const STATIC_ROUTES: Route[] = [
   { path: "/life-roadmap", priority: 0.5, changeFrequency: "monthly" },
 ];
 
-async function fetchBlogSlugs(): Promise<{ slug: string; lastModified?: string }[]> {
-  try {
-    const res = await fetch(`${SITE_URL}/api/blog`, { next: { revalidate: 3600 } });
-    if (!res.ok) return [];
-    const data = await res.json();
-    const articles: Array<{ slug?: string; updatedAt?: string; publishedAt?: string }> =
-      data?.articles ?? [];
-    return articles
-      .filter((a) => typeof a.slug === "string" && a.slug.length > 0)
-      .map((a) => ({ slug: a.slug as string, lastModified: a.updatedAt ?? a.publishedAt }));
-  } catch {
-    return [];
-  }
-}
-
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
 
   const staticEntries: MetadataRoute.Sitemap = STATIC_ROUTES.map((r) => ({
@@ -48,13 +38,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: r.priority,
   }));
 
-  const blogPosts = await fetchBlogSlugs();
-  const blogEntries: MetadataRoute.Sitemap = blogPosts.map((p) => ({
-    url: `${SITE_URL}/blog/${p.slug}`,
-    lastModified: p.lastModified ? new Date(p.lastModified) : now,
+  const toLastModified = (date: string) => {
+    const parsed = date ? new Date(date) : now;
+    return Number.isNaN(parsed.getTime()) ? now : parsed;
+  };
+
+  const blogEntries: MetadataRoute.Sitemap = getBlogPosts().map((post) => ({
+    url: `${SITE_URL}/blog/${post.slug}`,
+    lastModified: toLastModified(post.publishedDate),
     changeFrequency: "monthly",
     priority: 0.7,
   }));
 
-  return [...staticEntries, ...blogEntries];
+  const noteEntries: MetadataRoute.Sitemap = getNotes().map((note) => ({
+    url: `${SITE_URL}/notes/${note.slug}`,
+    lastModified: toLastModified(note.date),
+    changeFrequency: "monthly",
+    priority: 0.6,
+  }));
+
+  return [...staticEntries, ...blogEntries, ...noteEntries];
 }

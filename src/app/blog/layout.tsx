@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
+import { USE_KIRUK_HAND } from "@/lib/sketch-ink/config";
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ??
   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://kiruk.in");
 
-const TITLE = "Blog — Essays on design engineering and AI UX by Kiruk";
+const TITLE = "Notebook — handwritten notes and sketches by Kiruk";
 const DESCRIPTION =
-  "Essays and process journals on design engineering, AI UX, design systems, and craft by Kiruk (Arun Kumaar Sreenivasan) from Bengaluru, India.";
+  "Handwritten notes, sketches, and screenshots from Kiruk — black ink on white paper.";
 
 export const metadata: Metadata = {
-  title: "Blog",
+  title: "Notebook",
   description: DESCRIPTION,
   alternates: { canonical: "/blog" },
   openGraph: {
@@ -26,5 +27,12 @@ export const metadata: Metadata = {
 };
 
 export default function BlogLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return (
+    <div
+      className="surface-paper relative z-20 min-h-screen"
+      data-kiruk-hand={USE_KIRUK_HAND ? "true" : "false"}
+    >
+      {children}
+    </div>
+  );
 }

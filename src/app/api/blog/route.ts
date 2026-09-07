@@ -1,26 +1,15 @@
 import { NextResponse } from 'next/server'
-import { fetchBlogArticles, notionBlogIntegrationReady } from '@/lib/notion-blog'
+import { getBlogPosts } from '@/lib/content/blog'
 
+/**
+ * GET /api/blog — MDX-backed article summaries as JSON.
+ *
+ * The `/blog` route renders these server-side, but the portfolio module overlay
+ * (`BlogExperience`) is a client island that can't touch the filesystem, so it
+ * fetches this endpoint. Reads `content/blog/*.mdx` at request time on the
+ * server.
+ */
 export async function GET() {
-  if (!notionBlogIntegrationReady) {
-    return NextResponse.json(
-      { message: 'Notion blog integration is not configured' },
-      { status: 503 }
-    )
-  }
-
-  try {
-    const articles = await fetchBlogArticles()
-
-    return NextResponse.json({
-      articles,
-      fetchedAt: new Date().toISOString()
-    })
-  } catch (error) {
-    console.error('Notion blog fetch failed', error)
-    return NextResponse.json(
-      { message: 'Unable to fetch blog articles from Notion' },
-      { status: 500 }
-    )
-  }
+  const articles = getBlogPosts()
+  return NextResponse.json({ articles, fetchedAt: new Date().toISOString() })
 }

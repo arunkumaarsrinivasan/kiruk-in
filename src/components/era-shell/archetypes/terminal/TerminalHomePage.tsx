@@ -69,6 +69,9 @@ function stamp(date: Date) {
   return `${d} ${t}`;
 }
 
+/** Same width as a real stamp, so the teletype rules never reflow on mount. */
+const STAMP_PLACEHOLDER = "---------- --:--:--";
+
 function wrap(text: string, width: number): string[] {
   const words = text.split(/\s+/);
   const lines: string[] = [];
@@ -104,7 +107,11 @@ export function TerminalHomePage() {
 
   const greenTextShadow =
     "0 0 6px rgba(0,255,65,0.55), 0 0 18px rgba(0,255,65,0.35)";
-  const openStamp = useMemo(() => stamp(new Date()), []);
+  // The clock is read on the client only: a stamp taken during SSR is already
+  // a second stale by the time React hydrates, and the mismatch throws the
+  // whole tree away.
+  const [openStamp, setOpenStamp] = useState(STAMP_PLACEHOLDER);
+  useEffect(() => setOpenStamp(stamp(new Date())), []);
   const openTime = openStamp.slice(11, 19);
   const nodes = useMemo(buildTimeline, []);
   const careerStars: TelescopeNode[] = useMemo(

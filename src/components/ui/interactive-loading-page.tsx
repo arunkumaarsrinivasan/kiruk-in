@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface InteractiveLoadingPageProps {
   onComplete?: () => void;
@@ -17,6 +18,16 @@ const InteractiveLoadingPage: React.FC<InteractiveLoadingPageProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isComplete, setIsComplete] = useState(false);
   const [progress, setProgress] = useState(0);
+
+  // A returning visitor already chose a year, so the wait belongs to that year
+  // rather than to a white page — the theme fills in a tick after mount, and
+  // the draw loop reads it off a ref so a late palette still lands mid-fill.
+  const { currentTheme } = useTheme();
+  const ground = currentTheme.colors.background;
+  const fill = currentTheme.colors.primary || currentTheme.colors.accent;
+  const label = currentTheme.colors.text;
+  const fillRef = useRef(fill);
+  fillRef.current = fill;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -35,7 +46,8 @@ const InteractiveLoadingPage: React.FC<InteractiveLoadingPageProps> = ({
       canvas.height = height * dpr;
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
-      ctx.scale(dpr, dpr);
+      // setTransform, not scale: a resize used to multiply onto the last one.
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
     
     updateSize();
@@ -67,7 +79,11 @@ const InteractiveLoadingPage: React.FC<InteractiveLoadingPageProps> = ({
       setProgress(Math.round(currentProgress * 100));
       
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#1a1a1a'; // Dark color for the pixels
+      // A tint, not a slab: filled solid, the last frame was a full-screen
+      // flood of the era's primary. This lands on the era's own ground, which
+      // is what the page underneath is about to be.
+      ctx.globalAlpha = 0.16;
+      ctx.fillStyle = fillRef.current;
 
       const countToDraw = Math.floor(currentProgress * totalCells);
       
@@ -107,7 +123,8 @@ const InteractiveLoadingPage: React.FC<InteractiveLoadingPageProps> = ({
   if (isComplete) {
       return (
         <motion.div
-            className="fixed inset-0 z-50 bg-[#1a1a1a]"
+            className="fixed inset-0 z-50"
+            style={{ background: ground }}
             initial={{ opacity: 1 }}
             animate={{ opacity: 0 }}
             transition={{ duration: 0.5, ease: "easeInOut" }}
@@ -116,15 +133,17 @@ const InteractiveLoadingPage: React.FC<InteractiveLoadingPageProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-white">
-      <div className="absolute inset-0 notebook-bg" />
+    <div className="fixed inset-0 z-50" style={{ background: ground }}>
       <canvas 
         ref={canvasRef}
         className="absolute inset-0 z-10"
       />
       {showProgress && (
-         <div className="absolute bottom-8 right-8 z-20 font-mono text-xs text-gray-500 mix-blend-difference">
-             {progress}%
+         <div
+            className="absolute bottom-8 right-8 z-20 font-mono text-[11px] uppercase tracking-[0.24em]"
+            style={{ color: label, opacity: 0.55, fontFamily: currentTheme.fonts.accent }}
+         >
+             {currentTheme.id} · {progress}%
          </div>
       )}
     </div>

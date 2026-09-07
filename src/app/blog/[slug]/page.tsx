@@ -1,183 +1,163 @@
-'use client'
-
-import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { notFound } from 'next/navigation'
+import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
-import { PixelIcon } from '@/components/ui/PixelIcon'
-import { GridBackground } from '@/components/ui/GridBackground'
-import { NotionRenderer } from '@/components/blog/NotionRenderer'
-import type { BlogArticle } from '@/types/blog'
+import { getBlogPost, getBlogPosts } from '@/lib/content/blog'
+import { renderMdx, readingTime } from '@/lib/content'
+import { mdxComponents } from '@/components/blog/MdxComponents'
+import { SketchInk } from '@/components/sketch-ink'
+import { NotebookReaderBody, NotebookViewProvider } from '@/components/notebook'
+import { parseNotebookView } from '@/lib/notebook'
 
-export default function BlogArticlePage() {
-  const params = useParams()
-  const router = useRouter()
-  const slug = params?.slug as string
-  const [article, setArticle] = useState<BlogArticle | null>(null)
-  const [loading, setLoading] = useState(true)
+interface PageProps {
+  params: Promise<{ slug: string }>
+}
 
-  useEffect(() => {
-    async function fetchArticle() {
-      if (!slug) return
+export function generateStaticParams(): Array<{ slug: string }> {
+  return getBlogPosts().map((post) => ({ slug: post.slug }))
+}
 
-      try {
-        const response = await fetch(`/api/blog/${slug}`)
-        if (response.ok) {
-          const data = await response.json()
-          setArticle(data.article)
-        } else if (response.status === 404) {
-          router.push('/blog')
-        }
-      } catch (error) {
-        console.error('Failed to fetch article:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchArticle()
-  }, [slug, router])
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params
+  const post = getBlogPost(slug)
+  if (!post) return { title: 'Notebook' }
+  const { title, excerpt, date, cover } = post.frontmatter
+  const url = `/blog/${slug}`
+  const images = cover ? [cover] : undefined
+  return {
+    title,
+    description: excerpt,
+    alternates: { canonical: url },
+    openGraph: {
+      type: 'article',
+      title,
+      description: excerpt,
+      url,
+      publishedTime: date,
+      images,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description: excerpt,
+      images,
+    },
   }
+}
 
-  if (loading) {
-    return (
-      <main
-        className="min-h-screen flex items-center justify-center"
-        style={{ backgroundColor: 'var(--bg-main)' }}
-      >
-        <GridBackground opacity={0.1} />
-        <div className="text-center relative z-10">
-          <PixelIcon name="spinner" size={48} className="animate-spin mb-4" style={{ color: 'var(--accent-color)' }} />
-          <p className="text-sm font-mono" style={{ color: 'var(--text-muted)' }}>
-            Loading article...
-          </p>
-        </div>
-      </main>
-    )
-  }
+function formatDate(dateString: string) {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  if (Number.isNaN(date.getTime())) return dateString
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
+}
 
-  if (!article) {
-    return (
-      <main
-        className="min-h-screen flex items-center justify-center"
-        style={{ backgroundColor: 'var(--bg-main)' }}
-      >
-        <GridBackground opacity={0.1} />
-        <div className="text-center relative z-10">
-          <h1 className="text-2xl font-mono font-bold mb-4" style={{ color: 'var(--text-main)' }}>
-            Article not found
-          </h1>
-          <Link
-            href="/blog"
-            className="text-sm font-mono underline"
-            style={{ color: 'var(--accent-color)' }}
-          >
-            ← Back to Blog
-          </Link>
-        </div>
-      </main>
-    )
-  }
+export default async function BlogArticlePage({ params }: PageProps) {
+  const { slug } = await params
+  const post = getBlogPost(slug)
+  if (!post) notFound()
+
+  const { summary } = post
+  const readStats = readingTime(post.body)
+  const content = await renderMdx(post.body, mdxComponents as never)
+  const notebookFm = post.frontmatter as unknown as Record<string, unknown>
+  const notebookView = parseNotebookView(notebookFm)
 
   return (
     <main
-      className="min-h-screen px-4 py-6"
+      className="notebook-page min-h-screen px-4 py-8 md:py-12"
       style={{ backgroundColor: 'var(--bg-main)', color: 'var(--text-main)' }}
     >
-      <GridBackground opacity={0.1} />
-      <div className="max-w-4xl mx-auto relative z-10">
-        {/* Header */}
-        <div className="mb-6">
-          <Link
-            href="/blog"
-            className="inline-flex items-center gap-2 text-sm font-mono mb-4 hover:underline transition-colors"
-            style={{ color: 'var(--text-muted)' }}
-          >
-            <PixelIcon name="angle-left" size={14} />
-            Back to Blog
-          </Link>
+      <article
+        className={`relative z-10 mx-auto ${
+          notebookView.layout === 'spread' || notebookView.fit
+            ? 'w-full max-w-none px-3 md:px-5'
+            : 'max-w-2xl md:max-w-3xl'
+        }`}
+      >
+        <Link
+          href="/blog"
+          className="mb-8 inline-block text-base opacity-55 transition-opacity hover:opacity-100"
+          style={{ color: 'var(--text-muted)' }}
+        >
+          <SketchInk mode="script" intensity={0.35}>
+            ← Notebook
+          </SketchInk>
+        </Link>
 
-          {/* Domain Tags */}
-          {article.domain && article.domain.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-4">
-              {article.domain.map((domain, idx) => (
-                <span
-                  key={idx}
-                  className="text-xs font-mono px-2 py-1 border border-[var(--border-color)]"
-                  style={{
-                    backgroundColor: 'var(--bg-card)',
-                    color: 'var(--accent-color)',
-                  }}
-                >
-                  {domain}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* Title */}
-          <h1 className="text-3xl md:text-4xl font-mono font-black mb-4" style={{ color: 'var(--accent-color)' }}>
-            {article.title}
+        <header className="mb-10">
+          <h1 className="mb-4 text-3xl leading-tight md:text-5xl" style={{ color: 'var(--text-main)' }}>
+            <SketchInk mode="auto" intensity={0.65}>
+              {summary.title}
+            </SketchInk>
           </h1>
 
-          {/* Meta */}
-          <div className="flex items-center gap-4 text-sm font-mono mb-6" style={{ color: 'var(--text-muted)' }}>
-            <span>{formatDate(article.publishedDate)}</span>
+          <div className="mb-6 flex flex-wrap gap-3 text-base" style={{ color: 'var(--text-muted)' }}>
+            {summary.publishedDate && (
+              <time>
+                <SketchInk mode="script" intensity={0.35}>
+                  {formatDate(summary.publishedDate)}
+                </SketchInk>
+              </time>
+            )}
+            <span>
+              <SketchInk mode="script" intensity={0.35}>
+                {readStats.text}
+              </SketchInk>
+            </span>
           </div>
 
-          {/* Cover Image */}
-          {article.coverImage && (
-            <div className="relative mb-8 aspect-[16/9] w-full max-h-[min(70vh,720px)] overflow-hidden border-2 border-[var(--border-color)]">
+          {summary.coverImage && (
+            <div
+              className="relative mb-8 aspect-[16/9] w-full overflow-hidden border"
+              style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-card)' }}
+            >
               <Image
-                src={article.coverImage}
-                alt={article.title}
+                src={summary.coverImage}
+                alt={summary.title}
                 fill
                 priority
-                className="object-contain object-top bg-[var(--bg-card)]"
-                sizes="(max-width: 896px) 100vw, 896px"
+                className="object-contain object-top"
+                sizes="(max-width: 768px) 100vw, 768px"
               />
             </div>
           )}
 
-          {/* Excerpt */}
-          {article.excerpt && (
+          {summary.excerpt && (
             <p
-              className="text-lg font-mono mb-8 italic border-l-4 pl-4"
+              className="border-l pl-4 text-lg leading-relaxed md:text-xl"
               style={{
-                borderColor: 'var(--accent-color)',
+                borderColor: 'var(--text-main)',
                 color: 'var(--text-muted)',
               }}
             >
-              {article.excerpt}
+              <SketchInk mode="script" intensity={0.7}>
+                {summary.excerpt}
+              </SketchInk>
             </p>
           )}
-        </div>
+        </header>
 
-        {/* Content */}
-        <div className="prose prose-invert max-w-none">
-          <NotionRenderer blocks={article.content} />
-        </div>
+        <NotebookViewProvider view={notebookView}>
+          <NotebookReaderBody frontmatter={notebookFm}>{content}</NotebookReaderBody>
+        </NotebookViewProvider>
 
-        {/* Footer */}
-        <div className="mt-12 pt-6 border-t-2 border-[var(--border-color)]">
+        <footer className="mt-12 border-t pt-6" style={{ borderColor: 'var(--border-color)' }}>
           <Link
             href="/blog"
-            className="inline-flex items-center gap-2 text-sm font-mono hover:underline transition-colors"
-            style={{ color: 'var(--accent-color)' }}
+            className="text-base transition-opacity hover:opacity-70"
+            style={{ color: 'var(--text-main)' }}
           >
-            <PixelIcon name="angle-left" size={14} />
-            Back to Blog
+            <SketchInk mode="script" intensity={0.35}>
+              ← Back to notebook
+            </SketchInk>
           </Link>
-        </div>
-      </div>
+        </footer>
+      </article>
     </main>
   )
 }

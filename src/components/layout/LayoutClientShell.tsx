@@ -1,6 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 import { ModuleOverlayHost } from "@/components/modules/ModuleOverlay";
 import { Navbar } from "./Navbar";
 import AppLoader from "@/components/ui/app-loader";
@@ -23,8 +25,24 @@ interface LayoutClientShellProps {
   readonly children: React.ReactNode;
 }
 
+import { USE_KIRUK_HAND } from "@/lib/sketch-ink/config";
+
 export default function LayoutClientShell({ children }: Readonly<LayoutClientShellProps>) {
+  const pathname = usePathname();
   const { isSplitMode } = useLayoutMode();
+
+  // Studio is a pen-and-paper desk — no era chrome, scanlines, or portfolio nav.
+  const isStudio = pathname?.startsWith("/studio") ?? false;
+
+  // Paper skin tokens must live on <html> so portaled dock / Page / ctx inherit them.
+  useEffect(() => {
+    if (!isStudio) return
+    const root = document.documentElement
+    root.setAttribute("data-notebook-skin", "paper")
+    return () => {
+      root.removeAttribute("data-notebook-skin")
+    }
+  }, [isStudio])
 
   // Nav bar removed; module triggers live inline in the era content. Archetypes
   // own their top padding, so the shell adds none.
@@ -33,6 +51,20 @@ export default function LayoutClientShell({ children }: Readonly<LayoutClientShe
   // Full-screen splash blocks first paint → set NEXT_PUBLIC_SPLASH_LOADER=false on prod for stronger LCP/Lighthouse.
   const splashLoaderEnabled =
     process.env.NEXT_PUBLIC_SPLASH_LOADER !== "false";
+
+  if (isStudio) {
+    return (
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="studio-desk min-h-screen"
+        data-kiruk-hand={USE_KIRUK_HAND ? "true" : "false"}
+        data-notebook-skin="paper"
+      >
+        {children}
+      </main>
+    );
+  }
 
   return (
     <>

@@ -6,8 +6,10 @@
 
 /* ── Core variable overrides ── */
 .sketch-mode {
-    --font-main: 'Left Hand', 'Bridges Not Walls', cursive;
-    --font-heading: 'Bridges Not Walls', 'Left Hand', cursive;
+    --font-main: var(--font-script-a, 'Nothing You Could Do'), cursive;
+    --font-heading: var(--font-print-a, 'Architects Daughter'), cursive;
+    --font-scribble: var(--font-script-a, 'Nothing You Could Do'), cursive;
+    --font-scribble-fallback: var(--font-script-a, 'Nothing You Could Do'), cursive;
     --bg-main: #f5f3ee;
     --bg-card: #faf9f6;
     --text-main: #1a1a1a;
@@ -114,10 +116,12 @@
    TYPOGRAPHY
    ═══════════════════════════════════════════ */
 
-/* All text → handwritten */
+/* All text → one-hand sketch kit (runs keep inline face + hand class) */
 .sketch-mode,
-.sketch-mode *:not(svg):not(path):not(rect):not(circle):not(g):not(line):not(polyline):not(polygon) {
-    font-family: 'Left Hand', cursive !important;
+.sketch-mode *:not(svg):not(path):not(rect):not(circle):not(g):not(line):not(polyline):not(polygon):not(.sketch-ink-run):not(.sketch-ink-space):not(.sketch-ink-nl) {
+    font-family: var(--font-scribble) !important;
+    font-weight: 480;
+    font-feature-settings: 'calt' 1, 'liga' 1;
 }
 
 /* ── Alignment lock for inner sticky header ──
@@ -132,7 +136,7 @@
     box-sizing: border-box !important;
 }
 
-/* Headings → Bridges Not Walls */
+/* Headings → print hand (same kit as studio titles) */
 .sketch-mode h1,
 .sketch-mode h2,
 .sketch-mode h3,
@@ -141,7 +145,7 @@
 .sketch-mode [class*="title"],
 .sketch-mode [class*="KIRUK"],
 .sketch-mode [class*="header"] {
-    font-family: 'Bridges Not Walls', cursive !important;
+    font-family: var(--font-heading) !important;
     letter-spacing: 0.02em;
 }
 
@@ -156,7 +160,9 @@
 /* Monospace → handwritten with slight tracking */
 .sketch-mode .font-mono,
 .sketch-mode [class*="font-mono"] {
-    font-family: 'Left Hand', cursive !important;
+    font-family: var(--font-scribble) !important;
+    font-weight: 480;
+    font-feature-settings: 'calt' 1, 'liga' 1;
     letter-spacing: 0.04em;
 }
 
@@ -334,7 +340,9 @@
 .sketch-mode span[style*="border"] {
     border-style: dashed !important;
     border-color: rgba(42, 40, 38, 0.55) !important;
-    font-family: 'Left Hand', cursive !important;
+    font-family: var(--font-scribble) !important;
+    font-weight: 480;
+    font-feature-settings: 'calt' 1, 'liga' 1;
     background: rgba(250, 249, 246, 0.8) !important;
 }
 

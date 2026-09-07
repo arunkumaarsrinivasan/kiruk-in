@@ -304,7 +304,8 @@
 
 /* Typography for loading states */
 .loading-text {
-  font-family: 'Left Hand', cursive;
+  font-family: 'Playpen Sans Variable', 'Playpen Sans', cursive;
+  font-weight: 480;
   font-size: var(--text-sm);
   color: #6b7280;
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
@@ -312,17 +313,17 @@
 
 /* Success/error message typography */
 .success-message {
-  font-family: 'Left Hand', cursive;
+  font-family: 'Playpen Sans Variable', 'Playpen Sans', cursive;
+  font-weight: 650;
   font-size: var(--text-sm);
   color: #059669;
-  font-weight: 600;
 }
 
 .error-message {
-  font-family: 'Left Hand', cursive;
+  font-family: 'Playpen Sans Variable', 'Playpen Sans', cursive;
+  font-weight: 520;
   font-size: var(--text-sm);
   color: #dc2626;
-  font-weight: 500;
   font-style: italic;
 }
 

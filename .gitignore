@@ -102,6 +102,11 @@ lerna-debug.log*
 **/*token*
 **/*password*
 
+# Kiruk OS content staging — raw scan originals are not committed;
+# processed assets live under public/. inbox/thoughts/ IS tracked (raw notebook).
+/_raw/
+/inbox/scans/
+
 # AI tooling / local agents
 .claude/
 .cursor/

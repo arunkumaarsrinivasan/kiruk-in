@@ -1,4 +1,7 @@
 import type { Metadata, Viewport } from "next";
+import "@fontsource/architects-daughter/400.css";
+import "@fontsource/nothing-you-could-do/400.css";
+import "@fontsource-variable/playpen-sans/wght.css";
 import "./globals.css";
 
 import LayoutClientShell from "@/components/layout/LayoutClientShell";
@@ -59,7 +62,7 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
     types: {
-      "application/rss+xml": `${SITE_URL}/api/blog/rss`,
+      "application/rss+xml": `${SITE_URL}/feed.xml`,
     },
   },
   openGraph: {

@@ -3,6 +3,1473 @@
 @import "../styles/teenage-engineering-interactions.css";
 @import "../styles/sketch-mode.css";
 
+/*
+ * Paper / Digital duality (kiruk notebook)
+ *   Paper  (now)    — white sheet · black chrome instrument
+ *   Digital (later) — invert roles: black sheet · light chrome
+ *
+ * Tokens live on html[data-notebook-skin] so portaled dock / Page / ctx inherit.
+ * SketchInk dual-hand (Phase 4 — one face per hand):
+ *   Hand A print  → Architects Daughter  (or KirukPrint when data-kiruk-hand)
+ *   Hand B script → Nothing You Could Do (or KirukScript)
+ */
+
+/* Paper skin — roles. Digital later: swap chrome ↔ sheet. */
+html[data-notebook-skin='paper'],
+.studio-desk[data-notebook-skin='paper'] {
+  --studio-chrome: #0a0a0a;
+  --studio-chrome-fg: #f2f2f0;
+  --studio-chrome-muted: #8a8a86;
+  --studio-chrome-border: rgba(242, 242, 240, 0.14);
+  --studio-chrome-hover: rgba(242, 242, 240, 0.08);
+  --studio-chrome-lift: #141414;
+  --studio-sheet: #ffffff;
+  --studio-sheet-fg: #0a0a0a;
+  --studio-sheet-muted: #6e6e6e;
+  --studio-sheet-border: rgba(10, 10, 10, 0.08);
+}
+
+/* Notebook / studio: sharp corners only — no pills, no soft cards */
+.studio-desk,
+.studio-desk *,
+.studio-dock,
+.studio-dock *,
+.studio-page-panel,
+.studio-page-panel *,
+.studio-ctx,
+.studio-ctx *,
+.notebook-reader-fit-chip,
+.notebook-spread-sheet,
+.notebook-spread-nav-btn {
+  border-radius: 0 !important;
+}
+
+.surface-paper {
+  --bg-main: #f4f4f2;
+  --bg-card: #ffffff;
+  --text-main: #0a0a0a;
+  --text-muted: #6e6e6e;
+  --border-color: #d6d6d4;
+  --accent-color: #0a0a0a;
+  --ink-line: #0a0a0a;
+  --font-print-a: 'Architects Daughter', cursive;
+  --font-script-a: 'Nothing You Could Do', cursive;
+  --font-scribble-fallback: var(--font-script-a);
+  --font-scribble: var(--font-script-a);
+  color: var(--text-main);
+  background-color: var(--bg-main);
+  font-family: var(--font-scribble);
+  line-height: 1.9;
+}
+
+.surface-paper[data-kiruk-hand='true'] {
+  --font-print-a: 'KirukPrint', cursive;
+  --font-script-a: 'KirukScript', cursive;
+}
+
+.surface-paper h1,
+.surface-paper h2 {
+  font-family: var(--font-print-a), var(--font-scribble-fallback);
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+/*
+ * Studio desk — Paper instrument (black chrome · white sheet).
+ * Tool strip + page ink use SketchInk dual-hand.
+ * Geometry: sharp corners only (no radius on studio chrome).
+ */
+.studio-desk {
+  --bg-main: var(--studio-chrome, #0a0a0a);
+  --bg-card: var(--studio-sheet, #ffffff);
+  --bg-paper: var(--studio-sheet, #ffffff);
+  --text-main: var(--studio-sheet-fg, #0a0a0a);
+  --text-muted: var(--studio-sheet-muted, #6e6e6e);
+  --border-color: var(--studio-sheet-border, #d6d6d4);
+  --accent-color: var(--studio-sheet-fg, #0a0a0a);
+  --ink-line: var(--studio-sheet-fg, #0a0a0a);
+  --font-print-a: 'Architects Daughter', cursive;
+  --font-script-a: 'Nothing You Could Do', cursive;
+  --font-scribble-fallback: var(--font-script-a);
+  --font-scribble: var(--font-script-a);
+  --font-studio: var(--font-scribble);
+  --font-studio-display: var(--font-print-a);
+  position: relative;
+  isolation: isolate;
+  min-height: 100dvh;
+  color: var(--text-main);
+  background-color: var(--bg-main);
+  font-family: var(--font-studio);
+  line-height: 1.9;
+}
+
+.studio-desk[data-kiruk-hand='true'] {
+  --font-print-a: 'KirukPrint', cursive;
+  --font-script-a: 'KirukScript', cursive;
+}
+
+.studio-desk .studio-title {
+  font-family: var(--font-studio-display);
+  letter-spacing: 0.02em;
+  line-height: 1.15;
+}
+
+/* SketchInk v5 — word behavior + perceptual amp */
+.sketch-ink {
+  display: inline;
+  line-height: 1.95;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  font-feature-settings: 'calt' 1, 'liga' 1, 'kern' 1;
+  color: var(--ink-line, #0a0a0a);
+}
+
+.sketch-ink-run {
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'calt' 1, 'liga' 1, 'kern' 1;
+  font-variant-ligatures: common-ligatures contextual;
+}
+
+.sketch-ink-print {
+  font-family: var(--font-print-a), var(--font-scribble-fallback), cursive;
+}
+
+.sketch-ink-script {
+  font-family: var(--font-script-a), var(--font-scribble-fallback), cursive;
+}
+
+.sketch-ink p.sketch-ink,
+.sketch-ink-field-mirror .sketch-ink {
+  display: block;
+  margin: 0;
+  line-height: 1.95;
+}
+
+.notebook-body .sketch-ink,
+.studio-desk .sketch-ink {
+  line-height: 1.95;
+}
+
+.notebook-body p,
+.notebook-body li {
+  line-height: 1.9;
+}
+
+.sketch-ink-field {
+  position: relative;
+  cursor: text;
+  min-height: 1.5em;
+  isolation: isolate;
+}
+
+.sketch-ink-field-mirror {
+  position: relative;
+  z-index: 1;
+  font-size: inherit;
+  line-height: 1.95;
+  word-break: break-word;
+  color: var(--text-main, #0a0a0a);
+}
+
+/* Ink wash under glyphs — soft graphite, not OS black slab */
+.sketch-ink-sel {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  background: rgba(10, 10, 10, 0.14);
+  border-radius: 0;
+  mix-blend-mode: multiply;
+}
+
+.sketch-ink-caret {
+  position: absolute;
+  z-index: 2;
+  width: 1.5px;
+  background: var(--ink-line, #0a0a0a);
+  border-radius: 0;
+  pointer-events: none;
+  animation: sketch-ink-caret-blink 1.05s steps(1, end) infinite;
+}
+
+@keyframes sketch-ink-caret-blink {
+  0%,
+  45% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/*
+ * Invisible editor layer — MUST never paint glyphs or OS selection.
+ * (Double-paint bug was notebook-text color showing through.)
+ */
+.sketch-ink-field-caret-input,
+.studio-desk .notebook-sheet .sketch-ink-field .sketch-ink-field-caret-input,
+.studio-desk .notebook-sheet .sketch-ink-field .sketch-ink-field-caret-input.notebook-text {
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+  caret-color: transparent !important;
+  background: transparent !important;
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  resize: none !important;
+  font-size: inherit !important;
+  line-height: 1.95 !important;
+  font-family: var(--font-script-a, 'Nothing You Could Do'), cursive !important;
+  letter-spacing: inherit;
+  padding: 0 !important;
+  margin: 0 !important;
+  min-height: 100% !important;
+  overflow: hidden !important;
+  cursor: text;
+  opacity: 1;
+}
+
+.sketch-ink-field-caret-input::selection,
+.sketch-ink-field-caret-input::-moz-selection {
+  background: transparent !important;
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+.sketch-ink-field[data-focused='true'] .sketch-ink-field-mirror {
+  opacity: 1;
+}
+
+.studio-desk .studio-paper {
+  background-color: var(--bg-paper);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 12px 40px rgba(0, 0, 0, 0.04);
+}
+
+/* Toolbar chrome — black bar, light labels (not sheet tokens) */
+.studio-desk .studio-btn {
+  border: 1.5px solid var(--studio-chrome-border, rgba(242, 242, 240, 0.18));
+  background: var(--studio-chrome-lift, #141414);
+  color: var(--studio-chrome-fg, #f2f2f0);
+  border-radius: 0;
+  font-family: var(--font-scribble);
+  font-size: 1rem;
+  font-weight: 560;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  transition:
+    transform 120ms cubic-bezier(0.23, 1, 0.32, 1),
+    background-color 120ms ease-out,
+    border-color 120ms ease-out,
+    color 120ms ease-out;
+}
+
+/* Rough.js scribble frames — replace hairline borders on instrument chrome */
+.scribble-box {
+  position: relative;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.studio-btn.scribble-box,
+.studio-dock-bar.scribble-box,
+.studio-dock-cluster.scribble-box,
+.studio-dock-btn.scribble-box,
+.studio-page-fab.scribble-box,
+.studio-page-panel-sheet.scribble-box {
+  position: relative;
+}
+
+.scribble-box-stroke {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  pointer-events: none;
+  z-index: 2;
+  overflow: visible;
+}
+
+/* Don't force position:relative on children — absolute dock centering must survive. */
+.scribble-box > *:not(.scribble-box-stroke):not(.absolute) {
+  position: relative;
+  z-index: 1;
+}
+
+.studio-desk .studio-btn.scribble-box,
+.studio-dock-bar.scribble-box,
+.studio-dock-pop.scribble-box,
+.studio-ctx.scribble-box,
+.studio-page-fab.scribble-box,
+.studio-page-panel-sheet.scribble-box,
+.studio-toolbar.scribble-box {
+  border-width: 0 !important;
+  border-style: none !important;
+}
+
+.studio-desk .studio-btn .sketch-ink,
+.studio-desk .studio-btn .sketch-ink-run,
+.studio-desk .studio-btn .studio-tool-label {
+  color: inherit;
+}
+
+.studio-desk .studio-btn:nth-child(4n + 1) {
+  transform: rotate(-0.6deg);
+}
+
+.studio-desk .studio-btn:nth-child(4n + 2) {
+  transform: rotate(0.45deg);
+}
+
+.studio-desk .studio-btn:nth-child(4n + 3) {
+  transform: rotate(-0.35deg);
+}
+
+.studio-desk .studio-btn:nth-child(4n) {
+  transform: rotate(0.7deg);
+}
+
+.studio-desk .studio-btn:hover {
+  border-color: color-mix(in srgb, var(--studio-chrome-fg, #f2f2f0) 45%, transparent);
+  background: color-mix(in srgb, var(--studio-chrome-fg, #f2f2f0) 10%, var(--studio-chrome, #0a0a0a));
+  transform: rotate(0deg) scale(1.03);
+}
+
+.studio-desk .studio-btn:active {
+  transform: scale(0.96) rotate(0deg);
+}
+
+.studio-desk .studio-btn:focus-visible {
+  outline: 2px solid var(--studio-chrome-fg, #f2f2f0);
+  outline-offset: 2px;
+}
+
+/* Save — light fill on black chrome */
+.studio-desk .studio-toolbar .studio-btn:not(.studio-btn--quiet):not(.studio-btn-active) {
+  background: var(--studio-chrome-fg, #f2f2f0);
+  border-color: var(--studio-chrome-fg, #f2f2f0);
+  color: var(--studio-chrome, #0a0a0a);
+}
+
+.studio-desk .studio-toolbar .studio-btn:not(.studio-btn--quiet):not(.studio-btn-active) .sketch-ink,
+.studio-desk .studio-toolbar .studio-btn:not(.studio-btn--quiet):not(.studio-btn-active) .sketch-ink-run,
+.studio-desk .studio-toolbar .studio-btn:not(.studio-btn--quiet):not(.studio-btn-active) .studio-tool-label {
+  color: var(--studio-chrome, #0a0a0a);
+}
+
+.studio-desk .studio-btn-active {
+  border-color: var(--studio-chrome-fg, #f2f2f0);
+  background: var(--studio-chrome-fg, #f2f2f0);
+  color: var(--studio-chrome, #0a0a0a);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.35);
+  transform: rotate(-1.1deg) scale(1.02);
+}
+
+.studio-desk .studio-btn-active .sketch-ink,
+.studio-desk .studio-btn-active .sketch-ink-run,
+.studio-desk .studio-btn-active .studio-tool-label {
+  color: var(--studio-chrome, #0a0a0a);
+}
+
+.studio-desk .studio-btn-active:hover {
+  background: #ffffff;
+  border-color: #ffffff;
+  color: var(--studio-chrome, #0a0a0a);
+  transform: rotate(-0.4deg) scale(1.03);
+}
+
+.studio-desk .studio-toolbar {
+  border-bottom: none;
+  background: color-mix(in srgb, var(--studio-chrome, #0a0a0a) 92%, transparent);
+  color: var(--studio-chrome-fg, #f2f2f0);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  font-family: var(--font-scribble);
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+/* Full-bar sketchnote frame — room for corner overshoots */
+.studio-desk .studio-toolbar.scribble-box--bar {
+  margin: 0.5rem 0.55rem 0;
+  padding-inline: 0.75rem;
+  min-height: 3.4rem;
+  overflow: visible;
+}
+
+.studio-desk .studio-toolbar--slim {
+  min-height: 3.25rem;
+  padding-block: 0.35rem;
+}
+
+.studio-desk .studio-toolbar.scribble-box--bar.studio-toolbar--slim {
+  min-height: 3.4rem;
+  padding-block: 0.5rem;
+}
+
+.studio-desk .studio-toolbar-meta {
+  color: var(--studio-chrome-muted, #8a8a86);
+  font-family: var(--font-scribble);
+  font-size: 0.95rem;
+}
+
+.studio-desk .studio-toolbar .sketch-ink,
+.studio-desk .studio-toolbar .sketch-ink-run {
+  color: inherit;
+}
+
+.studio-desk .studio-btn--quiet {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  color: var(--studio-chrome-muted, #8a8a86);
+}
+
+.studio-desk .studio-btn--quiet:hover {
+  border-color: var(--studio-chrome-border, rgba(242, 242, 240, 0.18));
+  background: var(--studio-chrome-hover, rgba(242, 242, 240, 0.08));
+  color: var(--studio-chrome-fg, #f2f2f0);
+}
+
+/* Tool dock — sits in the fixed top nav */
+.studio-dock {
+  position: relative;
+  z-index: 20;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  font-family: var(--font-scribble, 'Nothing You Could Do', cursive);
+  color: var(--studio-chrome-fg, #f2f2f0);
+}
+
+.studio-dock--toolbar {
+  transform: none;
+}
+
+.studio-dock-bar,
+.studio-dock-pop {
+  pointer-events: auto;
+}
+
+.studio-dock-bar {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 0.15rem;
+  padding: 0.25rem;
+  background: color-mix(in srgb, var(--studio-chrome, #0a0a0a) 88%, transparent);
+  border: 1px solid var(--studio-chrome-border, rgba(242, 242, 240, 0.14));
+  border-radius: 0;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.06) inset,
+    0 8px 24px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: var(--studio-chrome-fg, #f2f2f0);
+}
+
+.studio-dock-cluster {
+  display: flex;
+  align-items: stretch;
+}
+
+.studio-dock-btn {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.05rem;
+  min-width: 2.75rem;
+  padding: 0.28rem 0.45rem 0.22rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease-out,
+    color 120ms ease-out,
+    transform 100ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.studio-dock-btn:hover {
+  background: var(--studio-chrome-hover, rgba(242, 242, 240, 0.08));
+}
+
+.studio-dock-btn:active {
+  transform: scale(0.94);
+}
+
+.studio-dock-btn.is-on {
+  background: var(--studio-chrome-fg, #f2f2f0);
+  color: var(--studio-chrome, #0a0a0a);
+}
+
+.studio-dock-btn.is-on .sketch-ink,
+.studio-dock-btn.is-on .sketch-ink-run {
+  color: var(--studio-chrome, #0a0a0a);
+}
+
+.studio-dock-btn-label {
+  font-size: 0.72rem;
+  line-height: 1;
+  max-width: 3.6rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.studio-dock-chevron {
+  margin-left: -0.2rem;
+  margin-right: 0.1rem;
+  padding: 0 0.35rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 0.7rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.studio-dock-chevron:hover,
+.studio-dock-chevron.is-on {
+  background: var(--studio-chrome-hover, rgba(242, 242, 240, 0.08));
+}
+
+.studio-dock-btn.is-on + .studio-dock-chevron,
+.studio-dock-cluster:has(.studio-dock-btn.is-on) .studio-dock-chevron {
+  color: var(--studio-chrome, #0a0a0a);
+}
+
+.studio-dock-cluster:has(.studio-dock-btn.is-on) {
+  background: var(--studio-chrome-fg, #f2f2f0);
+  border-radius: 0;
+  color: var(--studio-chrome, #0a0a0a);
+}
+
+.studio-dock-cluster:has(.studio-dock-btn.is-on) .studio-dock-btn {
+  background: transparent;
+  color: var(--studio-chrome, #0a0a0a);
+}
+
+.studio-dock-cluster:has(.studio-dock-btn.is-on) .studio-dock-chevron {
+  color: var(--studio-chrome, #0a0a0a);
+}
+
+.studio-dock-cluster:has(.studio-dock-btn.is-on) .sketch-ink,
+.studio-dock-cluster:has(.studio-dock-btn.is-on) .sketch-ink-run {
+  color: var(--studio-chrome, #0a0a0a);
+}
+
+.studio-dock-rule {
+  width: 1px;
+  align-self: stretch;
+  margin: 0.35rem 0.25rem;
+  background: var(--studio-chrome-border, rgba(242, 242, 240, 0.18));
+}
+
+.studio-dock-plus-mark {
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.studio-dock-pop {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  bottom: auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 8.5rem;
+  padding: 0.35rem;
+  background: var(--studio-chrome-lift, #141414);
+  border: 1px solid var(--studio-chrome-border, rgba(242, 242, 240, 0.14));
+  border-radius: 0;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.4);
+  color: var(--studio-chrome-fg, #f2f2f0);
+  animation: studio-dock-pop-in 120ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  z-index: 50;
+}
+
+.studio-dock-pop--hand {
+  left: 0;
+}
+
+.studio-dock-pop--plus {
+  right: 0;
+}
+
+@keyframes studio-dock-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.studio-dock-pop-item {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: 100%;
+  padding: 0.45rem 0.65rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--studio-chrome-fg, #f2f2f0);
+  text-align: left;
+  cursor: pointer;
+  font-size: 1.05rem;
+}
+
+.studio-dock-pop-item:hover {
+  background: var(--studio-chrome-hover, rgba(242, 242, 240, 0.08));
+}
+
+.studio-dock-pop-item.is-on {
+  background: var(--studio-chrome-fg, #f2f2f0);
+  color: var(--studio-chrome, #0a0a0a);
+}
+
+.studio-dock-pop-item.is-on .sketch-ink,
+.studio-dock-pop-item.is-on .sketch-ink-run {
+  color: var(--studio-chrome, #0a0a0a);
+}
+
+.studio-dock .sketch-ink,
+.studio-dock .sketch-ink-run {
+  color: inherit;
+}
+
+@media (max-width: 720px) {
+  .studio-dock--toolbar .studio-dock-btn-label {
+    display: none;
+  }
+
+  .studio-dock--toolbar .studio-dock-btn {
+    min-width: 2.35rem;
+    padding: 0.35rem 0.4rem;
+  }
+}
+
+/* Right-click context menu — black chrome (portaled) */
+.studio-ctx {
+  position: fixed;
+  z-index: 10060;
+  width: 13.5rem;
+  padding: 0.45rem 0;
+  background: var(--studio-chrome-lift, #141414);
+  border: 1px solid var(--studio-chrome-border, rgba(242, 242, 240, 0.14));
+  border-radius: 0;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+  transform-origin: top left;
+  animation: studio-ctx-in 120ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  font-family: var(--font-scribble, 'Nothing You Could Do', cursive);
+  color: var(--studio-chrome-fg, #f2f2f0);
+}
+
+@keyframes studio-ctx-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.studio-ctx-section {
+  display: flex;
+  flex-direction: column;
+  padding: 0.15rem 0.35rem;
+}
+
+.studio-ctx-label {
+  display: block;
+  padding: 0.2rem 0.55rem 0.35rem;
+  color: var(--studio-chrome-muted, #8a8a86);
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.studio-ctx-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.4rem 0.55rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--studio-chrome-fg, #f2f2f0);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 100ms ease-out;
+}
+
+.studio-ctx-item:hover {
+  background: var(--studio-chrome-hover, rgba(242, 242, 240, 0.08));
+}
+
+.studio-ctx-item.is-on {
+  background: var(--studio-chrome-fg, #f2f2f0);
+  color: var(--studio-chrome, #0a0a0a);
+}
+
+.studio-ctx-item.is-on .sketch-ink,
+.studio-ctx-item.is-on .sketch-ink-run {
+  color: var(--studio-chrome, #0a0a0a);
+}
+
+.studio-ctx-item-main {
+  font-size: 1.05rem;
+  line-height: 1.1;
+}
+
+.studio-ctx .sketch-ink,
+.studio-ctx .sketch-ink-run {
+  color: inherit;
+}
+
+.studio-ctx-hint {
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--studio-chrome-muted, #8a8a86);
+  opacity: 0.9;
+}
+
+.studio-ctx-item.is-on .studio-ctx-hint {
+  color: color-mix(in srgb, var(--studio-chrome, #0a0a0a) 55%, transparent);
+}
+
+.studio-ctx-kbd {
+  font-family: ui-monospace, monospace;
+  font-size: 0.65rem;
+  padding: 0.1rem 0.3rem;
+  border: 1px solid var(--studio-chrome-border, rgba(242, 242, 240, 0.18));
+  border-radius: 0;
+  color: var(--studio-chrome-muted, #8a8a86);
+}
+
+.studio-ctx-item.is-on .studio-ctx-kbd {
+  border-color: color-mix(in srgb, var(--studio-chrome, #0a0a0a) 25%, transparent);
+  color: color-mix(in srgb, var(--studio-chrome, #0a0a0a) 55%, transparent);
+}
+
+.studio-ctx-rule {
+  height: 1px;
+  margin: 0.35rem 0.6rem;
+  background: var(--studio-chrome-border, rgba(242, 242, 240, 0.14));
+}
+
+.studio-desk .studio-tool-label {
+  font-family: var(--font-scribble);
+  font-weight: 620;
+  font-size: 1.05rem;
+  letter-spacing: 0.01em;
+  line-height: 1;
+}
+
+.studio-desk .notebook-sheet {
+  position: relative;
+  background-color: var(--studio-sheet, var(--bg-paper));
+  min-height: 100%;
+  /* Soft lift so white page floats on black desk */
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 1px 0 rgba(255, 255, 255, 0.12) inset,
+    0 24px 80px rgba(0, 0, 0, 0.55);
+  color: var(--ink-line, #0a0a0a);
+  padding-bottom: 5.5rem;
+}
+
+/* Paper tooth — cheap CSS grain (no canvas per keystroke) */
+.studio-desk .notebook-sheet::before,
+.surface-paper.notebook-body::before {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.045;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+}
+
+.studio-desk .notebook-sheet > * {
+  position: relative;
+  z-index: 1;
+}
+
+.studio-desk .notebook-sheet .notebook-text {
+  display: block;
+  width: 100%;
+  border: 0;
+  outline: none;
+  resize: none;
+  background: transparent;
+  color: var(--ink-line, #0a0a0a);
+  font-family: var(--font-scribble);
+  font-weight: 480;
+  font-size: 1.45rem;
+  line-height: 1.95;
+  font-feature-settings: 'calt' 1, 'liga' 1;
+  padding: 0.85rem 1.5rem;
+  min-height: 4.5rem;
+  caret-color: var(--ink-line);
+}
+
+/* Caret layer inside SketchInkField — no extra padding / no visible glyphs */
+.studio-desk .notebook-sheet .sketch-ink-field.notebook-text {
+  position: relative;
+}
+
+.studio-desk .notebook-sheet .sketch-ink-field .sketch-ink-field-caret-input.notebook-text,
+.studio-desk .notebook-sheet .sketch-ink-field .sketch-ink-field-caret-input {
+  padding: 0 !important;
+  min-height: 100% !important;
+  font-size: inherit !important;
+  line-height: 1.95 !important;
+  background: transparent !important;
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+  caret-color: transparent !important;
+}
+
+.studio-desk .notebook-sheet .notebook-text::placeholder {
+  color: #b0b0ae;
+}
+
+.studio-desk .notebook-sheet .notebook-text:focus {
+  background: rgba(10, 10, 10, 0.015);
+}
+
+.studio-desk .notebook-sheet .notebook-ink {
+  width: 100%;
+  border: 0;
+  outline: none;
+}
+
+.studio-desk .notebook-sheet .notebook-ink.is-draw {
+  box-shadow: inset 0 0 0 1px rgba(10, 10, 10, 0.18);
+  background: linear-gradient(
+    180deg,
+    rgba(10, 10, 10, 0.02) 0%,
+    transparent 12%,
+    transparent 88%,
+    rgba(10, 10, 10, 0.02) 100%
+  );
+}
+
+.studio-desk .notebook-sheet .notebook-image {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.studio-desk .notebook-sheet .notebook-grow {
+  width: 100%;
+  min-height: 28vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  color: var(--text-muted);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: 0;
+  background: transparent;
+  transition: background-color 150ms ease-out, color 150ms ease-out;
+}
+
+.studio-desk .notebook-sheet .notebook-grow:hover {
+  background: rgba(10, 10, 10, 0.03);
+  color: var(--ink-line);
+}
+
+.studio-desk .notebook-sheet input,
+.studio-desk .notebook-sheet textarea {
+  font-family: var(--font-script-a);
+}
+
+.studio-desk .notebook-sheet .notebook-text.sketch-ink-field-input {
+  font-family: var(--font-script-a);
+}
+
+.studio-desk input,
+.studio-desk select {
+  font-family: inherit;
+}
+
+/* Sketchnote chrome helpers */
+.sketch-chrome-box {
+  min-height: 2rem;
+}
+
+.sketch-checklist {
+  list-style: none;
+  margin-left: 0;
+  padding-left: 0;
+}
+
+/* ── Notebook shell: layout / ruler / paper / fit (studio + reader) ── */
+.notebook-shell {
+  --nb-margin-color: rgba(210, 60, 60, 0.28);
+  --nb-margin-left: 2.75rem;
+  --nb-ruler-line: rgba(100, 90, 70, 0.1);
+  --nb-ruler-gap: 1.95em;
+  position: relative;
+}
+
+.notebook-shell.notebook-fit .notebook-scroll-sheet,
+.notebook-shell.notebook-fit.notebook-layout-scroll .notebook-sheet,
+.studio-desk .notebook-shell.notebook-fit .notebook-sheet {
+  max-width: none;
+  width: 100%;
+}
+
+.notebook-shell.notebook-layout-spread.notebook-fit .notebook-spread {
+  width: 100%;
+  max-width: none;
+  margin-inline: auto;
+}
+
+.notebook-shell.notebook-fit {
+  padding-inline: 0;
+}
+
+/* Paper feels */
+.notebook-shell.notebook-paper-clean .notebook-scroll-sheet,
+.notebook-shell.notebook-paper-clean .notebook-spread-sheet,
+.studio-desk .notebook-shell.notebook-paper-clean .notebook-sheet {
+  /* default soft grain via ::before */
+}
+
+.notebook-shell.notebook-paper-rough .notebook-scroll-sheet::before,
+.notebook-shell.notebook-paper-rough .notebook-spread-sheet::before,
+.studio-desk .notebook-shell.notebook-paper-rough .notebook-sheet::before,
+.notebook-shell.notebook-paper-rough.notebook-reader-body::before {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.11;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='5' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 140px 140px;
+}
+
+.notebook-shell.notebook-paper-rough .notebook-scroll-sheet,
+.notebook-shell.notebook-paper-rough .notebook-spread-sheet {
+  position: relative;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.05),
+    0 18px 50px rgba(40, 30, 10, 0.08),
+    inset 0 0 40px rgba(80, 60, 20, 0.04);
+}
+
+/* Ruler overlays on the writing sheet */
+.notebook-shell.notebook-ruler-margin .notebook-scroll-sheet::after,
+.notebook-shell.notebook-ruler-margin .notebook-spread-sheet-inner::before,
+.studio-desk .notebook-shell.notebook-ruler-margin .notebook-sheet::after {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--nb-margin-left);
+  width: 1px;
+  z-index: 2;
+  background: var(--nb-margin-color);
+}
+
+.notebook-shell.notebook-ruler-ruled .notebook-scroll-sheet::after,
+.notebook-shell.notebook-ruler-ruled .notebook-spread-sheet-inner::after,
+.studio-desk .notebook-shell.notebook-ruler-ruled .notebook-sheet::after {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background-image:
+    linear-gradient(
+      to right,
+      transparent calc(var(--nb-margin-left) - 1px),
+      var(--nb-margin-color) calc(var(--nb-margin-left) - 1px),
+      var(--nb-margin-color) var(--nb-margin-left),
+      transparent var(--nb-margin-left)
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent calc(var(--nb-ruler-gap) - 1px),
+      var(--nb-ruler-line) calc(var(--nb-ruler-gap) - 1px),
+      var(--nb-ruler-line) var(--nb-ruler-gap)
+    );
+  background-size: 100% 100%, 100% var(--nb-ruler-gap);
+  opacity: 0.9;
+}
+
+/* Open-book spread */
+.notebook-spread {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.5rem 0 1.5rem;
+}
+
+.notebook-spread-stage {
+  display: grid;
+  grid-template-columns: 1fr 10px 1fr;
+  width: 100%;
+  min-height: min(72dvh, 640px);
+  background: transparent;
+  filter: drop-shadow(0 16px 40px rgba(0, 0, 0, 0.08));
+  animation: notebook-spread-in 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes notebook-spread-in {
+  from {
+    opacity: 0.55;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.notebook-spread-sheet {
+  position: relative;
+  background: var(--studio-sheet, var(--bg-paper, #fff));
+  color: var(--studio-sheet-fg, var(--ink-line, #0a0a0a));
+  min-height: min(72dvh, 640px);
+  overflow: auto;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.4);
+}
+
+.notebook-spread-sheet--left {
+  border-radius: 0;
+  box-shadow: inset -8px 0 16px -12px rgba(0, 0, 0, 0.12);
+}
+
+.notebook-spread-sheet--right {
+  border-radius: 0;
+  box-shadow: inset 8px 0 16px -12px rgba(0, 0, 0, 0.1);
+}
+
+.notebook-spread-spine {
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.06),
+    rgba(0, 0, 0, 0.02) 40%,
+    rgba(0, 0, 0, 0.02) 60%,
+    rgba(0, 0, 0, 0.06)
+  );
+}
+
+.notebook-spread-sheet-inner {
+  position: relative;
+  min-height: 100%;
+  padding: 1rem 0.75rem 2rem;
+}
+
+.notebook-spread-empty {
+  padding: 2rem 1.25rem;
+  opacity: 0.45;
+}
+
+.notebook-spread-nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  user-select: none;
+}
+
+.notebook-spread-nav-btn {
+  border: 1px solid var(--studio-chrome-border, rgba(242, 242, 240, 0.2));
+  background: var(--studio-chrome-lift, #141414);
+  color: var(--studio-chrome-fg, #f2f2f0);
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.9;
+}
+
+.notebook-spread-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.notebook-spread-nav-btn:not(:disabled):hover {
+  opacity: 1;
+  background: var(--studio-chrome-hover, rgba(242, 242, 240, 0.08));
+}
+
+.notebook-spread-nav-label {
+  min-width: 4rem;
+  text-align: center;
+  font-size: 0.95rem;
+  color: var(--studio-chrome-muted, #8a8a86);
+}
+
+.notebook-spread-nav-label .sketch-ink,
+.notebook-spread-nav-label .sketch-ink-run {
+  color: inherit;
+}
+
+.notebook-spread-probe {
+  position: absolute;
+  visibility: hidden;
+  pointer-events: none;
+  height: 0;
+  overflow: hidden;
+  width: min(28rem, 90vw);
+}
+
+.notebook-spread-page-stack > * + * {
+  margin-top: 0.75rem;
+}
+
+@media (max-width: 720px) {
+  .notebook-spread-stage {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 6px auto;
+    min-height: 0;
+  }
+  .notebook-spread-spine {
+    height: 6px;
+    width: 100%;
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.06),
+      rgba(0, 0, 0, 0.02)
+    );
+  }
+  .notebook-spread-sheet {
+    min-height: min(48dvh, 420px);
+  }
+}
+
+/* Reader fit chip */
+.notebook-reader-fit-chip {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 40;
+  border: 1px solid var(--border-color, #ddd);
+  background: var(--bg-paper, #fff);
+  color: var(--text-muted, #666);
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8rem;
+  border-radius: 0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+}
+.notebook-reader-fit-chip.is-on {
+  color: var(--text-main, #111);
+}
+
+.notebook-reader-body.notebook-fit .notebook-scroll-sheet {
+  max-width: none;
+  width: 100%;
+}
+
+.notebook-reader-body .notebook-scroll-sheet {
+  position: relative;
+  background: var(--bg-card, #fff);
+  border: 1px solid var(--border-color);
+  padding: 2rem 1.25rem;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.04);
+}
+@media (min-width: 768px) {
+  .notebook-reader-body .notebook-scroll-sheet {
+    padding: 3rem 2.5rem;
+  }
+}
+
+/* Bottom-right Page panel — black chrome (portaled) */
+.studio-page-panel {
+  position: fixed;
+  right: 1.1rem;
+  bottom: 1.1rem;
+  z-index: 10055;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+  pointer-events: none;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+  color: var(--studio-chrome-fg, #f2f2f0);
+}
+.studio-page-panel > * {
+  pointer-events: auto;
+}
+
+.studio-page-fab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid var(--studio-chrome-border, rgba(242, 242, 240, 0.14));
+  background: color-mix(in srgb, var(--studio-chrome, #0a0a0a) 88%, transparent);
+  backdrop-filter: blur(10px);
+  color: var(--studio-chrome-fg, #f2f2f0);
+  padding: 0.45rem 0.7rem 0.45rem 0.55rem;
+  border-radius: 0;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  transition:
+    transform 140ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 140ms ease,
+    background-color 140ms ease,
+    color 140ms ease;
+}
+.studio-page-fab:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+  background: var(--studio-chrome-lift, #141414);
+}
+.studio-page-fab:active {
+  transform: scale(0.97);
+}
+.studio-page-fab.is-open {
+  background: var(--studio-chrome-fg, #f2f2f0);
+  color: var(--studio-chrome, #0a0a0a);
+  border-color: transparent;
+}
+.studio-page-fab-label {
+  font-size: 0.75rem;
+  font-weight: 560;
+  letter-spacing: 0.01em;
+}
+
+.studio-page-panel-sheet {
+  width: 15.5rem;
+  max-width: calc(100vw - 2rem);
+  background: color-mix(in srgb, var(--studio-chrome, #0a0a0a) 92%, transparent);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--studio-chrome-border, rgba(242, 242, 240, 0.14));
+  border-radius: 0;
+  padding: 0.55rem 0.55rem 0.6rem;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+  color: var(--studio-chrome-fg, #f2f2f0);
+  animation: studio-page-panel-in 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes studio-page-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.studio-page-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.1rem 0.2rem 0.45rem;
+}
+.studio-page-panel-title {
+  font-size: 0.7rem;
+  font-weight: 620;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--studio-chrome-muted, #8a8a86);
+}
+.studio-page-panel-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--studio-chrome-muted, #8a8a86);
+  cursor: pointer;
+  opacity: 0.85;
+  transition: background-color 120ms ease, opacity 120ms ease, color 120ms ease;
+}
+.studio-page-panel-close:hover {
+  opacity: 1;
+  color: var(--studio-chrome-fg, #f2f2f0);
+  background: var(--studio-chrome-hover, rgba(242, 242, 240, 0.08));
+}
+.studio-page-panel-close:active {
+  transform: scale(0.96);
+}
+
+.studio-page-panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.studio-page-row {
+  display: grid;
+  grid-template-columns: 2.6rem 1fr;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 1.85rem;
+}
+.studio-page-row-label {
+  font-size: 0.65rem;
+  font-weight: 550;
+  letter-spacing: 0.02em;
+  color: var(--studio-chrome-muted, #8a8a86);
+}
+.studio-page-row-ctrl {
+  min-width: 0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.studio-page-seg {
+  display: inline-flex;
+  width: 100%;
+  padding: 2px;
+  gap: 1px;
+  border-radius: 0;
+  background: rgba(0, 0, 0, 0.35);
+}
+.studio-page-seg-btn {
+  flex: 1;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.12rem;
+  min-height: 2.15rem;
+  padding: 0.25rem 0.15rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--studio-chrome-muted, #8a8a86);
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease,
+    box-shadow 120ms ease,
+    transform 100ms ease;
+}
+.studio-page-seg-btn:hover {
+  color: var(--studio-chrome-fg, #f2f2f0);
+}
+.studio-page-seg-btn:active {
+  transform: scale(0.97);
+}
+.studio-page-seg-btn.is-on {
+  background: var(--studio-chrome-lift, #1a1a1a);
+  color: var(--studio-chrome-fg, #f2f2f0);
+  box-shadow: 0 0 0 1px var(--studio-chrome-border, rgba(242, 242, 240, 0.14));
+}
+.studio-page-seg-icon {
+  display: inline-flex;
+  line-height: 0;
+}
+.studio-page-seg-text {
+  font-size: 0.58rem;
+  font-weight: 560;
+  letter-spacing: 0.01em;
+  line-height: 1;
+}
+
+.studio-page-switch {
+  position: relative;
+  width: 2rem;
+  height: 1.15rem;
+  border: 0;
+  border-radius: 0;
+  background: rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  padding: 0;
+  transition: background-color 140ms ease;
+}
+.studio-page-switch-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 0.9rem;
+  height: calc(100% - 4px);
+  border-radius: 0;
+  background: var(--studio-chrome-fg, #f2f2f0);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  transition: transform 140ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.studio-page-switch.is-on {
+  background: var(--studio-chrome-fg, #f2f2f0);
+}
+.studio-page-switch.is-on .studio-page-switch-knob {
+  transform: translateX(0.85rem);
+  background: var(--studio-chrome, #0a0a0a);
+}
+.studio-page-switch:active .studio-page-switch-knob {
+  transform: scale(0.94);
+}
+.studio-page-switch.is-on:active .studio-page-switch-knob {
+  transform: translateX(0.85rem) scale(0.94);
+}
+
+/* Leave room so Page fab doesn't collide with center dock */
+.studio-desk .notebook-sheet {
+  padding-bottom: 6.5rem;
+}
+
+@media print {
+  .studio-page-panel,
+  .notebook-spread-nav,
+  .notebook-reader-fit-chip,
+  .studio-dock {
+    display: none !important;
+  }
+  .notebook-spread-stage {
+    break-inside: avoid;
+    filter: none;
+  }
+}
+
+/* Kiruk hand — drop files into /public/fonts then set USE_KIRUK_HAND / NEXT_PUBLIC_USE_KIRUK_HAND */
+@font-face {
+  font-family: 'KirukPrint';
+  src: url('/fonts/KirukPrint.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: optional;
+  font-feature-settings: 'calt' 1, 'liga' 1;
+}
+
+@font-face {
+  font-family: 'KirukScript';
+  src: url('/fonts/KirukScript.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: optional;
+  font-feature-settings: 'calt' 1, 'liga' 1;
+}
+
 /* Brand wordmark */
 @font-face {
   font-family: 'Gudini Grotesk';
