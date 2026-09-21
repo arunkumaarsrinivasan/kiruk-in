@@ -20,9 +20,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   const post = getNotebookEntry(slug);
   if (!post) return { title: "Notebook" };
-  const { title, excerpt, date, coverImage } = post.summary;
+  const { title, excerpt, date } = post.summary;
   const url = `/notebook/${slug}`;
-  const images = coverImage ? [coverImage] : undefined;
   return {
     title,
     description: excerpt,
@@ -38,13 +37,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description: excerpt,
       url,
       publishedTime: date,
-      images,
     },
     twitter: {
       card: "summary_large_image",
       title,
       description: excerpt,
-      images,
     },
   };
 }
