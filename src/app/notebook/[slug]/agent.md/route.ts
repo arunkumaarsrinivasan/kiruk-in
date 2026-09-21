@@ -19,6 +19,7 @@ export async function GET(_req: Request, { params }: Params) {
     slug: post.summary.slug,
     body: post.body,
     siteUrl: SITE_URL,
+    substackUrl: "substack" in post.frontmatter ? post.frontmatter.substack : undefined,
   });
 
   return new NextResponse(markdown, {

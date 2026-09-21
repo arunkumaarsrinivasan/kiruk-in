@@ -234,8 +234,6 @@ function clampInkSize(sizeEm: number): number {
 /* Atomization — split InlineDoc into measurable atoms                       */
 /* -------------------------------------------------------------------------- */
 
-const SPACE_RE = /[ \t]+/g
-
 /**
  * Flatten InlineItems into atoms. Text items are split into words and spaces
  * on whitespace; newlines inside text become newline atoms. Ink items become
@@ -997,9 +995,11 @@ function layoutObstaclesWithChenglou(
   cache: MeasurementCache,
   containerWidthEm: number,
   align: LineAlign,
-  seedKey: string,
-  fatigue: number,
+  _seedKey: string,
+  _fatigue: number,
 ): PretextLayout {
+  void _seedKey
+  void _fatigue
   const sizeEm = opts.sizeEm ?? 1
   const clampedObstacles = (opts.obstacles ?? []).map((o) => {
     const x0 = Math.max(0, o.xEm)

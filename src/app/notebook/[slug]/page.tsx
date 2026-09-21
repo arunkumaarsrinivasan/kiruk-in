@@ -63,6 +63,8 @@ export default async function NotebookArticlePage({ params }: PageProps) {
   const related = resolveRelated(post.frontmatter.related);
   const tags = [...summary.domain, ...summary.tags.filter((tag) => !summary.domain.includes(tag))];
   const wide = notebookView.layout === "spread" || notebookView.fit;
+  const substackUrl =
+    "substack" in post.frontmatter ? post.frontmatter.substack : undefined;
   const agentMarkdown = buildAgentMarkdown({
     title: summary.title,
     excerpt: summary.excerpt,
@@ -70,6 +72,7 @@ export default async function NotebookArticlePage({ params }: PageProps) {
     slug: summary.slug,
     body: post.body,
     siteUrl: SITE_URL,
+    substackUrl,
   });
 
   return (
@@ -82,6 +85,7 @@ export default async function NotebookArticlePage({ params }: PageProps) {
       related={related}
       tags={tags}
       agentMarkdown={agentMarkdown}
+      substackUrl={substackUrl}
     >
       <NotebookViewProvider view={notebookView}>
         <NotebookReaderBody frontmatter={notebookFm}>{content}</NotebookReaderBody>

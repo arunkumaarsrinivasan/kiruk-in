@@ -889,6 +889,9 @@
     width: 100%;
     max-width: none;
     padding-inline: 1.25rem;
+    /* room for fixed back+share / agent.md+substack under the site nav */
+    padding-top: 4.75rem;
+    padding-bottom: 4.5rem;
   }
 
   .skin-log .era-index {
@@ -927,15 +930,42 @@
     max-width: none;
   }
 
+  .skin-log .era-record,
+  .era-article-head {
+    grid-template-columns: 1fr;
+    row-gap: 0.55rem;
+  }
+
+  .era-article-head {
+    /* keep title clear of fixed agent.md / substack stack */
+    padding-right: 4.75rem;
+  }
+
+  .era-article-head .era-record-meta,
+  .era-record-meta {
+    justify-self: start;
+    align-items: flex-start;
+    text-align: left;
+    padding-top: 0;
+    padding-left: calc(2rem + 0.65rem);
+    white-space: normal;
+  }
+
   .era-article-head .gaze-h1-hit {
     grid-template-columns: 2rem minmax(0, 1fr);
     column-gap: 0.65rem;
+    max-width: 100%;
   }
 
   .era-article-head .gaze-h1-hit .gaze-lamp {
     width: 2rem;
     height: 2rem;
     top: 0.15em;
+  }
+
+  .era-article-head .era-lede {
+    max-width: none;
+    padding-right: 0;
   }
 
   .era-toolbar {
@@ -950,20 +980,6 @@
 
   .era-banner-hit {
     margin-left: 0;
-  }
-
-  .skin-log .era-record,
-  .era-article-head {
-    grid-template-columns: 1fr;
-    row-gap: 0.4rem;
-  }
-
-  .era-record-meta {
-    align-items: flex-start;
-    text-align: left;
-    padding-top: 0;
-    padding-left: calc(40px + 0.85rem);
-    white-space: normal;
   }
 
   .skin-log .gaze-prose,

@@ -129,7 +129,7 @@ function NotebookEraSession({
     const fromQuery = parseNotebookEraId(new URLSearchParams(window.location.search).get("era"));
     const stored = parseNotebookEraId(window.localStorage.getItem(NOTEBOOK_ERA_STORAGE_KEY));
     setEraId(fromQuery ?? stored ?? DEFAULT_NOTEBOOK_ERA);
-  }, []);
+  }, [setEraId]);
 
   useEffect(() => {
     window.localStorage.setItem(NOTEBOOK_ERA_STORAGE_KEY, eraId);

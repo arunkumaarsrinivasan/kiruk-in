@@ -24,6 +24,7 @@ export function NotebookArticle({
   related,
   tags: _tags,
   agentMarkdown,
+  substackUrl,
   children,
 }: {
   summary: NotebookSummary;
@@ -34,6 +35,7 @@ export function NotebookArticle({
   related: RelatedHit[];
   tags: string[];
   agentMarkdown: string;
+  substackUrl?: string;
   children: ReactNode;
 }) {
   void _tags;
@@ -54,7 +56,7 @@ export function NotebookArticle({
       }
       style={{ color: "var(--text-main)" }}
     >
-      <NotebookProgress agentMarkdown={agentMarkdown} />
+      <NotebookProgress agentMarkdown={agentMarkdown} substackUrl={substackUrl} />
       <NotebookHeadingScroll />
       <article
         className={

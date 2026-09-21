@@ -7,6 +7,7 @@ export type AgentMarkdownInput = {
   slug: string;
   body: string;
   siteUrl?: string;
+  substackUrl?: string;
 };
 
 function attr(attrs: string, name: string): string | undefined {
@@ -108,6 +109,7 @@ export function buildAgentMarkdown(input: AgentMarkdownInput): string {
   lines.push(`- URL: ${url}`);
   if (input.date?.trim()) lines.push(`- Published: ${input.date.trim()}`);
   lines.push(`- Agent file: ${agentUrl}`);
+  if (input.substackUrl?.trim()) lines.push(`- Substack: ${input.substackUrl.trim()}`);
   lines.push(
     "- How to read: paste this into Claude, ChatGPT, Cursor, Perplexity, or any AI - read at your own pace.",
     "",

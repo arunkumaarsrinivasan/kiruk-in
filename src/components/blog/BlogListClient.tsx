@@ -311,13 +311,13 @@ function TokensIndex({ entries, query }: NotebookListProps) {
         )}
 
         <div className="mt-12">
-          <a
+          <NotebookLink
             href="/"
             className="text-base opacity-55 transition-opacity hover:opacity-100"
             style={{ color: "var(--text-muted)" }}
           >
             ← Home
-          </a>
+          </NotebookLink>
         </div>
       </div>
     </div>

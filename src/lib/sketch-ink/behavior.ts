@@ -182,7 +182,7 @@ export function behaviorForWord(
     hand = 'script'
   }
 
-  let font = hand === 'print' ? PRINT_HOME : SCRIPT_HOME
+  const font = hand === 'print' ? PRINT_HOME : SCRIPT_HOME
   // Phase 4: home only. Letter chaos belongs in Kiruk `calt`.
 
   // Target lean from action + state, then blend toward previous word.

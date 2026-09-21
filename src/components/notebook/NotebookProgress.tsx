@@ -49,7 +49,13 @@ async function writeClipboard(text: string): Promise<boolean> {
   }
 }
 
-export function NotebookProgress({ agentMarkdown }: { agentMarkdown: string }) {
+export function NotebookProgress({
+  agentMarkdown,
+  substackUrl,
+}: {
+  agentMarkdown: string;
+  substackUrl?: string;
+}) {
   const eraId = useNotebookEraOptional()?.eraId ?? "1970";
   const [sections, setSections] = useState<Section[]>([]);
   const [active, setActive] = useState("");
@@ -217,15 +223,28 @@ export function NotebookProgress({ agentMarkdown }: { agentMarkdown: string }) {
         >
           top
         </button>
-        <button
-          type="button"
-          className="era-toc-act era-toc-md"
-          onClick={copyAgentMd}
-          title="Copy Markdown for Claude, ChatGPT, Cursor, Perplexity"
-          aria-label="Copy agent Markdown"
-        >
-          {copiedMd ? "copied" : "agent.md"}
-        </button>
+        <div className="era-toc-md-group">
+          <button
+            type="button"
+            className="era-toc-act era-toc-md"
+            onClick={copyAgentMd}
+            title="Copy Markdown for Claude, ChatGPT, Cursor, Perplexity"
+            aria-label="Copy agent Markdown"
+          >
+            {copiedMd ? "copied" : "agent.md"}
+          </button>
+          {substackUrl ? (
+            <a
+              href={substackUrl}
+              className="era-toc-act era-toc-substack"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Read on Substack"
+            >
+              substack
+            </a>
+          ) : null}
+        </div>
       </div>
     </>
   );

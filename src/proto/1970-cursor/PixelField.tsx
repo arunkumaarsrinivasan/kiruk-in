@@ -66,7 +66,6 @@ export function PixelField({ mode }: { mode: FieldMode }) {
     let ox = 0;
     let oy = 0;
     let cols = 0;
-    let rows = 0;
     let raf = 0;
     let blinkUntil = 0;
     let lx = 0;
@@ -119,7 +118,6 @@ export function PixelField({ mode }: { mode: FieldMode }) {
       resize(eyeCv, ectx);
       const cell = Math.max(4, num("--proto-cell", 9));
       cols = Math.ceil(W / cell) + 2;
-      rows = Math.ceil(H / cell) + 2;
     };
     size();
     addEventListener("resize", size);

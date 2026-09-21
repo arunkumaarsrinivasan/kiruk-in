@@ -25,6 +25,8 @@ const blogSchema = baseFrontmatter.extend({
   date: z.string().optional(),
   /** Cover image path under /public. */
   cover: z.string().optional(),
+  /** Optional Substack (or other) syndicate URL — shown next to agent.md. */
+  substack: z.string().url().optional(),
 });
 
 export type BlogFrontmatter = z.infer<typeof blogSchema>;

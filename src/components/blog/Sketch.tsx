@@ -222,20 +222,17 @@ export function FullBleed({
             <div className="era-spread-pin">
               <svg
                 className="era-spread-arrow"
-                viewBox="0 0 140 40"
+                viewBox="0 0 120 40"
                 fill="none"
                 aria-hidden
               >
-                <g className="era-spread-mark">
-                  <path d="M4 6 26 28 M26 6 4 28" />
-                </g>
                 <g className="era-spread-arrow-halo">
-                  <path d="M28 18c26-1 56 4 92 8" />
-                  <path d="M110 16 134 26 112 33" />
+                  <path d="M6 18c24-1 52 4 86 8" />
+                  <path d="M82 16 108 26 84 33" />
                 </g>
                 <g className="era-spread-arrow-ink">
-                  <path d="M28 18c26-1 56 4 92 8" />
-                  <path d="M110 16 134 26 112 33" />
+                  <path d="M6 18c24-1 52 4 86 8" />
+                  <path d="M82 16 108 26 84 33" />
                 </g>
               </svg>
               {children}

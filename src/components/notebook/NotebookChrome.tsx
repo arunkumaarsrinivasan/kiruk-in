@@ -87,16 +87,16 @@ export function NotebookChrome({
           </div>
         ) : null}
 
-        <a href="/" className={chromeLink} style={{ color: "var(--text-muted)" }}>
+        <NotebookLink href="/" className={chromeLink} style={{ color: "var(--text-muted)" }}>
           Home
-        </a>
-        <a
+        </NotebookLink>
+        <NotebookLink
           href={variant === "preview" ? "/desk" : "/work"}
           className={chromeLink}
           style={{ color: "var(--text-muted)" }}
         >
           {variant === "preview" ? "Desk" : "Work"}
-        </a>
+        </NotebookLink>
       </div>
     </header>
   );
@@ -160,21 +160,21 @@ function TerminalChrome({
         <span className="hidden tabular-nums md:inline" data-zone="tty">
           {clock} UTC
         </span>
-        <a
+        <NotebookLink
           href="/"
           aria-label="Home"
           className="site-chrome-link inline-flex min-h-11 shrink-0 items-center uppercase tracking-[0.12em]"
           style={{ color: "var(--text-muted)" }}
         >
           <span data-zone="tty">Home</span>
-        </a>
-        <a
+        </NotebookLink>
+        <NotebookLink
           href={variant === "preview" ? "/desk" : "/work"}
           className="site-chrome-link inline-flex min-h-11 shrink-0 items-center uppercase tracking-[0.12em]"
           style={{ color: "var(--text-muted)" }}
         >
           <span data-zone="tty">{variant === "preview" ? "Desk" : "Work"}</span>
-        </a>
+        </NotebookLink>
       </div>
     </header>
   );

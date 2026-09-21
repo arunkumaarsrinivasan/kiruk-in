@@ -88,7 +88,7 @@ related: [content-is-a-kernel]
 - `domain`: `craft`, `method`, `walk` (any subset that has an H2).
 - `tags`: topical (`type`, `crt`), not perspective names.
 - `related`: slug pointers, not external URLs.
-- Optional: `stage` (default seedling), `cover`, `source`.
+- Optional: `stage` (default seedling), `cover`, `source`, `substack` (public Substack URL; shows next to agent.md).
 
 ## Add a post
 

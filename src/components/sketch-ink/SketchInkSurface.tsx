@@ -282,33 +282,16 @@ export function SketchInkSurface({
     }
   }, [runAtOffset, resolveOffset, font])
 
-  const layout = useMemo(
-    () =>
-      layoutPretext(items, {
-        containerWidthEm: widthEm,
-        pageWidthCapEm,
-        fontSizePx,
-        font,
-        sizeEm,
-        align: align,
-        lineAligns,
-        lineBehavior,
-        flow,
-        obstacles,
-        action,
-        seedKey,
-        fatigue,
-        cache: cacheRef.current,
-        paintMetricsAt,
-      }),
-    [
-      items,
-      widthEm,
+  const layout = useMemo(() => {
+    // Re-run after mount once canvas measure replaces the SSR stub.
+    void mounted
+    return layoutPretext(items, {
+      containerWidthEm: widthEm,
       pageWidthCapEm,
       fontSizePx,
       font,
       sizeEm,
-      align,
+      align: align,
       lineAligns,
       lineBehavior,
       flow,
@@ -316,10 +299,27 @@ export function SketchInkSurface({
       action,
       seedKey,
       fatigue,
-      mounted,
+      cache: cacheRef.current,
       paintMetricsAt,
-    ],
-  )
+    })
+  }, [
+    items,
+    widthEm,
+    pageWidthCapEm,
+    fontSizePx,
+    font,
+    sizeEm,
+    align,
+    lineAligns,
+    lineBehavior,
+    flow,
+    obstacles,
+    action,
+    seedKey,
+    fatigue,
+    mounted,
+    paintMetricsAt,
+  ])
 
   const runByAtom = useMemo(
     () => pairRunsWithLayout(layout, runs, resolveOffset),
