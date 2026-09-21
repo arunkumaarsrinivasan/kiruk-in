@@ -9,7 +9,9 @@ import {
 } from "@/lib/content";
 
 /**
- * Notes collection — short thoughts / TILs / seedlings under `content/notes/`.
+ * Notes collection — leftover second consumer under `content/notes/`.
+ * New public pages go in `content/blog/<lead>/`. The kernel still loads this
+ * folder if anything remains.
  * A second consumer of the Kiruk OS kernel, added with ZERO kernel changes —
  * just a schema + a route. Lighter frontmatter than blog; `stage`/`source`/
  * `tags` come from the shared base.
@@ -28,7 +30,7 @@ export type NoteEntry = Entry<NoteFrontmatter>;
 export const notes = defineCollection({
   id: "notes",
   schema: notesSchema,
-  route: (slug) => `/notes/${slug}`,
+  route: (slug) => `/notebook/${slug}`,
   syndicate: true,
 });
 

@@ -1,15 +1,6 @@
-import { getBlogPosts } from "@/lib/content/blog";
-import { getNotes } from "@/lib/content/notes";
+import { getNotebookEntries } from "@/lib/content/notebook";
 import { SITE_URL, SITE_NAME } from "@/lib/site";
 
-/**
- * RSS 2.0 feed at `/feed.xml`.
- *
- * Built at build time (static) from the content kernel — no HTTP self-fetch.
- * Aggregates every syndicated collection (blog + notes today); new syndicated
- * surfaces just add a `.map(...)` block below. Advertised by the root layout's
- * `alternates.types` RSS link.
- */
 export const dynamic = "force-static";
 
 interface FeedItem {
@@ -35,21 +26,13 @@ function rfc822(date: string): string {
 }
 
 function collectItems(): FeedItem[] {
-  const blog = getBlogPosts().map((p) => ({
-    url: `${SITE_URL}/blog/${p.slug}`,
+  return getNotebookEntries().map((p) => ({
+    url: `${SITE_URL}${p.href}`,
     title: p.title,
     excerpt: p.excerpt,
-    date: p.publishedDate,
-    categories: p.domain,
+    date: p.date,
+    categories: [...p.domain, ...p.tags.filter((tag) => !p.domain.includes(tag))],
   }));
-  const notes = getNotes().map((n) => ({
-    url: `${SITE_URL}/notes/${n.slug}`,
-    title: n.title,
-    excerpt: n.excerpt,
-    date: n.date,
-    categories: n.tags,
-  }));
-  return [...blog, ...notes].sort((a, b) => (b.date || "").localeCompare(a.date || ""));
 }
 
 export function GET(): Response {
@@ -79,7 +62,7 @@ export function GET(): Response {
     "<channel>",
     `<title>${xmlEscape(SITE_NAME)}</title>`,
     `<link>${SITE_URL}</link>`,
-    `<description>Design-engineering notes and sketchbook essays — pen-and-paper thinking through to shipped pixels.</description>`,
+    `<description>Kiruk Studio notebook — pen-and-paper thinking through to shipped pixels.</description>`,
     "<language>en</language>",
     `<atom:link href="${SITE_URL}/feed.xml" rel="self" type="application/rss+xml"/>`,
     items,

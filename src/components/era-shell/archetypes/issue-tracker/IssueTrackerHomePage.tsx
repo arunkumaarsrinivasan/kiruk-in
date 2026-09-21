@@ -679,7 +679,7 @@ export function IssueTrackerHomePage() {
   }, []);
 
   return (
-    <main
+    <div
       id="kiruk-linear"
       style={{
         position: "relative",
@@ -1323,7 +1323,7 @@ export function IssueTrackerHomePage() {
           {toast}
         </div>
       )}
-    </main>
+    </div>
   );
 }
 

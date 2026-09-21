@@ -11,6 +11,7 @@ import { motion } from "framer-motion";
 import { EYE, EyeProps, usePupil } from "./eye-core";
 
 export default function Eye2021({ gx, gy, reduce }: EyeProps) {
+  const looping = !reduce;
   const { cx, cy } = usePupil(gx, gy, { tx: 9, ty: 6, snap: true });
   return (
     <svg viewBox="0 0 120 80" className="h-full w-full" style={{ overflow: "visible" }} aria-hidden>
@@ -39,8 +40,8 @@ export default function Eye2021({ gx, gy, reduce }: EyeProps) {
         stroke="#8b6fd0"
         strokeWidth="1.2"
         strokeDasharray="3 3"
-        animate={reduce ? undefined : { opacity: [0.3, 0.75, 0.3] }}
-        transition={reduce ? undefined : { duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        animate={looping ? { opacity: [0.3, 0.75, 0.3] } : undefined}
+        transition={looping ? { duration: 2, repeat: Infinity, ease: "easeInOut" } : undefined}
       />
 
       <g filter="url(#ln-glow)">

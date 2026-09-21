@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-// Simplified game state for celestial journey (no obstacles, no jumping)
 interface CelestialGameState {
     isPlaying: boolean;
     isPaused: boolean;
@@ -34,14 +33,28 @@ interface UseCelestialEngineProps {
     worldWidth?: number;
 }
 
+export type CelestialLoopNodes = {
+    world: HTMLElement | null;
+    player: HTMLElement | null;
+    bg: HTMLElement | null;
+    progressFill: HTMLElement | null;
+    progressLabel: HTMLElement | null;
+};
+
+function snapshot(s: CelestialGameState): CelestialGameState {
+    return {
+        ...s,
+        visitedCheckpoints: new Set(s.visitedCheckpoints),
+    };
+}
+
 export function useCelestialEngine({
     levels,
     events,
     onLevelComplete,
     worldWidth = 2000,
 }: UseCelestialEngineProps) {
-    // Game state
-    const [gameState, setGameState] = useState<CelestialGameState>({
+    const sim = useRef<CelestialGameState>({
         isPlaying: false,
         isPaused: false,
         isLevelComplete: false,
@@ -55,177 +68,262 @@ export function useCelestialEngine({
         activeCheckpoint: null,
         visitedCheckpoints: new Set(),
     });
-
-    // Refs for animation loop
-    const animationFrameRef = useRef<number | null>(null);
-    const lastTimeRef = useRef<number>(0);
-    const keysPressed = useRef<Set<string>>(new Set());
-
-    // Checkpoint positions (relative to world width)
-    const checkpointPositions = useMemo(
-        () => [
-            worldWidth * 0.25,
-            worldWidth * 0.5,
-            worldWidth * 0.75,
-        ],
-        [worldWidth]
+    const [gameState, setGameState] = useState<CelestialGameState>(() =>
+        snapshot(sim.current),
     );
 
-    // Start the game/journey
-    const startGame = useCallback(() => {
-        setGameState((prev) => ({
-            ...prev,
-            isPlaying: true,
-            isPaused: false,
-            isLevelComplete: false,
-            playerX: 50,
-            levelProgress: 0,
-            activeCheckpoint: null,
-            visitedCheckpoints: new Set(),
-        }));
+    const nodes = useRef<CelestialLoopNodes>({
+        world: null,
+        player: null,
+        bg: null,
+        progressFill: null,
+        progressLabel: null,
+    });
+    const animationFrameRef = useRef(0);
+    const lastTimeRef = useRef(0);
+    const keysPressed = useRef<Set<string>>(new Set());
+    const onLevelCompleteRef = useRef(onLevelComplete);
+    onLevelCompleteRef.current = onLevelComplete;
+
+    const checkpointPositions = useMemo(
+        () => [worldWidth * 0.25, worldWidth * 0.5, worldWidth * 0.75],
+        [worldWidth],
+    );
+
+    const publish = useCallback(() => {
+        setGameState(snapshot(sim.current));
     }, []);
 
-    // Toggle pause
-    const togglePause = useCallback(() => {
-        setGameState((prev) => ({
-            ...prev,
-            isPaused: !prev.isPaused,
-        }));
-    }, []);
-
-    // Go to next level/event
-    const nextLevel = useCallback(() => {
-        if (gameState.level < levels.length - 1) {
-            setGameState((prev) => ({
-                ...prev,
-                level: prev.level + 1,
-                isLevelComplete: false,
-                isPlaying: true,
-                playerX: 50,
-                levelProgress: 0,
-                activeCheckpoint: null,
-                visitedCheckpoints: new Set(),
-            }));
+    const paint = useCallback(() => {
+        const s = sim.current;
+        const n = nodes.current;
+        const cam = Math.max(0, s.playerX - 120);
+        const bgCam = Math.max(0, s.playerX - 400);
+        if (n.world) n.world.style.transform = `translate3d(${-cam}px,0,0)`;
+        if (n.bg) n.bg.style.transform = `translate3d(${-bgCam}px,0,0)`;
+        if (n.player) {
+            const sx = s.isMovingLeft ? -1 : 1;
+            n.player.style.transform = `translate3d(${s.playerX}px,0,0) scaleX(${sx})`;
         }
-    }, [gameState.level, levels.length]);
-
-    // Go to specific level
-    const goToLevel = useCallback((levelIndex: number) => {
-        if (levelIndex >= 0 && levelIndex < levels.length) {
-            setGameState((prev) => ({
-                ...prev,
-                level: levelIndex,
-                isPlaying: true,
-                isPaused: false,
-                isLevelComplete: false,
-                playerX: 50,
-                levelProgress: 0,
-                activeCheckpoint: null,
-                visitedCheckpoints: new Set(),
-            }));
+        if (n.progressFill) n.progressFill.style.width = `${s.levelProgress * 100}%`;
+        if (n.progressLabel) {
+            n.progressLabel.textContent = `${Math.round(s.levelProgress * 100)}%`;
         }
-    }, [levels.length]);
-
-    // Set movement direction
-    const setMoving = useCallback((direction: 'left' | 'right' | 'none') => {
-        setGameState((prev) => ({
-            ...prev,
-            isMovingLeft: direction === 'left',
-            isMovingRight: direction === 'right',
-        }));
     }, []);
 
-    // Main game loop - simplified, no physics needed
+    const loopRefs = useMemo(
+        () => ({
+            world: (el: HTMLDivElement | null) => {
+                nodes.current.world = el;
+                if (el) paint();
+            },
+            player: (el: HTMLDivElement | null) => {
+                nodes.current.player = el;
+                if (el) paint();
+            },
+            bg: (el: HTMLDivElement | null) => {
+                nodes.current.bg = el;
+                if (el) paint();
+            },
+            progressFill: (el: HTMLDivElement | null) => {
+                nodes.current.progressFill = el;
+                if (el) paint();
+            },
+            progressLabel: (el: HTMLSpanElement | null) => {
+                nodes.current.progressLabel = el;
+                if (el) paint();
+            },
+        }),
+        [paint],
+    );
+
+    const stopLoop = useCallback(() => {
+        if (animationFrameRef.current) {
+            cancelAnimationFrame(animationFrameRef.current);
+            animationFrameRef.current = 0;
+        }
+        lastTimeRef.current = 0;
+    }, []);
+
     const gameLoop = useCallback(
         (timestamp: number) => {
-            if (!gameState.isPlaying || gameState.isPaused) {
-                animationFrameRef.current = requestAnimationFrame(gameLoop);
+            const s = sim.current;
+            if (!s.isPlaying || s.isPaused || document.hidden) {
+                animationFrameRef.current = 0;
+                lastTimeRef.current = 0;
                 return;
             }
 
-            const deltaTime = lastTimeRef.current ? (timestamp - lastTimeRef.current) / 16.67 : 1;
+            const deltaTime = lastTimeRef.current
+                ? (timestamp - lastTimeRef.current) / 16.67
+                : 1;
             lastTimeRef.current = timestamp;
 
-            setGameState((prev) => {
-                let newPlayerX = prev.playerX;
-                const moveSpeed = prev.speed * deltaTime;
+            let newPlayerX = s.playerX;
+            const moveSpeed = s.speed * deltaTime;
+            if (s.isMovingRight) {
+                newPlayerX = Math.min(s.worldWidth - 40, s.playerX + moveSpeed);
+            } else if (s.isMovingLeft) {
+                newPlayerX = Math.max(50, s.playerX - moveSpeed);
+            }
 
-                // Handle left/right movement
-                if (prev.isMovingRight) {
-                    newPlayerX = Math.min(prev.worldWidth - 40, prev.playerX + moveSpeed);
-                } else if (prev.isMovingLeft) {
-                    newPlayerX = Math.max(50, prev.playerX - moveSpeed);
+            s.playerX = newPlayerX;
+            s.levelProgress = Math.max(
+                0,
+                Math.min(1, (newPlayerX - 50) / (s.worldWidth - 90)),
+            );
+
+            let activeCheckpoint: number | null = null;
+            checkpointPositions.forEach((pos, index) => {
+                if (Math.abs(newPlayerX - pos) < 100) {
+                    activeCheckpoint = index;
+                    s.visitedCheckpoints.add(index);
                 }
-
-                // Calculate level progress
-                const progress = Math.max(0, Math.min(1, (newPlayerX - 50) / (prev.worldWidth - 90)));
-
-                // Check which checkpoint is active
-                let activeCheckpoint: number | null = null;
-                const newVisited = new Set(prev.visitedCheckpoints);
-
-                checkpointPositions.forEach((pos, index) => {
-                    const distance = Math.abs(newPlayerX - pos);
-                    if (distance < 100) {
-                        activeCheckpoint = index;
-                        newVisited.add(index);
-                    }
-                });
-
-                // Check level completion
-                const isComplete = newPlayerX >= prev.worldWidth - 60;
-
-                if (isComplete && !prev.isLevelComplete) {
-                    // Trigger level complete callback
-                    setTimeout(() => {
-                        onLevelComplete?.(prev.level);
-                    }, 100);
-                }
-
-                return {
-                    ...prev,
-                    playerX: newPlayerX,
-                    levelProgress: progress,
-                    activeCheckpoint,
-                    visitedCheckpoints: newVisited,
-                    isLevelComplete: isComplete,
-                    isPlaying: !isComplete,
-                };
             });
 
-            animationFrameRef.current = requestAnimationFrame(gameLoop);
+            const isComplete = newPlayerX >= s.worldWidth - 60;
+            const checkpointChanged = activeCheckpoint !== s.activeCheckpoint;
+            const justComplete = isComplete && !s.isLevelComplete;
+            s.activeCheckpoint = activeCheckpoint;
+
+            if (justComplete) {
+                s.isLevelComplete = true;
+                s.isPlaying = false;
+            }
+
+            paint();
+
+            if (checkpointChanged || justComplete) {
+                publish();
+            }
+            if (justComplete) {
+                const level = s.level;
+                window.setTimeout(() => onLevelCompleteRef.current?.(level), 100);
+            }
+
+            if (s.isPlaying && (s.isMovingLeft || s.isMovingRight)) {
+                animationFrameRef.current = requestAnimationFrame(gameLoop);
+            } else {
+                animationFrameRef.current = 0;
+                lastTimeRef.current = 0;
+            }
         },
-        [gameState.isPlaying, gameState.isPaused, checkpointPositions, onLevelComplete]
+        [checkpointPositions, paint, publish],
     );
 
-    // Start game loop
-    useEffect(() => {
-        if (gameState.isPlaying && !gameState.isPaused) {
-            animationFrameRef.current = requestAnimationFrame(gameLoop);
+    const kick = useCallback(() => {
+        const s = sim.current;
+        if (
+            animationFrameRef.current ||
+            !s.isPlaying ||
+            s.isPaused ||
+            !(s.isMovingLeft || s.isMovingRight)
+        ) {
+            return;
         }
+        lastTimeRef.current = 0;
+        animationFrameRef.current = requestAnimationFrame(gameLoop);
+    }, [gameLoop]);
 
-        return () => {
-            if (animationFrameRef.current) {
-                cancelAnimationFrame(animationFrameRef.current);
-            }
+    const startGame = useCallback(() => {
+        const s = sim.current;
+        s.isPlaying = true;
+        s.isPaused = false;
+        s.isLevelComplete = false;
+        s.playerX = 50;
+        s.levelProgress = 0;
+        s.activeCheckpoint = null;
+        s.visitedCheckpoints = new Set();
+        s.isMovingLeft = false;
+        s.isMovingRight = false;
+        stopLoop();
+        paint();
+        publish();
+    }, [paint, publish, stopLoop]);
+
+    const togglePause = useCallback(() => {
+        const s = sim.current;
+        s.isPaused = !s.isPaused;
+        if (s.isPaused) stopLoop();
+        else kick();
+        publish();
+    }, [kick, publish, stopLoop]);
+
+    const nextLevel = useCallback(() => {
+        const s = sim.current;
+        if (s.level >= levels.length - 1) return;
+        s.level += 1;
+        s.isPlaying = true;
+        s.isPaused = false;
+        s.isLevelComplete = false;
+        s.playerX = 50;
+        s.levelProgress = 0;
+        s.activeCheckpoint = null;
+        s.visitedCheckpoints = new Set();
+        s.isMovingLeft = false;
+        s.isMovingRight = false;
+        stopLoop();
+        paint();
+        publish();
+    }, [levels.length, paint, publish, stopLoop]);
+
+    const goToLevel = useCallback(
+        (levelIndex: number) => {
+            if (levelIndex < 0 || levelIndex >= levels.length) return;
+            const s = sim.current;
+            s.level = levelIndex;
+            s.isPlaying = true;
+            s.isPaused = false;
+            s.isLevelComplete = false;
+            s.playerX = 50;
+            s.levelProgress = 0;
+            s.activeCheckpoint = null;
+            s.visitedCheckpoints = new Set();
+            s.isMovingLeft = false;
+            s.isMovingRight = false;
+            stopLoop();
+            paint();
+            publish();
+        },
+        [levels.length, paint, publish, stopLoop],
+    );
+
+    const setMoving = useCallback(
+        (direction: "left" | "right" | "none") => {
+            const s = sim.current;
+            s.isMovingLeft = direction === "left";
+            s.isMovingRight = direction === "right";
+            publish();
+            if (direction === "none") return;
+            kick();
+        },
+        [kick, publish],
+    );
+
+    useEffect(() => {
+        const onVis = () => {
+            if (document.hidden) stopLoop();
+            else kick();
         };
-    }, [gameState.isPlaying, gameState.isPaused, gameLoop]);
+        document.addEventListener("visibilitychange", onVis);
+        return () => {
+            document.removeEventListener("visibilitychange", onVis);
+            stopLoop();
+        };
+    }, [kick, stopLoop]);
 
-    // Keyboard controls - simplified (no jump)
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (keysPressed.current.has(e.code)) return;
             keysPressed.current.add(e.code);
 
-            // Pause
             if (e.code === "Escape") {
                 togglePause();
                 return;
             }
 
-            if (gameState.isPaused) return;
+            if (sim.current.isPaused) return;
 
-            // Left/Right movement only
             if (e.code === "ArrowLeft" || e.code === "KeyA") {
                 setMoving("left");
             } else if (e.code === "ArrowRight" || e.code === "KeyD") {
@@ -236,7 +334,6 @@ export function useCelestialEngine({
         const handleKeyUp = (e: KeyboardEvent) => {
             keysPressed.current.delete(e.code);
 
-            // Stop movement when key released
             if (
                 (e.code === "ArrowLeft" || e.code === "KeyA") &&
                 !keysPressed.current.has("ArrowRight") &&
@@ -259,7 +356,7 @@ export function useCelestialEngine({
             globalThis.removeEventListener("keydown", handleKeyDown);
             globalThis.removeEventListener("keyup", handleKeyUp);
         };
-    }, [gameState.isPaused, setMoving, togglePause]);
+    }, [setMoving, togglePause]);
 
     return {
         gameState,
@@ -268,6 +365,7 @@ export function useCelestialEngine({
         nextLevel,
         goToLevel,
         setMoving,
+        loopRefs,
         events,
         levels,
     };

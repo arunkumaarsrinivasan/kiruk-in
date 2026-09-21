@@ -70,7 +70,7 @@ function ToolLabel({ children, intensity = 0.4 }: { children: string; intensity?
 type Collection = 'blog' | 'notes'
 
 /**
- * Notebook surface — quiet chrome, floating tool dock, right-click for style.
+ * BLOGISM surface — quiet chrome, floating tool dock, right-click for style.
  */
 export function Editor({ collection, slug }: { collection: Collection; slug: string }) {
   const router = useRouter()
@@ -509,9 +509,9 @@ export function Editor({ collection, slug }: { collection: Collection; slug: str
         <div className="flex min-w-0 items-center gap-2 px-1">
           <button
             type="button"
-            onClick={() => router.push('/studio')}
+            onClick={() => router.push('/desk')}
             className="studio-btn studio-btn--quiet inline-flex items-center gap-1.5 px-2 py-1.5"
-            title="Back to paper desk"
+            title="Back to desk"
           >
             <StudioIcon name="back" size={16} />
             <ToolLabel intensity={0.35}>paper</ToolLabel>
@@ -608,7 +608,7 @@ export function Editor({ collection, slug }: { collection: Collection; slug: str
             notebookView.layout === 'spread'
               ? 'notebook-sheet notebook-sheet--spread mx-auto w-full md:my-2'
               : `notebook-sheet mx-auto w-full md:my-4 md:min-h-[calc(100dvh-4rem)] ${
-                  notebookView.fit ? 'max-w-none' : 'max-w-4xl'
+                  notebookView.fit ? 'max-w-none' : 'max-w-3xl'
                 }`
           }
         >
@@ -681,7 +681,7 @@ export function Editor({ collection, slug }: { collection: Collection; slug: str
                   >
                     <span>
                       <SketchInk mode="script" intensity={0.35}>
-                        {drawMode ? 'Extend draw' : 'Add pages · flip with ← →'}
+                        {drawMode ? 'Extend scribble' : 'Add pages · flip with ← →'}
                       </SketchInk>
                     </span>
                   </button>
@@ -701,7 +701,7 @@ export function Editor({ collection, slug }: { collection: Collection; slug: str
               >
                 <span>
                   <SketchInk mode="script" intensity={0.35}>
-                    {drawMode ? 'Extend draw' : 'Extend page · right-click anywhere'}
+                    {drawMode ? 'Extend scribble' : 'Extend page · right-click anywhere'}
                   </SketchInk>
                 </span>
               </button>

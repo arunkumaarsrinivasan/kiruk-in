@@ -72,7 +72,6 @@
    ========================================= */
 .te-gpu-accelerated {
   transform: translateZ(0);
-  will-change: transform, opacity;
   backface-visibility: hidden;
 }
 
@@ -83,7 +82,6 @@
   position: relative;
   cursor: pointer;
   transform: translateZ(0);
-  will-change: transform, box-shadow;
   transition: 
     transform var(--te-quick) var(--te-ease-out),
     box-shadow var(--te-quick) var(--te-ease-out),
@@ -124,7 +122,6 @@
   cursor: pointer;
   border-radius: var(--te-radius-minimal);
   transform: translateZ(0);
-  will-change: transform, box-shadow;
   transition: 
     transform var(--te-quick) var(--te-ease-out),
     box-shadow var(--te-quick) var(--te-ease-out),
@@ -163,7 +160,6 @@
 .te-card {
   border-radius: var(--te-radius-small);
   transform: translateZ(0);
-  will-change: transform, box-shadow;
   transition: 
     transform var(--te-standard) var(--te-ease-mechanical),
     box-shadow var(--te-standard) var(--te-ease-mechanical),
@@ -210,7 +206,6 @@
   cursor: pointer;
   border-radius: var(--te-radius-circle);
   transform: translateZ(0);
-  will-change: background-color;
   transition: background-color var(--te-quick) var(--te-ease-mechanical);
 }
 
@@ -219,7 +214,6 @@
   border-radius: var(--te-radius-circle);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   transform: translateZ(0);
-  will-change: transform;
   transition: transform var(--te-quick) var(--te-ease-mechanical);
 }
 
@@ -239,7 +233,6 @@
   position: relative;
   border-radius: var(--te-radius-minimal);
   transform: translateZ(0);
-  will-change: background-color, border-color;
   transition: 
     background-color var(--te-quick) var(--te-ease-mechanical),
     border-color var(--te-quick) var(--te-ease-mechanical);
@@ -262,7 +255,6 @@
   transform-origin: top center;
   transform: translateZ(0) scaleY(0);
   opacity: 0;
-  will-change: transform, opacity;
   transition: 
     transform var(--te-standard) var(--te-ease-mechanical),
     opacity var(--te-standard) var(--te-ease-mechanical);
@@ -276,7 +268,6 @@
 .te-dropdown-item {
   opacity: 0;
   transform: translateY(-8px);
-  will-change: transform, opacity;
   transition: 
     opacity var(--te-quick) var(--te-ease-mechanical),
     transform var(--te-quick) var(--te-ease-mechanical);
@@ -302,7 +293,6 @@
   opacity: 0;
   transform: translateY(8px);
   pointer-events: none;
-  will-change: transform, opacity;
   transition: 
     opacity var(--te-quick) var(--te-ease-mechanical),
     transform var(--te-quick) var(--te-ease-mechanical);
@@ -348,7 +338,6 @@
   border-radius: var(--te-radius-circle);
   cursor: grab;
   transform: translateZ(0);
-  will-change: transform, box-shadow;
   transition: 
     transform var(--te-quick) var(--te-ease-organic),
     box-shadow var(--te-quick) var(--te-ease-mechanical);
@@ -380,7 +369,6 @@
    ERA / CONTENT TRANSITIONS
    ========================================= */
 .te-content-transition {
-  will-change: transform, opacity;
   transition: 
     opacity var(--te-smooth) var(--te-ease-mechanical),
     transform var(--te-smooth) var(--te-ease-mechanical);
@@ -457,7 +445,6 @@
 }
 
 .te-progress-fill {
-  will-change: width;
   transition: width var(--te-standard) linear;
 }
 
@@ -537,7 +524,6 @@
   touch-action: none;
   user-select: none;
   transform: translateZ(0);
-  will-change: transform;
 }
 
 .te-draggable:active,

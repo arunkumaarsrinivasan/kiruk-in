@@ -979,7 +979,7 @@ export function PinboardHomePage() {
   ];
 
   return (
-    <main
+    <div
       id="kiruk-pinboard"
       style={{
         position: "relative",
@@ -1528,7 +1528,7 @@ export function PinboardHomePage() {
           {toast}
         </div>
       )}
-    </main>
+    </div>
   );
 }
 

@@ -13,6 +13,7 @@ import {
 } from '@/data/observatory-data';
 import { Experience } from '@/data/portfolio-data';
 import { useContextBar } from '@/contexts/ContextBarContext';
+import '@/app/work/styles/observatory.css';
 
 // ============================================
 // SVG STAR SHAPE GENERATOR
@@ -93,6 +94,9 @@ export function ObservatoryView({ embedded = false }: { embedded?: boolean }) {
     // Shooting star state
     const [shootingStar, setShootingStar] = useState<{ x: number; y: number; angle: number; key: number } | null>(null);
     const shootingStarRef = useRef(0);
+    const rootRef = useRef<HTMLDivElement>(null);
+    const svgRef = useRef<SVGSVGElement>(null);
+    const [skyLive, setSkyLive] = useState(true);
 
     // Exploration stats
     const [stats, setStats] = useState({
@@ -110,18 +114,58 @@ export function ObservatoryView({ embedded = false }: { embedded?: boolean }) {
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
-    // Shooting star interval
     useEffect(() => {
-        const interval = setInterval(() => {
+        const el = rootRef.current;
+        if (!el) return;
+        let inView = true;
+        const sync = () => {
+            const next = inView && !document.hidden;
+            setSkyLive((prev) => (prev === next ? prev : next));
+        };
+        const io = new IntersectionObserver(([entry]) => {
+            inView = entry.isIntersecting;
+            sync();
+        }, { threshold: 0.05 });
+        io.observe(el);
+        document.addEventListener('visibilitychange', sync);
+        sync();
+        return () => {
+            io.disconnect();
+            document.removeEventListener('visibilitychange', sync);
+        };
+    }, []);
+
+    useEffect(() => {
+        const svg = svgRef.current;
+        if (!svg) return;
+        if (skyLive) svg.unpauseAnimations();
+        else svg.pauseAnimations();
+    }, [skyLive]);
+
+    useEffect(() => {
+        if (!skyLive) return;
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        let cancelled = false;
+        let fade: number | undefined;
+        let wait: number | undefined;
+        const spawn = () => {
+            if (cancelled) return;
             const x = 5 + Math.random() * 40;
             const y = 5 + Math.random() * 30;
-            const angle = 20 + Math.random() * 30;
             shootingStarRef.current += 1;
-            setShootingStar({ x, y, angle, key: shootingStarRef.current });
-            setTimeout(() => setShootingStar(null), 1500);
-        }, 8000 + Math.random() * 12000);
-        return () => clearInterval(interval);
-    }, []);
+            setShootingStar({ x, y, angle: 20 + Math.random() * 30, key: shootingStarRef.current });
+            fade = window.setTimeout(() => {
+                if (!cancelled) setShootingStar(null);
+            }, 1500);
+            wait = window.setTimeout(spawn, 8000 + Math.random() * 12000);
+        };
+        wait = window.setTimeout(spawn, 8000 + Math.random() * 12000);
+        return () => {
+            cancelled = true;
+            if (wait) window.clearTimeout(wait);
+            if (fade) window.clearTimeout(fade);
+        };
+    }, [skyLive]);
 
     // Get connection lines
     const connectionLines = useMemo(() => getConnectionLines(), [getConnectionLines]);
@@ -231,7 +275,9 @@ export function ObservatoryView({ embedded = false }: { embedded?: boolean }) {
 
     return (
         <div
-            className={`w-full relative overflow-hidden flex ${embedded ? "h-full min-h-0" : "h-[calc(100vh-100px)]"}`}
+            ref={rootRef}
+            className={`observatory-sky w-full relative overflow-hidden flex ${embedded ? "h-full min-h-0" : "h-[calc(100vh-100px)]"}`}
+            data-sky-paused={skyLive ? undefined : ''}
             style={{ backgroundColor: 'var(--bg-main)' }}
         >
 
@@ -248,6 +294,7 @@ export function ObservatoryView({ embedded = false }: { embedded?: boolean }) {
                         stats={stats}
                         hoveredSkill={hoveredSkillId ? skills.find(s => s.id === hoveredSkillId) : null}
                         totalSkills={skills.length}
+                        live={skyLive}
                     />
                 </div>
             )}
@@ -283,6 +330,7 @@ export function ObservatoryView({ embedded = false }: { embedded?: boolean }) {
                 {/* Star Map SVG — Telescope viewport */}
                 <div className="flex-1 relative telescope-viewport">
                     <svg
+                        ref={svgRef}
                         className="absolute inset-0 w-full h-full"
                         viewBox="0 0 100 100"
                         preserveAspectRatio="xMidYMid meet"
@@ -467,7 +515,7 @@ export function ObservatoryView({ embedded = false }: { embedded?: boolean }) {
                                     opacity={isHighlighted ? 0.8 : 0.35}
                                     strokeDasharray={isHighlighted ? 'none' : '0.5 0.8'}
                                     filter={isHighlighted ? 'url(#line-glow)' : undefined}
-                                    style={{ transition: 'all 0.3s ease' }}
+                                    style={{ transition: 'opacity 0.3s ease, stroke 0.3s ease, stroke-width 0.3s ease' }}
                                 />
                             );
                         })}
@@ -494,10 +542,21 @@ export function ObservatoryView({ embedded = false }: { embedded?: boolean }) {
                             return (
                                 <g
                                     key={skill.id}
-                                    style={{ cursor: 'pointer' }}
+                                    role="button"
+                                    tabIndex={0}
+                                    aria-label={`${skill.name}, ${skill.masteryLevel}`}
+                                    style={{ cursor: 'pointer', outline: 'none' }}
                                     onClick={() => handleSkillSelect(skill.id)}
                                     onMouseEnter={() => handleSkillHover(skill.id)}
                                     onMouseLeave={() => handleSkillHover(null)}
+                                    onFocus={() => handleSkillHover(skill.id)}
+                                    onBlur={() => handleSkillHover(null)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            handleSkillSelect(skill.id);
+                                        }
+                                    }}
                                     className={twinkleClass}
                                 >
                                     {/* Outer glow bloom */}
@@ -753,6 +812,8 @@ export function ObservatoryView({ embedded = false }: { embedded?: boolean }) {
                 <>
                     {/* Mobile FAB */}
                     <button
+                        type="button"
+                        aria-label="Open observatory list"
                         className="fixed bottom-20 right-4 z-30 w-12 h-12 rounded-full flex items-center justify-center shadow-lg"
                         style={{ backgroundColor: 'var(--accent-color)', color: 'var(--bg-main)' }}
                         onClick={() => setShowMobilePanel(true)}
@@ -775,7 +836,9 @@ export function ObservatoryView({ embedded = false }: { embedded?: boolean }) {
                                     <div className="w-12 h-1 rounded-full bg-gray-400" />
                                 </div>
                                 <button
-                                    className="absolute top-2 right-4 text-lg"
+                                    type="button"
+                                    aria-label="Close observatory list"
+                                    className="absolute top-2 right-4 flex h-11 w-11 items-center justify-center text-lg"
                                     style={{ color: 'var(--text-muted)' }}
                                     onClick={() => setShowMobilePanel(false)}
                                 >
@@ -801,6 +864,7 @@ export function ObservatoryView({ embedded = false }: { embedded?: boolean }) {
                                             stats={stats}
                                             hoveredSkill={null}
                                             totalSkills={skills.length}
+                                            live={skyLive}
                                         />
                                         <div className="border-t my-4" style={{ borderColor: 'var(--border-color)' }} />
                                         <JourneyLog
@@ -830,6 +894,7 @@ function ControlPanel({
     stats,
     hoveredSkill,
     totalSkills,
+    live = true,
 }: {
     constellationCounts?: Record<string, { total: number; visible: number }>;
     activeConstellation?: string | null;
@@ -837,13 +902,15 @@ function ControlPanel({
     stats: { skillsExplored: Set<string>; constellationsVisited: Set<string>; logsReviewed: number; startTime: number };
     hoveredSkill: PositionedSkillNode | null | undefined;
     totalSkills: number;
+    live?: boolean;
 }) {
     const [elapsed, setElapsed] = useState(0);
 
     useEffect(() => {
+        if (!live) return;
         const interval = setInterval(() => setElapsed(Math.floor((Date.now() - stats.startTime) / 1000)), 1000);
         return () => clearInterval(interval);
-    }, [stats.startTime]);
+    }, [stats.startTime, live]);
 
     const formatTime = (s: number) => `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
     const explorationPercent = Math.round((stats.skillsExplored.size / totalSkills) * 100);
@@ -1091,7 +1158,7 @@ function TimelineSlider({
                     return (
                         <div
                             key={exp.id}
-                            className="absolute rounded cursor-pointer transition-all overflow-hidden"
+                            className="absolute overflow-hidden rounded cursor-pointer transition-[background-color,border-color] duration-150"
                             style={{
                                 left: `${left}%`,
                                 width: `${Math.max(right - left, 8)}%`,
@@ -1258,7 +1325,7 @@ function JourneyLog({
 
                                 {/* Card */}
                                 <div
-                                    className="p-2.5 rounded-sm border transition-all"
+                                    className="rounded-sm border p-2.5 transition-[border-color,background-color,border-width] duration-150"
                                     style={{
                                         borderColor: isSelected ? 'var(--accent-color)' : 'var(--border-color)',
                                         backgroundColor: isSelected ? 'color-mix(in srgb, var(--accent-color) 8%, var(--bg-card))' : 'var(--bg-card)',
@@ -1523,7 +1590,7 @@ function DetailPanel({
                                         return (
                                             <button
                                                 key={exp.id}
-                                                className="relative w-full text-left pl-5 py-1.5 pr-2 border rounded-sm transition-all hover:border-[var(--accent-color)] group"
+                                                className="group relative w-full rounded-sm border py-1.5 pr-2 pl-5 text-left transition-colors hover:border-[var(--accent-color)]"
                                                 style={{ borderColor: 'var(--border-color)' }}
                                                 onClick={() => onExperienceClick(exp.id)}
                                             >
@@ -1745,7 +1812,7 @@ function DetailPanel({
                                                             <button
                                                                 key={s.id}
                                                                 onClick={() => onSkillClick(s.id)}
-                                                                className="text-[9px] px-1.5 py-0.5 border rounded-sm transition-all hover:border-[var(--accent-color)] flex items-center gap-1"
+                                                                className="flex items-center gap-1 rounded-sm border px-1.5 py-0.5 text-[9px] transition-colors hover:border-[var(--accent-color)]"
                                                                 style={{
                                                                     borderColor: contribution === 'mastered' ? cColor : 'var(--border-color)',
                                                                     color: contribution === 'mastered' ? cColor : 'var(--text-main)',

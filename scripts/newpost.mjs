@@ -15,7 +15,7 @@ const file = entryFile("blog", slug);
 const body = [
   "Start writing…",
   "",
-  `{/* Draw in /studio → <InkPage src="/blog/${slug}/ink-01.svg" /> */}`,
+  `{/* Draw in /desk → <InkPage src="/blog/${slug}/ink-01.svg" /> */}`,
   `{/* Drop a screenshot → <Figure src="/blog/${slug}/shot-01.png" /> */}`,
 ].join("\n");
 

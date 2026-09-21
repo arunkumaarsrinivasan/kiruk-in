@@ -495,7 +495,7 @@ export function HeroWithHatSwitching({
                                 transition={{ delay: 0.9 }}
                             >
                                 <motion.a
-                                    href="/portfolio"
+                                    href="/work"
                                     data-cursor-chat="cta-work"
                                     className="flex items-center justify-center px-6 h-12 border-2 font-mono font-bold uppercase text-sm cursor-pointer"
                                     style={{

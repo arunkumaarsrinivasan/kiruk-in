@@ -26,7 +26,7 @@ Letter-level “never the same twice” lives in **Kiruk** fonts (`SKETCH_INK_HA
 | Fast narrative / bullets | **script** home + higher slant (`type` / `ideation`) |
 | Checklist / “things to change” | `checklist` — upright print, tight tracking |
 | Flow steps / numbers / arrows | `flow` — print for digits/CAPS, script for descriptions |
-| Bottom of a long paragraph | `fatigue` — more slant, lower opacity, smaller scale |
+| Bottom of a long paragraph | `fatigue` — more slant, lower opacity, smaller scale (~90 chars) |
 | New section / blank line | `cold` hand reset |
 
 ## Action matrix
@@ -41,7 +41,7 @@ Letter-level “never the same twice” lives in **Kiruk** fonts (`SKETCH_INK_HA
 | `title` | Print hand | colder open | mild | Print home |
 | `excerpt` | Light script | lighter intensity | mild | Script home |
 
-Studio: **Type** tool shows action chips (`type` / `ideation` / `flow` / `list` / `diagram`) so hierarchy is explicit, not only heuristic.
+BLOGISM: **Write** tool shows action chips (`type` / `ideation` / `flow` / `list` / `diagram`) so hierarchy is explicit, not only heuristic.
 
 ## Behavior states
 
@@ -49,7 +49,7 @@ Studio: **Type** tool shows action chips (`type` / `ideation` / `flow` / `list` 
 | --- | --- | --- |
 | `cold` | Doc start, blank line, action switch | careful, slightly larger |
 | `settle` | After a few words | calm home lean |
-| `fatigue` | Long paragraph (~140+ chars) | more slant, lower opacity, smaller scale |
+| `fatigue` | Long paragraph (~90+ chars / ~22 words) | more slant, lower opacity, smaller scale |
 | `rush` | Short / CAPS / ideation | slant+scale up (same face) |
 
 ## Coherent lean (Phase 5)
@@ -58,7 +58,7 @@ Adjacent words blend skew toward the previous word (`BEHAVIOR.angleFollow`). Opa
 
 ## Dev chip
 
-In development, `/studio` shows a bottom-right chip: `% print vs script`, mean skew, unique fonts — proves the engine is firing above perceptual threshold.
+In development, `/desk` shows a bottom-right chip: `% print vs script`, mean skew, unique fonts — proves the engine is firing above perceptual threshold.
 
 ## Phases
 

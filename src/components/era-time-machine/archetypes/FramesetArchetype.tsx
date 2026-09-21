@@ -427,10 +427,10 @@ export const FramesetArchetype: React.FC<EraSurfaceProps> = ({
                       gap: 8,
                     }}
                   >
-                    <Specimen role="DISPLAY" font={era.fonts.primary} sample="Aa Bb 0123" size={28} />
-                    <Specimen role="BODY" font={era.fonts.secondary} sample="The quick brown fox." size={14} />
-                    <Specimen role="ACCENT" font={era.fonts.accent} sample="BUTTONS · LABELS" size={12} />
-                    <Specimen role="HEADING" font={era.fonts.primary} sample="A Practitioner" size={18} italic />
+                    <Specimen kind="DISPLAY" font={era.fonts.primary} sample="Aa Bb 0123" size={28} />
+                    <Specimen kind="BODY" font={era.fonts.secondary} sample="The quick brown fox." size={14} />
+                    <Specimen kind="ACCENT" font={era.fonts.accent} sample="BUTTONS · LABELS" size={12} />
+                    <Specimen kind="HEADING" font={era.fonts.primary} sample="A Practitioner" size={18} italic />
                   </div>
                 </>
               )}
@@ -761,13 +761,13 @@ function SideNote({
 }
 
 function Specimen({
-  role,
+  kind,
   font,
   sample,
   size,
   italic,
 }: {
-  role: string;
+  kind: string;
   font: string;
   sample: string;
   size: number;
@@ -792,7 +792,7 @@ function Specimen({
           marginBottom: 2,
         }}
       >
-        {role}
+        {kind}
       </div>
       <div style={{ fontFamily: FONT_MONO, fontSize: 9, color: MUTED, marginBottom: 6 }}>
         {fontName}

@@ -447,10 +447,10 @@ export const FlashSplashArchetype: React.FC<EraSurfaceProps> = ({
 
           {tab.id === "type" && (
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-              <Specimen role="DISPLAY" font={era.fonts.primary} sample="Aa Bb 0123" size={22} />
-              <Specimen role="BODY" font={era.fonts.secondary} sample="The quick brown fox." size={12} />
-              <Specimen role="ACCENT" font={era.fonts.accent} sample="BUTTONS · LABELS" size={11} />
-              <Specimen role="HEADING" font={era.fonts.primary} sample="A Practitioner" size={16} italic />
+              <Specimen kind="DISPLAY" font={era.fonts.primary} sample="Aa Bb 0123" size={22} />
+              <Specimen kind="BODY" font={era.fonts.secondary} sample="The quick brown fox." size={12} />
+              <Specimen kind="ACCENT" font={era.fonts.accent} sample="BUTTONS · LABELS" size={11} />
+              <Specimen kind="HEADING" font={era.fonts.primary} sample="A Practitioner" size={16} italic />
             </div>
           )}
 
@@ -823,13 +823,13 @@ function AquaPill({
 }
 
 function Specimen({
-  role,
+  kind,
   font,
   sample,
   size,
   italic,
 }: {
-  role: string;
+  kind: string;
   font: string;
   sample: string;
   size: number;
@@ -856,7 +856,7 @@ function Specimen({
           fontWeight: 700,
         }}
       >
-        {role}
+        {kind}
       </div>
       <div style={{ fontFamily: FONT_MONO, fontSize: 9, color: INK_DIM, marginBottom: 4 }}>
         {fontName}

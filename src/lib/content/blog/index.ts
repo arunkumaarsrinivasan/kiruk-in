@@ -33,7 +33,7 @@ export type BlogEntry = Entry<BlogFrontmatter>;
 export const blog = defineCollection({
   id: "blog",
   schema: blogSchema,
-  route: (slug) => `/blog/${slug}`,
+  route: (slug) => `/notebook/${slug}`,
   syndicate: true,
 });
 

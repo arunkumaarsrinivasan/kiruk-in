@@ -1,0 +1,15 @@
+---
+description: Kiruk notebook MDX voice — spoken slang, Mark/Zig/Hit, no manifesto polish
+globs: content/blog/**/*.mdx,docs/BLOG_MDX.md,docs/BLOGISM.md,docs/NOTEBOOK_PLAN.md
+alwaysApply: false
+---
+
+# Notebook voice
+
+When drafting or editing matching files, follow `.cursor/skills/kiruk-notebook-voice/SKILL.md`.
+
+- Spoken, feeling-first. Keep his slang. No TED/LinkedIn manifesto lines.
+- Fix the *story* he means before polishing words.
+- Marks: `<Mark>` phrase, `<Zig>` metaphor, `<Hit>` sentence, `<Note>` aside, `>` for other voices. Few per section.
+- After a tone rejection, append `.cursor/skills/kiruk-notebook-voice/mistakes.md`.
+- Layout/frontmatter: `docs/BLOG_MDX.md`. De-AI pass: `emil-unslop-writing`.

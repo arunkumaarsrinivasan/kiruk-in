@@ -12,6 +12,7 @@ import { EYE, EyeProps, usePupil } from "./eye-core";
 
 export default function Eye2026({ gx, gy, reduce }: EyeProps) {
   const { cx, cy } = usePupil(gx, gy, { tx: 9, ty: 6 });
+  const looping = !reduce;
   return (
     <svg viewBox="0 0 120 80" className="h-full w-full" style={{ overflow: "visible" }} aria-hidden>
       <defs>
@@ -38,8 +39,8 @@ export default function Eye2026({ gx, gy, reduce }: EyeProps) {
       {/* iridescent rings morphing (breathing radii, hue shimmering) */}
       <motion.g
         filter="url(#holo-glow)"
-        animate={reduce ? undefined : { filter: ["hue-rotate(0deg)", "hue-rotate(360deg)"] }}
-        transition={reduce ? undefined : { duration: 6, repeat: Infinity, ease: "linear" }}
+        animate={looping ? { filter: ["hue-rotate(0deg)", "hue-rotate(360deg)"] } : undefined}
+        transition={looping ? { duration: 6, repeat: Infinity, ease: "linear" } : undefined}
       >
         <motion.circle
           cx={EYE.outer.cx}
@@ -47,8 +48,8 @@ export default function Eye2026({ gx, gy, reduce }: EyeProps) {
           fill="none"
           stroke="url(#holo)"
           strokeWidth="4.5"
-          animate={reduce ? { r: EYE.outer.r } : { r: [EYE.outer.r - 1.5, EYE.outer.r + 1.5, EYE.outer.r - 1.5] }}
-          transition={reduce ? undefined : { duration: 3.4, repeat: Infinity, ease: "easeInOut" }}
+          animate={looping ? { r: [EYE.outer.r - 1.5, EYE.outer.r + 1.5, EYE.outer.r - 1.5] } : { r: EYE.outer.r }}
+          transition={looping ? { duration: 3.4, repeat: Infinity, ease: "easeInOut" } : undefined}
         />
         <motion.circle
           cx={EYE.iris.cx}
@@ -56,8 +57,8 @@ export default function Eye2026({ gx, gy, reduce }: EyeProps) {
           fill="none"
           stroke="url(#holo)"
           strokeWidth="4.5"
-          animate={reduce ? { r: EYE.iris.r } : { r: [EYE.iris.r + 1.5, EYE.iris.r - 1.5, EYE.iris.r + 1.5] }}
-          transition={reduce ? undefined : { duration: 3.4, repeat: Infinity, ease: "easeInOut" }}
+          animate={looping ? { r: [EYE.iris.r + 1.5, EYE.iris.r - 1.5, EYE.iris.r + 1.5] } : { r: EYE.iris.r }}
+          transition={looping ? { duration: 3.4, repeat: Infinity, ease: "easeInOut" } : undefined}
         />
         <path d={EYE.arc} fill="none" stroke="#f0abfc" strokeWidth="4.2" strokeLinecap="round" />
       </motion.g>
@@ -66,8 +67,8 @@ export default function Eye2026({ gx, gy, reduce }: EyeProps) {
       <motion.circle
         fill="url(#holo-pupil)"
         cx={cx} cy={cy}
-        animate={reduce ? { r: 10 } : { r: [9, 11.5, 9] }}
-        transition={reduce ? undefined : { duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        animate={looping ? { r: [9, 11.5, 9] } : { r: 10 }}
+        transition={looping ? { duration: 2, repeat: Infinity, ease: "easeInOut" } : undefined}
       />
     </svg>
   );

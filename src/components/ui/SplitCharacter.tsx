@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useDesignEra } from "@/contexts/DesignEraContext";
+import { useChromeQuiet } from "@/hooks/useChromeQuiet";
 
 function parseColor(v: string): [number, number, number] {
   if (v.startsWith("#")) {
@@ -442,6 +443,7 @@ export function SplitCharacterCanvas({
   const prevSideRef = useRef<CharacterSide>(null);
 
   const [canvasW, setCanvasW] = useState(600);
+  const quiet = useChromeQuiet();
 
   const reducedMotion =
     typeof globalThis !== "undefined" &&
@@ -454,17 +456,6 @@ export function SplitCharacterCanvas({
     const ro = new ResizeObserver(([e]) => setCanvasW(e.contentRect.width));
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
-
-  useEffect(() => {
-    const el = wrapRef.current;
-    if (!el) return;
-    observerRef.current = new IntersectionObserver(
-      ([e]) => { inViewRef.current = e.isIntersecting; },
-      { threshold: 0.15 }
-    );
-    observerRef.current.observe(el);
-    return () => observerRef.current?.disconnect();
   }, []);
 
   // Reset side animation when side changes
@@ -480,7 +471,7 @@ export function SplitCharacterCanvas({
       const canvas = canvasRef.current;
       if (!canvas || canvasW < 10) return;
 
-      const dpr = globalThis.devicePixelRatio || 1;
+      const dpr = Math.min(globalThis.devicePixelRatio || 1, 2);
       const W = canvasW;
       const H = height;
       if (!t0.current) t0.current = timeMs;
@@ -498,16 +489,18 @@ export function SplitCharacterCanvas({
 
       const hoverSmooth = hoverRef.current;
 
-      canvas.width = W * dpr;
-      canvas.height = H * dpr;
-      canvas.style.width = `${W}px`;
-      canvas.style.height = `${H}px`;
+      const bw = Math.round(W * dpr);
+      const bh = Math.round(H * dpr);
+      if (canvas.width !== bw || canvas.height !== bh) {
+        canvas.width = bw;
+        canvas.height = bh;
+        canvas.style.width = `${W}px`;
+        canvas.style.height = `${H}px`;
+      }
 
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
-      ctx.scale(dpr, dpr);
-
-      // Transparent background — clear instead of filling
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, W, H);
 
       const cs = getComputedStyle(canvas);
@@ -583,15 +576,59 @@ export function SplitCharacterCanvas({
   );
 
   useEffect(() => {
+    const wrap = wrapRef.current;
+    if (!wrap) return;
+
+    let inView = true;
+    inViewRef.current = true;
+    let running = false;
+
+    const stop = () => {
+      running = false;
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+      drawScene(performance.now());
+    };
+
     const tick = (ts: number) => {
+      if (!running) return;
       drawScene(ts);
+      if (running) rafRef.current = requestAnimationFrame(tick);
+    };
+
+    const start = () => {
+      if (running || quiet || document.hidden || !inView) return;
+      running = true;
       rafRef.current = requestAnimationFrame(tick);
     };
-    rafRef.current = requestAnimationFrame(tick);
-    return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+
+    observerRef.current = new IntersectionObserver(
+      ([e]) => {
+        inView = e.isIntersecting;
+        inViewRef.current = inView;
+        if (inView) start();
+        else stop();
+      },
+      { threshold: 0.15 },
+    );
+    observerRef.current.observe(wrap);
+
+    const onVis = () => {
+      if (document.hidden) stop();
+      else start();
     };
-  }, [drawScene]);
+    document.addEventListener("visibilitychange", onVis);
+    drawScene(performance.now());
+    start();
+
+    return () => {
+      stop();
+      observerRef.current?.disconnect();
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, [drawScene, quiet]);
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {

@@ -4,7 +4,7 @@ import { PREVIEW_FILE } from "@/lib/studio/preview-path";
 
 /**
  * Live-preview stash. The editor POSTs the current MDX body here; the preview
- * page (`/studio/preview`) reads it back and server-renders it exactly like a
+ * page (`/desk/preview`) reads it back and server-renders it exactly like a
  * real post (era CSS, theme ink, everything). Single-author, single temp file.
  */
 export const runtime = "nodejs";

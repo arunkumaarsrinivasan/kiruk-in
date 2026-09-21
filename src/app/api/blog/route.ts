@@ -1,15 +1,11 @@
-import { NextResponse } from 'next/server'
-import { getBlogPosts } from '@/lib/content/blog'
+import { NextResponse } from "next/server";
+import { getNotebookEntries } from "@/lib/content/notebook";
 
 /**
- * GET /api/blog — MDX-backed article summaries as JSON.
- *
- * The `/blog` route renders these server-side, but the portfolio module overlay
- * (`BlogExperience`) is a client island that can't touch the filesystem, so it
- * fetches this endpoint. Reads `content/blog/*.mdx` at request time on the
- * server.
+ * GET /api/blog — notebook summaries as JSON.
+ * Public reading is `/notebook`; this stays for any client that still fetches.
  */
 export async function GET() {
-  const articles = getBlogPosts()
-  return NextResponse.json({ articles, fetchedAt: new Date().toISOString() })
+  const entries = getNotebookEntries();
+  return NextResponse.json({ articles: entries, entries, fetchedAt: new Date().toISOString() });
 }

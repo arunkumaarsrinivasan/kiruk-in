@@ -18,6 +18,7 @@ export default function Eye2018({ gx, gy, reduce }: EyeProps) {
   const { cx, cy } = usePupil(gx, gy, { tx: 7, ty: 4 });
   const caretX = useTransform(cx, (v) => v - 1.6);
   const caretY = useTransform(cy, (v) => v - 13);
+  const looping = !reduce;
   return (
     <svg viewBox="0 0 120 80" className="h-full w-full" style={{ overflow: "visible" }} aria-hidden>
 
@@ -39,8 +40,8 @@ export default function Eye2018({ gx, gy, reduce }: EyeProps) {
         rx="1.6"
         fill={ACCENT}
         x={caretX} y={caretY}
-        animate={reduce ? undefined : { opacity: [1, 1, 0, 0] }}
-        transition={reduce ? undefined : { duration: 1.1, times: [0, 0.5, 0.5, 1], repeat: Infinity, ease: "linear" }}
+        animate={looping ? { opacity: [1, 1, 0, 0] } : undefined}
+        transition={looping ? { duration: 1.1, times: [0, 0.5, 0.5, 1], repeat: Infinity, ease: "linear" } : undefined}
       />
     </svg>
   );

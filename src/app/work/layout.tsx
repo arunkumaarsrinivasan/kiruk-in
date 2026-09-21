@@ -4,12 +4,12 @@ const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ??
   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://kiruk.in");
 
-const TITLE = "Work archive — Design engineering projects by Kiruk";
+const TITLE = "Work — selected projects by Kiruk Studio";
 const DESCRIPTION =
-  "Featured design engineering projects by Kiruk — Spera.bot, HP Print AI, Mudra Stack, Square Bridge, PeopleGamez, and experimental web work from Bengaluru.";
+  "Selected design engineering work from Kiruk Studio — Spera.bot, HP Print AI, Mudra Stack, Square Bridge, PeopleGamez, and experimental web work from Bengaluru.";
 
 export const metadata: Metadata = {
-  title: "Work — Design engineering projects",
+  title: "Work",
   description: DESCRIPTION,
   alternates: { canonical: "/work" },
   openGraph: {

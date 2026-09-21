@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import "@fontsource/architects-daughter/400.css";
-import "@fontsource/nothing-you-could-do/400.css";
-import "@fontsource-variable/playpen-sans/wght.css";
+import "@fontsource/architects-daughter/latin-400.css";
+import "@fontsource/nothing-you-could-do/latin-400.css";
 import "./globals.css";
 
 import LayoutClientShell from "@/components/layout/LayoutClientShell";
@@ -18,10 +17,10 @@ const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ??
   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://kiruk.in");
 
-const SITE_NAME = "Kiruk — Arun Kumaar Sreenivasan";
-const TITLE = "Kiruk — Design Engineer & AI UX Designer in India";
+const SITE_NAME = "Kiruk Studio — Arun Kumaar Sreenivasan";
+const TITLE = "Kiruk Studio — Design Engineer & AI UX Designer in India";
 const DESCRIPTION =
-  "Portfolio of Arun Kumaar Sreenivasan (Kiruk) — Co-founder at Spera.bot. Former UX Design Engineer on HP Innovation for India. Experimental websites, design tools, and human-centered UX from Bengaluru.";
+  "Kiruk Studio is the practice of Arun Kumaar Sreenivasan — Co-founder at Spera.bot. Former UX Design Engineer on HP Innovation for India. Experimental websites, design tools, and human-centered UX from Bengaluru.";
 const OG_IMAGE = `${SITE_URL}/images/dp.jpeg`;
 
 const LAST_MODIFIED = "2026-05-19";
@@ -30,7 +29,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default: TITLE,
-    template: "%s — Kiruk",
+    template: "%s — Kiruk Studio",
   },
   description: DESCRIPTION,
   applicationName: "Kiruk",
@@ -46,6 +45,7 @@ export const metadata: Metadata = {
     "Figma React engineer",
     "Arun Kumaar Sreenivasan",
     "Kiruk",
+    "Kiruk Studio",
     "Kirukism",
     "Spera.bot designer",
     "HP Print AI",
@@ -57,7 +57,7 @@ export const metadata: Metadata = {
     { name: "Kiruk", url: SITE_URL },
   ],
   creator: "Arun Kumaar Sreenivasan",
-  publisher: "Kiruk",
+  publisher: "Kiruk Studio",
   category: "Design",
   alternates: {
     canonical: "/",
@@ -172,7 +172,7 @@ const websiteJsonLd = {
     "@type": "SearchAction",
     target: {
       "@type": "EntryPoint",
-      urlTemplate: `${SITE_URL}/blog?q={search_term_string}`,
+      urlTemplate: `${SITE_URL}/notebook?q={search_term_string}`,
     },
     "query-input": "required name=search_term_string",
   },
@@ -182,7 +182,7 @@ const organizationJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
   "@id": `${SITE_URL}/#organization`,
-  name: "Kiruk",
+  name: "Kiruk Studio",
   url: SITE_URL,
   logo: OG_IMAGE,
   founder: { "@id": `${SITE_URL}/#person` },
@@ -201,7 +201,6 @@ export default function RootLayout({
   return (
     <html lang="en-IN" suppressHydrationWarning={true} data-antigravity-check="verified">
       <head>
-        <link rel="canonical" href={SITE_URL} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}

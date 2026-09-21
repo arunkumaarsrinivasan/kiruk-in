@@ -13,8 +13,8 @@ const TOOLS: Array<{
   label: string
   key: string
 }> = [
-  { id: 'type', icon: 'type', label: 'notes', key: 'V' },
-  { id: 'ink', icon: 'ink', label: 'ink', key: 'P' },
+  { id: 'type', icon: 'type', label: 'write', key: 'V' },
+  { id: 'ink', icon: 'ink', label: 'scribble', key: 'P' },
   { id: 'pencil', icon: 'pencil', label: 'pencil', key: 'B' },
   { id: 'eraser', icon: 'eraser', label: 'eraser', key: 'E' },
 ]
@@ -28,7 +28,7 @@ const HANDS: Array<{ id: SketchAction; label: string }> = [
 ]
 
 /**
- * Notebook tool strip — lives in the fixed top nav (toolbar placement).
+ * BLOGISM tool strip — write vs scribble on one paper.
  */
 export function StudioToolDock({
   tool,
@@ -78,15 +78,12 @@ export function StudioToolDock({
     }
   }, [handOpen, plusOpen])
 
-  const handLabel =
-    writeAction === 'checklist' ? 'list' : writeAction === 'type' ? 'notes' : writeAction
-
   return (
     <div
       ref={rootRef}
       className="studio-dock studio-dock--toolbar"
       role="toolbar"
-      aria-label="Notebook tools"
+      aria-label="BLOGISM tools"
       onContextMenu={onOpenMenu}
     >
       {handOpen && (
@@ -141,7 +138,7 @@ export function StudioToolDock({
           >
             <StudioIcon name="addDraw" size={16} />
             <SketchInk mode="script" intensity={0.4}>
-              draw
+              scribble
             </SketchInk>
           </button>
           {onAddDoodle && (
@@ -202,7 +199,7 @@ export function StudioToolDock({
                 <StudioIcon name={t.icon} size={18} />
                 <span className="studio-dock-btn-label">
                   <SketchInk mode="script" intensity={0.35}>
-                    {isWrite && on ? handLabel : t.label}
+                    {t.label}
                   </SketchInk>
                 </span>
               </button>

@@ -5,11 +5,14 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { ModuleOverlayHost } from "@/components/modules/ModuleOverlay";
 import { Navbar } from "./Navbar";
+import { EraTravelProvider } from "@/components/era-travel/EraTravelContext";
 import AppLoader from "@/components/ui/app-loader";
 import DetectiveStoryWrapper from "./DetectiveStoryWrapper";
 import SketchDigitalSplitLayout from "./SketchDigitalSplitLayout";
 import { useLayoutMode } from "@/contexts/LayoutModeContext";
 import { EraShell } from "@/components/era-shell/EraShell";
+import { USE_KIRUK_HAND } from "@/lib/sketch-ink/config";
+import { isDeskPath, isDeskPreviewPath, isNotebookPath } from "@/lib/paper-surface";
 
 const CustomCursor = dynamic(() => import("@/components/ui/CustomCursor"), {
   ssr: false,
@@ -25,24 +28,25 @@ interface LayoutClientShellProps {
   readonly children: React.ReactNode;
 }
 
-import { USE_KIRUK_HAND } from "@/lib/sketch-ink/config";
-
 export default function LayoutClientShell({ children }: Readonly<LayoutClientShellProps>) {
   const pathname = usePathname();
   const { isSplitMode } = useLayoutMode();
 
-  // Studio is a pen-and-paper desk — no era chrome, scanlines, or portfolio nav.
-  const isStudio = pathname?.startsWith("/studio") ?? false;
+  const isDesk = isDeskPath(pathname);
+  const isNotebook = isNotebookPath(pathname);
+  const isDeskPreview = isDeskPreviewPath(pathname);
+  const isPaperDesk = isDesk && !isDeskPreview;
+  const isProto = pathname.startsWith("/proto");
 
   // Paper skin tokens must live on <html> so portaled dock / Page / ctx inherit them.
   useEffect(() => {
-    if (!isStudio) return
-    const root = document.documentElement
-    root.setAttribute("data-notebook-skin", "paper")
+    if (!isPaperDesk) return;
+    const root = document.documentElement;
+    root.setAttribute("data-notebook-skin", "paper");
     return () => {
-      root.removeAttribute("data-notebook-skin")
-    }
-  }, [isStudio])
+      root.removeAttribute("data-notebook-skin");
+    };
+  }, [isPaperDesk]);
 
   // Nav bar removed; module triggers live inline in the era content. Archetypes
   // own their top padding, so the shell adds none.
@@ -52,7 +56,7 @@ export default function LayoutClientShell({ children }: Readonly<LayoutClientShe
   const splashLoaderEnabled =
     process.env.NEXT_PUBLIC_SPLASH_LOADER !== "false";
 
-  if (isStudio) {
+  if (isDesk && !isDeskPreview) {
     return (
       <main
         id="main-content"
@@ -66,15 +70,21 @@ export default function LayoutClientShell({ children }: Readonly<LayoutClientShe
     );
   }
 
+  if (isNotebook || isDeskPreview) {
+    return (
+      <main id="main-content" tabIndex={-1} className="min-h-screen">
+        {children}
+      </main>
+    );
+  }
+
   return (
     <>
-      <CustomCursor />
+      {isProto ? null : <CustomCursor />}
       <AppLoader enableLoader={splashLoaderEnabled} loadingDuration={400}>
+      <EraTravelProvider>
       {/* Skip Links for Accessibility */}
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:text-sm focus:no-underline"
-      >
+      <a href="#main-content" className="skip-link">
         Skip to main content
       </a>
 
@@ -104,6 +114,7 @@ export default function LayoutClientShell({ children }: Readonly<LayoutClientShe
 
       {/* Era-specific atmospheric shell layer (scanlines, glass, etc) */}
       <EraShell />
+      </EraTravelProvider>
       </AppLoader>
     </>
   );

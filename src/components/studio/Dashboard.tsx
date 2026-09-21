@@ -6,7 +6,7 @@ import { StudioIcon } from '@/components/studio/icons'
 import { SketchInk } from '@/components/sketch-ink'
 
 /**
- * Author dashboard — white paper desk (digital/black skin comes later).
+ * Author desk — white paper (digital/black skin comes later).
  */
 type Collection = 'blog' | 'notes'
 interface PostItem {
@@ -22,7 +22,6 @@ export function Dashboard() {
   const router = useRouter()
   const [posts, setPosts] = useState<PostItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [collection, setCollection] = useState<Collection>('blog')
   const [title, setTitle] = useState('')
 
   async function refresh() {
@@ -40,10 +39,10 @@ export function Dashboard() {
     const res = await fetch('/api/studio/posts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ collection, title }),
+      body: JSON.stringify({ collection: 'blog', title }),
     })
     const json = await res.json()
-    if (json.slug) router.push(`/studio/edit/${collection}/${json.slug}`)
+    if (json.slug) router.push(`/desk/edit/blog/${json.slug}`)
   }
 
   async function remove(p: PostItem) {
@@ -59,6 +58,14 @@ export function Dashboard() {
   return (
     <div className="px-4 py-12 md:py-16">
       <div className="mx-auto max-w-xl">
+        <header
+          className="mb-12"
+          style={{
+            color: 'var(--studio-chrome-fg)',
+            ['--ink-line' as string]: 'var(--studio-chrome-fg)',
+            ['--text-muted' as string]: 'var(--studio-chrome-muted)',
+          }}
+        >
         <p className="mb-3 text-lg" style={{ color: 'var(--text-muted)' }}>
           <SketchInk mode="script" intensity={0.4}>
             paper
@@ -66,29 +73,17 @@ export function Dashboard() {
         </p>
         <h1 className="studio-title mb-3 text-4xl md:text-5xl" style={{ color: 'var(--ink-line)' }}>
           <SketchInk mode="print" intensity={0.55}>
-            STUDIO
+            DESK
           </SketchInk>
         </h1>
-        <p className="mb-12 max-w-sm text-xl leading-snug" style={{ color: 'var(--text-muted)' }}>
+        <p className="max-w-sm text-xl leading-snug" style={{ color: 'var(--text-muted)' }}>
           <SketchInk mode="script" intensity={0.7}>
-            one white page. type, ink, screenshots — publish in black.
+            one white page. write or scribble — publish the notebook in black.
           </SketchInk>
         </p>
+        </header>
 
         <div className="studio-paper mb-10 flex flex-wrap items-center gap-2 p-3">
-          <select
-            value={collection}
-            onChange={(e) => setCollection(e.target.value as Collection)}
-            className="border px-2.5 py-1.5 text-sm outline-none"
-            style={{
-              borderColor: 'var(--border-color)',
-              background: 'var(--bg-paper)',
-              color: 'var(--text-main)',
-            }}
-          >
-            <option value="blog">blog</option>
-            <option value="notes">notes</option>
-          </select>
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -130,10 +125,10 @@ export function Dashboard() {
                 style={{ borderColor: 'var(--border-color)' }}
               >
                 <span
-                  className="w-12 shrink-0 text-[10px] uppercase tracking-[0.14em]"
+                  className="w-16 shrink-0 text-[10px] uppercase tracking-[0.14em]"
                   style={{ color: 'var(--text-muted)' }}
                 >
-                  {p.collection}
+                  page
                 </span>
                 {p.draft && (
                   <span
@@ -145,7 +140,7 @@ export function Dashboard() {
                 )}
                 <button
                   type="button"
-                  onClick={() => router.push(`/studio/edit/${p.collection}/${p.fileSlug}`)}
+                  onClick={() => router.push(`/desk/edit/${p.collection}/${p.fileSlug}`)}
                   className="flex-1 text-left text-lg transition-opacity hover:opacity-60"
                   style={{ color: 'var(--text-main)' }}
                 >

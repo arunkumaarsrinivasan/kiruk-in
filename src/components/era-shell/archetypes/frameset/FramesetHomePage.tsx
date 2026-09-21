@@ -785,7 +785,7 @@ export function FramesetHomePage() {
   );
 
   return (
-    <main
+    <div
       id="frameset-home"
       style={{
         backgroundColor: DESK,
@@ -1509,7 +1509,7 @@ export function FramesetHomePage() {
           onClose={stopAudio}
         />
       )}
-    </main>
+    </div>
   );
 }
 

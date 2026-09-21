@@ -141,17 +141,24 @@ export function ModuleProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Shift+M opens the Eras module (old nav shortcut, repointed).
+  // Ctrl/Cmd+Shift+E opens Eras. Letter-only Shift+M failed WCAG 2.1.4.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      const el = document.activeElement;
       if (
-        e.key.toLowerCase() === "m" &&
+        el instanceof HTMLElement &&
+        (el.tagName === "INPUT" ||
+          el.tagName === "TEXTAREA" ||
+          el.tagName === "SELECT" ||
+          el.isContentEditable)
+      ) {
+        return;
+      }
+      if (
+        (e.metaKey || e.ctrlKey) &&
         e.shiftKey &&
-        !e.metaKey &&
-        !e.ctrlKey &&
-        !e.altKey &&
-        document.activeElement?.tagName !== "INPUT" &&
-        document.activeElement?.tagName !== "TEXTAREA"
+        e.key.toLowerCase() === "e" &&
+        !e.altKey
       ) {
         e.preventDefault();
         toggle("eras");

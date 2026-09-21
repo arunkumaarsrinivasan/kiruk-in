@@ -80,7 +80,7 @@ export default function WireframeManualLayout() {
       </div>
 
       {/* Main Content */}
-      <main
+      <div
         className="relative z-10 mx-auto"
         style={{
           maxWidth: `${gridAlignment.maxContentWidth}px`,
@@ -440,19 +440,19 @@ export default function WireframeManualLayout() {
                     </Link>
                     {' '}and detailed{' '}
                     <Link
-                      href="/case-studies"
+                      href="/work"
                       className="underline decoration-dotted underline-offset-2"
                       style={{ color: "var(--accent-color)" }}
                     >
                       case studies
                     </Link>
-                    . Process journals on the{' '}
+                    . Process journals in the{' '}
                     <Link
-                      href="/blog"
+                      href="/notebook"
                       className="underline decoration-dotted underline-offset-2"
                       style={{ color: "var(--accent-color)" }}
                     >
-                      blog
+                      notebook
                     </Link>
                     .
                   </p>
@@ -997,7 +997,7 @@ export default function WireframeManualLayout() {
                       </div>
                       <div className="h-6 flex items-center">
                         <Link
-                          href="/portfolio"
+                          href="/work#deck"
                           data-cursor-chat="card-open"
                           className="inline-block text-xs font-mono uppercase tracking-wider transition-colors leading-none"
                           style={{ color: "var(--accent-color)" }}
@@ -1201,7 +1201,7 @@ export default function WireframeManualLayout() {
             </div>
           </WireframeSection>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

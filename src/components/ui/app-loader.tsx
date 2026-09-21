@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import InteractiveLoadingPage from '@/components/ui/interactive-loading-page';
 import ImmersiveEraLoadingPage from '@/components/ui/immersive-era-loading-page';
 
@@ -49,11 +49,11 @@ const AppLoader: React.FC<AppLoaderProps> = ({
     setHydrated(true);
   }, [enableLoader]);
 
-  const handleLoadingComplete = () => {
+  const handleLoadingComplete = useCallback(() => {
     sessionStorage.setItem('kiruk-loading-seen', 'true');
     setMode('none');
     setTimeout(() => setShowContent(true), 80);
-  };
+  }, []);
 
   if (!hydrated) {
     return (
@@ -62,6 +62,8 @@ const AppLoader: React.FC<AppLoaderProps> = ({
       </div>
     );
   }
+
+  const overlayOpen = enableLoader && mode !== 'none';
 
   return (
     <>
@@ -77,9 +79,14 @@ const AppLoader: React.FC<AppLoaderProps> = ({
       {enableLoader && mode === 'era-picker' && (
         <ImmersiveEraLoadingPage onComplete={handleLoadingComplete} />
       )}
-      <div style={{ visibility: showContent ? 'visible' : 'hidden' }}>
-        {children}
-      </div>
+      {/* Overlay open: unmount the site so navbar, era shells, and page
+          loops are not competing with the splash/picker. SSR still sent
+          children on the pre-hydrate pass for crawlers. */}
+      {overlayOpen ? null : (
+        <div style={{ visibility: showContent ? 'visible' : 'hidden' }}>
+          {children}
+        </div>
+      )}
     </>
   );
 };

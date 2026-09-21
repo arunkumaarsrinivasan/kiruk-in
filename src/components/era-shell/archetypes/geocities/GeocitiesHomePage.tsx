@@ -294,7 +294,7 @@ export function GeocitiesHomePage() {
   }, []);
 
   return (
-    <main
+    <div
       id="geocities-home"
       className={comic.className}
       style={{
@@ -874,7 +874,7 @@ export function GeocitiesHomePage() {
         </div>
       </div>
 
-    </main>
+    </div>
   );
 }
 

@@ -35,7 +35,7 @@ export const MODULES: ModuleMeta[] = [
   { id: "observatory", label: "Observatory", icon: "🔭", blurb: "Skills telescope" },
   { id: "about", label: "About", icon: "☺", blurb: "Who is Arun" },
   { id: "progress", label: "Progress", icon: "▲", blurb: "The long game" },
-  { id: "blog", label: "Blog", icon: "✎", blurb: "Process journal" },
+  { id: "blog", label: "Notebook", icon: "✎", blurb: "Read the notebook" },
   { id: "contact", label: "Contact", icon: "✉", blurb: "Start a session" },
   { id: "footer-game", label: "Arcade", icon: "▣", blurb: "Era mini-game" },
 ];

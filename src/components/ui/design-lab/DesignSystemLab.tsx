@@ -249,7 +249,7 @@ function EraEffectLayer({
           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
           style={{
             background: `conic-gradient(from 0deg, ${colors.primary}, ${colors.secondary}, ${colors.accent}, ${colors.primary})`,
-            filter: "blur(40px)",
+            filter: "blur(20px)",
           }}
         />
       )}

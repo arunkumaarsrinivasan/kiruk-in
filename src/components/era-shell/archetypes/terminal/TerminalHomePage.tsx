@@ -11,6 +11,8 @@
  */
 
 import React, { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { VT323 } from "next/font/google";
 import { useLayoutMode } from "@/contexts/LayoutModeContext";
@@ -90,6 +92,7 @@ function wrap(text: string, width: number): string[] {
 
 export function TerminalHomePage() {
   const reduced = useReducedMotion();
+  const router = useRouter();
   const { setLayoutMode } = useLayoutMode();
   const { open: openModule } = useModules();
   const [scrolled, setScrolled] = useState(false);
@@ -126,7 +129,7 @@ export function TerminalHomePage() {
   );
 
   return (
-    <main
+    <div
       id="terminal-home"
       className={`${vt323.className} ${vt323.variable} relative min-h-screen w-full overflow-hidden`}
       style={{
@@ -141,6 +144,7 @@ export function TerminalHomePage() {
         {!scrolled && (
           <motion.div
             key="tty-status"
+            data-blueprint="tty-status"
             className="fixed inset-x-0 z-[55] flex items-center justify-between border-b px-4 py-1 text-[14px] uppercase tracking-[0.18em]"
             style={{
               top: "var(--simple-game-nav-bottom, 56px)",
@@ -171,6 +175,7 @@ export function TerminalHomePage() {
       >
         {/* ── RESEARCH FILE HEADER ───────────────────────── */}
         <motion.section
+          data-blueprint="file-header"
           initial={reduced ? { opacity: 1 } : { opacity: 0, y: -4 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.30, ease: "easeOut" }}
@@ -190,6 +195,7 @@ export function TerminalHomePage() {
         </motion.section>
 
         <motion.pre
+          data-blueprint="ascii-banner"
           initial={reduced ? { opacity: 1 } : { opacity: 0, y: -4 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.32, delay: 0.02, ease: "easeOut" }}
@@ -202,6 +208,7 @@ export function TerminalHomePage() {
         </motion.pre>
 
         <motion.div
+          data-blueprint="framing"
           initial={reduced ? { opacity: 1 } : { opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.32, delay: 0.06 }}
@@ -222,7 +229,7 @@ export function TerminalHomePage() {
         </motion.div>
 
         {/* meta nav — interface history + time machine, by the masthead */}
-        <div className="mb-8 flex flex-wrap items-center gap-x-6 gap-y-2">
+        <div data-blueprint="meta-nav" className="mb-8 flex flex-wrap items-center gap-x-6 gap-y-2">
           <TermNavLink module="era-story" label="This Era" open={openModule} />
           <TermNavLink module="eras" label="Travel Eras" open={openModule} />
         </div>
@@ -230,6 +237,7 @@ export function TerminalHomePage() {
         {/* ── RECORD 001 — WHY KIRUK ─────────────────────── */}
         <LogStamp seq={1} file="why-kiruk.txt" subtitle="hook · pain · bridge · close" time={openTime} delay={0.10} reduced={reduced} />
         <motion.section
+          data-blueprint="record-001"
           initial={reduced ? { opacity: 1 } : { opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.32, delay: 0.12, ease: "easeOut" }}
@@ -263,10 +271,10 @@ export function TerminalHomePage() {
 
           {/* Goals + Frustrations split */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-            <Panel header="GOALS" hint="what i strive for">
+            <Panel header="GOALS" hint="what i strive for" blueprint="persona-goals">
               <BulletList lines={PERSONA.goals as readonly string[]} marker="→" />
             </Panel>
-            <Panel header="FRUSTRATIONS" hint="what i fight" tint={ALERT}>
+            <Panel header="FRUSTRATIONS" hint="what i fight" tint={ALERT} blueprint="persona-frustrations">
               <BulletList
                 lines={PERSONA.frustrations as readonly string[]}
                 marker="✕"
@@ -305,7 +313,7 @@ export function TerminalHomePage() {
           <LifeWalk
             palette={TERMINAL_PALETTE}
             moments={LIFE_MOMENTS}
-            onOpen={() => openModule("about")}
+            onOpen={() => router.push("/about")}
             height={210}
           />
         </motion.section>
@@ -349,6 +357,7 @@ export function TerminalHomePage() {
         {/* ── RECORD 004 — JOURNEY MAP ───────────────────── */}
         <LogStamp seq={4} file="journey-map.tsv" subtitle="career as user journey · 2018 → now" time={openTime} delay={0.22} reduced={reduced} />
         <motion.section
+          data-blueprint="journey"
           initial={reduced ? { opacity: 1 } : { opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.32, delay: 0.24, ease: "easeOut" }}
@@ -557,7 +566,7 @@ export function TerminalHomePage() {
 
         {/* progress link — by the journey/impact records */}
         <div className="mb-10 -mt-4">
-          <TermNavLink module="progress" label="Progress · the long game" open={openModule} />
+          <TermNavLink href="/progress" label="Progress · the long game" />
         </div>
 
         {/* ── WORK · constellation of real projects (nav box) ─ */}
@@ -571,7 +580,7 @@ export function TerminalHomePage() {
             palette={TERMINAL_PALETTE}
             title="WORK.scope"
             nodes={careerStars}
-            onOpen={() => openModule("observatory")}
+            onOpen={() => router.push("/work")}
             height={240}
           />
         </motion.section>
@@ -651,8 +660,8 @@ export function TerminalHomePage() {
 
         {/* contact + blog links — close the file */}
         <div className="mb-8 flex flex-wrap items-center gap-x-6 gap-y-2">
-          <TermNavLink module="contact" label="Contact · channels" open={openModule} />
-          <TermNavLink module="blog" label="Field Notes · Blog" open={openModule} />
+          <TermNavLink href="/contact" label="Contact · channels" />
+          <TermNavLink href="/notebook" label="Field Notes · Notebook" />
         </div>
 
         {/* ── EOF ────────────────────────────────────────── */}
@@ -675,7 +684,7 @@ export function TerminalHomePage() {
           </pre>
         </motion.div>
       </div>
-    </main>
+    </div>
   );
 }
 
@@ -757,14 +766,16 @@ function Panel({
   hint,
   children,
   tint,
+  blueprint,
 }: {
   header: string;
   hint: string;
   children: React.ReactNode;
   tint?: string;
+  blueprint?: string;
 }) {
   return (
-    <div className="border-2 p-3" style={{ borderColor: PHOSPHOR_GHOST }}>
+    <div data-blueprint={blueprint} className="border-2 p-3" style={{ borderColor: PHOSPHOR_GHOST }}>
       <div
         className="flex items-baseline gap-2 mb-2 pb-1 border-b"
         style={{ borderColor: PHOSPHOR_GHOST }}
@@ -859,13 +870,34 @@ const TERMINAL_PALETTE: GamePalette = {
 
 function TermNavLink({
   module,
+  href,
   label,
   open,
 }: {
-  module: ModuleId;
+  module?: ModuleId;
+  href?: string;
   label: string;
-  open: (module: ModuleId, origin?: { x: number; y: number }) => void;
+  open?: (module: ModuleId, origin?: { x: number; y: number }) => void;
 }) {
+  const className =
+    "group inline-flex min-h-11 items-center gap-1.5 text-[15px] uppercase tracking-[0.14em]";
+  const inner = (
+    <>
+      <span style={{ color: PHOSPHOR_FAINT }}>▸</span>
+      {label}
+      <span className="opacity-40 transition-opacity group-hover:opacity-100">
+        ⤢
+      </span>
+    </>
+  );
+  if (href) {
+    return (
+      <Link href={href} aria-label={label} className={className} style={{ color: PHOSPHOR_BRIGHT }}>
+        {inner}
+      </Link>
+    );
+  }
+  if (!module || !open) return null;
   return (
     <button
       type="button"
@@ -876,14 +908,10 @@ function TermNavLink({
         const r = e.currentTarget.getBoundingClientRect();
         open(module, { x: r.left + r.width / 2, y: r.top + r.height / 2 });
       }}
-      className="group inline-flex items-center gap-1.5 text-[15px] uppercase tracking-[0.14em] transition-transform hover:translate-x-0.5 focus-visible:outline-none"
+      className={className}
       style={{ color: PHOSPHOR_BRIGHT }}
     >
-      <span style={{ color: PHOSPHOR_FAINT }}>▸</span>
-      {label}
-      <span className="opacity-40 transition-opacity group-hover:opacity-100">
-        ⤢
-      </span>
+      {inner}
     </button>
   );
 }

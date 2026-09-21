@@ -1,8 +1,9 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useCallback, useEffect, useState, useMemo, useRef } from "react";
 
+import { SiteCrumbs } from "@/components/layout/SiteCrumbs";
 import { VlogGallery } from "@/modules/vlogs";
 import { PixelCharacter, getStageFromAge } from "./components/PixelCharacter";
 import { CelestialLevelBackground } from "./components/CelestialLevelBackground";
@@ -265,6 +266,7 @@ function getCosmicPhase(age: number): "sun" | "moon" | "stars" {
 
 
 export default function About() {
+	const reduce = useReducedMotion();
 	const [showIntro, setShowIntro] = useState(true);
 	const [showRoadmap, setShowRoadmap] = useState(false);
 	const { setAboutData, setAboutPhaseHandler } = useContextBar();
@@ -290,7 +292,7 @@ export default function About() {
 
 	const nextLevelRef = useRef<(() => void) | null>(null);
 
-	const { gameState, startGame, togglePause, nextLevel, goToLevel, setMoving } = useCelestialEngine({
+	const { gameState, startGame, togglePause, nextLevel, goToLevel, setMoving, loopRefs } = useCelestialEngine({
 		levels,
 		events: lifeEvents.map(e => ({ id: e.id, year: e.year, age: e.age, title: e.title, tags: e.tags, icon: e.icon })),
 		worldWidth: 2000,
@@ -337,11 +339,6 @@ export default function About() {
 	// Get current OS theme for player positioning on taskbar
 	const currentOSTheme = useMemo(() => getOSTheme(currentEvent?.year ?? 2001), [currentEvent?.year]);
 	const taskbarHeight = currentOSTheme.taskbar.height;
-
-	// Camera offset calculation
-	const cameraOffset = useMemo(() => {
-		return Math.max(0, gameState.playerX - 120);
-	}, [gameState.playerX]);
 
 	const handleStartGame = useCallback(() => {
 		setShowIntro(false);
@@ -408,7 +405,7 @@ export default function About() {
 	// Level progress is now used directly - no phase calculation needed
 
 	return (
-		<main className="min-h-screen overflow-hidden relative" style={{ backgroundColor: "var(--bg-main)" }}>
+		<div className="min-h-screen overflow-hidden relative" style={{ backgroundColor: "var(--bg-main)" }}>
 			{/* Game Header - Minimal navbar */}
 
 			{/* Intro Screen */}
@@ -434,34 +431,38 @@ export default function About() {
 
 
 						<div className="text-center max-w-2xl px-4 pt-[120px] pb-12 md:pt-[140px] md:pb-16 relative z-10 max-h-screen min-h-0 overflow-y-auto flex flex-col items-center">
-							<motion.h1
-								className="text-4xl md:text-6xl font-mono mb-4 shrink-0"
-								style={{ color: "var(--text-main)" }}
-								initial={{ y: 20, opacity: 0 }}
-								animate={{ y: 0, opacity: 1 }}
-								transition={{ delay: 0.4 }}
-							>
-								TIME TRAVEL
-							</motion.h1>
+						<SiteCrumbs className="mb-6" items={[{ label: "About" }]} />
+						<motion.h1
+							className="text-4xl md:text-6xl font-mono mb-4 shrink-0"
+							style={{ color: "var(--text-main)" }}
+							initial={reduce ? false : { y: 20, opacity: 0 }}
+							animate={{ y: 0, opacity: 1 }}
+							transition={{ delay: 0.4 }}
+							data-blueprint="intro-title"
+						>
+							TIME TRAVEL
+						</motion.h1>
 
-							<motion.p
-								className="text-lg font-mono mb-6"
-								style={{ color: "var(--text-muted)" }}
-								initial={{ y: 20, opacity: 0 }}
-								animate={{ y: 0, opacity: 1 }}
-								transition={{ delay: 0.6 }}
-							>
+						<motion.p
+							className="text-lg font-mono mb-6"
+							style={{ color: "var(--text-muted)" }}
+							initial={reduce ? false : { y: 20, opacity: 0 }}
+							animate={{ y: 0, opacity: 1 }}
+							transition={{ delay: 0.6 }}
+							data-blueprint="intro-copy"
+						>
 								Walk through {lifeEvents.length} moments across operating systems — from Windows 98 to Spatial UI.
 								<br />
 								<span style={{ color: "var(--accent-color)" }}>← →</span> to travel through time.
 							</motion.p>
 
-							<motion.div
-								className="flex flex-col items-center gap-4"
-								initial={{ y: 20, opacity: 0 }}
-								animate={{ y: 0, opacity: 1 }}
-								transition={{ delay: 0.8 }}
-							>
+						<motion.div
+							className="flex flex-col items-center gap-4"
+							initial={reduce ? false : { y: 20, opacity: 0 }}
+							animate={{ y: 0, opacity: 1 }}
+							transition={{ delay: 0.8 }}
+							data-blueprint="intro-actions"
+						>
 								<button
 									onClick={handleStartGame}
 									className="px-8 py-4 font-mono text-2xl transition-all hover:scale-105 wireframe-btn"
@@ -487,13 +488,14 @@ export default function About() {
 								</button>
 							</motion.div>
 
-							{/* Phase Jump Buttons */}
-							<motion.div
-								className="mt-8"
-								initial={{ y: 20, opacity: 0 }}
-								animate={{ y: 0, opacity: 1 }}
-								transition={{ delay: 1 }}
-							>
+						{/* Phase Jump Buttons */}
+						<motion.div
+							className="mt-8"
+							initial={reduce ? false : { y: 20, opacity: 0 }}
+							animate={{ y: 0, opacity: 1 }}
+							transition={{ delay: 1 }}
+							data-blueprint="intro-extra"
+						>
 								<p className="font-mono text-sm mb-3" style={{ color: "var(--text-muted)" }}>
 									Jump to an era:
 								</p>
@@ -550,7 +552,7 @@ export default function About() {
 							{showRoadmap && (
 								<motion.div
 									className="mt-8 max-w-3xl mx-auto text-left"
-									initial={{ opacity: 0, y: 10 }}
+									initial={reduce ? false : { opacity: 0, y: 10 }}
 									animate={{ opacity: 1, y: 0 }}
 									transition={{ delay: 0.1 }}
 								>
@@ -614,16 +616,19 @@ export default function About() {
 							currentEventIndex={gameState.level}
 							allEvents={lifeEvents}
 							onNavigate={goToLevel}
+							cameraRef={loopRefs.bg}
+							progressFillRef={loopRefs.progressFill}
+							progressLabelRef={loopRefs.progressLabel}
 						>
 							{/* Game Canvas - with camera offset */}
 							<div className="absolute bottom-0 left-0 right-0 h-48 overflow-hidden z-15">
 								{/* Scrolling world container */}
 								<div
+									ref={loopRefs.world}
 									className="relative h-full"
 									style={{
 										width: gameState.worldWidth,
-										transform: `translateX(${-cameraOffset}px)`,
-										transition: 'transform 0.05s linear',
+										willChange: "transform",
 									}}
 								>
 									{/* World Progress Markers */}
@@ -651,28 +656,22 @@ export default function About() {
 									))}
 
 									{/* Player */}
-									<motion.div
+									<div
+										ref={loopRefs.player}
 										style={{
 											position: 'absolute',
 											bottom: `${taskbarHeight}px`,
 											left: 0,
 											transformOrigin: 'bottom center',
 											zIndex: 15,
-										}}
-										animate={{
-											x: gameState.playerX,
-											scaleX: gameState.isMovingLeft ? -1 : 1,
-										}}
-										transition={{
-											x: { type: 'tween', duration: 0 },
-											scaleX: { type: 'tween', duration: 0.15, ease: 'easeOut' },
+											willChange: "transform",
 										}}
 									>
 										<PixelCharacter
 											stage={characterStage}
 											action={characterAction}
 										/>
-									</motion.div>
+									</div>
 
 									{/* Goal marker */}
 									<div
@@ -773,6 +772,6 @@ export default function About() {
 					</div>
 				</div>
 			)}
-		</main>
+		</div>
 	);
 }

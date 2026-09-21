@@ -304,7 +304,7 @@
 
 /* Typography for loading states */
 .loading-text {
-  font-family: 'Playpen Sans Variable', 'Playpen Sans', cursive;
+  font-family: var(--font-heading), cursive;
   font-weight: 480;
   font-size: var(--text-sm);
   color: #6b7280;
@@ -313,14 +313,14 @@
 
 /* Success/error message typography */
 .success-message {
-  font-family: 'Playpen Sans Variable', 'Playpen Sans', cursive;
+  font-family: var(--font-heading), cursive;
   font-weight: 650;
   font-size: var(--text-sm);
   color: #059669;
 }
 
 .error-message {
-  font-family: 'Playpen Sans Variable', 'Playpen Sans', cursive;
+  font-family: var(--font-heading), cursive;
   font-weight: 520;
   font-size: var(--text-sm);
   color: #dc2626;

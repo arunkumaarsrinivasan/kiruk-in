@@ -23,6 +23,16 @@ type CustomEraStorage = {
 
 const CUSTOM_ERA_STORAGE_KEY = 'kiruk-custom-era';
 
+function releaseEraSwap(root: HTMLElement) {
+  if (root.hasAttribute('data-time-travel')) return;
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      if (root.hasAttribute('data-time-travel')) return;
+      root.removeAttribute('data-era-swapping');
+    });
+  });
+}
+
 const safeJsonParse = <T,>(value: string | null): T | null => {
   if (!value) return null;
   try {
@@ -146,6 +156,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   useEffect(() => {
     const root = document.documentElement;
     const theme = currentTheme;
+    root.setAttribute('data-era-swapping', '');
 
     root.style.setProperty('--theme-primary', theme.colors.primary);
     root.style.setProperty('--theme-secondary', theme.colors.secondary);
@@ -266,6 +277,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       // so the viewport can flash white behind fixed UI. Mirror page background on <html>.
       root.style.setProperty('--bg-main', theme.colors.background);
     }
+    releaseEraSwap(root);
   }, [currentTheme]);
 
   useEffect(() => {
@@ -275,6 +287,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   useEffect(() => {
     const root = document.documentElement;
     const { surface, cards } = designSystem.vars;
+    root.setAttribute('data-era-swapping', '');
 
     root.style.setProperty('--surface-pattern', surface.pattern);
     root.style.setProperty('--surface-pattern-size', surface.size);
@@ -286,6 +299,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     root.style.setProperty('--card-tilt', cards.tilt);
     root.style.setProperty('--card-background', cards.background);
     root.style.setProperty('--card-shadow', cards.shadow);
+    releaseEraSwap(root);
   }, [designSystem]);
 
   const setTheme = (themeId: string) => {

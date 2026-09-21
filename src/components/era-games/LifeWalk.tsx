@@ -312,7 +312,7 @@ export function LifeWalk({
       ref={wrapRef}
       tabIndex={0}
       role="button"
-      aria-label="About — walk the timeline; click to open the full Time Travel"
+      aria-label="About — walk the timeline; Enter or click to open About"
       onPointerDown={onDown}
       onPointerMove={onMove}
       onPointerUp={onUp}
@@ -321,7 +321,7 @@ export function LifeWalk({
         // tap opens; a drag-scrub does not
         if (!movedRef.current) onOpen();
       }}
-      className={`group/walk relative w-full cursor-pointer select-none overflow-hidden outline-none ${className ?? ""}`}
+      className={`group/walk relative w-full cursor-pointer select-none overflow-hidden ${className ?? ""}`}
       style={{
         background: palette.bg,
         border: `2px solid ${palette.dim}`,
@@ -363,7 +363,7 @@ export function LifeWalk({
                 e.stopPropagation();
                 onOpen();
               }}
-              className="ml-auto shrink-0 px-2 py-0.5 text-[12px] uppercase tracking-wider transition-transform hover:-translate-y-0.5 focus-visible:outline-none"
+              className="ml-auto shrink-0 min-h-11 min-w-11 px-2 py-0.5 text-[12px] uppercase tracking-wider"
               style={{ color: palette.bright, border: `1px solid ${palette.dim}` }}
             >
               {reachedEnd ? "open ⤢" : "full ⤢"}

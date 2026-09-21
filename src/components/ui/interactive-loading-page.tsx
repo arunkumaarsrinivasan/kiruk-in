@@ -16,8 +16,8 @@ const InteractiveLoadingPage: React.FC<InteractiveLoadingPageProps> = ({
   showProgress = true
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const progressRef = useRef<HTMLDivElement>(null);
   const [isComplete, setIsComplete] = useState(false);
-  const [progress, setProgress] = useState(0);
 
   // A returning visitor already chose a year, so the wait belongs to that year
   // rather than to a white page — the theme fills in a tick after mount, and
@@ -28,6 +28,8 @@ const InteractiveLoadingPage: React.FC<InteractiveLoadingPageProps> = ({
   const label = currentTheme.colors.text;
   const fillRef = useRef(fill);
   fillRef.current = fill;
+  const themeIdRef = useRef(currentTheme.id);
+  themeIdRef.current = currentTheme.id;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -72,30 +74,31 @@ const InteractiveLoadingPage: React.FC<InteractiveLoadingPageProps> = ({
 
     let animationFrameId: number;
     const startTime = Date.now();
+    let drawn = 0;
+    ctx.globalAlpha = 0.16;
+    ctx.fillStyle = fillRef.current;
 
     const draw = () => {
       const elapsed = Date.now() - startTime;
       const currentProgress = Math.min(elapsed / duration, 1);
-      setProgress(Math.round(currentProgress * 100));
-      
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      // A tint, not a slab: filled solid, the last frame was a full-screen
-      // flood of the era's primary. This lands on the era's own ground, which
-      // is what the page underneath is about to be.
-      ctx.globalAlpha = 0.16;
-      ctx.fillStyle = fillRef.current;
 
+      const labelEl = progressRef.current;
+      if (labelEl) {
+        labelEl.textContent = `${themeIdRef.current} · ${Math.round(currentProgress * 100)}%`;
+      }
+
+      // Incremental fill — do not clear and redraw thousands of cells per frame.
+      ctx.fillStyle = fillRef.current;
       const countToDraw = Math.floor(currentProgress * totalCells);
-      
-      for (let i = 0; i < countToDraw; i++) {
+      for (let i = drawn; i < countToDraw; i++) {
         const cell = cells[i];
         ctx.fillRect(cell.col * gridSize, cell.row * gridSize, gridSize, gridSize);
       }
+      drawn = countToDraw;
 
       if (currentProgress < 1) {
         animationFrameId = requestAnimationFrame(draw);
       } else {
-        // Animation done
         setTimeout(() => {
             setIsComplete(true);
         }, 200);
@@ -140,10 +143,11 @@ const InteractiveLoadingPage: React.FC<InteractiveLoadingPageProps> = ({
       />
       {showProgress && (
          <div
+            ref={progressRef}
             className="absolute bottom-8 right-8 z-20 font-mono text-[11px] uppercase tracking-[0.24em]"
             style={{ color: label, opacity: 0.55, fontFamily: currentTheme.fonts.accent }}
          >
-             {currentTheme.id} · {progress}%
+             {currentTheme.id} · 0%
          </div>
       )}
     </div>

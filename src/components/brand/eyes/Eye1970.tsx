@@ -16,6 +16,7 @@ export default function Eye1970({ gx, gy, reduce }: EyeProps) {
   const { cx, cy } = usePupil(gx, gy, { tx: 9, ty: 6 });
   const bx = useTransform(cx, (v) => v - 7.5);
   const by = useTransform(cy, (v) => v - 10.5);
+  const looping = !reduce;
   return (
     <svg viewBox="0 0 120 80" className="h-full w-full" style={{ overflow: "visible" }} aria-hidden>
       <defs>
@@ -30,8 +31,8 @@ export default function Eye1970({ gx, gy, reduce }: EyeProps) {
 
       <motion.g
         filter="url(#crt-bloom)"
-        animate={reduce ? undefined : { opacity: [1, 0.9, 1, 0.96, 1] }}
-        transition={reduce ? undefined : { duration: 2.4, repeat: Infinity, ease: "linear" }}
+        animate={looping ? { opacity: [1, 0.9, 1, 0.96, 1] } : undefined}
+        transition={looping ? { duration: 2.4, repeat: Infinity, ease: "linear" } : undefined}
       >
         {/* outer ring as phosphor character cells (dashed reads as glyphs) */}
         <circle
@@ -54,9 +55,9 @@ export default function Eye1970({ gx, gy, reduce }: EyeProps) {
           height="21"
           fill={P}
           x={bx} y={by}
-          animate={reduce ? undefined : { opacity: [1, 1, 0, 0] }}
+          animate={looping ? { opacity: [1, 1, 0, 0] } : undefined}
           transition={
-            reduce ? undefined : { duration: 0.9, times: [0, 0.5, 0.5, 1], repeat: Infinity, ease: "linear" }
+            looping ? { duration: 0.9, times: [0, 0.5, 0.5, 1], repeat: Infinity, ease: "linear" } : undefined
           }
         />
       </motion.g>

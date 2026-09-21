@@ -545,7 +545,7 @@ export function AiNativeHomePage() {
   const lensAccent = LENSES[lens].accent;
 
   return (
-    <main
+    <div
       id="kiruk-ai"
       style={{
         position: "relative",
@@ -1007,7 +1007,7 @@ export function AiNativeHomePage() {
           </div>
         </div>
       )}
-    </main>
+    </div>
   );
 }
 
@@ -1724,7 +1724,7 @@ function Blob({
         height: size,
         borderRadius: "50%",
         background: `radial-gradient(circle, ${color}55 0%, ${color}00 68%)`,
-        filter: "blur(36px)",
+        filter: "blur(20px)",
         animation: anim,
         willChange: "transform",
       }}

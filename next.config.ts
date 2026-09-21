@@ -41,6 +41,32 @@ const nextConfig: NextConfig = {
   // Compression
   compress: true,
   
+  async redirects() {
+    return [
+      { source: "/blog", destination: "/notebook", permanent: true },
+      { source: "/blog/:slug", destination: "/notebook/:slug", permanent: true },
+      { source: "/notes", destination: "/notebook", permanent: true },
+      { source: "/notes/:slug", destination: "/notebook/:slug", permanent: true },
+      { source: "/studio", destination: "/desk", permanent: true },
+      {
+        source: "/studio/edit/:collection/:slug",
+        destination: "/desk/edit/:collection/:slug",
+        permanent: true,
+      },
+      { source: "/studio/preview", destination: "/desk/preview", permanent: true },
+      { source: "/blogism", destination: "/desk", permanent: true },
+      {
+        source: "/blogism/edit/:collection/:slug",
+        destination: "/desk/edit/:collection/:slug",
+        permanent: true,
+      },
+      { source: "/blogism/preview", destination: "/desk/preview", permanent: true },
+      { source: "/case-studies", destination: "/work", permanent: true },
+      { source: "/case-studies/:id", destination: "/work/:id", permanent: true },
+      { source: "/portfolio", destination: "/work#deck", permanent: true },
+    ];
+  },
+
   // Experimental features for better performance
   experimental: {
     optimizePackageImports: [

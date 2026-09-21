@@ -303,19 +303,19 @@ export const XeroxArchetype: React.FC<EraSurfaceProps> = ({
               style={{ backgroundColor: HILITE }}
             >
               <TypeRow
-                role="DISPLAY"
+                kind="DISPLAY"
                 font={era.fonts.primary}
                 size={28}
                 sample="Aa Bb Cc 0123456789"
               />
               <TypeRow
-                role="BODY"
+                kind="BODY"
                 font={era.fonts.secondary}
                 size={16}
                 sample="The quick brown fox jumps over the lazy dog."
               />
               <TypeRow
-                role="UI"
+                kind="UI"
                 font={era.fonts.accent}
                 size={13}
                 sample="BUTTONS · LABELS · INPUTS · FORMS"
@@ -675,12 +675,12 @@ function PixelSwatch({ color, label }: { color: string; label: string }) {
 // ─── Typography row ──────────────────────────────────────────────────────
 
 function TypeRow({
-  role,
+  kind,
   font,
   size,
   sample,
 }: {
-  role: string;
+  kind: string;
   font: string;
   size: number;
   sample: string;
@@ -708,7 +708,7 @@ function TypeRow({
             letterSpacing: 1,
           }}
         >
-          ◆ {role}
+          ◆ {kind}
         </span>
         <span
           style={{ fontSize: 10, color: SHADOW, fontFamily: FONT_MONO }}

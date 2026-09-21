@@ -323,9 +323,9 @@ export const GeocitiesArchetype: React.FC<EraSurfaceProps> = ({
               fontSize: 13,
             }}
           >
-            <TypeLine role="display" font={era.fonts.primary} sample="Aa Bb 0123" size={26} />
-            <TypeLine role="body" font={era.fonts.secondary} sample="The quick brown fox." size={15} />
-            <TypeLine role="ui" font={era.fonts.accent} sample="BUTTONS · LABELS" size={13} />
+            <TypeLine kind="display" font={era.fonts.primary} sample="Aa Bb 0123" size={26} />
+            <TypeLine kind="body" font={era.fonts.secondary} sample="The quick brown fox." size={15} />
+            <TypeLine kind="ui" font={era.fonts.accent} sample="BUTTONS · LABELS" size={13} />
           </div>
 
           <RainbowRule />
@@ -455,12 +455,12 @@ function RainbowRule() {
 }
 
 function TypeLine({
-  role,
+  kind,
   font,
   sample,
   size,
 }: {
-  role: string;
+  kind: string;
   font: string;
   sample: string;
   size: number;
@@ -469,7 +469,7 @@ function TypeLine({
   return (
     <div style={{ marginBottom: 6 }}>
       <div style={{ color: CYAN, fontFamily: FONT_COMIC, fontSize: 12 }}>
-        ★ {role}{" "}
+        ★ {kind}{" "}
         <span style={{ color: HOT_PINK, fontFamily: FONT_MONO, fontSize: 11 }}>
           {fontName}
         </span>

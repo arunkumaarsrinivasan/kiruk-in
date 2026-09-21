@@ -126,7 +126,22 @@ lerna-debug.log*
 
 # AI tooling / local agents
 .claude/
-.cursor/
+.cursor/*
+!.cursor/rules/
+.cursor/rules/*
+!.cursor/rules/kiruk-perf-identity.mdc
+!.cursor/rules/kiruk-perf-hotspots.mdc
+!.cursor/rules/kiruk-notebook-voice.mdc
+!.cursor/skills/
+.cursor/skills/*
+!.cursor/skills/kiruk-perf-identity/
+!.cursor/skills/kiruk-perf-identity/**
+!.cursor/skills/kiruk-notebook-voice/
+!.cursor/skills/kiruk-notebook-voice/**
 .agents/
 .claude-*/
+.codex/
+.gemini/
+.opencode/
+.windsurf/
 ONBOARDING.md

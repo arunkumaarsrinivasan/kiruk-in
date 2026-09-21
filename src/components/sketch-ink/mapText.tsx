@@ -27,11 +27,14 @@ export function sketchTextNodes(
         </Fragment>
       )
     }
-    if (isValidElement<{ children?: ReactNode }>(child) && child.props.children != null) {
-      return cloneElement(child, {
-        ...child.props,
-        children: sketchTextNodes(child.props.children, mode, intensity, action),
-      })
+    if (isValidElement<{ children?: ReactNode }>(child)) {
+      if (child.type === SketchInk) return child
+      if (child.props.children != null) {
+        return cloneElement(child, {
+          ...child.props,
+          children: sketchTextNodes(child.props.children, mode, intensity, action),
+        })
+      }
     }
     return child
   })

@@ -3,124 +3,79 @@
 /**
  * Navbar — darkroom-style bar with a GEAR "time machine" era control.
  *
- * Left: eye + KIRUK® (opens the full era browser).
- * Center-right: WORK / CONTACT links + the time-machine chip (click → era
- * console). Picking an era plays the TimeTravelOverlay (the current era's
- * wireframe deconstructs component-by-component, the next era's wireframe
- * constructs, then the era is revealed). Right: Contact opens the contact module.
- *
- * Everything reads the active era's CSS vars, so the bar morphs as you travel.
+ * Left: eye + KIRUK® always go Home (landing page).
+ * Center-right: WORK / READ / ABOUT / CONTACT + the time-machine chip.
+ * On /notebook, era picks route through notebook travel (`?era=`) instead of
+ * the site-wide DesignEra swap — so reading stay on the article.
+ * Contact is always /contact.
  */
 
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { useModules, type ModuleId, type OriginPoint } from "@/contexts/ModuleContext";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { motion, useReducedMotion } from "framer-motion";
 import { useDesignEra } from "@/contexts/DesignEraContext";
-import { KirukEye, KirukWordmark } from "@/components/brand/KirukLogo";
 import { TimeMachine } from "@/components/layout/TimeMachine";
-import { TimeTravelOverlay } from "@/components/layout/TimeTravelOverlay";
+import { SiteHomeLink } from "@/components/layout/SiteHomeLink";
+import { isNotebookPath } from "@/lib/paper-surface";
+import { useEraTravelOptional } from "@/components/era-travel/EraTravelContext";
+import { EraNavOverlay } from "@/components/era-nav-game/EraNavOverlay";
+import { useNotebookEraOptional } from "@/components/notebook/NotebookEraContext";
 
-const EASE_OUT = [0.23, 1, 0.32, 1] as const;
+const NAV_LINK =
+  "site-nav-link group pointer-events-auto relative inline-flex min-h-11 items-center px-2 text-[11px] uppercase tracking-[0.18em] outline-none";
 
-const LINKS: { label: string; id: ModuleId }[] = [
-  { label: "Work", id: "work" },
-  { label: "About", id: "about" },
-  { label: "Read", id: "blog" },
-  { label: "Contact", id: "contact" },
-];
-
-const eraLabel = (name: string) => {
-  const [, ...rest] = name.split(":");
-  return rest.join(":").trim() || name;
-};
-
-/** Nav module link — era tokens, no duplicate-label or magnetic motion. */
-function NavLink({
+/** Route link — same visual language as NavLink, used for real pages. */
+function NavHref({
   label,
+  href,
   active,
-  onClick,
+  title,
 }: Readonly<{
   label: string;
+  href: string;
   active: boolean;
-  onClick: (el: HTMLButtonElement) => void;
+  title?: string;
 }>) {
-  const ref = useRef<HTMLButtonElement>(null);
   return (
-    <button
-      ref={ref}
-      type="button"
-      onClick={() => ref.current && onClick(ref.current)}
-      aria-label={label}
-      aria-current={active ? "true" : undefined}
-      className="group pointer-events-auto relative px-1 py-2 text-[11px] uppercase tracking-[0.18em] outline-none transition-colors duration-200 hover:text-[var(--accent-color)] focus-visible:text-[var(--accent-color)]"
+    <Link
+      href={href}
+      aria-label={title ?? label}
+      title={title}
+      aria-current={active ? "page" : undefined}
+      className={NAV_LINK}
       style={{ color: active ? "var(--accent-color)" : "var(--nav-text)" }}
     >
       <span className="leading-none">{label}</span>
       <span
         aria-hidden
-        className={`absolute -bottom-0.5 left-0 h-px w-full origin-left transition-transform duration-200 ease-out ${active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100 group-focus-visible:scale-x-100"}`}
+        className={`site-nav-link-line absolute -bottom-0.5 left-2 right-2 h-px origin-left transition-transform duration-200 ease-out ${active ? "scale-x-100" : "scale-x-0"}`}
         style={{ background: "var(--accent-color)" }}
       />
-    </button>
+    </Link>
   );
 }
 
 export function Navbar() {
-  const { open, toggle, openId } = useModules();
-  const { eras, currentEraId, setEra } = useDesignEra();
+  const pathname = usePathname();
+  const notebookOpen = isNotebookPath(pathname);
+  const workOpen = !!pathname && (pathname === "/work" || pathname.startsWith("/work/"));
+  const aboutOpen = pathname === "/about";
+  const contactOpen = pathname === "/contact";
+  const { eras, currentEraId } = useDesignEra();
+  const travel = useEraTravelOptional();
+  const notebook = useNotebookEraOptional();
   const reduce = useReducedMotion();
   const barRef = useRef<HTMLDivElement>(null);
+  const menuBtnRef = useRef<HTMLButtonElement>(null);
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [travel, setTravel] = useState<{
-    fromId: string;
-    toId: string;
-    oldColor: string;
-    newColor: string;
-    fromName: string;
-    toName: string;
-  } | null>(null);
-  const travelRef = useRef<string | null>(null);
 
-  const originFrom = useCallback((el: HTMLElement): OriginPoint => {
-    const r = el.getBoundingClientRect();
-    return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
-  }, []);
-
-  const openFromNav = useCallback(
-    (id: ModuleId, el: HTMLButtonElement) => {
-      setMenuOpen(false);
-      open(id, originFrom(el));
-    },
-    [open, originFrom],
-  );
-
-  const accentOf = useCallback((id: string) => eras.find((e) => e.id === id)?.colors.accent ?? "#7c8aa0", [eras]);
-
-  const onPick = useCallback(
-    (id: string) => {
-      if (id === currentEraId) return;
-      const to = eras.find((x) => x.id === id);
-      const from = eras.find((x) => x.id === currentEraId);
-      travelRef.current = id;
-      setTravel({
-        fromId: currentEraId,
-        toId: id,
-        oldColor: accentOf(currentEraId),
-        newColor: accentOf(id),
-        fromName: from ? eraLabel(from.name) : currentEraId,
-        toName: to ? eraLabel(to.name) : id,
-      });
-    },
-    [accentOf, currentEraId, eras],
-  );
-  const onMid = useCallback(() => {
-    if (travelRef.current) setEra(travelRef.current);
-  }, [setEra]);
-  const onDone = useCallback(() => {
-    travelRef.current = null;
-    setTravel(null);
-  }, []);
+  const eraId = notebook?.eraId ?? currentEraId;
+  const onPickEra = (id: string) => {
+    if (notebook) notebook.pickEra(id);
+    else travel?.travelTo(id);
+  };
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -146,11 +101,15 @@ export function Navbar() {
     };
   }, [scrolled]);
 
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
   const fontMain = "var(--font-main, ui-sans-serif, system-ui)";
 
   return (
     <>
-      <header className="pointer-events-none fixed inset-x-0 top-0 z-[95]" role="banner">
+      <header id="site-header" className="site-chrome pointer-events-none fixed inset-x-0 top-0 z-[95]" role="banner">
         <motion.div ref={barRef} className="pointer-events-none w-full">
           <div
             className="pointer-events-auto flex items-center gap-4 px-5 transition-[height,background-color,box-shadow] duration-300 sm:px-8"
@@ -158,7 +117,6 @@ export function Navbar() {
               height: scrolled ? 54 : 64,
               fontFamily: fontMain,
               color: "var(--nav-text)",
-              // era-tinted frosted band on --nav-surface (contrasts with --nav-text per era)
               background: scrolled
                 ? "color-mix(in srgb, var(--nav-surface) 97%, transparent)"
                 : "color-mix(in srgb, var(--nav-surface) 95%, transparent)",
@@ -168,43 +126,33 @@ export function Navbar() {
               boxShadow: scrolled ? "0 8px 30px color-mix(in srgb, var(--nav-text) 12%, transparent)" : "none",
             }}
           >
-            {/* LEFT — eye + wordmark → full era browser */}
-            <motion.button
-              type="button"
-              onClick={() => toggle("eras")}
-              aria-label="Kiruk — open era browser"
-              className="group pointer-events-auto flex shrink-0 items-center gap-2.5 outline-none"
-              whileHover={reduce ? undefined : { scale: 1.02 }}
-              whileTap={reduce ? undefined : { scale: 0.97 }}
-              transition={{ duration: 0.18, ease: EASE_OUT }}
-            >
-              <KirukEye bare gaze />
-              <span className="hidden items-start sm:flex">
-                <KirukWordmark size={19} color="var(--nav-text)" />
-                <sup className="ml-0.5 text-[9px]" style={{ color: "var(--nav-text-muted)" }}>
-                  ®
-                </sup>
-              </span>
-            </motion.button>
+            <SiteHomeLink />
 
             <div className="flex-1" />
 
-            {/* RIGHT — links + time machine + mobile menu */}
-            <div className="flex shrink-0 items-center gap-4 sm:gap-5">
-              <nav className="hidden items-center gap-5 md:flex">
-                <NavLink label="Work" active={openId === "work"} onClick={(el) => openFromNav("work", el)} />
-                <NavLink label="Contact" active={openId === "contact"} onClick={(el) => openFromNav("contact", el)} />
+            <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+              <nav className="hidden items-center gap-1 md:flex" aria-label="Primary">
+                <NavHref label="Work" href="/work" active={workOpen} title="Work — selected projects" />
+                <NavHref
+                  label="Read"
+                  href="/notebook"
+                  active={notebookOpen}
+                  title="Read — notebook and essays"
+                />
+                <NavHref label="About" href="/about" active={aboutOpen} title="About — story and background" />
+                <NavHref label="Contact" href="/contact" active={contactOpen} title="Contact" />
               </nav>
 
-              <TimeMachine eras={eras} currentId={currentEraId} onPick={onPick} reduce={!!reduce} />
+              <TimeMachine eras={eras} currentId={eraId} onPick={onPickEra} reduce={!!reduce} />
 
-              {/* mobile menu toggle */}
               <button
+                ref={menuBtnRef}
                 type="button"
                 onClick={() => setMenuOpen((v) => !v)}
                 aria-label={menuOpen ? "Close menu" : "Open menu"}
                 aria-expanded={menuOpen}
-                className="pointer-events-auto flex h-8 w-8 items-center justify-center md:hidden"
+                aria-controls="site-mobile-menu"
+                className="pointer-events-auto relative z-[96] flex h-11 w-11 items-center justify-center md:hidden"
                 style={{ color: "var(--nav-text)" }}
               >
                 <span className="relative block h-3 w-5">
@@ -217,50 +165,8 @@ export function Navbar() {
           </div>
         </motion.div>
 
-        {/* MOBILE overlay menu */}
-        <AnimatePresence>
-          {menuOpen && (
-            <motion.div
-              key="mobile-menu"
-              className="pointer-events-auto fixed inset-0 z-[94] flex flex-col justify-center gap-1 px-8 md:hidden"
-              style={{ background: "color-mix(in srgb, var(--nav-surface) 96%, transparent)", fontFamily: fontMain }}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25, ease: EASE_OUT }}
-            >
-              {[{ label: "Eras", id: "eras" as ModuleId }, ...LINKS].map((l, i) => (
-                <motion.button
-                  key={l.id}
-                  type="button"
-                  onClick={(e) => openFromNav(l.id, e.currentTarget)}
-                  initial={reduce ? { opacity: 0 } : { opacity: 0, x: -24 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.05 + i * 0.05, duration: 0.3, ease: EASE_OUT }}
-                  className="py-2 text-left text-3xl uppercase tracking-[0.06em]"
-                  style={{ color: openId === l.id ? "var(--accent-color)" : "var(--nav-text)" }}
-                >
-                  {l.label}
-                </motion.button>
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <EraNavOverlay open={menuOpen} onClose={() => setMenuOpen(false)} />
       </header>
-
-      {/* TIME-TRAVEL transition */}
-      <TimeTravelOverlay
-        active={!!travel}
-        fromId={travel?.fromId ?? ""}
-        toId={travel?.toId ?? ""}
-        oldColor={travel?.oldColor ?? "#888"}
-        newColor={travel?.newColor ?? "#888"}
-        fromName={travel?.fromName ?? ""}
-        toName={travel?.toName ?? ""}
-        onMid={onMid}
-        onDone={onDone}
-        reduce={!!reduce}
-      />
     </>
   );
 }

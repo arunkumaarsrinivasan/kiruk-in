@@ -1,25 +1,27 @@
 # Atomic Ink Notebook
 
-Canonical plan for kiruk.in’s handwritten blog.  
+Canonical plan for kiruk.in’s notebook. Author desk: [`BLOGISM.md`](./BLOGISM.md).  
+Public reader skin (Era shuffle, starting 1970): see [`BLOG_MDX.md`](./BLOG_MDX.md).  
 Supersedes Thought OS docs (`BLOG_STACK_PLAN*.md`, research Phase N).
 
 ## Idea
 
-The blog is a **notebook whose smallest unit is a stroke** — not a CMS with a draw plugin.
+The **desk** is a notebook whose smallest unit is a stroke — not a CMS with a draw plugin. The **public reader** is a timeless MDX article skinned by the Era design system (default 1970 Terminal). Tablet ink is an embed (`<InkPage>`), not the page typeface.
 
 ```text
 ATOM     →  Point + Stroke + Brush (ink / pencil / eraser)
 MOLECULE →  InkPage (owned JSON + theme SVG)
-ORGANISM →  Blog post (MDX words + InkPage + screenshot Figure)
-SKIN     →  Paper (white sheet · black chrome) now; Digital (invert) later
+ORGANISM →  Blog post (MDX words + optional InkPage + screenshot Figure)
+SKIN     →  Reader: Era surface (`data-era-surface`, shuffle in chrome)
+           Desk: Paper (white sheet · black chrome)
 ```
 
 ## Author loop (only happy path)
 
-1. `npm run newpost -- "Title"` or create in `/studio`
+1. `npm run newpost -- "Title"` or create in `/desk`
 2. Open the page — **scroll sheet** (default) or **spread** (two facing pages)
-3. Type · draw · drop screenshots on the same surface (switch tools, don’t switch tabs)
-4. Bottom-center dock = write/ink · **bottom-right Page panel** = layout / fit / ruler / paper
+3. Write · scribble · drop screenshots on the same surface (switch tools, don’t switch tabs)
+4. Bottom-center dock = write / scribble · **bottom-right Page panel** = layout / fit / ruler / paper
 5. Save / Publish (`draft: false`) · commit — reader respects `notebook:` frontmatter
 
 ### Scroll vs spread
@@ -55,13 +57,12 @@ Owned module: `src/lib/ink/`
 
 ## Reader
 
-- `/blog` — simple notebook index
-- `/blog/[slug]` — white paper page; `<InkPage>` + `<Figure>`
-- Duality: **Paper** = white sheet · black chrome (studio now) · **Digital** = invert roles later
-- Ink on paper uses `currentColor` / `--ink-line` (black on white sheet)
-- Type: **SketchInk v5** — human behavior + sketchnote actions ([SKETCH_INK_BEHAVIOR.md](./SKETCH_INK_BEHAVIOR.md)). Word runs with angle/face/cold→fatigue; `action` presets (type/ideation/flow/diagram/checklist).
-  - Hand A print / Hand B script + word alternates; Kiruk fonts later ([SKETCH_INK_HAND.md](./SKETCH_INK_HAND.md))
-  - Studio: `<SketchInkField action="…" />`; plain UTF-8 MDX
+- `/notebook` — pages on one Era-skinned index (default **1970**; Time Machine shuffles `data-era-surface` without changing the site theme)
+- `/notebook/[slug]` — MDX article; optional `<InkPage>` + `<Figure>`
+- `/desk/preview` — same Era surface for drafts (`?era=1970`)
+- Ink uses `currentColor` / `--ink-line` so it follows the active Era
+- Public type is Era tokens (IBM Plex Mono body in 1970). **SketchInk is desk-only.**
+  - Desk (`/desk`): `<SketchInkField action="…" />`; plain UTF-8 MDX
   - Taste: [SKETCH_INK_STYLE.md](./SKETCH_INK_STYLE.md) · skill `.cursor/skills/sketch-ink`
 - Icons (interim): **Lucide geometry + Rough.js scribble** (`src/components/studio/icons.tsx`). True pencil wobble on paper. Swap NODES when kiruk icons land.
 - Runner-up craft icon set: [Streamline Freehand](https://www.streamlinehq.com/icons/streamline-freehand) (CC BY) if you want polished hand-drawn instead of scribble.

@@ -423,7 +423,7 @@ export function Web2CandyHomePage() {
   }, []);
 
   return (
-    <main
+    <div
       id="mykiruk-profile"
       className="mykiruk-applied"
       style={{
@@ -1542,7 +1542,7 @@ export function Web2CandyHomePage() {
           </span>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
 

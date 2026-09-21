@@ -214,7 +214,7 @@ export function GameModeProvider({ children }: { children: ReactNode }) {
   );
 
   // Menu keyboard shortcut removed with the nav/maze overlay. The Eras module
-  // now owns Shift+M (see ModuleContext). Menu state below is retained but inert.
+  // Era overlay shortcut now lives on ModuleContext (Ctrl/Cmd+Shift+E).
 
   // ═══════════════════════════════════════════════════════════════════════════
   // CONTEXT VALUE

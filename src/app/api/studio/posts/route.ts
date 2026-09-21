@@ -10,7 +10,7 @@ import {
 } from "@/lib/studio/posts";
 
 /**
- * Studio post CRUD (author-only, Node runtime — mutates the repo).
+ * BLOGISM post CRUD (author-only, Node runtime — mutates the repo).
  *   GET    /api/studio/posts                     → list all posts
  *   GET    /api/studio/posts?collection&slug     → one post (frontmatter + body)
  *   POST   /api/studio/posts   {collection,title} → create draft, returns slug

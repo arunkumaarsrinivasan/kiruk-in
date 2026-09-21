@@ -62,8 +62,8 @@ export function VisionDesktop({ era, projects }: { era: DesktopEra; projects: Pr
         {/* stars */}
         <div className="absolute inset-0 opacity-60" style={{ backgroundImage: "radial-gradient(1px 1px at 20% 30%, #fff, transparent), radial-gradient(1px 1px at 70% 20%, #cfe, transparent), radial-gradient(1px 1px at 40% 60%, #fff, transparent), radial-gradient(1px 1px at 85% 50%, #bdf, transparent), radial-gradient(1px 1px at 55% 80%, #fff, transparent)", backgroundSize: "100% 100%" }} />
         {/* depth orbs */}
-        <div className="absolute left-[8%] top-[12%] h-72 w-72 rounded-full opacity-50" style={{ background: "radial-gradient(circle, rgba(127,208,255,0.55), transparent 70%)", filter: "blur(40px)" }} />
-        <div className="absolute right-[6%] top-[40%] h-80 w-80 rounded-full opacity-50" style={{ background: "radial-gradient(circle, rgba(167,139,250,0.5), transparent 70%)", filter: "blur(46px)" }} />
+        <div className="absolute left-[8%] top-[12%] h-72 w-72 rounded-full opacity-50" style={{ background: "radial-gradient(circle, rgba(127,208,255,0.55), transparent 70%)", filter: "blur(20px)" }} />
+        <div className="absolute right-[6%] top-[40%] h-80 w-80 rounded-full opacity-50" style={{ background: "radial-gradient(circle, rgba(167,139,250,0.5), transparent 70%)", filter: "blur(20px)" }} />
         {/* receding floor grid */}
         <div
           className="absolute inset-x-[-30%] bottom-[-10%] h-[55%]"

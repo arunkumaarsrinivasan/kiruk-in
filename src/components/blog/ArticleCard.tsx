@@ -29,7 +29,7 @@ export function ArticleCard({ article, index = 0 }: ArticleCardProps) {
       transition={{ delay: index * 0.1 }}
       className="h-full"
     >
-      <Link href={`/blog/${article.slug}`}>
+      <Link href={`/notebook/${article.slug}`}>
         <motion.div
           className={cn(
             'h-full border-2 p-4 flex flex-col',

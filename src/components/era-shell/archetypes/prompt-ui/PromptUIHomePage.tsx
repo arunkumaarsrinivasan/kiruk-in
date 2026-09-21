@@ -323,7 +323,7 @@ export function PromptUIHomePage() {
   const scrollToSection = useCallback((k: BlockKind) => { document.getElementById(`kb-sec-${k}`)?.scrollIntoView({ behavior: "smooth", block: "start" }); }, []);
 
   return (
-    <main
+    <div
       id="kiruk-build"
       style={{
         position: "relative",
@@ -378,7 +378,7 @@ export function PromptUIHomePage() {
         building={building} status={status} auto={auto} onAuto={startAuto}
         started={started} isMobile={isMobile}
       />
-    </main>
+    </div>
   );
 }
 

@@ -15,6 +15,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useMotionValue, useReducedMotion } from "framer-motion";
 import { getEraEye } from "@/components/brand/eyes";
+import { prefetchEraArchetype } from "@/components/era-shell/registry";
 
 const EASE_OUT = [0.23, 1, 0.32, 1] as const;
 
@@ -74,9 +75,16 @@ export function TimeMachine({
   const reduce = reduceProp || !!reduceMotion;
 
   const [open, setOpen] = useState(false);
+  const [shortcutHint, setShortcutHint] = useState("Ctrl+Shift+E");
   const rootRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  const closeConsole = useCallback(() => {
+    setOpen(false);
+    requestAnimationFrame(() => triggerRef.current?.focus());
+  }, []);
 
   const curIdx = Math.max(0, eras.findIndex((e) => e.id === currentId));
   const current = eras[curIdx];
@@ -85,10 +93,10 @@ export function TimeMachine({
 
   const pick = useCallback(
     (id: string) => {
-      setOpen(false);
+      closeConsole();
       if (id !== currentId) onPick(id);
     },
-    [currentId, onPick],
+    [closeConsole, currentId, onPick],
   );
 
   // flat render list: phase dividers + era rows (in chronological order)
@@ -106,11 +114,19 @@ export function TimeMachine({
     return out;
   }, [eras]);
 
+  useEffect(() => {
+    const mac = /Mac|iPhone|iPad/.test(navigator.platform) || navigator.userAgent.includes("Mac");
+    setShortcutHint(mac ? "⌘⇧E" : "Ctrl+Shift+E");
+  }, []);
+
   // panel keyboard nav (scoped to the focused console, not document, so it
   // doesn't fight the site's other global arrow handlers)
   const onPanelKey = useCallback(
     (e: React.KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeConsole();
+      }
       else if (e.key === "ArrowDown") {
         e.preventDefault();
         setFocusIdx((i) => Math.min(i + 1, eras.length - 1));
@@ -129,7 +145,7 @@ export function TimeMachine({
         if (t) pick(t.id);
       }
     },
-    [eras, focusIdx, pick],
+    [closeConsole, eras, focusIdx, pick],
   );
 
   // open: reset focus, autofocus the panel, wire outside-click
@@ -138,14 +154,22 @@ export function TimeMachine({
     setFocusIdx(curIdx);
     const id = requestAnimationFrame(() => panelRef.current?.focus());
     const onDoc = (e: MouseEvent) => {
-      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+      if (!rootRef.current?.contains(e.target as Node)) closeConsole();
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeConsole();
+      }
     };
     document.addEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
     return () => {
       cancelAnimationFrame(id);
       document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("keydown", onKey);
     };
-  }, [open, curIdx]);
+  }, [closeConsole, open, curIdx]);
 
   // keep the focused row in view
   useEffect(() => {
@@ -153,16 +177,23 @@ export function TimeMachine({
     listRef.current?.querySelector<HTMLElement>(`[data-idx="${focusIdx}"]`)?.scrollIntoView({ block: "nearest" });
   }, [open, focusIdx]);
 
+  useEffect(() => {
+    if (!open || !focused) return;
+    prefetchEraArchetype(focused.id);
+  }, [open, focused]);
+
   return (
     <div ref={rootRef} className="relative">
       {/* trigger chip — current era at a glance */}
       <motion.button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
+        aria-haspopup="listbox"
         aria-label={`Era ${current?.id ?? ""} — ${eraLabel(current?.name ?? "")}. Open time machine`}
         whileTap={reduce ? undefined : { scale: 0.97 }}
-        className="pointer-events-auto flex items-center gap-2.5 rounded-full border py-1 pl-1.5 pr-3 outline-none transition-colors duration-200 hover:border-[color-mix(in_srgb,var(--nav-text)_26%,transparent)]"
+        className="pointer-events-auto flex min-h-11 items-center gap-2.5 rounded-full border py-1 pl-1.5 pr-3 outline-none transition-colors duration-200"
         style={{
           borderColor: open ? "var(--accent-color)" : "color-mix(in srgb, var(--nav-text) 18%, transparent)",
           background: open
@@ -209,20 +240,22 @@ export function TimeMachine({
             transition={{ duration: 0.2, ease: EASE_OUT }}
             role="listbox"
             aria-label="Travel eras"
-            className="absolute right-0 top-full z-[110] mt-2.5 w-[300px] overflow-hidden rounded-2xl border outline-none"
+            className="absolute right-0 top-full z-[110] mt-2.5 w-[300px] overflow-hidden rounded-2xl border"
             style={{ background: "var(--bg-card)", borderColor: "var(--border-color)", boxShadow: "0 20px 50px rgba(0,0,0,0.34)" }}
           >
             {/* header */}
             <div className="flex items-center justify-between px-3.5 pt-3" style={{ color: "var(--text-main)" }}>
               <span className="flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.22em]">
                 <span className="relative flex h-1.5 w-1.5">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-60" style={{ background: "var(--accent-color)" }} />
+                  {reduce ? null : (
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-60" style={{ background: "var(--accent-color)" }} />
+                  )}
                   <span className="relative inline-flex h-1.5 w-1.5 rounded-full" style={{ background: "var(--accent-color)" }} />
                 </span>
                 Time Machine
               </span>
               <span className="text-[9px] uppercase tracking-[0.16em]" style={{ color: "var(--text-muted)" }}>
-                {eras.length} eras
+                {eras.length} eras · {shortcutHint}
               </span>
             </div>
 
@@ -274,7 +307,7 @@ export function TimeMachine({
                     data-idx={it.idx}
                     onClick={() => pick(e.id)}
                     onMouseEnter={() => setFocusIdx(it.idx)}
-                    className="flex w-full items-center gap-2.5 rounded-lg py-1.5 pl-1.5 pr-2 text-left outline-none transition-colors duration-150"
+                    className="flex min-h-11 w-full items-center gap-2.5 rounded-lg py-1.5 pl-1.5 pr-2 text-left outline-none transition-colors duration-150"
                     style={{ background: isFocus ? "color-mix(in srgb, var(--accent-color) 12%, transparent)" : "transparent" }}
                   >
                     {/* spine + node */}

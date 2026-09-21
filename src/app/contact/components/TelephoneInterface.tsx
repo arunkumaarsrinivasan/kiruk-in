@@ -1,7 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 
 interface ContactInfo {
   label: string;
@@ -14,143 +13,68 @@ interface TelephoneInterfaceProps {
   contacts: ContactInfo[];
 }
 
-export function TelephoneInterface({ contacts }: TelephoneInterfaceProps) {
-  const [dialing, setDialing] = useState<string | null>(null);
-  const [connected, setConnected] = useState<string | null>(null);
+function isExternal(href: string) {
+  return href.startsWith('http://') || href.startsWith('https://');
+}
 
-  const handleDial = (contact: ContactInfo) => {
-    if (connected === contact.label) return;
-    
-    setDialing(contact.label);
-    
-    // Simulate dialing animation
-    setTimeout(() => {
-      setDialing(null);
-      setConnected(contact.label);
-      
-      // Open the link after connection animation
-      setTimeout(() => {
-        window.open(contact.href, '_blank', 'noopener,noreferrer');
-      }, 500);
-    }, 1000);
-  };
+export function TelephoneInterface({ contacts }: TelephoneInterfaceProps) {
+  const reduce = useReducedMotion();
 
   return (
     <div className="space-y-4">
-      {/* Telephone Header */}
-      <div className="text-center mb-6">
-        <div className="text-4xl mb-2">☎️</div>
-        <h3 className="text-xl font-mono font-bold mb-2" style={{ color: 'var(--text-main)' }}>
+      <div className="mb-6 text-center">
+        <div className="mb-2 text-4xl" aria-hidden>
+          ☎️
+        </div>
+        <h2 className="mb-2 font-mono text-xl font-bold" style={{ color: 'var(--text-main)' }}>
           CONNECTION TERMINAL
-        </h3>
-        <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
-          Press buttons to establish connection
+        </h2>
+        <p className="font-mono text-xs" style={{ color: 'var(--text-muted)' }}>
+          Open a channel — email, social, or the calendar
         </p>
       </div>
 
-      {/* Contact Buttons - Telephone Style */}
       <div className="space-y-3">
         {contacts.map((contact, index) => {
-          const isDialing = dialing === contact.label;
-          const isConnected = connected === contact.label;
-          
+          const external = isExternal(contact.href);
           return (
-            <motion.button
+            <motion.a
               key={contact.label}
-              onClick={() => handleDial(contact)}
-              disabled={isDialing || isConnected}
-              className="w-full p-4 font-mono text-sm text-left relative"
+              href={contact.href}
+              target={external ? '_blank' : undefined}
+              rel={external ? 'noopener noreferrer' : undefined}
+              className="relative block w-full min-h-11 p-4 text-left font-mono text-sm"
               style={{
-                backgroundColor: isConnected 
-                  ? '#6BCF7F' 
-                  : isDialing 
-                    ? '#FFD93D' 
-                    : 'var(--bg-main)',
+                backgroundColor: 'var(--bg-main)',
                 border: '2px solid var(--border-color)',
-                color: isConnected || isDialing ? '#000' : 'var(--text-main)',
-                cursor: isDialing || isConnected ? 'default' : 'pointer',
+                color: 'var(--text-main)',
               }}
-              initial={{ x: -20, opacity: 0 }}
-              animate={{ 
-                x: 0, 
-                opacity: 1,
-                scale: isDialing ? 1.05 : 1,
-              }}
-              transition={{ 
-                delay: index * 0.1,
-                scale: { duration: 0.2 }
-              }}
-              whileHover={!isDialing && !isConnected ? { 
-                scale: 1.02, 
-                x: 4,
-                borderColor: '#FFD93D',
-              } : {}}
-              whileTap={!isDialing && !isConnected ? { scale: 0.98 } : {}}
+              initial={reduce ? false : { x: -20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: reduce ? 0 : index * 0.08 }}
+              whileHover={reduce ? undefined : { x: 4 }}
+              whileTap={reduce ? undefined : { scale: 0.98 }}
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">{contact.icon}</span>
-                  <div>
-                    <div className="font-bold" style={{ 
-                      color: isConnected || isDialing ? '#000' : 'var(--text-main)' 
-                    }}>
-                      {contact.label}
-                    </div>
-                    <div className="text-xs" style={{ 
-                      color: isConnected || isDialing ? 'rgba(0,0,0,0.7)' : 'var(--text-muted)' 
-                    }}>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="text-2xl" aria-hidden>
+                    {contact.icon}
+                  </span>
+                  <div className="min-w-0">
+                    <div className="font-bold">{contact.label}</div>
+                    <div className="truncate text-xs" style={{ color: 'var(--text-muted)' }}>
                       {contact.value}
                     </div>
                   </div>
                 </div>
-                
-                {/* Status Indicator */}
-                <div className="flex items-center gap-2">
-                  {isDialing && (
-                    <motion.div
-                      className="flex gap-1"
-                      animate={{ opacity: [0.5, 1, 0.5] }}
-                      transition={{ duration: 0.8, repeat: Infinity }}
-                    >
-                      <span className="text-xs">DIALING...</span>
-                    </motion.div>
-                  )}
-                  {isConnected && (
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="text-lg"
-                    >
-                      ✓
-                    </motion.div>
-                  )}
-                  {!isDialing && !isConnected && (
-                    <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                      [PRESS]
-                    </div>
-                  )}
-                </div>
+                <span className="shrink-0 text-xs" style={{ color: 'var(--text-muted)' }}>
+                  {external ? 'open ↗' : 'open'}
+                </span>
               </div>
-            </motion.button>
+            </motion.a>
           );
         })}
       </div>
-
-      {/* Connection Status */}
-      {connected && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="p-3 text-center font-mono text-xs"
-          style={{
-            backgroundColor: 'rgba(107, 207, 127, 0.2)',
-            border: '2px solid #6BCF7F',
-            color: '#6BCF7F',
-          }}
-        >
-          ✓ Connection established! Opening link...
-        </motion.div>
-      )}
     </div>
   );
 }

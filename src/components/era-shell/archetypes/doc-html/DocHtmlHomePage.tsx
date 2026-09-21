@@ -292,7 +292,7 @@ export function DocHtmlHomePage() {
   };
 
   return (
-    <main
+    <div
       id="doc-html-home"
       style={{
         backgroundColor: BG,
@@ -398,9 +398,9 @@ export function DocHtmlHomePage() {
             {" · "}
             <Link href="/work" mark={trailMark} visited={visited} setHoverUrl={setHoverUrl}>shipped projects</Link>
             {" · "}
-            <Link href="/case-studies" mark={trailMark} visited={visited} setHoverUrl={setHoverUrl}>case studies</Link>
+            <Link href="/work" mark={trailMark} visited={visited} setHoverUrl={setHoverUrl}>work</Link>
             {" · "}
-            <Link href="/blog" mark={trailMark} visited={visited} setHoverUrl={setHoverUrl}>blog</Link>
+            <Link href="/notebook" mark={trailMark} visited={visited} setHoverUrl={setHoverUrl}>notebook</Link>
             {" · "}
             <Link href="/contact" mark={trailMark} visited={visited} setHoverUrl={setHoverUrl}>contact</Link>.
           </p>
@@ -891,7 +891,7 @@ export function DocHtmlHomePage() {
       {showSource && (
         <ViewSourceOverlay onClose={() => setShowSource(false)} />
       )}
-    </main>
+    </div>
   );
 }
 

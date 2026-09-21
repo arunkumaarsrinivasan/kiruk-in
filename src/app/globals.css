@@ -52,26 +52,813 @@ html[data-notebook-skin='paper'],
   --border-color: #d6d6d4;
   --accent-color: #0a0a0a;
   --ink-line: #0a0a0a;
-  --font-print-a: 'Architects Daughter', cursive;
-  --font-script-a: 'Nothing You Could Do', cursive;
-  --font-scribble-fallback: var(--font-script-a);
-  --font-scribble: var(--font-script-a);
+  --font-notebook: 'Gudini Grotesk', ui-sans-serif, system-ui, sans-serif;
   color: var(--text-main);
   background-color: var(--bg-main);
-  font-family: var(--font-scribble);
-  line-height: 1.9;
-}
-
-.surface-paper[data-kiruk-hand='true'] {
-  --font-print-a: 'KirukPrint', cursive;
-  --font-script-a: 'KirukScript', cursive;
+  font-family: var(--font-notebook);
+  line-height: 1.7;
 }
 
 .surface-paper h1,
 .surface-paper h2 {
-  font-family: var(--font-print-a), var(--font-scribble-fallback);
+  font-family: var(--font-notebook);
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+}
+
+/*
+ * Public notebook — Era reading surface (scoped via data-era-surface).
+ * Tokens inherit from [data-era-surface='YYYY'] blocks below; this sets
+ * the timeless reading vessel (measure, type, no paper tooth).
+ */
+.era-blog-surface {
+  --font-print-a: "Architects Daughter", cursive;
+  --font-script-a: "Left Hand", cursive;
+  --font-left-hand: "Left Hand", cursive;
+  /* Shared reading measure (responsive via width: 100%). */
+  --era-read: 760px;
+  color: var(--text-main);
+  background-color: var(--bg-main);
+  font-family: var(--font-main);
+  line-height: 1.7;
+  font-size: 1.0625rem;
+  overflow-x: clip;
+}
+
+.era-read {
+  width: 100%;
+  max-width: min(var(--era-read), 100%);
+  margin-inline: auto;
+}
+
+.era-read-shell {
+  position: relative;
+  width: 100%;
+  max-width: none;
+  margin-inline: auto;
+}
+
+.era-read-shell > article {
+  width: 100%;
+  max-width: min(var(--era-read), 100%);
+  margin-inline: auto;
+  min-width: 0;
+}
+
+.era-read-shell .gaze-col {
+  width: 100%;
+  max-width: min(var(--era-read), 100%);
+  margin-inline: auto;
+}
+
+/*
+ * Scroll text transition — taste-style left-origin scale on the top title + lede only.
+ * --nb-heading-scale is driven by NotebookHeadingScroll (not section h2s).
+ */
+.era-blog-surface .era-blog-title,
+.era-blog-surface .era-h1,
+.era-blog-surface article .era-h1,
+.era-blog-surface.skin-log article .era-h1,
+.era-blog-surface header .era-lede {
+  --nb-heading-scale: 1;
+  display: block;
+  width: 100%;
+  max-width: 100% !important;
+  text-align: start;
+  transform: scale(var(--nb-heading-scale));
+  transform-origin: left top;
+  will-change: transform;
+}
+
+.era-blog-surface .era-blog-title .gaze-title,
+.era-blog-surface .era-h1 .gaze-title {
+  display: inline-block;
+  max-width: 100%;
+  text-align: start;
+}
+
+.era-blog-surface .era-h2 {
+  margin-block: 3.4rem 0.9rem;
+  padding-top: 0.35rem;
+  color: var(--accent-color);
+  font-family: var(--font-heading);
+  font-size: clamp(1.7rem, 2.3vw, 2.2rem);
+  font-weight: 650;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.era-blog-surface .era-h2 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.era-toc {
+  --toc-inset-x: clamp(1.25rem, 3vw, 2rem);
+  --toc-inset-y: clamp(1.25rem, 2.5vw, 1.75rem);
+  --toc-below-nav: calc(var(--simple-game-nav-bottom, 4.5rem) + 0.75rem);
+  position: fixed;
+  top: 50%;
+  left: var(--toc-inset-x);
+  z-index: 22;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.75rem;
+  width: max-content;
+  max-width: 7.5rem;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.era-toc-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  pointer-events: auto;
+}
+
+.era-toc-tick {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 11px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.era-toc-bar {
+  display: block;
+  width: 1.9rem;
+  height: 1.5px;
+  background: var(--accent-color);
+  border-radius: 0;
+  opacity: var(--rail-opacity, 0.18);
+  transform: scaleX(var(--rail-scale, 0.28));
+  transform-origin: left center;
+  transition:
+    opacity 360ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.era-toc-name {
+  position: absolute;
+  left: calc(100% + 0.55rem);
+  top: 50%;
+  max-width: 9.5rem;
+  overflow: hidden;
+  color: var(--text-muted);
+  font-family: var(--font-heading);
+  font-size: 0.72rem;
+  font-weight: 550;
   letter-spacing: 0.02em;
   line-height: 1.2;
+  text-overflow: ellipsis;
+  text-wrap: nowrap;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.era-toc-tick:hover .era-toc-name,
+.era-toc-tick:focus-visible .era-toc-name,
+.era-toc-tick[data-state="now"] .era-toc-name {
+  color: var(--text-main);
+  opacity: 1;
+}
+
+@media (max-width: 1200px) {
+  .era-toc-tick[data-state="now"] .era-toc-name {
+    opacity: 0;
+  }
+
+  .era-toc-tick:hover .era-toc-name,
+  .era-toc-tick:focus-visible .era-toc-name {
+    opacity: 1;
+  }
+}
+
+.era-toc-tick:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 4px;
+}
+
+.era-toc-acts {
+  --toc-inset-x: clamp(1.25rem, 3vw, 2rem);
+  --toc-inset-y: clamp(1.25rem, 2.5vw, 1.75rem);
+  --toc-below-nav: calc(var(--simple-game-nav-bottom, 4.5rem) + 0.75rem);
+  position: fixed;
+  inset: 0;
+  z-index: 22;
+  pointer-events: none;
+}
+
+.era-toc-act {
+  position: fixed;
+  z-index: 23;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.25rem;
+  margin: 0;
+  padding: 0.45rem 0.5rem;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-heading);
+  font-size: 0.72rem;
+  font-weight: 550;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-align: start;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  appearance: none;
+  pointer-events: auto;
+}
+
+.era-toc-back {
+  top: var(--toc-below-nav);
+  left: var(--toc-inset-x);
+}
+
+.era-toc-share {
+  left: var(--toc-inset-x);
+  bottom: var(--toc-inset-y);
+}
+
+.era-toc-top {
+  right: var(--toc-inset-x);
+  bottom: var(--toc-inset-y);
+  text-align: end;
+}
+
+.era-toc-md {
+  top: var(--toc-below-nav);
+  right: var(--toc-inset-x);
+  text-align: end;
+}
+
+.era-toc-act:hover,
+.era-toc-act:focus-visible {
+  color: var(--accent-color);
+}
+
+.era-toc-act:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 3px;
+}
+
+.era-toc-act:disabled {
+  opacity: 0.28;
+  cursor: default;
+}
+
+.era-blog-surface article,
+.era-blog-surface .gaze-col,
+.era-blog-surface .gaze-prose,
+.era-blog-surface .notebook-scroll-sheet,
+.era-blog-surface .era-h2,
+.era-blog-surface .era-blog-title,
+.era-blog-surface .era-h1,
+.era-blog-surface .gaze-base,
+.era-blog-surface .gaze-ink,
+.era-blog-surface .era-note,
+.era-blog-surface .era-lede,
+.era-blog-surface p {
+  transition:
+    font-size 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    line-height 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    letter-spacing 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    font-weight 280ms ease,
+    margin 280ms ease,
+    max-width 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 240ms ease;
+}
+
+.era-mark,
+.era-zig,
+.era-hit {
+  display: inline-block;
+  margin: 0;
+  padding: 0.02em 0.14em;
+  border: 0;
+  background: none;
+  background-color: transparent;
+  color: inherit;
+  font: inherit;
+  font-family: inherit;
+  letter-spacing: inherit;
+  line-height: inherit;
+  text-align: inherit;
+  text-decoration: none;
+  appearance: none;
+  -webkit-appearance: none;
+  border-radius: 0;
+  box-shadow: none;
+  transform: none;
+  cursor: pointer;
+  outline: 1.5px solid transparent;
+  outline-offset: 3px;
+  transition:
+    outline-color 160ms ease,
+    background-size 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.era-mark:hover,
+.era-zig:hover,
+.era-hit:hover,
+.era-mark:focus,
+.era-zig:focus,
+.era-hit:focus,
+.era-mark:focus-visible,
+.era-zig:focus-visible,
+.era-hit:focus-visible {
+  background-color: transparent;
+  outline: 1.5px solid var(--accent-color);
+  outline-offset: 3px;
+}
+
+.era-mark:active,
+.era-zig:active,
+.era-hit:active {
+  background-color: transparent;
+  transform: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .era-mark,
+  .era-zig,
+  .era-hit {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='none'%3E%3Ccircle cx='12' cy='12' r='9' stroke='%23000' stroke-width='1.75'/%3E%3Ccircle cx='12' cy='12' r='9' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E") 12 12, pointer;
+  }
+}
+
+.era-mark {
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  background-image: linear-gradient(
+    transparent 14%,
+    color-mix(in srgb, var(--accent-color) 28%, transparent) 14% 88%,
+    transparent 88%
+  );
+  background-repeat: no-repeat;
+  background-size: 0% 100%;
+}
+
+.era-mark[data-on] {
+  background-size: 100% 100%;
+}
+
+.era-zig {
+  position: relative;
+  white-space: nowrap;
+}
+
+.era-zig-text {
+  position: relative;
+  z-index: 1;
+}
+
+.era-zig-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.14em;
+  width: 100%;
+  height: 0.34em;
+  overflow: visible;
+  color: var(--accent-color);
+  pointer-events: none;
+}
+
+.era-zig-stroke {
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 480ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.era-zig:hover .era-zig-stroke,
+.era-zig:focus-visible .era-zig-stroke,
+.era-zig[data-on] .era-zig-stroke {
+  clip-path: inset(0 0 0 0);
+}
+
+.era-hit {
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  background-image: linear-gradient(
+    -2deg,
+    transparent 10%,
+    color-mix(in srgb, var(--accent-color) 20%, transparent) 10% 90%,
+    transparent 90%
+  );
+  background-repeat: no-repeat;
+  background-size: 0% 100%;
+}
+
+.era-hit[data-on] {
+  background-size: 100% 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .era-mark,
+  .era-hit,
+  .era-zig-stroke {
+    transition: none;
+  }
+
+  .era-mark,
+  .era-zig,
+  .era-hit {
+    cursor: pointer;
+  }
+
+  .era-toc-bar {
+    transition: none;
+  }
+
+  .era-toc-act {
+    scroll-behavior: auto;
+  }
+
+  .era-blog-surface article,
+  .era-blog-surface .gaze-col,
+  .era-blog-surface .gaze-prose,
+  .era-blog-surface .notebook-scroll-sheet,
+  .era-blog-surface .era-h2,
+  .era-blog-surface .era-blog-title,
+  .era-blog-surface .era-h1,
+  .era-blog-surface .gaze-base,
+  .era-blog-surface .gaze-ink,
+  .era-blog-surface .era-note,
+  .era-blog-surface .era-lede,
+  .era-blog-surface p {
+    transition: none;
+  }
+
+  .era-blog-surface .era-blog-title,
+  .era-blog-surface .era-h1,
+  .era-blog-surface header .era-lede {
+    transform: none;
+    will-change: auto;
+  }
+}
+
+@media (max-width: 860px) {
+  .era-read-shell {
+    padding-bottom: 4.5rem;
+  }
+
+  .era-toc {
+    top: auto;
+    bottom: 2.85rem;
+    left: 0;
+    right: 0;
+    z-index: 24;
+    width: auto;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 0.45rem 1rem 0.55rem;
+    background: color-mix(in srgb, var(--bg-main) 92%, transparent);
+    border-top: 1px solid var(--border-color);
+    transform: none;
+    pointer-events: auto;
+  }
+
+  .era-toc-rail {
+    flex-direction: row;
+    flex: 1 1 auto;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    overflow: auto;
+  }
+
+  .era-toc-bar {
+    width: 0.9rem;
+    transform-origin: center;
+  }
+
+  .era-toc-name {
+    display: none;
+  }
+
+  .era-toc-acts {
+    --toc-inset-x: 1.25rem;
+    --toc-inset-y: 3.35rem;
+    position: static;
+    inset: auto;
+  }
+
+  .era-toc-back,
+  .era-toc-md {
+    top: var(--toc-below-nav);
+  }
+
+  .era-toc-back,
+  .era-toc-share {
+    left: var(--toc-inset-x);
+  }
+
+  .era-toc-md,
+  .era-toc-top {
+    right: var(--toc-inset-x);
+  }
+
+  .era-toc-md {
+    bottom: auto;
+  }
+
+  .era-toc-share,
+  .era-toc-top {
+    bottom: var(--toc-inset-y);
+  }
+}
+
+.era-blog-surface h1,
+.era-blog-surface h2,
+.era-blog-surface h3 {
+  font-family: var(--font-heading);
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.era-blog-surface blockquote {
+  margin-block: 1.25rem 1.75rem;
+  padding-inline-start: 1rem;
+  border-inline-start: 2px solid var(--accent-color);
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 1.05em;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+.era-blog-surface blockquote p {
+  margin: 0.35rem 0 0;
+}
+
+.era-blog-surface blockquote p:first-child {
+  margin-top: 0;
+}
+
+.era-blog-surface .era-note {
+  display: block;
+  float: none;
+  width: auto;
+  max-width: 36ch;
+  margin: 1.75rem 0 1.75rem 0.25rem;
+  padding: 0;
+  border: none;
+  font-family: var(--font-left-hand, "Left Hand"), cursive;
+  font-synthesis: none;
+  font-size: 1.35em;
+  line-height: 1.4;
+  color: var(--text-muted);
+  font-style: normal;
+  text-align: start;
+}
+
+.era-blog-surface .era-note p {
+  margin: 0;
+  color: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  font-family: inherit;
+}
+
+.era-blog-surface .era-sign {
+  display: block;
+  margin: 2.75rem 0 1.25rem;
+  color: var(--accent-color);
+  font-family: var(--font-left-hand, "Left Hand"), cursive;
+  font-size: clamp(1.35rem, 2.4vw, 1.75rem);
+  font-synthesis: none;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+.era-blog-surface .era-sign + .era-bleed {
+  margin-top: 0.25rem;
+}
+
+.era-blog-surface .era-photo {
+  max-width: none;
+}
+
+.era-blog-surface .era-photo span.block {
+  padding: 0;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+}
+
+.era-blog-surface .era-photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.era-spread-row {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(11rem, 3fr);
+  align-items: center;
+  position: relative;
+  gap: 0;
+}
+
+.era-spread-shot {
+  width: 100%;
+  max-width: none;
+  position: relative;
+}
+
+.era-spread-shot .era-photo-frame,
+.era-spread-shot span.block {
+  width: 100%;
+  max-width: 100%;
+}
+
+.era-blog-surface .era-photo.era-fit-h .era-spread-shot img,
+.era-blog-surface .era-photo.era-fit-h .era-fit-img {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  max-height: none;
+  object-fit: contain;
+}
+
+.era-spread-callout {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  padding: 0 0.75rem 0 1.1rem;
+  color: var(--text-muted);
+}
+
+.era-spread-pin {
+  position: relative;
+  z-index: 2;
+}
+
+.era-spread-arrow {
+  position: absolute;
+  left: -6.4rem;
+  top: 0.15em;
+  width: 8.6rem;
+  height: 2.4rem;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.era-spread-arrow-halo,
+.era-spread-arrow-ink,
+.era-spread-mark {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.era-spread-mark {
+  stroke: #1c1917;
+  stroke-width: 2.35;
+}
+
+.era-spread-arrow-halo {
+  stroke: var(--bg-main);
+  stroke-width: 3.4;
+}
+
+.era-spread-arrow-ink {
+  stroke: var(--text-main);
+  stroke-width: 1.55;
+}
+
+.era-blog-surface .era-spread-row .era-note,
+.era-spread-row .era-note {
+  flex: none;
+  margin: 0;
+  max-width: 22ch;
+  font-size: 0.92em;
+  line-height: 1.35;
+}
+
+.era-blog-surface .era-photo.era-fit-h {
+  width: 100%;
+  max-width: 100%;
+}
+
+.era-blog-surface .era-photo.era-fit-h figcaption {
+  text-align: start;
+}
+
+@media (max-width: 860px) {
+  .era-spread-row {
+    grid-template-columns: 1fr;
+  }
+
+  .era-spread-shot {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .era-spread-callout {
+    width: 100%;
+    padding: 2rem 0 0;
+  }
+
+  .era-spread-arrow {
+    left: 0;
+    top: -1.7rem;
+    width: 4.8rem;
+    height: 2rem;
+  }
+
+  .era-blog-surface .era-spread-row .era-note,
+  .era-spread-row .era-note {
+    max-width: 28ch;
+  }
+}
+
+.era-bleed {
+  position: relative;
+  width: 100%;
+  max-width: none;
+}
+
+.era-blog-surface[data-era-surface="1970"] .era-bleed {
+  width: 100vw;
+  max-width: 100vw;
+  margin-inline: calc(50% - 50vw);
+}
+
+.era-blog-surface[data-era-surface="1970"] .era-bleed.era-fit-h {
+  width: 100%;
+  max-width: 100%;
+  margin-inline: 0;
+}
+
+.era-blog-surface[data-era-surface="1970"] .era-photo span.block {
+  background: #000;
+}
+
+.era-blog-surface a:focus-visible,
+.era-blog-surface button:focus-visible,
+.era-blog-surface input:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 3px;
+}
+
+.era-blog-surface .notebook-reader-body .notebook-scroll-sheet {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+.era-blog-surface .notebook-spread-sheet {
+  background: var(--bg-card);
+  color: var(--text-main);
+  box-shadow: none;
+}
+
+.era-blog-surface .notebook-shell.notebook-paper-rough .notebook-scroll-sheet::before,
+.era-blog-surface .notebook-shell.notebook-paper-rough .notebook-spread-sheet::before,
+.era-blog-surface .notebook-shell.notebook-paper-rough.notebook-reader-body::before {
+  display: none;
+}
+
+.era-blog-surface .notebook-reader-fit-chip {
+  background: var(--bg-card);
+  color: var(--text-muted);
+  border-color: var(--border-color);
+  box-shadow: none;
+}
+
+.era-blog-surface .notebook-reader-fit-chip.is-on {
+  color: var(--text-main);
+}
+
+.era-blog-surface .notebook-spread-nav-btn {
+  border-color: var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-main);
 }
 
 /*
@@ -1107,13 +1894,16 @@ html[data-notebook-skin='paper'],
   border: 1px solid var(--studio-chrome-border, rgba(242, 242, 240, 0.2));
   background: var(--studio-chrome-lift, #141414);
   color: var(--studio-chrome-fg, #f2f2f0);
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: 0;
   font-size: 1rem;
   line-height: 1;
   cursor: pointer;
   opacity: 0.9;
+  touch-action: manipulation;
 }
 
 .notebook-spread-nav-btn:disabled {
@@ -1592,14 +2382,14 @@ html[data-notebook-skin='paper'],
 
 /* Nav bar — declare on body so var(--bg-card) resolves to the active era.
    On :root these aliases incorrectly freeze to the default white/black pair. */
-body[data-era] {
+body[data-era], [data-era-surface] {
   --nav-surface: var(--bg-card);
   --nav-text: var(--text-main);
   --nav-text-muted: var(--text-muted);
 }
 
 /* 1970: Terminal & ASCII */
-body[data-era='1970'] {
+body[data-era='1970'], [data-era-surface='1970'] {
   --bg-main: #000000;
   --bg-card: #000000;
   --text-main: #00ff00;
@@ -1627,8 +2417,237 @@ body[data-era='1970'] {
   --notepad-inner-bg: #111111;
 }
 
+/*
+ * Notebook reading skin for Era 1 — ThemeConfig phosphor + IBM Plex body.
+ * Scoped so site-wide 1970 (Courier / #00ff00 / dim muted) stays unchanged.
+ */
+.era-blog-surface[data-era-surface='1970'] {
+  --bg-main: #000000;
+  --bg-card: #000000;
+  --text-main: #00ff41;
+  --text-muted: #3dcc4a;
+  --border-color: #00ff41;
+  --accent-color: #39ff14;
+  --font-main: var(--font-blog-body), "IBM Plex Mono", ui-monospace, monospace;
+  --font-heading: var(--font-blog-display), "VT323", var(--font-blog-body), ui-monospace, monospace;
+  --nav-surface: #000000;
+  --nav-text: #39ff14;
+  --nav-text-muted: #3dcc4a;
+  --ink-line: #00ff41;
+  --border-radius: 0px;
+  --border-width: 1px;
+  font-family: var(--font-main);
+  letter-spacing: 0.01em;
+  text-shadow: 0 0 6px rgba(0, 255, 65, 0.35), 0 0 18px rgba(0, 255, 65, 0.12);
+}
+
+.era-blog-surface[data-era-surface='1970'][data-era-cursor='block'] {
+  cursor: auto;
+}
+
+.era-blog-surface[data-era-surface='1970'] .era-blog-title {
+  text-shadow: 0 0 8px rgba(0, 255, 65, 0.55), 0 0 22px rgba(0, 255, 65, 0.22);
+}
+
+.era-blog-surface[data-era-surface='1970'] .era-blog-title::after {
+  content: none;
+  display: none;
+}
+
+.era-blog-surface[data-era-surface='1970'] header button,
+.era-blog-surface[data-era-surface='1970'] header [class*="rounded"] {
+  border-radius: 0 !important;
+}
+
+.era-blog-surface[data-era-surface='1970'] .notebook-reader-fit-chip {
+  display: none;
+}
+
+.era-blog-surface[data-era-surface='1970'] .notebook-reader-body .notebook-scroll-sheet,
+.era-blog-surface[data-era-surface='1970'] .notebook-spread-sheet {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.era-blog-surface[data-era-surface='1970'] .era-tty-bar a:hover,
+.era-blog-surface[data-era-surface='1970'] .era-tty-bar a:focus-visible {
+  background: transparent;
+  color: inherit;
+  text-shadow: inherit;
+}
+
+.era-blog-surface[data-era-surface='1970'] .era-log {
+  font-size: 18px;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+}
+
+.era-blog-surface[data-era-surface='1970'] .era-log-rule,
+.era-blog-surface[data-era-surface='1970'] .era-log-hair {
+  overflow: hidden;
+  margin: 0.35rem 0;
+  color: rgba(0, 255, 65, 0.4);
+  font-size: 14px;
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-shadow: none;
+  white-space: nowrap;
+}
+
+.era-blog-surface[data-era-surface='1970'] .era-log-caps {
+  font-size: 14px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(0, 255, 65, 0.62);
+  text-shadow: none;
+}
+
+.era-blog-surface[data-era-surface='1970'] .era-log-meta {
+  color: rgba(0, 255, 65, 0.62);
+  text-shadow: none;
+}
+
+.era-blog-surface[data-era-surface='1970'] .era-log-banner {
+  margin: 0.5rem 0 0.85rem;
+  overflow-x: auto;
+  color: var(--accent-color);
+  font-size: 13px;
+  line-height: 1.05;
+  letter-spacing: 0;
+  white-space: pre;
+  text-shadow: 0 0 10px rgba(0, 255, 65, 0.45);
+}
+
+.era-blog-surface[data-era-surface='1970'] .era-log-kicker {
+  margin: 0 0 1rem;
+  color: var(--accent-color);
+  font-size: 19px;
+}
+
+.era-blog-surface[data-era-surface='1970'] .era-log-list {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+}
+
+.era-blog-surface[data-era-surface='1970'] .era-log-record {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.35rem 0 0.55rem;
+}
+
+.era-blog-surface[data-era-surface='1970'] .era-log-record:focus-visible {
+  outline: none;
+}
+
+.era-blog-surface[data-era-surface='1970'] .era-log-stamp {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: baseline;
+  font-size: 13px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(0, 255, 65, 0.62);
+  text-shadow: none;
+}
+
+.era-blog-surface[data-era-surface='1970'] .era-log-field {
+  display: inline-block;
+  padding: 0.05em 0.32em;
+  font-variant-numeric: tabular-nums;
+}
+
+.era-blog-surface[data-era-surface='1970'] .era-log-file,
+.era-blog-surface[data-era-surface='1970'] .era-log-kind {
+  color: rgba(0, 255, 65, 0.4);
+}
+
+.era-blog-surface[data-era-surface='1970'] .era-log-title {
+  display: inline;
+  margin-top: 0.2rem;
+  padding: 0.04em 0.28em;
+  margin-inline: -0.28em;
+  color: var(--text-main);
+  font-size: 22px;
+  line-height: 1.2;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+.era-blog-surface[data-era-surface='1970'] .era-log-excerpt {
+  display: block;
+  margin-top: 0.2rem;
+  max-width: 62ch;
+  color: rgba(0, 255, 65, 0.62);
+  font-size: 16px;
+  line-height: 1.4;
+  text-shadow: none;
+}
+
+.era-blog-surface[data-era-surface='1970'] .era-log-hair {
+  display: block;
+  margin-top: 0.35rem;
+}
+
+.era-blog-surface[data-era-surface='1970'] .era-log-work {
+  margin: 0.15rem 0 0.85rem;
+  color: rgba(0, 255, 65, 0.4);
+  font-size: 14px;
+  text-shadow: none;
+}
+
+.era-blog-surface[data-era-surface='1970'] .era-log-record[data-mark] .era-log-field,
+.era-blog-surface[data-era-surface='1970'] .era-log-record:focus-visible .era-log-field,
+.era-blog-surface[data-era-surface='1970'] .era-log-record[data-mark] .era-log-title,
+.era-blog-surface[data-era-surface='1970'] .era-log-record:focus-visible .era-log-title {
+  background: var(--accent-color);
+  color: #000;
+  text-shadow: none;
+}
+
+.era-blog-surface[data-era-surface='1970'] .era-log-record:active .era-log-field,
+.era-blog-surface[data-era-surface='1970'] .era-log-record:active .era-log-title {
+  background: var(--text-main);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .era-blog-surface[data-era-surface='1970'] .era-log-record:hover .era-log-field,
+  .era-blog-surface[data-era-surface='1970'] .era-log-record:hover .era-log-title {
+    background: var(--accent-color);
+    color: #000;
+    text-shadow: none;
+  }
+}
+
+@keyframes era-blog-caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .era-blog-surface[data-era-surface='1970'][data-era-cursor='block'] {
+    cursor: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .era-blog-surface[data-era-surface='1970'] {
+    text-shadow: none;
+  }
+
+  .era-blog-surface[data-era-surface='1970'] .era-blog-title::after {
+    content: none;
+  }
+}
+
 /* 1981: Xerox Alto GUI */
-body[data-era='1981'] {
+body[data-era='1981'], [data-era-surface='1981'] {
   --bg-main: #c0c0c0;
   --bg-card: #c0c0c0;
   --text-main: #000000;
@@ -1653,7 +2672,7 @@ body[data-era='1981'] {
 }
 
 /* 1991: HTML 1.0 */
-body[data-era='1991'] {
+body[data-era='1991'], [data-era-surface='1991'] {
   --bg-main: #ffffff;
   --bg-card: #ffffff;
   --text-main: #000000;
@@ -1678,7 +2697,7 @@ body[data-era='1991'] {
 }
 
 /* 1993: Mosaic & Netscape */
-body[data-era='1993'] {
+body[data-era='1993'], [data-era-surface='1993'] {
   --bg-main: #c0c0c0;
   --bg-card: #ffffff;
   --text-main: #000000;
@@ -1703,7 +2722,7 @@ body[data-era='1993'] {
 }
 
 /* 1995: GeoCities Wild Web */
-body[data-era='1995'] {
+body[data-era='1995'], [data-era-surface='1995'] {
   --bg-main: #000033;
   --bg-card: #000033;
   --text-main: #ffff99;
@@ -1731,7 +2750,7 @@ body[data-era='1995'] {
 }
 
 /* 1997: KIRUK · A Practitioner Profile (multimedia CD-ROM) */
-body[data-era='1997'] {
+body[data-era='1997'], [data-era-surface='1997'] {
   --bg-main: #2a1f1a;
   --bg-card: #f5ecd7;
   --text-main: #f5ecd7;
@@ -1759,7 +2778,7 @@ body[data-era='1997'] {
 }
 
 /* 2000: Macromedia Flash / Y2K Chrome */
-body[data-era='2000'] {
+body[data-era='2000'], [data-era-surface='2000'] {
   --bg-main: #0a1428;
   --bg-card: #1a2942;
   --text-main: #e8f1ff;
@@ -1787,7 +2806,7 @@ body[data-era='2000'] {
 }
 
 /* 2003: MySpace · Web 2.0 social profile */
-body[data-era='2003'] {
+body[data-era='2003'], [data-era-surface='2003'] {
   --bg-main: #6699cc;
   --bg-card: #ffffff;
   --text-main: #1a1a1a;
@@ -1812,7 +2831,7 @@ body[data-era='2003'] {
 }
 
 /* 2006: Digg-style link aggregator (vote arrows + threads) */
-body[data-era='2006'] {
+body[data-era='2006'], [data-era-surface='2006'] {
   --bg-main: #f6f6ef;
   --bg-card: #ffffff;
   --text-main: #1a1a1a;
@@ -1837,7 +2856,7 @@ body[data-era='2006'] {
 }
 
 /* 2009: iPhone OS 3 · skeuomorphic */
-body[data-era='2009'] {
+body[data-era='2009'], [data-era-surface='2009'] {
   --bg-main: #2a2f3a;
   --bg-card: #ffffff;
   --text-main: #f0f1f5;
@@ -1865,7 +2884,7 @@ body[data-era='2009'] {
 }
 
 /* 2013: Flat Revolution */
-body[data-era='2013'] {
+body[data-era='2013'], [data-era-surface='2013'] {
   --bg-main: #f2f2f7;
   --bg-card: #ffffff;
   --text-main: #16181f;
@@ -1890,7 +2909,7 @@ body[data-era='2013'] {
 }
 
 /* 2018: Accessibility & Dark Prep */
-body[data-era='2018'] {
+body[data-era='2018'], [data-era-surface='2018'] {
   --bg-main: #ffffff;
   --bg-card: #f5f5f5;
   --text-main: #111111;
@@ -1915,7 +2934,7 @@ body[data-era='2018'] {
 }
 
 /* 2021: Linear-style issue tracker */
-body[data-era='2021'] {
+body[data-era='2021'], [data-era-surface='2021'] {
   --bg-main: #08090a;
   --bg-card: #16171a;
   --text-main: #f7f7f8;
@@ -1943,7 +2962,7 @@ body[data-era='2021'] {
 }
 
 /* 2023: AI-Native Interfaces */
-body[data-era='2023'] {
+body[data-era='2023'], [data-era-surface='2023'] {
   --bg-main: #0c0a1d;
   --bg-card: #14112e;
   --text-main: #f1f5f9;
@@ -1971,7 +2990,7 @@ body[data-era='2023'] {
 }
 
 /* 2026: Agentic Mission Control */
-body[data-era='2026'] {
+body[data-era='2026'], [data-era-surface='2026'] {
   --bg-main: #070809;
   --bg-card: rgba(255, 255, 255, 0.035);
   --text-main: #e9f0ee;
@@ -2057,11 +3076,7 @@ body {
   transition: background-color 0.3s, color 0.3s, border-color 0.3s;
 }
 
-/* Custom cursor (mouse only): hide system pointer only while the client cursor is active */
-html[data-custom-cursor-active]:not([data-era-picker-active]),
-html[data-custom-cursor-active]:not([data-era-picker-active]) * {
-  cursor: none !important;
-}
+/* Custom cursor is an overlay only. Never hide the system pointer. */
 
 /* Era picker: native pointer + smooth hover affordance */
 html[data-era-picker-active],
@@ -2103,18 +3118,119 @@ html[data-era-picker-active] [role="button"] {
   white-space: normal;
 }
 
-/* Hide scrollbars but allow scrolling */
-* {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+.skip-link {
+  position: absolute;
+  left: 0.75rem;
+  top: -100px;
+  z-index: 200;
+  padding: 0.65rem 1rem;
+  min-height: 44px;
+  background: var(--text-main);
+  color: var(--bg-main);
+  font-size: 0.875rem;
+  text-decoration: none;
+  touch-action: manipulation;
 }
 
-*::-webkit-scrollbar {
-  display: none;
+.skip-link:focus,
+.skip-link:focus-visible {
+  top: 0.5rem;
+  outline: 2px solid var(--accent-color);
+  outline-offset: 3px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 3px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.site-chrome a,
+.site-chrome button,
+.site-chrome input,
+.site-home-link,
+.site-nav-link,
+.site-chrome-link,
+.site-crumb-link {
+  touch-action: manipulation;
+}
+
+.site-nav-link-line {
+  transform: scaleX(0);
+}
+
+.site-nav-link[aria-current] .site-nav-link-line {
+  transform: scaleX(1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .site-nav-link:hover {
+    color: var(--accent-color);
+  }
+
+  .site-nav-link:hover .site-nav-link-line {
+    transform: scaleX(1);
+  }
+
+  .site-home-link:hover,
+  .site-chrome-link:hover,
+  .site-crumb-link:hover {
+    color: var(--accent-color);
+  }
+}
+
+.site-nav-link:focus-visible .site-nav-link-line {
+  transform: scaleX(1);
 }
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: var(--simple-game-nav-bottom, 4.5rem);
+  scrollbar-width: thin;
+  scrollbar-gutter: stable;
+  scrollbar-color: color-mix(in srgb, var(--text-main) 45%, transparent) var(--bg-main);
+}
+
+html::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+html::-webkit-scrollbar-track {
+  background: var(--bg-main);
+}
+
+html::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--text-main) 38%, var(--bg-main));
+  border: 2px solid var(--bg-main);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+a,
+button,
+input,
+select,
+textarea,
+[role="button"],
+[role="link"] {
+  touch-action: manipulation;
 }
 
 input::selection,
@@ -2201,7 +3317,6 @@ body[data-style='absurd'] .handwritten {
     border-radius var(--te-quick, 150ms) var(--te-ease-mechanical, cubic-bezier(0.4, 0.0, 0.2, 1));
   rotate: var(--card-tilt, 0deg);
   transform: translateZ(0);
-  will-change: transform, box-shadow;
 }
 
 /* Button Hover States - TE mechanical feedback */
@@ -3226,7 +4341,7 @@ body[data-effects*="gradient-mesh"]::after {
         color-mix(in srgb, var(--theme-secondary) 10%, transparent),
         color-mix(in srgb, var(--accent-color) 10%, transparent),
         color-mix(in srgb, var(--theme-primary) 10%, transparent));
-    filter: blur(80px);
+    filter: blur(20px);
     opacity: 0.15;
     animation: holographic-rotate 30s linear infinite;
   }
@@ -3478,4 +4593,13 @@ select {
 .image-rendering-pixelated {
   image-rendering: pixelated;
   image-rendering: crisp-edges;
+}
+/* Era swap — the overlay sets this while the new era's tokens land behind the
+   travelling plane. Without it, every colour transition on the page is still
+   easing to its new value as the plane clears. */
+html[data-era-swapping],
+html[data-era-swapping] *,
+html[data-era-swapping] *::before,
+html[data-era-swapping] *::after {
+  transition: none !important;
 }

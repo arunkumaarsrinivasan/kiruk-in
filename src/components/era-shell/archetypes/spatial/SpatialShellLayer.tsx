@@ -164,7 +164,7 @@ function DriftOrb({
         left: x,
         top: y,
         background: `radial-gradient(circle, ${color}aa 0%, ${color}33 35%, transparent 70%)`,
-        filter: "blur(60px)",
+        filter: "blur(20px)",
         mixBlendMode: "screen",
         opacity: 0.55,
       }}

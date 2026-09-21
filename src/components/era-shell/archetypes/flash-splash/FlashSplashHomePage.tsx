@@ -759,7 +759,7 @@ export function FlashSplashHomePage() {
   const openCount = defs.length - minimizedIds.length;
 
   return (
-    <main
+    <div
       id="kiruk-2000-desktop"
       style={{
         position: "relative",
@@ -1190,7 +1190,7 @@ export function FlashSplashHomePage() {
           ]}
         />
       )}
-    </main>
+    </div>
   );
 }
 

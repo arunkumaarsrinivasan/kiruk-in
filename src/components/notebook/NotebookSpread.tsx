@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { SketchInk } from '@/components/sketch-ink'
 
 /**
  * Open-book frame: left + right sheets, flip between spreads.
@@ -70,9 +69,7 @@ export function NotebookSpread({
           <div className="notebook-spread-sheet-inner">
             {spread.left ?? (
               <p className="notebook-spread-empty">
-                <SketchInk mode="script" intensity={0.35}>
-                  {emptyLabel}
-                </SketchInk>
+                {emptyLabel}
               </p>
             )}
           </div>
@@ -82,9 +79,7 @@ export function NotebookSpread({
           <div className="notebook-spread-sheet-inner">
             {spread.right ?? (
               <p className="notebook-spread-empty">
-                <SketchInk mode="script" intensity={0.3}>
-                  {emptyLabel}
-                </SketchInk>
+                {emptyLabel}
               </p>
             )}
           </div>
@@ -102,9 +97,7 @@ export function NotebookSpread({
           ←
         </button>
         <span className="notebook-spread-nav-label">
-          <SketchInk mode="script" intensity={0.4}>
             {`${safeIndex + 1} / ${spreads.length}`}
-          </SketchInk>
         </span>
         <button
           type="button"

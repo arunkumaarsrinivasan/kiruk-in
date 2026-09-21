@@ -1,8 +1,9 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { TelephoneInterface } from './components/TelephoneInterface';
 import { GridBackground } from '@/components/ui/GridBackground';
+import { SiteCrumbs } from '@/components/layout/SiteCrumbs';
 
 const CONTACT_INFO = {
   email: {
@@ -44,19 +45,28 @@ const CONTACT_INFO = {
 };
 
 export default function Contact() {
+  const reduce = useReducedMotion();
+
   return (
-    <main
-      className="relative min-h-screen pb-20 pt-16"
-      style={{ backgroundColor: 'var(--bg-main)' }}
+    <div
+      className="relative min-h-screen pb-20"
+      style={{
+        backgroundColor: 'var(--bg-main)',
+        paddingTop: 'var(--simple-game-nav-bottom, 4.5rem)',
+      }}
     >
       <GridBackground opacity={0.2} />
 
       <div className="relative z-10 mx-auto max-w-4xl px-4 pb-8 pt-8">
+        <div data-blueprint="crumbs">
+          <SiteCrumbs className="mb-6" items={[{ label: "Contact" }]} />
+        </div>
         <motion.header
+          data-blueprint="header"
           className="mb-8 text-center"
-          initial={{ opacity: 0, y: 12 }}
+          initial={reduce ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, ease: 'easeOut' }}
+          transition={{ duration: reduce ? 0 : 0.35, ease: 'easeOut' }}
         >
           <h1
             className="mb-2 font-mono text-3xl font-bold sm:text-4xl"
@@ -71,11 +81,12 @@ export default function Contact() {
 
         <motion.div
           className="mb-8 grid gap-6 md:grid-cols-2"
-          initial={{ opacity: 0, y: 16 }}
+          initial={reduce ? false : { opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.08, ease: 'easeOut' }}
+          transition={{ duration: reduce ? 0 : 0.4, delay: reduce ? 0 : 0.08, ease: 'easeOut' }}
         >
           <div
+            data-blueprint="phone"
             className="p-6"
             style={{
               backgroundColor: 'var(--bg-card)',
@@ -86,6 +97,7 @@ export default function Contact() {
           </div>
 
           <div
+            data-blueprint="channels"
             className="p-6"
             style={{
               backgroundColor: 'var(--bg-card)',
@@ -119,6 +131,6 @@ export default function Contact() {
           </div>
         </motion.div>
       </div>
-    </main>
+    </div>
   );
 }

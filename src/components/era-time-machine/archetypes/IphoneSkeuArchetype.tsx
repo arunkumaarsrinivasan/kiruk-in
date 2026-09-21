@@ -385,9 +385,9 @@ export const IphoneSkeuArchetype: React.FC<EraSurfaceProps> = ({
 
                   {open === "type" && (
                     <div>
-                      <Specimen role="DISPLAY" font={era.fonts.primary} sample="Aa 01" size={20} />
-                      <Specimen role="BODY" font={era.fonts.secondary} sample="The quick brown fox" size={11} />
-                      <Specimen role="ACCENT" font={era.fonts.accent} sample="BUTTONS · LABELS" size={10} />
+                      <Specimen kind="DISPLAY" font={era.fonts.primary} sample="Aa 01" size={20} />
+                      <Specimen kind="BODY" font={era.fonts.secondary} sample="The quick brown fox" size={11} />
+                      <Specimen kind="ACCENT" font={era.fonts.accent} sample="BUTTONS · LABELS" size={10} />
                     </div>
                   )}
 
@@ -543,12 +543,12 @@ export const IphoneSkeuArchetype: React.FC<EraSurfaceProps> = ({
 };
 
 function Specimen({
-  role,
+  kind,
   font,
   sample,
   size,
 }: {
-  role: string;
+  kind: string;
   font: string;
   sample: string;
   size: number;
@@ -573,7 +573,7 @@ function Specimen({
           textTransform: "uppercase",
         }}
       >
-        {role}
+        {kind}
       </div>
       <div style={{ fontFamily: FONT_MONO, fontSize: 8, color: MUTED }}>{fontName}</div>
       <div style={{ fontFamily: font, fontSize: size, color: INK, lineHeight: 1.2, marginTop: 2 }}>

@@ -208,11 +208,12 @@ export function ProjectShowcaseSlider({ activeSide }: ProjectShowcaseSliderProps
                 return (
                   <motion.article
                     key={p.id}
+                    id={p.id}
                     ref={(el) => {
                       cardRefs.current[i] = el;
                     }}
                     layout
-                    className="relative shrink-0 snap-center"
+                    className="relative shrink-0 snap-center scroll-mt-24"
                     style={{ width: "min(88vw, 420px)" }}
                     initial={reduce ? false : { opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -436,7 +437,7 @@ export function ProjectShowcaseSlider({ activeSide }: ProjectShowcaseSliderProps
                   aria-label={`Go to ${p.title}`}
                   aria-current={i === activeIndex ? "true" : undefined}
                   onClick={() => scrollTo(i)}
-                  className="h-1.5 rounded-full transition-all duration-300"
+                  className="h-1.5 rounded-full transition-[width,background-color] duration-300"
                   style={{
                     width: i === activeIndex ? 24 : 8,
                     background:

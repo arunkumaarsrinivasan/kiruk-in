@@ -214,7 +214,7 @@
   font-size: 11px;
   font-family: monospace;
   border: 1px solid;
-  transition: all 0.2s ease-out;
+  transition: transform 0.2s ease-out, border-color 0.2s ease-out, color 0.2s ease-out;
 }
 
 .skill-tag:hover {
@@ -242,7 +242,7 @@
   background: var(--bg-card);
   color: var(--text-muted);
   cursor: pointer;
-  transition: all 0.15s ease-out;
+  transition: border-color 0.15s ease-out, color 0.15s ease-out, background-color 0.15s ease-out;
 }
 
 .filter-btn:hover {
@@ -271,6 +271,17 @@
   animation: shooting-star 1.5s linear forwards;
   pointer-events: none;
   z-index: 2;
+}
+
+.observatory-sky[data-sky-paused] .star-twinkle-1,
+.observatory-sky[data-sky-paused] .star-twinkle-2,
+.observatory-sky[data-sky-paused] .star-twinkle-3,
+.observatory-sky[data-sky-paused] .star-twinkle-4,
+.observatory-sky[data-sky-paused] .star-twinkle-5,
+.observatory-sky[data-sky-paused] .star-expert,
+.observatory-sky[data-sky-paused] .animate-ping,
+.observatory-sky[data-sky-paused] .shooting-star {
+  animation-play-state: paused;
 }
 
 /* === Responsive Adjustments === */

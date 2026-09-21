@@ -139,8 +139,8 @@ export const PAGE_HELP_DATA: PageHelp[] = [
     shortcuts: ['3 - Jump to work'],
   },
   {
-    path: '/case-studies',
-    title: 'Case Studies - Deep Dives',
+    path: '/work',
+    title: 'Work - Selected projects',
     description: 'In-depth explorations of selected projects showing the full process from problem to solution, including challenges and learnings.',
     instructions: [
       'Select a case study from the available options',

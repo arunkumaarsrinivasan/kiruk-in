@@ -247,7 +247,7 @@ export function IphoneSkeuHomePage() {
   const H = orientation === "portrait" ? portraitH : portraitW;
 
   return (
-    <main
+    <div
       id="iphone-skeu-home"
       style={{
         position: "relative",
@@ -643,7 +643,7 @@ export function IphoneSkeuHomePage() {
           </div>
         )}
       </div>
-    </main>
+    </div>
   );
 }
 

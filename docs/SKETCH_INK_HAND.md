@@ -38,7 +38,7 @@ The engine paints **one face per word run**. Dropping in your TTFs is a pool/CSS
    - In [`src/lib/sketch-ink/config.ts`](../src/lib/sketch-ink/config.ts) set `KIRUK_HAND_READY = true`
      (or `NEXT_PUBLIC_USE_KIRUK_HAND=true`)
    - That flips `PRINT_HOME` / `SCRIPT_HOME` → KirukPrint / KirukScript and sets
-     `data-kiruk-hand="true"` on studio / blog / notes so CSS vars match runtime faces
+     `data-kiruk-hand="true"` on blogism / blog / notes so CSS vars match runtime faces
    - OFL alternates are already gone — your `calt` owns letter chaos
 
 6. **Calibrate** against a photo of your notebook page — update [`SKETCH_INK_STYLE.md`](./SKETCH_INK_STYLE.md) log
@@ -47,16 +47,16 @@ The engine paints **one face per word run**. Dropping in your TTFs is a pool/CSS
 
 - Don’t go back to per-letter React font switching for “randomness” — bake it into the font
 - Don’t use Fontself alone if you need strong `calt` (Calligraphr / Glyphs / FontCreator are stronger for handwriting)
-- Don’t animate Tegaki strokes in the studio editor — optional reader flourish only
+- Don’t animate Tegaki strokes in the BLOGISM editor — optional reader flourish only
 
 ## Checklist when fonts land
 
 - [ ] Copy `KirukPrint.woff2` + `KirukScript.woff2` into `public/fonts/`
 - [ ] Set `KIRUK_HAND_READY = true` (or `NEXT_PUBLIC_USE_KIRUK_HAND=true`)
-- [ ] Confirm `data-kiruk-hand="true"` on `/studio` + `/blog` roots
+- [ ] Confirm `data-kiruk-hand="true"` on `/desk` + `/notebook` roots
 - [ ] Print CAPS titles look like Hand A
 - [ ] Body sentences connect within words
 - [ ] Same letter twice in a word is not a stamp (alternates / calt)
-- [ ] Studio caret + selection still track ink
+- [ ] BLOGISM caret + selection still track ink
 - [ ] SSR / hydrate match (seeded run wobble unchanged)
 - [ ] Dev chip still shows print/script mix + mean skew

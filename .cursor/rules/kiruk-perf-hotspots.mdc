@@ -1,0 +1,17 @@
+---
+description: Do not strip loader, picker, cursor, or eye loops in kiruk identity hotspots
+globs: src/components/ui/app-loader.tsx,src/components/ui/interactive-loading-page.tsx,src/components/ui/immersive-era-loading-page.tsx,src/components/ui/CustomCursor.tsx,src/components/brand/**/*.tsx,src/components/era-shell/registry.tsx,src/hooks/useChromeQuiet.ts,src/contexts/ThemeContext.tsx,src/components/layout/TimeTravelOverlay.tsx,src/components/layout/LayoutClientShell.tsx,src/app/about/components/useCelestialEngine.ts,src/components/ui/SplitCharacter.tsx,src/app/layout.tsx
+alwaysApply: false
+---
+
+# Identity hotspots
+
+Read `docs/PERF_IDENTITY.md` before changing these files for speed.
+
+- `app-loader.tsx`: static-import both loader pages. `readLoaderMode()` stays theme-then-session. Unmount **children** while overlay is open, never the loader itself.
+- `CustomCursor.tsx`: stay mounted. Idle = dim/scale. `chromeQuiet` may hide it. No idle unmount.
+- `Eye*.tsx`: `looping = !reduce`. Gaze springs may rest; blinks may not.
+- `TimeTravelOverlay.tsx`: keep `data-time-travel` for the overlay lifetime. `data-era-swapping` lasts until reveal, not 120ms.
+- `registry.tsx`: `next/dynamic` unused era homepages only.
+- `layout.tsx`: keep `@fontsource/.../latin-400.css` for Architects Daughter and Nothing You Could Do.
+- Quiet attrs: `data-era-picker-active`, `data-time-travel`, `data-module-open` (see `useChromeQuiet.ts`).

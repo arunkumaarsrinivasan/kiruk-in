@@ -31,19 +31,20 @@ function Star({ x, y, d }: { x: number; y: number; d: number }) {
 
 export default function Eye1995({ gx, gy, reduce }: EyeProps) {
   const { cx, cy } = usePupil(gx, gy, { tx: 9, ty: 6 });
+  const looping = !reduce;
 
   // googly wobble layered onto the gaze
   const wbx = useMotionValue(0);
   const wby = useMotionValue(0);
   useEffect(() => {
-    if (reduce) return;
+    if (!looping) return;
     const a = animate(wbx, [0, 3, -2, 2, 0], { duration: 1.7, repeat: Infinity, ease: "easeInOut" });
     const b = animate(wby, [0, -2, 2, -1, 0], { duration: 2.1, repeat: Infinity, ease: "easeInOut" });
     return () => {
       a.stop();
       b.stop();
     };
-  }, [reduce, wbx, wby]);
+  }, [looping, wbx, wby]);
   const px = useTransform(() => cx.get() + wbx.get());
   const py = useTransform(() => cy.get() + wby.get());
 
@@ -67,8 +68,8 @@ export default function Eye1995({ gx, gy, reduce }: EyeProps) {
       {/* rainbow rings, hue shimmering (color cycle — not rotation) */}
       <motion.g
         filter="url(#geo-glow)"
-        animate={reduce ? undefined : { filter: ["hue-rotate(0deg)", "hue-rotate(360deg)"] }}
-        transition={reduce ? undefined : { duration: 4, repeat: Infinity, ease: "linear" }}
+        animate={looping ? { filter: ["hue-rotate(0deg)", "hue-rotate(360deg)"] } : undefined}
+        transition={looping ? { duration: 4, repeat: Infinity, ease: "linear" } : undefined}
       >
         <circle cx={EYE.outer.cx} cy={EYE.outer.cy} r={EYE.outer.r} fill="none" stroke="#ff00ff" strokeWidth="6" />
         <circle cx={EYE.iris.cx} cy={EYE.iris.cy} r={EYE.iris.r} fill="none" stroke="#00ffff" strokeWidth="6" />
@@ -77,7 +78,7 @@ export default function Eye1995({ gx, gy, reduce }: EyeProps) {
 
       <motion.circle r="11" fill="#ff0099" cx={px} cy={py} />
 
-      {!reduce && STARS.map((s, i) => <Star key={i} x={s.x} y={s.y} d={i * 0.32} />)}
+      {looping && STARS.map((s, i) => <Star key={i} x={s.x} y={s.y} d={i * 0.32} />)}
     </svg>
   );
 }

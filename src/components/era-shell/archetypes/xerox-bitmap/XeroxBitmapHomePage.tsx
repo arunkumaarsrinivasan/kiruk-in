@@ -173,7 +173,7 @@ export function XeroxBitmapHomePage() {
   });
 
   return (
-    <main
+    <div
       id="xerox-home"
       className={pixelify.className}
       style={{
@@ -888,7 +888,7 @@ export function XeroxBitmapHomePage() {
           bootDone={bootDone}
         />
       </div>
-    </main>
+    </div>
   );
 }
 

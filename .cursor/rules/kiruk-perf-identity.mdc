@@ -1,0 +1,18 @@
+---
+description: Pause off-screen work; never strip era identity motion when speeding up kiruk.in
+alwaysApply: true
+---
+
+# Performance vs identity
+
+Pause work that is not on screen. Do not strip era identity while it is on screen.
+
+If `/emil-performance` or a lag fix wants to delete, unmount, `next/dynamic`, or gate a loop, follow `.cursor/skills/kiruk-perf-identity/SKILL.md` and `docs/PERF_IDENTITY.md`.
+
+**Keep moving:** splash (`InteractiveLoadingPage`), first-visit era picker, `CustomCursor` idle visual, KirukEye / MiniEye blinks (`looping = !reduce`), the **current** era homepage, sketch font family names.
+
+**May sleep:** other era homepages, RAF/springs behind overlays or `document.hidden`, site children under the loader overlay, `transition-all`, unused fonts, seasoning `will-change`.
+
+**Never:** dynamic-import the loader with no fallback; unmount the cursor on idle; gate eye Infinity loops on `live`; skip splash with path gates; drop `data-era-picker-active` / `data-time-travel`; swap sketch faces to `next/font`.
+
+Browser-check picker, splash, idle cursor, and nav blink before calling a performance pass done.

@@ -1164,7 +1164,7 @@ export function BlockEditorHomePage() {
   const card = bg;
 
   return (
-    <main
+    <div
       id="kiruk-block-editor"
       style={{
         position: "relative",
@@ -1900,7 +1900,7 @@ export function BlockEditorHomePage() {
           {toast}
         </div>
       )}
-    </main>
+    </div>
   );
 }
 

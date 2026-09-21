@@ -14,6 +14,7 @@ Welcome to the documentation for the Kiruk Portfolio! This is a gamified, data-d
 | [**C4_DIAGRAMS.md**](./C4_DIAGRAMS.md) | C4 architecture diagrams in PlantUML and Mermaid formats |
 | [**NEXTJS_FUNDAMENTALS.md**](./NEXTJS_FUNDAMENTALS.md) | Next.js concepts as used in this project |
 | [**CREATING_GAMES.md**](./CREATING_GAMES.md) | Step-by-step guide to adding new arcade games |
+| [**PERF_IDENTITY.md**](./PERF_IDENTITY.md) | Pause off-screen work; never strip loader, picker, cursor, or eye motion |
 
 ### Project Files
 
@@ -40,6 +41,7 @@ Welcome to the documentation for the Kiruk Portfolio! This is a gamified, data-d
 | Change portfolio content | [ARCHITECTURE.md#changing-portfolio-content](./ARCHITECTURE.md#changing-portfolio-content) |
 | Understand the game system | [ARCHITECTURE.md#the-game-system](./ARCHITECTURE.md#the-game-system) |
 | Understand theming | [ARCHITECTURE.md#theme-system-time-travel](./ARCHITECTURE.md#theme-system-time-travel) |
+| Speed the site up without killing eras | [PERF_IDENTITY.md](./PERF_IDENTITY.md) |
 
 ---
 

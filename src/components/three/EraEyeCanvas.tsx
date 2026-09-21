@@ -244,14 +244,26 @@ function EraEyeScene({
     [pal],
   );
 
+  const paintedEra = useRef<string | null>(null);
   useEffect(() => {
-    code.update(era.id, {
-      bg: pal.bg,
-      ink: pal.text,
-      panel: pal.primary,
-      accent: pal.accent,
-      bar: pal.secondary,
-    });
+    const paint = () => {
+      paintedEra.current = era.id;
+      code.update(era.id, {
+        bg: pal.bg,
+        ink: pal.text,
+        panel: pal.primary,
+        accent: pal.accent,
+        bar: pal.secondary,
+      });
+    };
+    // First era paints immediately so the cornea is not empty. Fast sweeps
+    // coalesce to the last year so we are not rasterizing 1024×2048 per tick.
+    if (paintedEra.current === null) {
+      paint();
+      return;
+    }
+    const id = window.setTimeout(paint, 64);
+    return () => window.clearTimeout(id);
   }, [code, era.id, pal]);
 
   /** Uniforms shared by both passes — the same objects, read twice a frame. */
@@ -362,7 +374,7 @@ function EraEyeScene({
   const pointer = useRef({ x: 0, y: 0, seen: -1e3 });
   /** Seconds owed to the interface pass, and the frame-time watchdog. */
   const uiDue = useRef(1);
-  const health = useRef({ ema: 1 / 60, cool: 2, floor: DPR_MIN });
+  const health = useRef({ ema: 1 / 60, cool: 2, floor: DPR_MIN, skip: 0 });
   const hidden = useRef(false);
 
   /**
@@ -411,6 +423,15 @@ function EraEyeScene({
   useFrame((_state, delta) => {
     // Nothing on screen is worth a frame while the tab is in the background.
     if (hidden.current) return;
+
+    // A long linger on the picker should not hold 60fps + bloom. Idle gaze
+    // still lives, just at ~20fps until a pointer arrives again.
+    const nowSec = performance.now() / 1000;
+    const pointerIdle = nowSec - pointer.current.seen > 2.8;
+    if (pointerIdle && !exiting) {
+      health.current.skip = (health.current.skip + 1) % 3;
+      if (health.current.skip !== 0) return;
+    }
 
     const dt = Math.min(delta, 0.05);
     const u = uniforms;

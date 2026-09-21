@@ -292,7 +292,7 @@ export const PAGE_GAMES: PageGame[] = [
   },
   {
     id: 'case-studies',
-    path: '/case-studies',
+    path: '/work',
     title: 'DEEP INVESTIGATION',
     subtitle: 'The Puzzle',
     description: 'Solve the mystery of each case study. Piece together the evidence and uncover the full story.',
@@ -414,10 +414,10 @@ export const PAGE_GAMES: PageGame[] = [
   },
   {
     id: 'blog',
-    path: '/blog',
-    title: 'KNOWLEDGE ARCHIVE',
+    path: '/notebook',
+    title: 'NOTEBOOK',
     subtitle: 'The Library',
-    description: 'Browse the knowledge archive. Read articles and insights across different domains.',
+    description: 'Read the handwritten notebook from the studio.',
     icon: 'book',
     gameType: 'explorer',
     primaryColor: '#3498DB',

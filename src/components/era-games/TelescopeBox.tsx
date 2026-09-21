@@ -244,10 +244,8 @@ export function TelescopeBox({
           onOpen();
         }
       }}
-      aria-label={`${title} — career charted as a constellation; click to open the full observatory`}
-      className={`group/scope relative w-full select-none overflow-hidden outline-none ${
-        lensing ? "cursor-none" : "cursor-pointer"
-      } ${className ?? ""}`}
+      aria-label={`${title} — career charted as a constellation; Enter or click to open Work`}
+      className={`group/scope relative w-full cursor-pointer select-none overflow-hidden ${className ?? ""}`}
       style={
         {
           background: space,

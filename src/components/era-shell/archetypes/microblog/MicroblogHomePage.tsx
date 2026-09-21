@@ -638,7 +638,7 @@ export function MicroblogHomePage() {
   );
 
   return (
-    <main
+    <div
       id="kiruk-digg-profile"
       style={{
         position: "relative",
@@ -1315,7 +1315,7 @@ export function MicroblogHomePage() {
           {toast}
         </div>
       )}
-    </main>
+    </div>
   );
 }
 

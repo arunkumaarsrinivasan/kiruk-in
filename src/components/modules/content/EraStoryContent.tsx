@@ -11,9 +11,13 @@
 import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 import { useDesignEra } from "@/contexts/DesignEraContext";
+import { useEraTravel } from "@/components/era-travel/EraTravelContext";
+import { useModules } from "@/contexts/ModuleContext";
 
 export default function EraStoryContent() {
-  const { eras, currentEra, currentEraId, setEra } = useDesignEra();
+  const { eras, currentEra, currentEraId } = useDesignEra();
+  const { travelTo } = useEraTravel();
+  const { close } = useModules();
 
   const { idx, prev, next } = useMemo(() => {
     const i = eras.findIndex((e) => e.id === currentEraId);
@@ -78,12 +82,22 @@ export default function EraStoryContent() {
         <RibbonButton
           dir="prev"
           era={prev}
-          onClick={() => prev && setEra(prev.id)}
+          onClick={() => {
+            if (prev) {
+              close();
+              travelTo(prev.id);
+            }
+          }}
         />
         <RibbonButton
           dir="next"
           era={next}
-          onClick={() => next && setEra(next.id)}
+          onClick={() => {
+            if (next) {
+              close();
+              travelTo(next.id);
+            }
+          }}
         />
       </nav>
     </div>

@@ -1,32 +1,23 @@
 "use client";
 
-/** Work module — deep dives & platform links (same body as /case-studies). */
+/** Work module — selected work lives at /work. Overlay deep-links navigate there. */
 
-import React from "react";
-import dynamic from "next/dynamic";
-
-const CaseStudiesContent = dynamic(
-  () =>
-    import("@/app/case-studies/components/case-studies-content").then((m) => ({
-      default: m.CaseStudiesContent,
-    })),
-  {
-    ssr: false,
-    loading: () => (
-      <div
-        className="flex h-full w-full items-center justify-center text-sm"
-        style={{ color: "var(--text-muted)", fontFamily: "var(--font-main)" }}
-      >
-        ▦ loading work…
-      </div>
-    ),
-  },
-);
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export function CaseStudiesExperience() {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace("/work");
+  }, [router]);
+
   return (
-    <div className="relative h-full min-h-0 overflow-y-auto">
-      <CaseStudiesContent />
+    <div
+      className="flex h-full w-full items-center justify-center text-sm"
+      style={{ color: "var(--text-muted)", fontFamily: "var(--font-main)" }}
+    >
+      ▦ opening work…
     </div>
   );
 }

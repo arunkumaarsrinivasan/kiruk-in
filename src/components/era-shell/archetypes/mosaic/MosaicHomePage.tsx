@@ -240,7 +240,7 @@ export function MosaicHomePage() {
   });
 
   return (
-    <main
+    <div
       id="mosaic-home"
       style={{
         backgroundColor: GRAY,
@@ -489,7 +489,7 @@ export function MosaicHomePage() {
           }}
         />
       )}
-    </main>
+    </div>
   );
 }
 

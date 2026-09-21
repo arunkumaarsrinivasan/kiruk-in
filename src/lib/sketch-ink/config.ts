@@ -103,14 +103,14 @@ export interface ActionPreset {
 /** Photo-matched presets — one-hand lean; Phase 6 raises visible uncertainty. */
 export const ACTION_PRESETS: Record<SketchAction, ActionPreset> = {
   type: {
-    intensityMul: 1.05,
-    baseAngle: -2.6,
-    angleJitter: 0.85,
+    intensityMul: 1.12,
+    baseAngle: -2.9,
+    angleJitter: 0.98,
     homeBias: 1,
     preferPrint: false,
-    scaleJitter: 0.038,
-    opacityFloor: 0.84,
-    trackingBias: -0.012,
+    scaleJitter: 0.042,
+    opacityFloor: 0.82,
+    trackingBias: -0.014,
     align: 'left',
   },
   ideation: {
@@ -194,9 +194,9 @@ export const BEHAVIOR = {
     fatigue: 1.12,
     rush: 1.18,
   } as Record<BehaviorState, number>,
-  /** Fatigue trigger thresholds. */
-  fatigueChars: 120,
-  fatigueWords: 28,
+  /** Fatigue trigger thresholds — sentence length: short stays cold/settle, long leans. */
+  fatigueChars: 90,
+  fatigueWords: 22,
   /** Paragraph progress denominator (paraChars / this). */
   progressDenom: 180,
   progressMulFatigue: 0.18,
@@ -223,10 +223,10 @@ export const BEHAVIOR = {
   angleOffset: {
     cold: 0.35,
     settle: 0,
-    fatigue: -0.75,
+    fatigue: -0.95,
     rush: -0.55,
   } as Record<BehaviorState, number>,
-  fatigueAngleProgressMul: 0.9,
+  fatigueAngleProgressMul: 1.15,
   /** Print hand extra upright offset. */
   printAngleOffset: 0.7,
   /** Print CAPS extra scale. */

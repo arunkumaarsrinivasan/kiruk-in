@@ -22,7 +22,9 @@ export function useModuleA11y(
     body.style.overflow = "hidden";
 
     const main = document.getElementById("main-content");
+    const chrome = document.querySelectorAll("#site-header, header[role='banner'], [role='banner']");
     main?.setAttribute("inert", "");
+    chrome.forEach((el) => el.setAttribute("inert", ""));
 
     // Move focus into the overlay.
     const focusFirst = () => {
@@ -67,6 +69,7 @@ export function useModuleA11y(
       document.removeEventListener("keydown", onKey);
       body.style.overflow = prevOverflow;
       main?.removeAttribute("inert");
+      chrome.forEach((el) => el.removeAttribute("inert"));
       previouslyFocused?.focus?.();
     };
   }, [active, containerRef, onClose]);

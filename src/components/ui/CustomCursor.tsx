@@ -9,8 +9,8 @@ import {
   cursorElementChats,
   type CursorChatWord,
 } from '@/data/cursor-chat-data';
+import { useChromeQuiet } from '@/hooks/useChromeQuiet';
 
-const CURSOR_ATTR = 'data-custom-cursor-active';
 const DOT_PX = 8;
 const CURSOR_EMOJI_PX = 36;
 
@@ -31,6 +31,7 @@ let hapticId = 0;
 
 export default function CustomCursor() {
   const pathname = usePathname();
+  const chromeQuiet = useChromeQuiet();
 
   const cursorX = useMotionValue(-100);
   const cursorY = useMotionValue(-100);
@@ -42,14 +43,15 @@ export default function CustomCursor() {
   const [isClicking, setIsClicking] = useState(false);
   const [isIdle, setIsIdle] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
-  const [isNavigating, setIsNavigating] = useState(false);
-  const [isMoving, setIsMoving] = useState(false);
 
   const [cursorChat, setCursorChat] = useState<CursorChatWord[] | null>(null);
   const [hapticBursts, setHapticBursts] = useState<HapticBurst[]>([]);
-  const [eraPickerActive, setEraPickerActive] = useState(false);
-  const moveTimeout = useRef<ReturnType<typeof setTimeout>>(undefined);
   const lastPos = useRef({ x: 0, y: 0 });
+  const visibleRef = useRef(false);
+  const hoveringRef = useRef(false);
+  const disabledRef = useRef(false);
+  const idleRef = useRef(false);
+  const chatKeyRef = useRef<string | null>(null);
 
   const spawnHaptic = useCallback(() => {
     const burst: HapticBurst = {
@@ -77,54 +79,7 @@ export default function CustomCursor() {
   }, []);
 
   useEffect(() => {
-    const root = document.documentElement;
-    const sync = () =>
-      setEraPickerActive(root.hasAttribute("data-era-picker-active"));
-    sync();
-    const obs = new MutationObserver(sync);
-    obs.observe(root, {
-      attributes: true,
-      attributeFilter: ["data-era-picker-active"],
-    });
-    return () => obs.disconnect();
-  }, []);
-
-  useEffect(() => {
-    const root = document.documentElement;
-    const syncCursorAttr = () => {
-      if (root.hasAttribute('data-era-picker-active')) {
-        root.removeAttribute(CURSOR_ATTR);
-        return;
-      }
-      if (!enabled || !isVisible) {
-        root.removeAttribute(CURSOR_ATTR);
-        return;
-      }
-      root.setAttribute(CURSOR_ATTR, '');
-    };
-
-    syncCursorAttr();
-
-    const obs = new MutationObserver(syncCursorAttr);
-    obs.observe(root, {
-      attributes: true,
-      attributeFilter: ['data-era-picker-active'],
-    });
-
-    return () => {
-      obs.disconnect();
-      root.removeAttribute(CURSOR_ATTR);
-    };
-  }, [enabled, isVisible]);
-
-  useEffect(() => {
-    setIsNavigating(true);
-    const timeout = setTimeout(() => setIsNavigating(false), 500);
-    return () => clearTimeout(timeout);
-  }, [pathname]);
-
-  useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || chromeQuiet) return;
 
     let idleTimeout: ReturnType<typeof setTimeout>;
 
@@ -132,15 +87,21 @@ export default function CustomCursor() {
       cursorX.set(e.clientX);
       cursorY.set(e.clientY);
       lastPos.current = { x: e.clientX, y: e.clientY };
-      setIsVisible(true);
 
-      setIsMoving(true);
-      clearTimeout(moveTimeout.current);
-      moveTimeout.current = setTimeout(() => setIsMoving(false), 120);
+      if (!visibleRef.current) {
+        visibleRef.current = true;
+        setIsVisible(true);
+      }
 
-      setIsIdle(false);
+      if (idleRef.current) {
+        idleRef.current = false;
+        setIsIdle(false);
+      }
       clearTimeout(idleTimeout);
-      idleTimeout = setTimeout(() => setIsIdle(true), 3000);
+      idleTimeout = setTimeout(() => {
+        idleRef.current = true;
+        setIsIdle(true);
+      }, 2500);
 
       const target = e.target as HTMLElement;
       if (!target?.closest) return;
@@ -148,37 +109,47 @@ export default function CustomCursor() {
       const interactiveEl = target.closest(
         'a, button, input, select, textarea, [role="button"], [tabindex]:not([tabindex="-1"])'
       ) as HTMLElement | null;
+      let nextHovering = false;
+      let nextDisabled = false;
       if (interactiveEl) {
         if (
           interactiveEl.hasAttribute('disabled') ||
           interactiveEl.getAttribute('aria-disabled') === 'true'
         ) {
-          setIsDisabled(true);
-          setIsHovering(false);
+          nextDisabled = true;
         } else {
-          setIsHovering(true);
-          setIsDisabled(false);
+          nextHovering = true;
         }
-      } else {
-        setIsHovering(false);
-        setIsDisabled(false);
+      }
+      if (hoveringRef.current !== nextHovering) {
+        hoveringRef.current = nextHovering;
+        setIsHovering(nextHovering);
+      }
+      if (disabledRef.current !== nextDisabled) {
+        disabledRef.current = nextDisabled;
+        setIsDisabled(nextDisabled);
       }
 
       const chatEl = target.closest('[data-cursor-chat]') as HTMLElement | null;
-      const chatKey = chatEl?.dataset.cursorChat?.trim();
-      if (chatKey && isCursorChatHost(chatEl)) {
-        const words = cursorElementChats[chatKey];
-        setCursorChat(words ?? null);
-      } else {
-        setCursorChat(null);
+      const chatKey = chatEl?.dataset.cursorChat?.trim() || null;
+      const nextChatKey =
+        chatKey && isCursorChatHost(chatEl) ? chatKey : null;
+      if (chatKeyRef.current !== nextChatKey) {
+        chatKeyRef.current = nextChatKey;
+        setCursorChat(nextChatKey ? cursorElementChats[nextChatKey] ?? null : null);
       }
     };
 
     const handleMouseLeave = () => {
+      visibleRef.current = false;
+      chatKeyRef.current = null;
       setIsVisible(false);
       setCursorChat(null);
     };
-    const handleMouseEnter = () => setIsVisible(true);
+    const handleMouseEnter = () => {
+      visibleRef.current = true;
+      setIsVisible(true);
+    };
     const handleMouseDown = () => {
       setIsClicking(true);
       spawnHaptic();
@@ -199,11 +170,24 @@ export default function CustomCursor() {
       document.body.removeEventListener('mouseleave', handleMouseLeave);
       document.body.removeEventListener('mouseenter', handleMouseEnter);
       clearTimeout(idleTimeout);
-      clearTimeout(moveTimeout.current);
     };
-  }, [enabled, cursorX, cursorY, spawnHaptic]);
+  }, [enabled, chromeQuiet, cursorX, cursorY, spawnHaptic]);
 
-  if (!enabled || !isVisible || eraPickerActive) return null;
+  useEffect(() => {
+    const mode = !enabled
+      ? "off"
+      : chromeQuiet
+        ? "quiet"
+        : isIdle
+          ? "idle"
+          : isVisible
+            ? "live"
+            : "armed";
+    document.documentElement.setAttribute("data-cursor-mode", mode);
+    return () => document.documentElement.removeAttribute("data-cursor-mode");
+  }, [enabled, chromeQuiet, isIdle, isVisible]);
+
+  if (!enabled || !isVisible || chromeQuiet) return null;
 
   const isEmojiPage = pathname === '/progress';
   const emojiChar = '🔭';
@@ -211,37 +195,29 @@ export default function CustomCursor() {
 
   const dotVariants = {
     default: { scale: 1, opacity: 1 },
-    moving: { scale: 1.1, opacity: 1 },
     hover: { scale: 1.6, opacity: 1 },
     click: { scale: 0.5, opacity: 1 },
     idle: { scale: 0.7, opacity: 0.35 },
     disabled: { scale: 1, opacity: 0.3 },
-    navigating: { scale: 1.3, opacity: 0.8 },
   };
 
   const emojiVariants = {
     default: { scale: 1, opacity: 1, rotate: 0 },
-    moving: { scale: 1.05, opacity: 1, rotate: 0 },
     hover: { scale: 1.08, opacity: 1, rotate: 12 },
     click: { scale: 0.85, opacity: 1, rotate: 0 },
     idle: { scale: 0.85, opacity: 0.5, rotate: 0 },
     disabled: { scale: 1, opacity: 0.45, rotate: 0 },
-    navigating: { scale: 1.15, opacity: 0.85, rotate: -12 },
   };
 
-  const currentState = isNavigating
-    ? 'navigating'
-    : isClicking
-      ? 'click'
-      : isHovering
-        ? 'hover'
-        : isDisabled
-          ? 'disabled'
-          : isIdle
-            ? 'idle'
-            : isMoving
-              ? 'moving'
-              : 'default';
+  const currentState = isClicking
+    ? 'click'
+    : isHovering
+      ? 'hover'
+      : isDisabled
+        ? 'disabled'
+        : isIdle
+          ? 'idle'
+          : 'default';
 
   const dotTransition = {
     type: 'spring' as const,
@@ -333,7 +309,6 @@ export default function CustomCursor() {
                 borderRadius: eraShapeRadius,
                 border: '1px solid var(--bg-main)',
                 boxSizing: 'border-box',
-                filter: 'drop-shadow(0px 1px 3px rgba(0,0,0,0.25))',
               }}
               variants={emojiVariants}
               initial="default"
@@ -353,7 +328,6 @@ export default function CustomCursor() {
                   : 'var(--text-main)',
                 borderRadius: eraShapeRadius,
                 boxSizing: 'border-box',
-                filter: 'drop-shadow(0px 1px 2px rgba(0,0,0,0.3))',
                 transition: 'background-color 0.12s ease',
               }}
               variants={dotVariants}
@@ -384,12 +358,7 @@ export default function CustomCursor() {
                 initial={{ opacity: 0, y: 4, scale: 0.92 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 2, scale: 0.96 }}
-                transition={{
-                  type: 'spring',
-                  stiffness: 480,
-                  damping: 28,
-                  mass: 0.4,
-                }}
+                transition={{ duration: 0.15, ease: [0.23, 1, 0.32, 1] }}
                 className="cursor-chat-label pointer-events-none absolute z-10 cursor-default select-none"
                 style={{
                   left: isEmojiPage ? CURSOR_EMOJI_PX / 2 + 6 : DOT_PX / 2 + 10,

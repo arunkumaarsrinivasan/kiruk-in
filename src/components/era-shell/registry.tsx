@@ -1,58 +1,19 @@
 "use client";
 
 /**
- * Era Shell Registry — single source of truth for which era archetypes
- * provide which slots (global atmosphere, page variants, future nav/footer).
+ * Era Shell Registry — which archetype owns which slots.
  *
- * Archetype home copy and facts: `@/data/era-page-content` (not in components).
+ * Home pages and shell layers load on demand (`next/dynamic`). Visiting /about
+ * must not download MosaicHomePage just because 1993 is active; hovering an era
+ * in the time machine prefetches that era's chunks during the travel wipe.
  *
- * Adding a new archetype = create the components + register here.
- * Adding a new page variant = create the component + register here.
- *
- * Eras with no archetype registered render the default (existing) UI
- * everywhere. Eras with an archetype registered render the archetype's
- * components ONLY for slots they implement; missing slots fall back to
- * default. Zero breakage by construction.
+ * Archetype home copy: `@/data/era-page-content`.
  */
 
 import type { ComponentType } from "react";
+import dynamic from "next/dynamic";
 import type { EraArchetypeId } from "@/data/era-archetypes";
-import {
-  TerminalShellLayer,
-  TerminalHomePage,
-} from "./archetypes/terminal";
-import {
-  SpatialHomePage,
-} from "./archetypes/spatial";
-import {
-  XeroxBitmapShellLayer,
-  XeroxBitmapHomePage,
-} from "./archetypes/xerox-bitmap";
-import {
-  DocHtmlShellLayer,
-  DocHtmlHomePage,
-} from "./archetypes/doc-html";
-import {
-  MosaicShellLayer,
-  MosaicHomePage,
-} from "./archetypes/mosaic";
-import {
-  GeocitiesShellLayer,
-  GeocitiesHomePage,
-} from "./archetypes/geocities";
-import {
-  FramesetShellLayer,
-  FramesetHomePage,
-} from "./archetypes/frameset";
-import { FlashSplashHomePage } from "./archetypes/flash-splash";
-import { Web2CandyHomePage } from "./archetypes/web2-candy";
-import { MicroblogHomePage } from "./archetypes/microblog";
-import { IphoneSkeuHomePage } from "./archetypes/iphone-skeu";
-import { PinboardHomePage } from "./archetypes/pinboard";
-import { BlockEditorHomePage } from "./archetypes/block-editor";
-import { IssueTrackerHomePage } from "./archetypes/issue-tracker";
-import { AiNativeHomePage } from "./archetypes/ai-native";
-import { PromptUIHomePage } from "./archetypes/prompt-ui";
+import { getArchetypeForEra } from "@/data/era-archetypes";
 
 export type EraPageKey =
   | "home"
@@ -70,112 +31,296 @@ export interface ShellLayerProps {
 }
 
 export interface ArchetypeShell {
-  /**
-   * Page-level UI variants. When mounted via <EraPageArchetype>, the
-   * matching component fully replaces the page's default content.
-   */
   pages?: Partial<Record<EraPageKey, ComponentType>>;
-  /**
-   * Site-wide overlay always mounted by <EraShell>. Use for atmospheric
-   * effects (scanlines, glass blur, parallax field, neon glow).
-   */
   shellLayer?: ComponentType<ShellLayerProps>;
+}
+
+function PageChunkFallback() {
+  return (
+    <div
+      className="min-h-dvh"
+      style={{ background: "var(--bg-main)" }}
+      aria-hidden
+    />
+  );
 }
 
 export const ARCHETYPE_SHELLS: Partial<Record<EraArchetypeId, ArchetypeShell>> =
   {
     terminal: {
-      shellLayer: TerminalShellLayer,
+      shellLayer: dynamic(
+        () =>
+          import("./archetypes/terminal/TerminalShellLayer").then((m) => ({
+            default: m.TerminalShellLayer,
+          })),
+      ),
       pages: {
-        home: TerminalHomePage,
+        home: dynamic(
+          () =>
+            import("./archetypes/terminal/TerminalHomePage").then((m) => ({
+              default: m.TerminalHomePage,
+            })),
+          { loading: PageChunkFallback },
+        ),
       },
     },
     spatial: {
-      // Spatial atmosphere is rendered inside SpatialHomePage so glass
-      // panels can sit above the volumetric mesh (backdrop-blur requires
-      // the atmosphere underneath, not above the panel z-stack).
       pages: {
-        home: SpatialHomePage,
+        home: dynamic(
+          () =>
+            import("./archetypes/spatial/SpatialHomePage").then((m) => ({
+              default: m.SpatialHomePage,
+            })),
+          { loading: PageChunkFallback },
+        ),
       },
     },
     "xerox-bitmap": {
-      shellLayer: XeroxBitmapShellLayer,
+      shellLayer: dynamic(
+        () =>
+          import("./archetypes/xerox-bitmap/XeroxBitmapShellLayer").then(
+            (m) => ({ default: m.XeroxBitmapShellLayer }),
+          ),
+      ),
       pages: {
-        home: XeroxBitmapHomePage,
+        home: dynamic(
+          () =>
+            import("./archetypes/xerox-bitmap/XeroxBitmapHomePage").then(
+              (m) => ({ default: m.XeroxBitmapHomePage }),
+            ),
+          { loading: PageChunkFallback },
+        ),
       },
     },
     "doc-html": {
-      shellLayer: DocHtmlShellLayer,
+      shellLayer: dynamic(
+        () =>
+          import("./archetypes/doc-html/DocHtmlShellLayer").then((m) => ({
+            default: m.DocHtmlShellLayer,
+          })),
+      ),
       pages: {
-        home: DocHtmlHomePage,
+        home: dynamic(
+          () =>
+            import("./archetypes/doc-html/DocHtmlHomePage").then((m) => ({
+              default: m.DocHtmlHomePage,
+            })),
+          { loading: PageChunkFallback },
+        ),
       },
     },
     mosaic: {
-      shellLayer: MosaicShellLayer,
+      shellLayer: dynamic(
+        () =>
+          import("./archetypes/mosaic/MosaicShellLayer").then((m) => ({
+            default: m.MosaicShellLayer,
+          })),
+      ),
       pages: {
-        home: MosaicHomePage,
+        home: dynamic(
+          () =>
+            import("./archetypes/mosaic/MosaicHomePage").then((m) => ({
+              default: m.MosaicHomePage,
+            })),
+          { loading: PageChunkFallback },
+        ),
       },
     },
     geocities: {
-      shellLayer: GeocitiesShellLayer,
+      shellLayer: dynamic(
+        () =>
+          import("./archetypes/geocities/GeocitiesShellLayer").then((m) => ({
+            default: m.GeocitiesShellLayer,
+          })),
+      ),
       pages: {
-        home: GeocitiesHomePage,
+        home: dynamic(
+          () =>
+            import("./archetypes/geocities/GeocitiesHomePage").then((m) => ({
+              default: m.GeocitiesHomePage,
+            })),
+          { loading: PageChunkFallback },
+        ),
       },
     },
     frameset: {
-      shellLayer: FramesetShellLayer,
+      shellLayer: dynamic(
+        () =>
+          import("./archetypes/frameset/FramesetShellLayer").then((m) => ({
+            default: m.FramesetShellLayer,
+          })),
+      ),
       pages: {
-        home: FramesetHomePage,
+        home: dynamic(
+          () =>
+            import("./archetypes/frameset/FramesetHomePage").then((m) => ({
+              default: m.FramesetHomePage,
+            })),
+          { loading: PageChunkFallback },
+        ),
       },
     },
     "flash-splash": {
-      // Atmosphere lives inside FlashSplashHomePage so the splash gate +
-      // chrome stage can sit above the starfield instead of underneath it.
       pages: {
-        home: FlashSplashHomePage,
+        home: dynamic(
+          () =>
+            import("./archetypes/flash-splash/FlashSplashHomePage").then(
+              (m) => ({ default: m.FlashSplashHomePage }),
+            ),
+          { loading: PageChunkFallback },
+        ),
       },
     },
     "web2-candy": {
       pages: {
-        home: Web2CandyHomePage,
+        home: dynamic(
+          () =>
+            import("./archetypes/web2-candy/Web2CandyHomePage").then((m) => ({
+              default: m.Web2CandyHomePage,
+            })),
+          { loading: PageChunkFallback },
+        ),
       },
     },
     microblog: {
       pages: {
-        home: MicroblogHomePage,
+        home: dynamic(
+          () =>
+            import("./archetypes/microblog/MicroblogHomePage").then((m) => ({
+              default: m.MicroblogHomePage,
+            })),
+          { loading: PageChunkFallback },
+        ),
       },
     },
     "iphone-skeu": {
       pages: {
-        home: IphoneSkeuHomePage,
+        home: dynamic(
+          () =>
+            import("./archetypes/iphone-skeu/IphoneSkeuHomePage").then((m) => ({
+              default: m.IphoneSkeuHomePage,
+            })),
+          { loading: PageChunkFallback },
+        ),
       },
     },
     pinboard: {
       pages: {
-        home: PinboardHomePage,
+        home: dynamic(
+          () =>
+            import("./archetypes/pinboard/PinboardHomePage").then((m) => ({
+              default: m.PinboardHomePage,
+            })),
+          { loading: PageChunkFallback },
+        ),
       },
     },
     "block-editor": {
       pages: {
-        home: BlockEditorHomePage,
+        home: dynamic(
+          () =>
+            import("./archetypes/block-editor/BlockEditorHomePage").then(
+              (m) => ({ default: m.BlockEditorHomePage }),
+            ),
+          { loading: PageChunkFallback },
+        ),
       },
     },
     "issue-tracker": {
       pages: {
-        home: IssueTrackerHomePage,
+        home: dynamic(
+          () =>
+            import("./archetypes/issue-tracker/IssueTrackerHomePage").then(
+              (m) => ({ default: m.IssueTrackerHomePage }),
+            ),
+          { loading: PageChunkFallback },
+        ),
       },
     },
     "ai-native": {
-      // Aurora atmosphere lives inside AiNativeHomePage so chat panels can
-      // sit above the gradient blobs (backdrop-blur needs them underneath).
       pages: {
-        home: AiNativeHomePage,
+        home: dynamic(
+          () =>
+            import("./archetypes/ai-native/AiNativeHomePage").then((m) => ({
+              default: m.AiNativeHomePage,
+            })),
+          { loading: PageChunkFallback },
+        ),
       },
     },
     "prompt-ui": {
-      // Split build studio — atmosphere lives inside the home page.
       pages: {
-        home: PromptUIHomePage,
+        home: dynamic(
+          () =>
+            import("./archetypes/prompt-ui/PromptUIHomePage").then((m) => ({
+              default: m.PromptUIHomePage,
+            })),
+          { loading: PageChunkFallback },
+        ),
       },
     },
   };
+
+const ARCHETYPE_PREFETCH: Partial<Record<EraArchetypeId, () => void>> = {
+  terminal: () => {
+    void import("./archetypes/terminal/TerminalHomePage");
+    void import("./archetypes/terminal/TerminalShellLayer");
+  },
+  spatial: () => {
+    void import("./archetypes/spatial/SpatialHomePage");
+  },
+  "xerox-bitmap": () => {
+    void import("./archetypes/xerox-bitmap/XeroxBitmapHomePage");
+    void import("./archetypes/xerox-bitmap/XeroxBitmapShellLayer");
+  },
+  "doc-html": () => {
+    void import("./archetypes/doc-html/DocHtmlHomePage");
+    void import("./archetypes/doc-html/DocHtmlShellLayer");
+  },
+  mosaic: () => {
+    void import("./archetypes/mosaic/MosaicHomePage");
+    void import("./archetypes/mosaic/MosaicShellLayer");
+  },
+  geocities: () => {
+    void import("./archetypes/geocities/GeocitiesHomePage");
+    void import("./archetypes/geocities/GeocitiesShellLayer");
+  },
+  frameset: () => {
+    void import("./archetypes/frameset/FramesetHomePage");
+    void import("./archetypes/frameset/FramesetShellLayer");
+  },
+  "flash-splash": () => {
+    void import("./archetypes/flash-splash/FlashSplashHomePage");
+  },
+  "web2-candy": () => {
+    void import("./archetypes/web2-candy/Web2CandyHomePage");
+  },
+  microblog: () => {
+    void import("./archetypes/microblog/MicroblogHomePage");
+  },
+  "iphone-skeu": () => {
+    void import("./archetypes/iphone-skeu/IphoneSkeuHomePage");
+  },
+  pinboard: () => {
+    void import("./archetypes/pinboard/PinboardHomePage");
+  },
+  "block-editor": () => {
+    void import("./archetypes/block-editor/BlockEditorHomePage");
+  },
+  "issue-tracker": () => {
+    void import("./archetypes/issue-tracker/IssueTrackerHomePage");
+  },
+  "ai-native": () => {
+    void import("./archetypes/ai-native/AiNativeHomePage");
+  },
+  "prompt-ui": () => {
+    void import("./archetypes/prompt-ui/PromptUIHomePage");
+  },
+};
+
+/** Warm the destination era's chunks while the travel overlay covers the swap. */
+export function prefetchEraArchetype(eraId: string) {
+  const id = getArchetypeForEra(eraId);
+  if (!id) return;
+  ARCHETYPE_PREFETCH[id]?.();
+}

@@ -1,4 +1,3 @@
-import WireframeManualLayout from '@/components/layout/WireframeManualLayout';
 import { EraPageArchetype } from '@/components/era-shell/EraPageArchetype';
 
 const SITE_URL =
@@ -17,7 +16,7 @@ const faqJsonLd = {
       name: 'Who is Kiruk?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Kiruk is the studio name of Arun Kumaar Sreenivasan, a design engineer based in Bengaluru, India. He leads design, frontend, and interaction at Spera.bot and builds experimental websites, design tools, and human-centered product experiences.',
+        text: 'Kiruk Studio is the practice of Arun Kumaar Sreenivasan, a design engineer based in Bengaluru, India. The studio ships experimental websites, design tools, and human-centered product experiences — and keeps a handwritten notebook of the thinking.',
       },
     },
     {
@@ -38,10 +37,10 @@ const faqJsonLd = {
     },
     {
       '@type': 'Question',
-      name: 'What does the Kiruk portfolio cover?',
+      name: 'What work does Kiruk Studio publish?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'The portfolio covers Spera.bot, HP Print AI and Mudra Stack, Square Bridge at SNS Square, PeopleGamez gamified HR, and personal experiments — PRAGS scroll-to-play sites, Foodies Buddies, Desirable, and this era-themed portfolio.',
+        text: 'Work covers Spera.bot, HP Print AI and Mudra Stack, Square Bridge at SNS Square, PeopleGamez gamified HR, and experiments — PRAGS scroll-to-play sites, Foodies Buddies, Desirable, and this era-themed site. The notebook is where process thinking lives.',
       },
     },
   ],
@@ -85,9 +84,7 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(profileJsonLd) }}
       />
-      <EraPageArchetype pageKey="home">
-        <WireframeManualLayout />
-      </EraPageArchetype>
+      <EraPageArchetype pageKey="home" />
     </>
   );
 }

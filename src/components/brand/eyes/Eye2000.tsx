@@ -15,6 +15,7 @@ const MAROON = "#993333";
 const GREEN = "#669933";
 
 export default function Eye2000({ gx, gy, reduce }: EyeProps) {
+  const looping = !reduce;
   const { cx, cy } = usePupil(gx, gy, { tx: 8, ty: 5 });
   return (
     <svg viewBox="0 0 120 80" className="h-full w-full" style={{ overflow: "visible" }} aria-hidden>
@@ -44,8 +45,8 @@ export default function Eye2000({ gx, gy, reduce }: EyeProps) {
         strokeLinecap="round"
         transform={`rotate(-90 ${EYE.iris.cx} ${EYE.iris.cy})`}
         initial={{ pathLength: 0 }}
-        animate={reduce ? { pathLength: 1 } : { pathLength: [0, 1, 1] }}
-        transition={reduce ? undefined : { duration: 1.8, times: [0, 0.75, 1], repeat: Infinity, ease: "easeInOut" }}
+        animate={looping ? { pathLength: [0, 1, 1] } : { pathLength: 1 }}
+        transition={looping ? { duration: 1.8, times: [0, 0.75, 1], repeat: Infinity, ease: "easeInOut" } : undefined}
       />
       <path d={EYE.arc} fill="none" stroke={BLUE} strokeWidth="5" strokeLinecap="round" />
 

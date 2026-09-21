@@ -7,82 +7,78 @@ import { InkPage } from './InkPage'
 import { InkInline } from './InkInline'
 import { Pretext } from './Pretext'
 import { InkLayer } from './InkLayer'
-import { sketchTextNodes } from '@/components/sketch-ink/mapText'
-import {
-  RoughBox,
-  RoughDivider,
-  RoughUnderline,
-  RoughStrike,
-  DiagramCaption,
-  SketchChecklist,
-  SketchActionChrome,
-} from '@/components/sketch-ink/SketchChrome'
+import { Mark, Zig, Hit } from './Marks'
 
 /**
- * MDX component scope — notebook dual-hand SketchInk for prose,
- * sketch components for images/ink + sketchnote chrome.
+ * MDX component scope — Era token type plus ink/figure blocks.
+ * SketchInk is the desk writing instrument; it is not used in public MDX.
  */
 
 type ElProps = { children?: React.ReactNode; className?: string }
+
+function Note({ children }: ElProps) {
+  return <aside className="era-note">{children}</aside>
+}
 
 export const mdxComponents = {
   h1: ({ className, children, ...props }: React.ComponentPropsWithoutRef<'h1'>) => (
     <h1
       {...props}
-      className={cn('text-3xl mt-8 mb-4', className)}
-      style={{ color: 'var(--accent-color)' }}
+      className={cn('mt-8 mb-4 text-3xl text-balance', className)}
+      style={{ color: 'var(--accent-color)', lineHeight: 1.12 }}
     >
-      {sketchTextNodes(children, 'auto', 0.85, 'title')}
+      {children}
     </h1>
   ),
   h2: ({ className, children, ...props }: React.ComponentPropsWithoutRef<'h2'>) => (
     <h2
       {...props}
-      className={cn('text-2xl mt-8 mb-3', className)}
-      style={{ color: 'var(--accent-color)' }}
+      className={cn('era-h2 scroll-mt-28 text-balance', className)}
     >
-      {sketchTextNodes(children, 'auto', 0.8, 'title')}
-      <RoughUnderline className="mt-1 max-w-[12rem] opacity-70" width="40%" />
+      {children}
     </h2>
   ),
   h3: ({ className, children, ...props }: React.ComponentPropsWithoutRef<'h3'>) => (
     <h3
       {...props}
-      className={cn('text-xl mt-6 mb-2', className)}
-      style={{ color: 'var(--text-main)' }}
+      className={cn('mt-6 mb-2 text-xl text-balance', className)}
+      style={{ color: 'var(--text-main)', lineHeight: 1.2 }}
     >
-      {sketchTextNodes(children, 'auto', 0.78, 'title')}
+      {children}
     </h3>
   ),
-  p: ({ children }: ElProps) => (
-    <p className="my-4 text-lg" style={{ color: 'var(--text-main)', lineHeight: 1.95 }}>
-      {sketchTextNodes(children, 'script', 0.88, 'type')}
+  p: ({ children, className }: ElProps) => (
+    <p
+      className={cn('my-4 text-lg md:text-xl', className)}
+      style={{ color: 'var(--text-main)', lineHeight: 1.6 }}
+    >
+      {children}
     </p>
   ),
   strong: ({ children }: ElProps) => (
-    <strong className="font-bold">{sketchTextNodes(children, 'script', 0.85, 'type')}</strong>
+    <strong className="font-bold">{children}</strong>
   ),
   em: ({ children }: ElProps) => (
-    <em className="italic">{sketchTextNodes(children, 'script', 0.85, 'type')}</em>
+    <em className="italic">{children}</em>
   ),
-  ul: ({ children }: ElProps) => (
-    <ul className="my-4 ml-6 list-disc space-y-2">{children}</ul>
+  ul: ({ children, className }: ElProps) => (
+    <ul className={cn('my-4 list-none', className)}>{children}</ul>
   ),
   ol: ({ children }: ElProps) => (
     <ol className="my-4 ml-6 list-decimal space-y-2">{children}</ol>
   ),
   li: ({ children }: ElProps) => (
-    <li className="text-lg" style={{ color: 'var(--text-main)', lineHeight: 1.9 }}>
-      {sketchTextNodes(children, 'auto', 0.85, 'checklist')}
+    <li style={{ color: 'var(--text-muted)', lineHeight: 1.4 }}>
+      {children}
     </li>
   ),
   blockquote: ({ children }: ElProps) => (
-    <RoughBox className="my-6 italic" pad>
-      <div style={{ color: 'var(--text-muted)' }}>
-        {sketchTextNodes(children, 'script', 0.82, 'ideation')}
-      </div>
-      <SketchActionChrome action="ideation" />
-    </RoughBox>
+    <blockquote
+      className="my-6 border-l pl-4 italic"
+      style={{ borderColor: 'var(--border-color)', color: 'var(--text-muted)' }}
+    >
+      {children}
+    </blockquote>
   ),
   code: ({ children, className, ...rest }: React.ComponentPropsWithoutRef<'code'>) => {
     const isBlock = Boolean(className)
@@ -122,21 +118,22 @@ export const mdxComponents = {
     const external = Boolean(href && /^https?:\/\//.test(href))
     const className = 'underline underline-offset-2 transition-opacity hover:opacity-80'
     const style = { color: 'var(--accent-color)' }
-    const label = sketchTextNodes(children, 'script', 0.7, 'type')
     if (external) {
       return (
         <a href={href} target="_blank" rel="noopener noreferrer" className={className} style={style}>
-          {label}
+          {children}
         </a>
       )
     }
     return (
       <Link href={href || '#'} className={className} style={style}>
-        {label}
+        {children}
       </Link>
     )
   },
-  hr: () => <RoughDivider />,
+  hr: () => (
+    <hr className="my-8 border-0 border-t" style={{ borderColor: 'var(--border-color)' }} />
+  ),
   img: ({ src, alt }: { src?: string; alt?: string }) => {
     if (!src) return null
     return (
@@ -151,7 +148,11 @@ export const mdxComponents = {
             className="h-auto w-full object-contain"
           />
         </span>
-        {alt ? <DiagramCaption>{alt}</DiagramCaption> : null}
+        {alt ? (
+          <span className="mt-2 block text-sm" style={{ color: 'var(--text-muted)' }}>
+            {alt}
+          </span>
+        ) : null}
       </span>
     )
   },
@@ -182,11 +183,8 @@ export const mdxComponents = {
   Ink: InkInline,
   Pretext,
   InkLayer,
-  RoughBox,
-  RoughDivider,
-  RoughUnderline,
-  RoughStrike,
-  DiagramCaption,
-  SketchChecklist,
-  SketchActionChrome,
+  Note,
+  Mark,
+  Zig,
+  Hit,
 } as const

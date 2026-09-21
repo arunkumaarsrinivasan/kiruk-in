@@ -12,6 +12,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { motion, useMotionValue, useReducedMotion, useSpring } from "framer-motion";
 import { EYE_RATIO } from "@/components/brand/eyes/eye-core";
 import { getEraEye } from "@/components/brand/eyes";
+import { useChromeQuiet } from "@/hooks/useChromeQuiet";
 
 /* Displayed mark size (px) — keeps the brand's ~1.5:1 ratio. */
 const MARK_H = 42;
@@ -49,11 +50,14 @@ export function KirukEye({
   className?: string;
 }) {
   const reduce = useReducedMotion();
+  const quiet = useChromeQuiet();
   const eraId = useEraId();
   const EraEye = getEraEye(eraId);
-  const live = gaze && !reduce;
+  const [idle, setIdle] = useState(false);
+  const live = Boolean(gaze && !reduce && !quiet && !idle);
 
   const raf = useRef(0);
+  const idleRef = useRef(false);
   const gxRaw = useMotionValue(0);
   const gyRaw = useMotionValue(0);
   const gx = useSpring(gxRaw, { stiffness: 180, damping: 18 });
@@ -61,8 +65,29 @@ export function KirukEye({
   const [hovered, setHovered] = useState(false);
 
   useEffect(() => {
-    if (!gaze || reduce) return;
+    if (!gaze || reduce || quiet) {
+      if (idleRef.current) {
+        idleRef.current = false;
+        setIdle(false);
+      }
+      gxRaw.set(0);
+      gyRaw.set(0);
+      return;
+    }
+    let idleTimer = 0;
+    const rest = () => {
+      idleRef.current = true;
+      setIdle(true);
+      gxRaw.set(0);
+      gyRaw.set(0);
+    };
     const onMove = (e: MouseEvent) => {
+      if (idleRef.current) {
+        idleRef.current = false;
+        setIdle(false);
+      }
+      window.clearTimeout(idleTimer);
+      idleTimer = window.setTimeout(rest, 2500);
       if (raf.current) return;
       raf.current = requestAnimationFrame(() => {
         raf.current = 0;
@@ -70,12 +95,14 @@ export function KirukEye({
         gyRaw.set(Math.max(-1, Math.min(1, (e.clientY / Math.max(1, innerHeight) - 0.5) * 2)));
       });
     };
+    idleTimer = window.setTimeout(rest, 2500);
     window.addEventListener("mousemove", onMove, { passive: true });
     return () => {
       window.removeEventListener("mousemove", onMove);
+      window.clearTimeout(idleTimer);
       cancelAnimationFrame(raf.current);
     };
-  }, [gaze, reduce, gxRaw, gyRaw]);
+  }, [gaze, reduce, quiet, gxRaw, gyRaw]);
 
   const spring = reduce
     ? { duration: 0.15 }
@@ -88,6 +115,7 @@ export function KirukEye({
         onHoverEnd={() => setHovered(false)}
         className={`relative inline-flex shrink-0 items-center justify-center ${className ?? ""}`}
         style={{ width: MARK_W, height: MARK_H }}
+        data-gaze={live ? "live" : "rest"}
         aria-hidden
       >
         <EraEye gx={gx} gy={gy} reduce={!!reduce} live={live} hovered={hovered} />
@@ -118,7 +146,7 @@ export function KirukEye({
           expanded && trailing ? "justify-between pl-3 pr-5 sm:pl-4 sm:pr-6" : "justify-center px-4"
         }`}
       >
-        <div className="relative shrink-0" style={{ width: MARK_W, height: MARK_H }} aria-hidden>
+        <div className="relative shrink-0" style={{ width: MARK_W, height: MARK_H }} data-gaze={live ? "live" : "rest"} aria-hidden>
           <EraEye gx={gx} gy={gy} reduce={!!reduce} live={live} hovered={hovered} />
         </div>
 

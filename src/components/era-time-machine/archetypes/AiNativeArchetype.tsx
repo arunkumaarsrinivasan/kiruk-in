@@ -446,7 +446,7 @@ function Blob({
         height: size,
         borderRadius: "50%",
         background: `radial-gradient(circle, ${color}55 0%, ${color}00 68%)`,
-        filter: "blur(30px)",
+        filter: "blur(20px)",
         animation: anim,
         willChange: "transform",
       }}

@@ -51,9 +51,20 @@ Engine: `behavior.ts` + word runs · Field: ink caret + selection wash
 1. Note what felt wrong in one sentence
 2. Touch one axis (behavior / action preset / angle / Kiruk font)
 3. Log it below with date
-4. Re-check `/studio` title + excerpt + body together
+4. Re-check `/desk` title + excerpt + body together
 
 ## Calibration log
+
+### 2026-09-15 — BLOGISM published page (sentence length)
+
+- Problem: reader `/blog` still read as a stamped webfont; titles used default `type` action; long body did not tire until ~120 chars
+- Fix:
+  - Reader title/excerpt now use `action="title"` / `action="excerpt"` at intensities matching BLOGISM fields
+  - `type` body: intensityMul 1.12, baseAngle −2.9, angleJitter 0.98, MDX `<p>` intensity 0.92
+  - Fatigue earlier: 90 chars / 22 words; fatigue angle −0.95; `fatigueAngleProgressMul` 1.15 so long sentences lean more by the end
+  - BLOGISM sheet column `max-w-3xl` to match `/blog/[slug]`
+  - MDX `strong`/`em` no longer wrap SketchInk a second time; `sketchTextNodes` skips existing SketchInk (nested bold/em/blockquote printed `[object Object]`)
+- Next: Kiruk `calt` drop-in still parked; if the page looks wild, cap `type.angleJitter` before raising intensity again
 
 ### 2026-07-21 — Phase 5 hone loop
 

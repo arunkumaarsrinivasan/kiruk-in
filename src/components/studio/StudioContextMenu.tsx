@@ -25,7 +25,7 @@ const HANDS: Array<{ id: SketchAction; label: string; hint: string }> = [
 
 const MODES: Array<{ id: SurfaceTool; label: string; key: string }> = [
   { id: 'type', label: 'write', key: 'V' },
-  { id: 'ink', label: 'ink', key: 'P' },
+  { id: 'ink', label: 'scribble', key: 'P' },
   { id: 'pencil', label: 'pencil', key: 'B' },
   { id: 'eraser', label: 'eraser', key: 'E' },
 ]
@@ -179,6 +179,9 @@ export function StudioContextMenu({
                 {penOnly ? 'pen only · on' : 'pen only · off'}
               </SketchInk>
             </span>
+            <span className="studio-ctx-hint">
+              {penOnly ? 'tablet / stylus' : 'finger / mouse'}
+            </span>
           </button>
         )}
       </div>
@@ -217,7 +220,7 @@ export function StudioContextMenu({
         >
           <span className="studio-ctx-item-main">
             <SketchInk mode="script" intensity={0.4}>
-              draw strip
+              scribble strip
             </SketchInk>
           </span>
         </button>

@@ -39,6 +39,8 @@ interface JourneyStoryCardProps {
     nextEvent?: LifeEvent | null;
     onNavigate?: (index: number) => void;
     allEvents?: LifeEvent[];
+    progressFillRef?: (el: HTMLDivElement | null) => void;
+    progressLabelRef?: (el: HTMLSpanElement | null) => void;
 }
 
 const PROGRESS_TICKS = [0.25, 0.5, 0.75] as const;
@@ -307,6 +309,8 @@ export function JourneyStoryCard({
     nextEvent,
     onNavigate,
     allEvents = [],
+    progressFillRef,
+    progressLabelRef,
 }: JourneyStoryCardProps) {
     const [displayedText, setDisplayedText] = useState("");
     const [isTyping, setIsTyping] = useState(false);
@@ -567,6 +571,7 @@ export function JourneyStoryCard({
                                 }}
                             >
                                 <span
+                                    ref={progressLabelRef}
                                     className="text-[10px] uppercase tracking-wider"
                                     style={{ color: theme.accentColor }}
                                 >
@@ -581,15 +586,14 @@ export function JourneyStoryCard({
                                             borderRadius: theme.windowChrome.borderRadius > 0 ? 2 : 0,
                                         }}
                                     >
-                                        <motion.div
+                                        <div
+                                            ref={progressFillRef}
                                             className="h-full"
                                             style={{
+                                                width: `${levelProgress * 100}%`,
                                                 backgroundColor: theme.accentColor,
                                                 borderRadius: theme.windowChrome.borderRadius > 0 ? 2 : 0,
                                             }}
-                                            initial={{ width: 0 }}
-                                            animate={{ width: `${levelProgress * 100}%` }}
-                                            transition={{ duration: 0.5, ease: "easeOut" }}
                                         />
                                         {PROGRESS_TICKS.map((tick) => (
                                             <div

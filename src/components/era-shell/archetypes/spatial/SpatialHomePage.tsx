@@ -70,7 +70,7 @@ export function SpatialHomePage() {
   const nodes = buildTimeline();
 
   return (
-    <main
+    <div
       id="spatial-home"
       className="relative min-h-screen w-full overflow-x-hidden"
       style={{
@@ -193,14 +193,14 @@ export function SpatialHomePage() {
             <FocusCard
               tag="◉ LIVE"
               title="HP Print AI"
-              role="Design Engineer · day-to-day"
+              kind="Design Engineer · day-to-day"
               detail="Co-creating the industry's first intelligent print experience. Email/webmail print, mobile-first onboarding, design system across 500+ internal users."
               accent={TEAL}
             />
             <FocusCard
               tag="◇ ACTIVE"
               title="@kirukism + kiruk.in"
-              role="Process journal · evenings & weekends"
+              kind="Process journal · evenings & weekends"
               detail="Sketching tools and time-travel experiences. This site itself is an experiment in spatial UX and era-based design."
               accent={PURPLE}
             />
@@ -538,7 +538,7 @@ export function SpatialHomePage() {
           </div>
         </ParallaxPanel>
       </div>
-    </main>
+    </div>
   );
 }
 
@@ -751,13 +751,13 @@ function Bullets({
 function FocusCard({
   tag,
   title,
-  role,
+  kind,
   detail,
   accent,
 }: {
   tag: string;
   title: string;
-  role: string;
+  kind: string;
   detail: string;
   accent: string;
 }) {
@@ -776,7 +776,7 @@ function FocusCard({
           width: 160,
           height: 160,
           background: `radial-gradient(circle, ${accent}44 0%, ${accent}11 50%, transparent 80%)`,
-          filter: "blur(28px)",
+          filter: "blur(20px)",
         }}
       />
       <div className="relative">
@@ -801,7 +801,7 @@ function FocusCard({
           className="text-[12px] mt-0.5"
           style={{ color: TEXT_FAINT, fontFamily: FONT_MONO, letterSpacing: "0.02em" }}
         >
-          {role}
+          {kind}
         </div>
         <p className="text-[14px] mt-2.5" style={{ color: TEXT_DIM, lineHeight: 1.55 }}>
           {detail}
@@ -848,7 +848,7 @@ function ImpactTile({
           width: 140,
           height: 140,
           background: `radial-gradient(circle, ${TEAL}28 0%, transparent 70%)`,
-          filter: "blur(24px)",
+          filter: "blur(20px)",
         }}
       />
       <div className="relative">

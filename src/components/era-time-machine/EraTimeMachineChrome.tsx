@@ -51,7 +51,7 @@ export function EraTimeMachineChrome({
   }, [era.id]);
 
   const btnBase =
-    "flex items-center justify-center gap-1 font-mono text-[10px] font-bold uppercase tracking-wider border-2 transition-[color,background-color,border-color,transform,opacity] duration-150 disabled:opacity-35 disabled:cursor-not-allowed disabled:pointer-events-none";
+    "flex min-h-11 items-center justify-center gap-1 font-mono text-[10px] font-bold uppercase tracking-wider border-2 transition-[color,background-color,border-color,transform,opacity] duration-150 disabled:opacity-35 disabled:cursor-not-allowed disabled:pointer-events-none";
 
   return (
     <div
@@ -116,7 +116,7 @@ export function EraTimeMachineChrome({
             type="button"
             onClick={onClose}
             aria-label="Close era browser"
-            className={`${btnBase} min-h-9 min-w-9 px-2`}
+            className={`${btnBase} min-h-11 min-w-11 px-2`}
             style={{
               borderRadius: radius,
               borderColor: `${era.colors.text}22`,
@@ -132,7 +132,7 @@ export function EraTimeMachineChrome({
       </header>
 
       {/* ── Stage (era landing pages) ── */}
-      <main className="relative min-h-0 flex-1 overflow-hidden">{children}</main>
+      <div className="relative min-h-0 flex-1 overflow-hidden">{children}</div>
 
       {/* ── Footer: transport + timeline ── */}
       <footer
@@ -150,7 +150,7 @@ export function EraTimeMachineChrome({
               onClick={onPrev}
               disabled={!prevEra}
               aria-label={prevEra ? `Previous era: ${prevEra.id}` : "First era"}
-              className={`${btnBase} min-h-9 shrink-0 px-3 py-2`}
+              className={`${btnBase} min-h-11 shrink-0 px-3 py-2`}
               style={{
                 borderRadius: radius,
                 borderColor: `${era.colors.text}22`,
@@ -213,7 +213,7 @@ export function EraTimeMachineChrome({
               onClick={onNext}
               disabled={!nextEra}
               aria-label={nextEra ? `Next era: ${nextEra.id}` : "Latest era"}
-              className={`${btnBase} min-h-9 shrink-0 px-3 py-2`}
+              className={`${btnBase} min-h-11 shrink-0 px-3 py-2`}
               style={{
                 borderRadius: radius,
                 borderColor: `${era.colors.text}22`,

@@ -177,7 +177,7 @@ function PhosphorGlowEffect({ color, intensity = 0.5 }: { color: string; intensi
             transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
             style={{
                 background: `radial-gradient(ellipse at center, ${color}30 0%, transparent 70%)`,
-                filter: `blur(40px)`,
+                filter: `blur(20px)`,
             }}
         />
     );

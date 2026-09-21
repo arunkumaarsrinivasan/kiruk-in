@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import type { ReactNode } from 'react'
 import { InkSvg, type InkTone } from './InkSvg'
 
 /**
@@ -21,21 +22,23 @@ const isSvg = (src: string) => /\.svg($|\?)/i.test(src)
 function FramedImage({
   src,
   alt,
-  sizes = '(max-width: 896px) 100vw, 896px',
+  sizes = '(max-width: 1440px) 92vw, 1440px',
+  fitHeight = false,
 }: {
   src: string
   alt: string
   sizes?: string
+  fitHeight?: boolean
 }) {
   return (
-    <span className="block border-2 border-[var(--border-color)] bg-[var(--bg-card)] p-1">
+    <span className={fitHeight ? "era-photo-frame block" : "block border-2 border-[var(--border-color)] bg-[var(--bg-card)] p-1"}>
       <Image
         src={src}
         alt={alt}
-        width={0}
-        height={0}
+        width={2048}
+        height={1397}
         sizes={sizes}
-        className="h-auto w-full object-contain"
+        className={fitHeight ? "era-fit-img" : "h-auto w-full object-contain"}
       />
     </span>
   )
@@ -57,17 +60,19 @@ function Panel({
   ink,
   tone,
   sizes,
+  fitHeight,
 }: {
   src: string
   alt?: string
   ink?: 'theme'
   tone?: InkTone
   sizes?: string
+  fitHeight?: boolean
 }) {
   if (ink === 'theme' || isSvg(src)) {
     return <InkFrame src={src} alt={alt} tone={tone} />
   }
-  return <FramedImage src={src} alt={alt || 'Sketch'} sizes={sizes} />
+  return <FramedImage src={src} alt={alt || 'Sketch'} sizes={sizes} fitHeight={fitHeight} />
 }
 
 function Caption({ children }: { children: React.ReactNode }) {
@@ -101,6 +106,7 @@ export function Figure({
   alt,
   ink,
   tone,
+  photo,
 }: {
   src: string
   medium?: Medium
@@ -112,9 +118,11 @@ export function Figure({
   tone?: InkTone
   /** Accepted for authoring symmetry with the ink CLI snippet; raster fallback. */
   srcRaster?: string
+  /** Photograph: tight frame, no padding, no paper fill. */
+  photo?: boolean
 }) {
   return (
-    <figure className="my-8">
+    <figure className={photo ? "era-photo my-8" : "my-8"}>
       {medium && (
         <div>
           <MediumChip medium={medium} />
@@ -165,23 +173,78 @@ export function Compare({
   )
 }
 
-/** Wide edge-to-edge scan that breaks out of the article column. */
+/** Wide scan. `fit="height"` keeps the whole frame on screen; children sit as a side note. */
 export function FullBleed({
   src,
   caption,
   alt,
   ink,
   tone,
+  photo,
+  fit,
+  children,
 }: {
   src: string
   caption?: string
   alt?: string
   ink?: 'theme'
   tone?: InkTone
+  photo?: boolean
+  fit?: 'width' | 'height'
+  children?: ReactNode
 }) {
+  const fitHeight = fit === 'height'
+  const figureClass = [
+    photo ? 'era-photo' : '',
+    'era-bleed',
+    fitHeight ? 'era-fit-h my-8' : photo ? 'my-8' : 'my-12 px-4',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
+  const panel = (
+    <Panel
+      src={src}
+      alt={alt || caption}
+      ink={ink}
+      tone={tone}
+      fitHeight={fitHeight}
+      sizes={fitHeight ? '(max-width: 900px) 92vw, 70vw' : '100vw'}
+    />
+  )
+
   return (
-    <figure className="relative left-1/2 my-12 w-screen max-w-none -translate-x-1/2 px-4">
-      <Panel src={src} alt={alt || caption} ink={ink} tone={tone} sizes="100vw" />
+    <figure className={figureClass}>
+      {children ? (
+        <div className="era-spread-row">
+          <div className="era-spread-shot">{panel}</div>
+          <div className="era-spread-callout">
+            <div className="era-spread-pin">
+              <svg
+                className="era-spread-arrow"
+                viewBox="0 0 140 40"
+                fill="none"
+                aria-hidden
+              >
+                <g className="era-spread-mark">
+                  <path d="M4 6 26 28 M26 6 4 28" />
+                </g>
+                <g className="era-spread-arrow-halo">
+                  <path d="M28 18c26-1 56 4 92 8" />
+                  <path d="M110 16 134 26 112 33" />
+                </g>
+                <g className="era-spread-arrow-ink">
+                  <path d="M28 18c26-1 56 4 92 8" />
+                  <path d="M110 16 134 26 112 33" />
+                </g>
+              </svg>
+              {children}
+            </div>
+          </div>
+        </div>
+      ) : (
+        panel
+      )}
       {caption && <Caption>{caption}</Caption>}
     </figure>
   )

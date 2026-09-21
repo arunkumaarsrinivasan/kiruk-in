@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useState, useCallback, type CSSProperties } from 'react'
 import dynamic from 'next/dynamic'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { GridBackground } from '@/components/ui/GridBackground'
+import { SiteCrumbs } from '@/components/layout/SiteCrumbs'
 import { useContextBar } from '@/contexts/ContextBarContext'
 
 // Character Progression Components
@@ -88,6 +89,7 @@ const pageStyle: CSSProperties = {
 type SectionType = 'character' | 'skills' | 'equipment' | 'places' | 'goals'
 
 export default function LifeProgressPage() {
+  const reduce = useReducedMotion()
   // Notion data state
   const [lifeGoals, setLifeGoals] = useState<LifeGoal[]>([])
   const [bucketList, setBucketList] = useState<BucketListItem[]>([])
@@ -222,7 +224,7 @@ export default function LifeProgressPage() {
             backgroundColor: 'var(--bg-card)',
             border: 'var(--border-width) solid var(--border-color)',
           }}
-          initial={{ opacity: 0, scale: 0.9 }}
+          initial={reduce ? false : { opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
         >
           <div
@@ -238,16 +240,26 @@ export default function LifeProgressPage() {
   }
 
   return (
-    <main className="min-h-screen py-8 relative" style={pageStyle}>
+    <div
+      className="min-h-screen py-8 relative"
+      style={{
+        ...pageStyle,
+        paddingTop: 'calc(2rem + var(--simple-game-nav-bottom, 4.5rem))',
+      }}
+    >
       <GridBackground opacity={0.3} scanlinesOpacity={0.05} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div data-blueprint="crumbs">
+          <SiteCrumbs className="mb-4" items={[{ label: "Progress" }]} />
+        </div>
         {/* Page Header - Game Style */}
         <motion.div
           className="mt-8 mb-8"
-          initial={{ opacity: 0, y: -30 }}
+          initial={reduce ? false : { opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
+          data-blueprint="header"
         >
           <div className="flex items-center gap-4">
             <motion.div
@@ -280,6 +292,7 @@ export default function LifeProgressPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
+          data-blueprint="tabs"
           style={{
             backgroundColor: 'var(--bg-card)',
             border: 'var(--border-width) solid var(--border-color)',
@@ -321,9 +334,10 @@ export default function LifeProgressPage() {
         {/* Quick Stats Bar - RPG style */}
         <motion.div
           className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-8"
-          initial={{ opacity: 0, y: 20 }}
+          initial={reduce ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
+          data-blueprint="stats"
         >
           <QuickStat icon="📍" value={travelStats.totalLocations} label="Discovered" sublabel="Locations" />
           <QuickStat icon="🗺️" value={travelStats.statesVisited} label="Explored" sublabel="Regions" />
@@ -334,11 +348,11 @@ export default function LifeProgressPage() {
         </motion.div>
 
         {/* Main Content Sections */}
-        <div className="space-y-10">
+        <div className="space-y-10" data-blueprint="section-body">
           {/* Character Sheet - THE HERO SECTION */}
           <motion.section
             id="character-section"
-            initial={{ opacity: 0, y: 30 }}
+            initial={reduce ? false : { opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
           >
@@ -348,7 +362,7 @@ export default function LifeProgressPage() {
           {/* Skill Tree */}
           <motion.section
             id="skills-section"
-            initial={{ opacity: 0, y: 30 }}
+            initial={reduce ? false : { opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
           >
@@ -358,7 +372,7 @@ export default function LifeProgressPage() {
           {/* Equipment & Achievements */}
           <motion.section
             id="equipment-section"
-            initial={{ opacity: 0, y: 30 }}
+            initial={reduce ? false : { opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
           >
@@ -368,7 +382,7 @@ export default function LifeProgressPage() {
           {/* Travel Map */}
           <motion.section
             id="places-section"
-            initial={{ opacity: 0, y: 30 }}
+            initial={reduce ? false : { opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7 }}
           >
@@ -378,7 +392,7 @@ export default function LifeProgressPage() {
           {/* Goals Section (from Notion) */}
           <motion.section
             id="goals-section"
-            initial={{ opacity: 0, y: 30 }}
+            initial={reduce ? false : { opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.8 }}
           >
@@ -416,7 +430,7 @@ export default function LifeProgressPage() {
           </motion.div>
         )}
       </div>
-    </main>
+    </div>
   )
 }
 
@@ -479,6 +493,7 @@ function GoalsSection({
   errorMessage: string | null
   lastSyncedAt: string | null
 }) {
+  const reduce = useReducedMotion()
   const [activeTab, setActiveTab] = useState<'life' | 'bucket' | 'monthly'>('life')
 
   return (
@@ -550,7 +565,7 @@ function GoalsSection({
       <AnimatePresence mode="wait">
         <motion.div
           key={activeTab}
-          initial={{ opacity: 0, y: 10 }}
+          initial={reduce ? false : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
         >

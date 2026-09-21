@@ -43,6 +43,9 @@ interface CelestialLevelBackgroundProps {
     onStarClick?: (skillId: string) => void;
     allEvents?: LifeEvent[];
     onNavigate?: (index: number) => void;
+    cameraRef?: (el: HTMLDivElement | null) => void;
+    progressFillRef?: (el: HTMLDivElement | null) => void;
+    progressLabelRef?: (el: HTMLSpanElement | null) => void;
 }
 
 export function CelestialLevelBackground({
@@ -51,7 +54,7 @@ export function CelestialLevelBackground({
     description: _description,
     children,
     className,
-    playerX = 0,
+    playerX: _playerX = 0,
     worldWidth = 2000,
     event,
     levelProgress = 0,
@@ -59,10 +62,10 @@ export function CelestialLevelBackground({
     currentEventIndex: _currentEventIndex,
     allEvents = [],
     onNavigate,
+    cameraRef,
+    progressFillRef,
+    progressLabelRef,
 }: CelestialLevelBackgroundProps) {
-    const cameraOffset = Math.max(0, playerX - 400);
-
-    // Get OS theme for current event year
     const osTheme = useMemo(() => getOSTheme(event?.year ?? 2001), [event?.year]);
 
     // Calculate previous and next events with wraparound navigation
@@ -106,11 +109,9 @@ export function CelestialLevelBackground({
 
             {/* World Container - Scrolls with player */}
             <div
+                ref={cameraRef}
                 className="absolute inset-0 z-10"
-                style={{
-                    transform: `translateX(${-cameraOffset}px)`,
-                    transition: "transform 0.05s linear",
-                }}
+                style={{ willChange: "transform" }}
             >
                 {/* OS Taskbar - replaces plain ground */}
                 <OSTaskbar theme={osTheme} width={worldWidth} />
@@ -153,6 +154,8 @@ export function CelestialLevelBackground({
                         nextEvent={nextEvent}
                         onNavigate={onNavigate}
                         allEvents={allEvents}
+                        progressFillRef={progressFillRef}
+                        progressLabelRef={progressLabelRef}
                     />
                 )}
             </AnimatePresence>

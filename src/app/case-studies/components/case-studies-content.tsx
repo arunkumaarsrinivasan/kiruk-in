@@ -52,7 +52,7 @@ export function CaseStudiesContent() {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    trackPageView('/case-studies');
+    trackPageView('/work');
   }, [trackPageView]);
 
   useEffect(() => {
@@ -98,6 +98,7 @@ export function CaseStudiesContent() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, ease: EASE_OUT }}
+          data-blueprint="cases-header"
         >
           <div className="mx-auto w-full max-w-sm lg:max-w-none">
             <SplitCharacterCanvas
@@ -176,6 +177,7 @@ export function CaseStudiesContent() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.12, ease: EASE_OUT }}
+          data-blueprint="case-row-a"
         >
           <ProjectShowcaseSlider activeSide={activeSide} />
         </motion.div>
@@ -185,6 +187,7 @@ export function CaseStudiesContent() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2, ease: EASE_OUT }}
+          data-blueprint="case-row-b"
         >
           <div className="mb-6 border-t pt-10" style={{ borderColor: 'var(--border-color)' }}>
             <p

@@ -304,7 +304,7 @@ export const SpatialArchetype: React.FC<EraSurfaceProps> = ({
             <PanelTag id="04" title="typography" text={text} />
             <div className="mt-3 space-y-3">
               <TypeRow
-                role="DISPLAY"
+                kind="DISPLAY"
                 font={era.fonts.primary}
                 text={text}
                 size="clamp(1.5rem, 2.6vw, 2rem)"
@@ -312,7 +312,7 @@ export const SpatialArchetype: React.FC<EraSurfaceProps> = ({
                 Aa Bb Cc Dd 0123456789
               </TypeRow>
               <TypeRow
-                role="BODY"
+                kind="BODY"
                 font={era.fonts.secondary}
                 text={text}
                 size="1rem"
@@ -320,7 +320,7 @@ export const SpatialArchetype: React.FC<EraSurfaceProps> = ({
                 The quick brown fox jumps over the lazy dog.
               </TypeRow>
               <TypeRow
-                role="UI"
+                kind="UI"
                 font={era.fonts.accent}
                 text={text}
                 size="0.875rem"
@@ -471,7 +471,7 @@ function DriftOrb({
         left: x,
         top: y,
         background: `radial-gradient(circle, ${color}aa 0%, ${color}33 35%, transparent 70%)`,
-        filter: "blur(60px)",
+        filter: "blur(20px)",
         mixBlendMode: "screen",
         opacity: 0.55,
       }}
@@ -681,13 +681,13 @@ function PaletteOrb({
 }
 
 function TypeRow({
-  role,
+  kind,
   font,
   text,
   size,
   children,
 }: {
-  role: string;
+  kind: string;
   font: string;
   text: string;
   size: string;
@@ -711,7 +711,7 @@ function TypeRow({
             letterSpacing: "0.22em",
           }}
         >
-          {role}
+          {kind}
         </span>
         <span
           className="text-[10px]"

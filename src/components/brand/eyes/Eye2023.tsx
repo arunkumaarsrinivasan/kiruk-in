@@ -20,6 +20,7 @@ const PARTICLES = [
 
 export default function Eye2023({ gx, gy, reduce }: EyeProps) {
   const { cx, cy } = usePupil(gx, gy, { tx: 9, ty: 6 });
+  const looping = !reduce;
   return (
     <svg viewBox="0 0 120 80" className="h-full w-full" style={{ overflow: "visible" }} aria-hidden>
       <defs>
@@ -43,7 +44,7 @@ export default function Eye2023({ gx, gy, reduce }: EyeProps) {
 
 
       {/* drifting particles */}
-      {!reduce &&
+      {looping &&
         PARTICLES.map((p, i) => (
           <motion.circle
             key={i}
@@ -62,8 +63,8 @@ export default function Eye2023({ gx, gy, reduce }: EyeProps) {
           cx={EYE.iris.cx}
           cy={EYE.iris.cy}
           fill="url(#ai-orb)"
-          animate={reduce ? { r: EYE.iris.r - 3 } : { r: [EYE.iris.r - 4, EYE.iris.r - 1.5, EYE.iris.r - 4] }}
-          transition={reduce ? undefined : { duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          animate={looping ? { r: [EYE.iris.r - 4, EYE.iris.r - 1.5, EYE.iris.r - 4] } : { r: EYE.iris.r - 3 }}
+          transition={looping ? { duration: 3, repeat: Infinity, ease: "easeInOut" } : undefined}
         />
         <circle cx={EYE.outer.cx} cy={EYE.outer.cy} r={EYE.outer.r} fill="none" stroke="url(#ai-ring)" strokeWidth="4.5" />
         <circle cx={EYE.iris.cx} cy={EYE.iris.cy} r={EYE.iris.r} fill="none" stroke="url(#ai-ring)" strokeWidth="3" opacity="0.7" />
@@ -73,8 +74,8 @@ export default function Eye2023({ gx, gy, reduce }: EyeProps) {
         <motion.circle
           fill="#ffffff"
           cx={cx} cy={cy}
-          animate={reduce ? { r: 6 } : { r: [5, 8, 5], opacity: [0.85, 1, 0.85] }}
-          transition={reduce ? undefined : { duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+          animate={looping ? { r: [5, 8, 5], opacity: [0.85, 1, 0.85] } : { r: 6 }}
+          transition={looping ? { duration: 1.5, repeat: Infinity, ease: "easeInOut" } : undefined}
         />
       </g>
     </svg>

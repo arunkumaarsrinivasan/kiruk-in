@@ -11,10 +11,12 @@
  */
 
 import React, { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { createPortal } from "react-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import { useModules } from "@/contexts/ModuleContext";
 import { useDesignEra } from "@/contexts/DesignEraContext";
+import { useEraTravel } from "@/components/era-travel/EraTravelContext";
 import { EraTimeMachine } from "@/components/era-time-machine/EraTimeMachine";
 import type { ModuleId } from "@/contexts/ModuleContext";
 import { MODULE_CONTENT, getModuleMeta } from "./content";
@@ -24,7 +26,8 @@ const EASE_OUT = [0.23, 1, 0.32, 1] as const;
 
 export function ModuleOverlayHost() {
   const { openId, origin, close } = useModules();
-  const { currentEraId, setEra } = useDesignEra();
+  const { currentEraId } = useDesignEra();
+  const { travelTo } = useEraTravel();
   const panelRef = useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion();
 
@@ -49,6 +52,12 @@ export function ModuleOverlayHost() {
 
   useModuleA11y(active, panelRef, close);
 
+  useEffect(() => {
+    if (!erasOpen && !renderId) return;
+    document.documentElement.setAttribute("data-module-open", "");
+    return () => document.documentElement.removeAttribute("data-module-open");
+  }, [erasOpen, renderId]);
+
   if (typeof document === "undefined") return null;
 
   const meta = renderId ? getModuleMeta(renderId) : undefined;
@@ -69,7 +78,10 @@ export function ModuleOverlayHost() {
         isOpen={erasOpen}
         onClose={close}
         currentEraId={currentEraId}
-        onEraSelect={setEra}
+        onEraSelect={(id) => {
+          close();
+          travelTo(id);
+        }}
       />
 
       {showPanel && (
@@ -120,15 +132,25 @@ export function ModuleOverlayHost() {
                   {meta!.label}
                 </span>
               </span>
-              <button
-                type="button"
-                onClick={close}
-                aria-label="Cancel (Esc)"
-                className="rounded-[var(--era-radius-sm,4px)] px-2.5 py-1 text-xs font-medium transition-colors hover:bg-[color-mix(in_srgb,var(--text-main)_6%,transparent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--border-color)]"
-                style={{ color: "var(--text-muted)", fontFamily: "var(--font-main)" }}
-              >
-                Cancel
-              </button>
+              <span className="flex items-center gap-2">
+                <Link
+                  href="/"
+                  onClick={close}
+                  className="site-chrome-link inline-flex min-h-11 items-center rounded-[var(--era-radius-sm,4px)] px-2.5 text-xs font-medium"
+                  style={{ color: "var(--text-muted)", fontFamily: "var(--font-main)" }}
+                >
+                  Home
+                </Link>
+                <button
+                  type="button"
+                  onClick={close}
+                  aria-label="Close (Esc)"
+                  className="inline-flex min-h-11 items-center rounded-[var(--era-radius-sm,4px)] px-2.5 text-xs font-medium transition-colors hover:bg-[color-mix(in_srgb,var(--text-main)_6%,transparent)]"
+                  style={{ color: "var(--text-muted)", fontFamily: "var(--font-main)" }}
+                >
+                  Close
+                </button>
+              </span>
             </div>
 
             {/* body — full height scroll (work module is self-contained) */}
