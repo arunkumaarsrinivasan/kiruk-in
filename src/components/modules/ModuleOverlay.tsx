@@ -11,16 +11,33 @@
  */
 
 import React, { useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { createPortal } from "react-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import { useModules } from "@/contexts/ModuleContext";
 import { useDesignEra } from "@/contexts/DesignEraContext";
 import { useEraTravel } from "@/components/era-travel/EraTravelContext";
-import { EraTimeMachine } from "@/components/era-time-machine/EraTimeMachine";
 import type { ModuleId } from "@/contexts/ModuleContext";
 import { MODULE_CONTENT, getModuleMeta } from "./content";
 import { useModuleA11y } from "./useModuleA11y";
+
+const EraTimeMachine = dynamic(
+  () =>
+    import("@/components/era-time-machine/EraTimeMachine").then((m) => ({
+      default: m.EraTimeMachine,
+    })),
+  {
+    loading: () => (
+      <div
+        className="fixed inset-0 z-[130]"
+        style={{ background: "var(--bg-main)" }}
+        role="status"
+        aria-label="Opening the time machine"
+      />
+    ),
+  },
+);
 
 const EASE_OUT = [0.23, 1, 0.32, 1] as const;
 
@@ -33,6 +50,9 @@ export function ModuleOverlayHost() {
 
   const erasOpen = openId === "eras";
   const active = !!openId && !erasOpen;
+  // Stay unmounted until the first open, so the era archetypes are not in
+  // the first JS graph. After that, keep it mounted so the close animation runs.
+  const [machineMounted, setMachineMounted] = useState(false);
 
   // Keep the last panel module mounted through the shrink-out animation.
   const [renderId, setRenderId] = useState<ModuleId | null>(null);
@@ -58,6 +78,8 @@ export function ModuleOverlayHost() {
     return () => document.documentElement.removeAttribute("data-module-open");
   }, [erasOpen, renderId]);
 
+  if (erasOpen && !machineMounted) setMachineMounted(true);
+
   if (typeof document === "undefined") return null;
 
   const meta = renderId ? getModuleMeta(renderId) : undefined;
@@ -74,15 +96,17 @@ export function ModuleOverlayHost() {
 
   return createPortal(
     <>
-      <EraTimeMachine
-        isOpen={erasOpen}
-        onClose={close}
-        currentEraId={currentEraId}
-        onEraSelect={(id) => {
-          close();
-          travelTo(id);
-        }}
-      />
+      {machineMounted ? (
+        <EraTimeMachine
+          isOpen={erasOpen}
+          onClose={close}
+          currentEraId={currentEraId}
+          onEraSelect={(id) => {
+            close();
+            travelTo(id);
+          }}
+        />
+      ) : null}
 
       {showPanel && (
         <div className="pointer-events-none fixed inset-0 z-[120]">

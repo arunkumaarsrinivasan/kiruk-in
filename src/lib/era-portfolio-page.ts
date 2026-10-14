@@ -5,7 +5,7 @@
  * The reflection used to show C source, which said nothing about the work. This
  * says the same facts every era shell says — the name, the role, the projects,
  * the numbers — dressed in the idiom of its decade: a shell session in 1970, a
- * Star document in 1981, tags in 1991, marquee junk in 1995, a chat log in 2023.
+ * Star document in 1981, tags in 1991, marquee junk in 1995, a pocket device in 2026.
  * Facts come from portfolio-data; only the voice changes per era.
  */
 
@@ -73,13 +73,13 @@ function terminal(): EraPage {
   };
 }
 
-/** 1981 — a Star document: menu bar, headings, a printed page. */
+/** 1981 — a Star document: printed page, the universal command keys. */
 function star(): EraPage {
   return {
     file: "Star>Documents>Portfolio",
     face: "serif",
     blocks: [
-      { t: "nav", items: ["File", "Edit", "View", "Print"] },
+      { t: "nav", items: ["OPEN", "PROPS", "COPY", "MOVE"] },
       { t: "title", text: P.fullName },
       { t: "sub", text: ROLE },
       { t: "rule" },
@@ -157,30 +157,24 @@ function frames(): EraPage {
   };
 }
 
-/** 2000–2018 — the editorial web: one column, real hierarchy. */
-function editorial(file: string): EraPage {
+/** 2000 — a search engine: one box, ten blue links. */
+function search(): EraPage {
   return {
-    file,
-    face: "grotesk",
+    file: "kiruk.in/search?q=design+engineer",
+    face: "serif",
     blocks: [
-      { t: "nav", items: NAV },
-      { t: "title", text: P.fullName },
-      { t: "sub", text: ROLE },
-      { t: "gap" },
-      { t: "body", text: P.tagline },
+      { t: "title", text: "Kiruk" },
+      { t: "nav", items: ["[ design engineer ]", "Search"] },
       { t: "rule" },
       ...WORK.slice(0, 4).map(
-        (w) => ({ t: "card", title: w.title, meta: w.meta }) as PageBlock,
+        (w) => ({ t: "card", title: w.title, meta: `kiruk.in/work · ${w.meta}` }) as PageBlock,
       ),
-      { t: "rule" },
-      ...STATS.slice(0, 3).map(
-        (s) => ({ t: "stat", value: s.value, label: s.label }) as PageBlock,
-      ),
+      { t: "body", text: "Kiiiiiruk  1 2 3  Next" },
     ],
   };
 }
 
-/** 2003–2006 — cards, gel panels, a summary box. */
+/** 2003 — cards, gel panels, a summary box. */
 function cards(file: string): EraPage {
   return {
     file,
@@ -220,45 +214,17 @@ function handheld(file: string): EraPage {
   };
 }
 
-/** 2023 — the portfolio as a conversation. */
-function chat(): EraPage {
+/** 2026 — the pupil: one dot, one answer at a time. */
+function device(): EraPage {
   return {
-    file: "chat · kiruk.in",
-    face: "grotesk",
+    file: "kiruk · ready",
+    face: "mono",
     blocks: [
-      { t: "sub", text: "You" },
-      { t: "body", text: "who is arun kumaar sreenivasan?" },
+      { t: "sub", text: "type to ask" },
+      { t: "title", text: P.name },
+      { t: "body", text: ROLE },
       { t: "gap" },
-      { t: "sub", text: "kiruk.in" },
-      { t: "body", text: `${P.title} at ${portfolioData.experience[0]?.company ?? "Spera.bot"}.` },
-      { t: "body", text: P.tagline + "." },
-      { t: "gap" },
-      { t: "sub", text: "You" },
-      { t: "body", text: "show me the work" },
-      { t: "gap" },
-      ...WORK.slice(0, 3).map(
-        (w) => ({ t: "card", title: w.title, meta: w.meta }) as PageBlock,
-      ),
-    ],
-  };
-}
-
-/** 2026 — the page assembles itself around whoever is reading it. */
-function generative(): EraPage {
-  return {
-    file: "kiruk.in — generated for you",
-    face: "grotesk",
-    blocks: [
-      { t: "sub", text: "assembling this page…" },
-      { t: "title", text: P.fullName },
-      { t: "sub", text: ROLE },
-      { t: "rule" },
-      { t: "body", text: P.tagline },
-      ...WORK.slice(0, 3).map(
-        (w) => ({ t: "card", title: w.title, meta: w.tech }) as PageBlock,
-      ),
-      { t: "rule" },
-      ...STATS.slice(0, 3).map(
+      ...STATS.slice(0, 2).map(
         (s) => ({ t: "stat", value: s.value, label: s.label }) as PageBlock,
       ),
     ],
@@ -269,18 +235,13 @@ const PAGES: Record<string, () => EraPage> = {
   "1970": terminal,
   "1981": star,
   "1991": hypertext,
-  "1993": () => hypertext(),
   "1995": geocities,
   "1997": frames,
-  "2000": () => editorial("kiruk.in — zen"),
+  "2000": search,
   "2003": () => cards("kiruk.in — work"),
-  "2006": () => cards("kiruk.in — studio"),
   "2009": () => handheld("kiruk.in"),
   "2013": () => handheld("kiruk.in"),
-  "2018": () => editorial("kiruk.in — accessible"),
-  "2021": () => editorial("kiruk.in — you"),
-  "2023": chat,
-  "2026": generative,
+  "2026": device,
 };
 
 export function getEraPage(eraId: string): EraPage {

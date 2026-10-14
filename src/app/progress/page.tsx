@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState, useCallback, type CSSProperties } from 'r
 import dynamic from 'next/dynamic'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { GridBackground } from '@/components/ui/GridBackground'
-import { SiteCrumbs } from '@/components/layout/SiteCrumbs'
+import { useNavTrail } from '@/components/layout/NavTrail'
 import { useContextBar } from '@/contexts/ContextBarContext'
 
 // Character Progression Components
@@ -90,6 +90,7 @@ type SectionType = 'character' | 'skills' | 'equipment' | 'places' | 'goals'
 
 export default function LifeProgressPage() {
   const reduce = useReducedMotion()
+  useNavTrail([{ label: 'Progress' }])
   // Notion data state
   const [lifeGoals, setLifeGoals] = useState<LifeGoal[]>([])
   const [bucketList, setBucketList] = useState<BucketListItem[]>([])
@@ -250,9 +251,6 @@ export default function LifeProgressPage() {
       <GridBackground opacity={0.3} scanlinesOpacity={0.05} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div data-blueprint="crumbs">
-          <SiteCrumbs className="mb-4" items={[{ label: "Progress" }]} />
-        </div>
         {/* Page Header - Game Style */}
         <motion.div
           className="mt-8 mb-8"

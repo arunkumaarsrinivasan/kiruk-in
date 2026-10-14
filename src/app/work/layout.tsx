@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
-
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ??
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://kiruk.in");
+import { SITE_URL } from "@/lib/site";
 
 const TITLE = "Work — selected projects by Kiruk Studio";
 const DESCRIPTION =

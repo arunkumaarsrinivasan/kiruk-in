@@ -12,10 +12,7 @@ import { GameModeProvider } from "@/contexts/GameModeContext";
 import { ContextBarProvider } from "@/contexts/ContextBarContext";
 import { LayoutModeProvider } from "@/contexts/LayoutModeContext";
 import { ModuleProvider } from "@/contexts/ModuleContext";
-
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ??
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://kiruk.in");
+import { SITE_URL } from "@/lib/site";
 
 const SITE_NAME = "Kiruk Studio — Arun Kumaar Sreenivasan";
 const TITLE = "Kiruk Studio — Design Engineer & AI UX Designer in India";
@@ -23,7 +20,7 @@ const DESCRIPTION =
   "Kiruk Studio is the practice of Arun Kumaar Sreenivasan — Co-founder at Spera.bot. Former UX Design Engineer on HP Innovation for India. Experimental websites, design tools, and human-centered UX from Bengaluru.";
 const OG_IMAGE = `${SITE_URL}/images/dp.jpeg`;
 
-const LAST_MODIFIED = "2026-05-19";
+const LAST_MODIFIED = "2026-10-14";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -102,6 +99,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#ffffff" },
     { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
@@ -208,6 +206,7 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
         />
+        <link rel="alternate" type="text/plain" href="/llms.txt" title="Plain-text summary of this site" />
       </head>
       <body
         className="antialiased"

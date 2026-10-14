@@ -18,12 +18,12 @@ export interface Dest {
   icon: string;
 }
 
-/** The five destinations, matching the live Navbar mobile menu. */
+/** The five destinations, in the same order as the desktop bar (Home, then Work · Read · About · Contact). */
 export const DESTINATIONS: Dest[] = [
   { label: "Home", href: "/", icon: "home" },
   { label: "Work", href: "/work", icon: "grid" },
-  { label: "About", href: "/about", icon: "user" },
   { label: "Read", href: "/notebook", icon: "book" },
+  { label: "About", href: "/#about", icon: "user" },
   { label: "Contact", href: "/contact", icon: "envelope" },
 ];
 

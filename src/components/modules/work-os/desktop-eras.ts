@@ -2,7 +2,7 @@ import type { DesktopEra, DesktopId } from "./types";
 
 /**
  * Curated, iconic OS desktops. Each stands in for a band of site eras so the
- * Work module can "time travel" desktops without 15 bespoke builds.
+ * Work module can "time travel" desktops without a bespoke build per era.
  */
 export const DESKTOP_ERAS: DesktopEra[] = [
   {
@@ -87,33 +87,6 @@ export const DESKTOP_ERAS: DesktopEra[] = [
       titleBar: "linear-gradient(#6a6a70, #3a3a40)",
       titleText: "#f4f4f6",
       iconLabel: "#f4f4f6",
-    },
-  },
-  {
-    id: "win31",
-    year: "1993",
-    os: "Windows 3.1",
-    tagline: "Program Manager, program groups, and MDI windows inside windows.",
-    covers: ["1993"],
-    mode: "windowed",
-    chrome: "win95",
-    bar: "none",
-    icon: "win",
-    fontUi: "'Tahoma', 'MS Sans Serif', system-ui, sans-serif",
-    fontBody: "'Tahoma', 'MS Sans Serif', system-ui, sans-serif",
-    brand: "Program Manager",
-    tokens: {
-      wallpaper: "#04807f",
-      surface: "#c0c0c0",
-      surfaceAlt: "#dfdfdf",
-      text: "#000000",
-      textMuted: "#404040",
-      accent: "#000080",
-      accentText: "#ffffff",
-      border: "#000000",
-      titleBar: "#000080",
-      titleText: "#ffffff",
-      iconLabel: "#ffffff",
     },
   },
   {
@@ -226,34 +199,6 @@ export const DESKTOP_ERAS: DesktopEra[] = [
     },
   },
   {
-    id: "aqua06",
-    year: "2006",
-    os: "Aqua OS X",
-    tagline: "Glossy gel buttons, brushed metal, and a dock that bounces.",
-    covers: ["2006"],
-    mode: "windowed",
-    chrome: "aqua",
-    bar: "dock",
-    icon: "glossy",
-    fontUi: "'Lucida Grande', -apple-system, 'Helvetica Neue', sans-serif",
-    fontBody: "'Lucida Grande', -apple-system, 'Helvetica Neue', sans-serif",
-    brand: "Finder",
-    tokens: {
-      wallpaper:
-        "radial-gradient(120% 120% at 50% 0%, #6db3f5 0%, #2f7fd1 38%, #14538f 100%)",
-      surface: "#ececec",
-      surfaceAlt: "#f7f7f7",
-      text: "#1a1a1a",
-      textMuted: "#5a5a5a",
-      accent: "#2f7fd1",
-      accentText: "#ffffff",
-      border: "#9aa0a6",
-      titleBar: "linear-gradient(#e8e8e8, #cfcfcf)",
-      titleText: "#2a2a2a",
-      iconLabel: "#ffffff",
-    },
-  },
-  {
     id: "win7",
     year: "2009",
     os: "Windows 7",
@@ -308,113 +253,31 @@ export const DESKTOP_ERAS: DesktopEra[] = [
     },
   },
   {
-    id: "modern18",
-    year: "2020",
-    os: "Big Sur",
-    tagline: "Translucent vibrancy, pillowy corners, a floating centered dock.",
-    covers: ["2018"],
-    mode: "windowed",
-    chrome: "modern",
-    bar: "dock",
-    icon: "glossy",
-    fontUi: "-apple-system, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif",
-    fontBody: "-apple-system, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif",
-    brand: "Finder",
-    tokens: {
-      wallpaper:
-        "linear-gradient(160deg, #5b7cfa 0%, #9a6bff 38%, #ff7eb3 78%, #ffb86c 100%)",
-      surface: "rgba(255,255,255,0.78)",
-      surfaceAlt: "rgba(255,255,255,0.6)",
-      text: "#1c1c1e",
-      textMuted: "#6b6b70",
-      accent: "#0a84ff",
-      accentText: "#ffffff",
-      border: "rgba(0,0,0,0.12)",
-      titleBar: "rgba(255,255,255,0.55)",
-      titleText: "#1c1c1e",
-      iconLabel: "#ffffff",
-    },
-  },
-  {
-    id: "win11",
-    year: "2021",
-    os: "Windows 11",
-    tagline: "Centered taskbar, Mica acrylic, and pillowy rounded everything.",
-    covers: ["2021"],
-    mode: "windowed",
-    chrome: "modern",
-    bar: "taskbar",
-    icon: "glossy",
-    fontUi: "'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif",
-    fontBody: "'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif",
-    brand: "File Explorer",
-    tokens: {
-      wallpaper: "radial-gradient(120% 90% at 50% 38%, #2f6fb0 0%, #1c4a86 42%, #0f2c57 100%)",
-      surface: "rgba(245,248,252,0.82)",
-      surfaceAlt: "rgba(255,255,255,0.9)",
-      text: "#1a1a1a",
-      textMuted: "#5a6470",
-      accent: "#0067c0",
-      accentText: "#ffffff",
-      border: "rgba(0,0,0,0.1)",
-      titleBar: "rgba(250,250,252,0.7)",
-      titleText: "#1a1a1a",
-      iconLabel: "#ffffff",
-    },
-  },
-  {
-    id: "vision23",
-    year: "2023",
-    os: "Spatial OS",
-    tagline: "Glass windows floating in depth — pinch, drag, and look to navigate.",
-    covers: ["2023"],
-    mode: "windowed",
-    chrome: "glass",
-    bar: "none",
-    icon: "card",
-    fontUi: "-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif",
-    fontBody: "-apple-system, 'SF Pro Text', 'Inter', system-ui, sans-serif",
-    brand: "Spatial",
-    tokens: {
-      wallpaper: "radial-gradient(80% 60% at 30% 20%, #2a2a44 0%, #15151f 55%, #08080d 100%)",
-      surface: "rgba(40,42,60,0.45)",
-      surfaceAlt: "rgba(60,64,88,0.45)",
-      text: "#f2f3fa",
-      textMuted: "#a6aac4",
-      accent: "#7fd0ff",
-      accentText: "#08080d",
-      border: "rgba(255,255,255,0.22)",
-      titleBar: "rgba(255,255,255,0.06)",
-      titleText: "#f2f3fa",
-      iconLabel: "#f2f3fa",
-    },
-  },
-  {
     id: "ai26",
     year: "2026",
     os: "AI-native",
     tagline: "Describe what you want. The desktop assembles itself.",
-    covers: ["2023", "2026"],
+    covers: ["2026"],
     mode: "windowed",
     chrome: "glass",
     bar: "prompt",
     icon: "card",
-    fontUi: "var(--font-heading, 'Inter', system-ui, sans-serif)",
-    fontBody: "var(--font-main, 'Inter', system-ui, sans-serif)",
+    fontUi: "var(--font-2026-sans, 'Helvetica Neue'), 'Helvetica Neue', Arial, sans-serif",
+    fontBody: "var(--font-2026-sans, 'Helvetica Neue'), 'Helvetica Neue', Arial, sans-serif",
     brand: "kiruk.os",
     tokens: {
-      wallpaper:
-        "radial-gradient(60% 80% at 15% 10%, rgba(139,92,246,0.45), transparent 60%), radial-gradient(50% 70% at 85% 20%, rgba(34,211,238,0.35), transparent 60%), radial-gradient(60% 80% at 60% 100%, rgba(236,72,153,0.3), transparent 60%), #070912",
-      surface: "rgba(20,24,40,0.62)",
-      surfaceAlt: "rgba(40,46,72,0.55)",
-      text: "#e8ecff",
-      textMuted: "#9aa3c8",
-      accent: "#a78bfa",
-      accentText: "#0b0d18",
-      border: "rgba(167,139,250,0.32)",
-      titleBar: "rgba(255,255,255,0.05)",
-      titleText: "#e8ecff",
-      iconLabel: "#e8ecff",
+      // The empty room, the device's orange as the only colour.
+      wallpaper: "#e8e6e1",
+      surface: "#f2f1ed",
+      surfaceAlt: "#ecebe6",
+      text: "#161513",
+      textMuted: "#77736b",
+      accent: "#ff4f00",
+      accentText: "#161513",
+      border: "#d3d0c8",
+      titleBar: "#e8e6e1",
+      titleText: "#161513",
+      iconLabel: "#161513",
     },
   },
 ];
@@ -456,7 +319,7 @@ export function blendDesktop(id: DesktopId, accent?: string): DesktopEra {
   };
 }
 
-/** Map any of the 15 site era ids → nearest curated desktop. */
+/** Map any site era id → nearest curated desktop. */
 export function nearestDesktopId(eraId: string): DesktopId {
   const hit = DESKTOP_ERAS.find((d) => d.covers.includes(eraId));
   if (hit) return hit.id;
@@ -465,17 +328,12 @@ export function nearestDesktopId(eraId: string): DesktopId {
   if (Number.isNaN(year)) return "ai26";
   if (year <= 1975) return "term70";
   if (year < 1990) return "gui84";
-  if (year < 1993) return "next91";
-  if (year < 1995) return "win31";
+  if (year < 1995) return "next91";
   if (year < 1997) return "win95";
   if (year < 2000) return "macos8";
   if (year < 2001) return "win2k";
-  if (year < 2006) return "winxp";
-  if (year < 2009) return "aqua06";
+  if (year < 2009) return "winxp";
   if (year < 2013) return "win7";
-  if (year < 2018) return "flat15";
-  if (year < 2021) return "modern18";
-  if (year < 2023) return "win11";
-  if (year < 2026) return "vision23";
+  if (year < 2020) return "flat15";
   return "ai26";
 }

@@ -22,7 +22,8 @@ import { eyeFrame } from "@/lib/era-eye-frame";
 const VISIBLE = 7;
 /** How far under the bottom of the screen the ring's own arc clears. */
 const FLOOR = 44;
-/** Arc length between two years, in pixels. The angle follows from the radius. */
+/** Arc length between two years on a wide screen, in pixels. The angle follows
+ *  from the radius, and a 9° floor keeps a desktop's years from crowding. */
 const PITCH = 34;
 /** Thickness of the band that takes a drag. */
 const GRAB = 60;
@@ -30,25 +31,54 @@ const GRAB = 60;
 const RAD = Math.PI / 180;
 
 /**
- * The ring is as wide as the room allows: on a tall display the arc is broad
- * and shallow, and on a short or narrow one it tightens without ever falling
- * off. A phone caps it at half the width, which is a small ring — so the ring
- * is hung off the bottom of the screen rather than off the eye's centre, and
- * the years stay clear of the eyeball the crop has enlarged.
+ * The ring is as wide as the room allows. On a wide screen the space under the
+ * eye sets the radius. On a phone, capping at half the width turns the ring
+ * into a semicircle and the years collide, so the radius is chosen for a bow:
+ * curved enough to read as the same ring, shallow enough that each year has
+ * room for its four digits.
  */
 function radiusFor(w: number, h: number) {
   const centerY = eyeFrame(w, h).centerY;
-  return Math.max(90, Math.min(h * (1 - centerY) - FLOOR, w * 0.5));
+  const underEye = h * (1 - centerY) - FLOOR;
+  if (w >= 720) return Math.max(90, Math.min(underEye, w * 0.5));
+  const bow = Math.min(72, Math.max(36, w * 0.16));
+  const shallow = (w * w) / (8 * bow);
+  return Math.max(w * 0.62, Math.min(shallow, underEye * 1.35));
 }
 
-/** The ring's centre: its lowest point always clears the floor by FLOOR. */
-function centreFor(w: number, h: number) {
-  return { cx: w / 2, cy: h - FLOOR - radiusFor(w, h) };
+function floorFor(safe: number) {
+  return FLOOR + safe;
 }
 
-/** Degrees between two years — a constant arc length, whatever the radius. */
-function stepFor(r: number) {
-  return Math.max(9, PITCH / (r * RAD));
+/** The ring's centre: its lowest point clears the floor, and the home indicator. */
+function centreFor(w: number, h: number, safe = 0) {
+  return { cx: w / 2, cy: h - floorFor(safe) - radiusFor(w, h) };
+}
+
+/** Pixels of arc between two years. A phone needs room for four digits. */
+function pitchFor(w: number) {
+  if (w >= 720) return PITCH;
+  return Math.min(58, Math.max(50, w * 0.14));
+}
+
+/**
+ * Degrees between two years. Wide screens keep a 9° floor so the arc stays
+ * open. A phone spaces the years by `pitchFor` instead, so the labels stay
+ * apart on a smaller ring.
+ */
+function stepFor(r: number, w: number) {
+  const minStep = w >= 720 ? 9 : 5.5;
+  return Math.max(minStep, pitchFor(w) / (r * RAD));
+}
+
+function readSafeBottom() {
+  const probe = document.createElement("div");
+  probe.style.cssText =
+    "position:fixed;visibility:hidden;pointer-events:none;padding-bottom:env(safe-area-inset-bottom,0px)";
+  document.body.appendChild(probe);
+  const px = Number.parseFloat(getComputedStyle(probe).paddingBottom) || 0;
+  probe.remove();
+  return px;
 }
 
 export type EraChangeStyle =
@@ -71,13 +101,23 @@ interface EraDialProps {
 }
 
 function useViewport() {
-  const [size, setSize] = useState({ w: 0, h: 0 });
+  const [size, setSize] = useState({ w: 0, h: 0, safe: 0 });
   useEffect(() => {
-    const sync = () =>
-      setSize({ w: window.innerWidth, h: window.innerHeight });
+    const sync = () => {
+      const vv = window.visualViewport;
+      setSize({
+        w: vv?.width ?? window.innerWidth,
+        h: vv?.height ?? window.innerHeight,
+        safe: readSafeBottom(),
+      });
+    };
     sync();
     window.addEventListener("resize", sync);
-    return () => window.removeEventListener("resize", sync);
+    window.visualViewport?.addEventListener("resize", sync);
+    return () => {
+      window.removeEventListener("resize", sync);
+      window.visualViewport?.removeEventListener("resize", sync);
+    };
   }, []);
   return size;
 }
@@ -96,8 +136,8 @@ function pointAt(cx: number, cy: number, r: number, deg: number) {
  * guess where it is.
  */
 export function useDialGeometry() {
-  const { w, h } = useViewport();
-  return { w, h, ...centreFor(w, h), r: radiusFor(w, h) };
+  const { w, h, safe } = useViewport();
+  return { w, h, safe, ...centreFor(w, h, safe), r: radiusFor(w, h) };
 }
 
 /** An arc of the dial as a path, drawn left-to-right along the bottom. */
@@ -117,12 +157,14 @@ export default function EraDial({
   reduce,
   exiting,
 }: EraDialProps) {
-  const { w, h } = useViewport();
+  const { w, h, safe } = useViewport();
   const last = themes.length - 1;
+  const narrow = w > 0 && w < 720;
 
-  const { cx, cy } = centreFor(w, h);
+  const { cx, cy } = centreFor(w, h, safe);
   const r = radiusFor(w, h);
-  const step = stepFor(r);
+  const step = stepFor(r, w);
+  const hit = Math.min(22, pitchFor(w) * 0.42);
 
   const accent = era.colors.accent || era.colors.primary;
   const tokens = era.designTokens;
@@ -196,7 +238,14 @@ export default function EraDial({
       className="pointer-events-none absolute inset-0 z-20 h-full w-full"
       viewBox={`0 0 ${w} ${h}`}
       aria-hidden="true"
-      style={{ opacity: exiting ? 0 : 1, transition: "opacity 260ms ease-out" }}
+      style={{
+        opacity: exiting ? 0 : 1,
+        transition: "opacity 260ms ease-out",
+        WebkitTapHighlightColor: "transparent",
+        userSelect: "none",
+        WebkitUserSelect: "none",
+        WebkitTouchCallout: "none",
+      }}
     >
       {/* the orbit: a hairline the years ride, plus the lab rings outside it */}
       <path
@@ -275,8 +324,8 @@ export default function EraDial({
               style={{ transition: "opacity 320ms ease-out" }}
               opacity={fade}
             >
-              {/* a generous invisible target, so a year is easy to hit */}
-              <circle cx={x} cy={y} r={16} fill="transparent" />
+              {/* invisible target, as wide as the gap to the next year allows */}
+              <circle cx={x} cy={y} r={hit} fill="transparent" />
               {square ? (
                 <rect
                   x={x - (here ? 4 : 1.5)}
@@ -315,15 +364,15 @@ export default function EraDial({
               )}
               <text
                 x={x}
-                y={y + 22}
+                y={y + (narrow ? 26 : 22)}
                 textAnchor="middle"
                 fill={here ? tint : "#ffffff"}
-                fillOpacity={here ? 0.95 : 0.42}
+                fillOpacity={here ? 0.95 : narrow ? 0.7 : 0.42}
                 transform={`rotate(${deg - 90} ${x} ${y})`}
                 style={{
                   fontFamily: t.fonts.accent,
-                  fontSize: here ? 13 : 10,
-                  letterSpacing: "0.08em",
+                  fontSize: here ? (narrow ? 15 : 13) : narrow ? 13 : 10,
+                  letterSpacing: "0.06em",
                   transition: "font-size 260ms ease-out",
                 }}
               >

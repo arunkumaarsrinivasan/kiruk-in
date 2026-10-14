@@ -25,40 +25,28 @@ import { useEraNavigation } from "./shared/useEraNavigation";
 import { EraTransition } from "./EraTransition";
 import { EraTimeMachineChrome } from "./EraTimeMachineChrome";
 import { TerminalArchetype } from "./archetypes/TerminalArchetype";
-import { SpatialArchetype } from "./archetypes/SpatialArchetype";
 import { XeroxArchetype } from "./archetypes/XeroxArchetype";
 import { DocHtmlArchetype } from "./archetypes/DocHtmlArchetype";
-import { MosaicArchetype } from "./archetypes/MosaicArchetype";
 import { GeocitiesArchetype } from "./archetypes/GeocitiesArchetype";
 import { FramesetArchetype } from "./archetypes/FramesetArchetype";
 import { FlashSplashArchetype } from "./archetypes/FlashSplashArchetype";
 import { Web2CandyArchetype } from "./archetypes/Web2CandyArchetype";
-import { MicroblogArchetype } from "./archetypes/MicroblogArchetype";
 import { IphoneSkeuArchetype } from "./archetypes/IphoneSkeuArchetype";
 import { PinboardArchetype } from "./archetypes/PinboardArchetype";
-import { BlockEditorArchetype } from "./archetypes/BlockEditorArchetype";
-import { IssueTrackerArchetype } from "./archetypes/IssueTrackerArchetype";
-import { AiNativeArchetype } from "./archetypes/AiNativeArchetype";
 import { PromptUIArchetype } from "./archetypes/PromptUIArchetype";
 
 const ARCHETYPE_COMPONENTS: Partial<
   Record<EraArchetypeId, React.ComponentType<EraSurfaceProps>>
 > = {
   terminal: TerminalArchetype,
-  spatial: SpatialArchetype,
   "xerox-bitmap": XeroxArchetype,
   "doc-html": DocHtmlArchetype,
-  mosaic: MosaicArchetype,
   geocities: GeocitiesArchetype,
   frameset: FramesetArchetype,
   "flash-splash": FlashSplashArchetype,
   "web2-candy": Web2CandyArchetype,
-  microblog: MicroblogArchetype,
   "iphone-skeu": IphoneSkeuArchetype,
   pinboard: PinboardArchetype,
-  "block-editor": BlockEditorArchetype,
-  "issue-tracker": IssueTrackerArchetype,
-  "ai-native": AiNativeArchetype,
   "prompt-ui": PromptUIArchetype,
 };
 

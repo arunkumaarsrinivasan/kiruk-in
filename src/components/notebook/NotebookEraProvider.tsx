@@ -18,13 +18,12 @@ import { TimeTravelOverlay } from "@/components/layout/TimeTravelOverlay";
 import { TerminalShellLayer } from "@/components/era-shell/archetypes/terminal/TerminalShellLayer";
 import { XeroxBitmapShellLayer } from "@/components/era-shell/archetypes/xerox-bitmap/XeroxBitmapShellLayer";
 import { DocHtmlShellLayer } from "@/components/era-shell/archetypes/doc-html/DocHtmlShellLayer";
-import { MosaicShellLayer } from "@/components/era-shell/archetypes/mosaic/MosaicShellLayer";
 import { GeocitiesShellLayer } from "@/components/era-shell/archetypes/geocities/GeocitiesShellLayer";
 import { FramesetShellLayer } from "@/components/era-shell/archetypes/frameset/FramesetShellLayer";
 import {
   DEFAULT_NOTEBOOK_ERA,
   NOTEBOOK_ERA_LITES,
-  NOTEBOOK_ERA_STORAGE_KEY,
+  SITE_ERA_STORAGE_KEY,
   isBlogReadyEra,
   parseNotebookEraId,
 } from "@/lib/notebook";
@@ -55,7 +54,6 @@ const BLOG_SHELL_LAYERS: Partial<Record<EraArchetypeId, typeof TerminalShellLaye
   terminal: TerminalShellLayer,
   "xerox-bitmap": XeroxBitmapShellLayer,
   "doc-html": DocHtmlShellLayer,
-  mosaic: MosaicShellLayer,
   geocities: GeocitiesShellLayer,
   frameset: FramesetShellLayer,
 };
@@ -113,8 +111,9 @@ function NotebookEraSession({
   const pathname = usePathname();
   const router = useRouter();
   const reduce = useReducedMotion();
-  const { setEra } = useDesignEra();
+  const { currentEraId, setEra } = useDesignEra();
   const [eraId, setEraIdState] = useState(live.eraId);
+  const [resolved, setResolved] = useState(false);
   const [travel, setTravel] = useState<TravelState | null>(null);
   const [dwell, setDwell] = useState(() => Date.now() < live.dwellUntil);
   const travelRef = useRef<string | null>(null);
@@ -125,25 +124,36 @@ function NotebookEraSession({
     setEraIdState(id);
   }, []);
 
+  // One era everywhere: an explicit `?era=` wins, otherwise read in whatever era
+  // the rest of the site is in. Read the site's key directly — ThemeContext
+  // restores it in a parent effect, which runs after this one. Never push an era
+  // to the site before this resolves: pushing the 1970 default on mount used to
+  // overwrite the saved era, so clicking Read always landed in 1970.
   useEffect(() => {
+    if (resolved) return;
     const fromQuery = parseNotebookEraId(new URLSearchParams(window.location.search).get("era"));
-    const stored = parseNotebookEraId(window.localStorage.getItem(NOTEBOOK_ERA_STORAGE_KEY));
-    setEraId(fromQuery ?? stored ?? DEFAULT_NOTEBOOK_ERA);
-  }, [setEraId]);
-
-  useEffect(() => {
-    window.localStorage.setItem(NOTEBOOK_ERA_STORAGE_KEY, eraId);
-  }, [eraId]);
-
-  // Keep the site Time Machine / mobile menu era in sync while reading.
-  useEffect(() => {
-    setEra(eraId as DesignEra);
-  }, [eraId, setEra]);
-
-  const applyQueryEra = useCallback((id: string) => {
-    if (travelling.current) return;
+    const siteEra = parseNotebookEraId(window.localStorage.getItem(SITE_ERA_STORAGE_KEY));
+    const id = fromQuery ?? siteEra ?? DEFAULT_NOTEBOOK_ERA;
     setEraId(id);
-  }, [setEraId]);
+    setEra(id as DesignEra);
+    setResolved(true);
+  }, [resolved, setEraId, setEra]);
+
+  // Follow era changes made outside the notebook (navbar Time Machine, mobile menu).
+  useEffect(() => {
+    if (!resolved || travelling.current) return;
+    const site = parseNotebookEraId(currentEraId);
+    if (site && site !== live.eraId) setEraId(site);
+  }, [currentEraId, resolved, setEraId]);
+
+  const applyQueryEra = useCallback(
+    (id: string) => {
+      if (travelling.current) return;
+      setEraId(id);
+      setEra(id as DesignEra);
+    },
+    [setEraId, setEra],
+  );
 
   const syncUrl = useCallback(
     (id: string) => {
@@ -178,8 +188,9 @@ function NotebookEraSession({
     markDwell();
     setDwell(true);
     setEraId(next);
+    setEra(next as DesignEra);
     syncUrl(next);
-  }, [setEraId, syncUrl]);
+  }, [setEraId, setEra, syncUrl]);
 
   const onDone = useCallback(() => {
     travelRef.current = null;

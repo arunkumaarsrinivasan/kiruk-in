@@ -17,7 +17,7 @@ export {
   BLOG_READY_ERAS,
   DEFAULT_NOTEBOOK_ERA,
   NOTEBOOK_ERA_LITES,
-  NOTEBOOK_ERA_STORAGE_KEY,
+  SITE_ERA_STORAGE_KEY,
   isBlogReadyEra,
   notebookEraLabel,
   parseNotebookEraId,

@@ -14,7 +14,7 @@
 import React, { useCallback, useEffect, useRef } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useDesignEra } from "@/contexts/DesignEraContext";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { DESTINATIONS, type EraNavGame } from "./types";
 import { getEraNavGame } from "./registry";
 
@@ -28,6 +28,7 @@ export interface EraNavOverlayProps {
 
 export function EraNavOverlay({ open, onClose, onNavigate }: EraNavOverlayProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const { currentEra } = useDesignEra();
   const reduce = useReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
@@ -39,10 +40,11 @@ export function EraNavOverlay({ open, onClose, onNavigate }: EraNavOverlayProps)
 
   const handleNavigate = useCallback(
     (href: string) => {
-      onNavigate?.(href);
+      if (onNavigate) onNavigate(href);
+      else router.push(href);
       onClose();
     },
-    [onNavigate, onClose],
+    [onNavigate, onClose, router],
   );
 
   // Focus trap + scroll lock + Esc.
@@ -70,9 +72,12 @@ export function EraNavOverlay({ open, onClose, onNavigate }: EraNavOverlayProps)
       if (e.key !== "Tab") return;
       const el = ref.current;
       if (!el) return;
-      const nodes = Array.from(
-        el.querySelectorAll<HTMLElement>("a, button, [href], [tabindex]:not([tabindex='-1'])"),
-      ).filter((n) => !n.hasAttribute("disabled") && n.offsetParent !== null);
+      // The bar's menu toggle (now showing ✕) is the close control, so it joins the loop.
+      const toggle = document.querySelector<HTMLElement>('[aria-controls="site-mobile-menu"]');
+      const nodes = [
+        ...(toggle ? [toggle] : []),
+        ...Array.from(el.querySelectorAll<HTMLElement>("a, button, [href], [tabindex]:not([tabindex='-1'])")),
+      ].filter((n) => !n.hasAttribute("disabled") && n.offsetParent !== null);
       if (nodes.length === 0) return;
       const first = nodes[0];
       const last = nodes[nodes.length - 1];
@@ -105,7 +110,7 @@ export function EraNavOverlay({ open, onClose, onNavigate }: EraNavOverlayProps)
           role="dialog"
           aria-modal="true"
           aria-label={`${eraName} navigation`}
-          className="pointer-events-auto fixed inset-x-0 bottom-0 z-[94] flex flex-col md:hidden"
+          className="pointer-events-auto fixed inset-x-0 bottom-0 z-[94] flex flex-col min-[1100px]:hidden"
           style={{
             top: "var(--simple-game-nav-bottom, 64px)",
             background: "color-mix(in srgb, var(--nav-surface) 96%, transparent)",
@@ -117,9 +122,9 @@ export function EraNavOverlay({ open, onClose, onNavigate }: EraNavOverlayProps)
           exit={{ opacity: 0 }}
           transition={{ duration: reduce ? 0.12 : 0.22, ease: EASE_OUT }}
         >
-          {/* Era-labeled header + close. */}
+          {/* Era label. Closing lives on the bar's toggle (✕) and Esc — one close control, not two. */}
           <div
-            className="flex shrink-0 items-center justify-between border-b px-5 py-2"
+            className="flex shrink-0 items-center border-b px-5 py-2.5"
             style={{ borderColor: "color-mix(in srgb, var(--nav-text) 18%, transparent)" }}
           >
             <span
@@ -128,15 +133,6 @@ export function EraNavOverlay({ open, onClose, onNavigate }: EraNavOverlayProps)
             >
               {eraId} · {eraName}
             </span>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Close menu"
-              className="pointer-events-auto flex h-9 w-9 items-center justify-center border"
-              style={{ borderColor: "color-mix(in srgb, var(--nav-text) 22%, transparent)", color: "var(--nav-text)" }}
-            >
-              ✕
-            </button>
           </div>
 
           {/* Era game fills the rest. */}

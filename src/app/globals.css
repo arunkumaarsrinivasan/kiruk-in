@@ -289,11 +289,6 @@ html[data-notebook-skin='paper'],
   pointer-events: auto;
 }
 
-.era-toc-back {
-  top: var(--toc-below-nav);
-  left: var(--toc-inset-x);
-}
-
 .era-toc-share {
   left: var(--toc-inset-x);
   bottom: var(--toc-inset-y);
@@ -545,28 +540,38 @@ html[data-notebook-skin='paper'],
     inset: auto;
   }
 
-  .era-toc-back {
-    top: var(--toc-below-nav);
-    left: var(--toc-inset-x);
+  /* Ground the bottom action row so it never sits on bare body text. */
+  .era-toc-acts::before {
+    content: "";
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 22;
+    height: calc(3.75rem + env(safe-area-inset-bottom, 0px));
+    background: linear-gradient(to bottom, transparent, var(--bg-main) 45%);
+    pointer-events: none;
   }
 
+  /* Phones: every action lives in one bottom row, never over the headline. */
   .era-toc-md-group {
-    top: var(--toc-below-nav);
-    right: max(1rem, env(safe-area-inset-right, 0px) + 0.75rem);
-    gap: 0;
+    top: auto;
+    right: auto;
+    bottom: var(--toc-inset-y);
+    left: calc(var(--toc-inset-x) + 3.4rem);
+    flex-direction: row;
+    align-items: center;
+    gap: 0.35rem;
   }
 
+  .era-toc-act,
   .era-toc-md-group .era-toc-act {
-    min-height: 1.85rem;
-    padding: 0.3rem 0.2rem;
+    min-height: 2.75rem;
+    padding: 0.3rem 0.35rem;
     font-size: 0.68rem;
   }
 
-  /* Keep share out of the hero — sit under ← all pages. */
   .era-toc-share {
-    top: calc(var(--toc-below-nav) + 2.2rem);
     left: var(--toc-inset-x);
-    bottom: auto;
+    bottom: var(--toc-inset-y);
     z-index: 25;
   }
 
@@ -2644,7 +2649,7 @@ body[data-era='1970'], [data-era-surface='1970'] {
   }
 }
 
-/* 1981: Xerox Alto GUI */
+/* 1981: Xerox Star & early GUI — gray bevel desktop, navy title bars */
 body[data-era='1981'], [data-era-surface='1981'] {
   --bg-main: #c0c0c0;
   --bg-card: #c0c0c0;
@@ -2686,31 +2691,6 @@ body[data-era='1991'], [data-era-surface='1991'] {
   --font-heading: 'Times New Roman', 'Iowan Old Style', Georgia, serif;
   --accent-color: #0000ee;
   --btn-hover-transform: none;
-  --grid-opacity: 0;
-
-  --notepad-bg: #ffffff;
-  --notepad-border: #000000;
-  --notepad-text: #000000;
-  --notepad-inner-bg: #ffffff;
-}
-
-/* 1993: Mosaic & Netscape */
-body[data-era='1993'], [data-era-surface='1993'] {
-  --bg-main: #c0c0c0;
-  --bg-card: #ffffff;
-  --text-main: #000000;
-  --text-muted: #444444;
-  --border-color: #000000;
-  --border-width: 2px;
-  --border-radius: 0px;
-  --shadow-color: #000000;
-  --shadow-offset-x: 2px;
-  --shadow-offset-y: 2px;
-  --shadow-blur: 0px;
-  --font-main: 'Arial', 'Helvetica', sans-serif;
-  --font-heading: '"Arial Black"', 'Impact', 'Arial', sans-serif;
-  --accent-color: #0000ff;
-  --btn-hover-transform: translate(1px, 1px);
   --grid-opacity: 0;
 
   --notepad-bg: #ffffff;
@@ -2775,32 +2755,32 @@ body[data-era='1997'], [data-era-surface='1997'] {
   --notepad-inner-bg: #faf5e6;
 }
 
-/* 2000: Macromedia Flash / Y2K Chrome */
+/* 2000: The search box — white page, blue links, green URLs */
 body[data-era='2000'], [data-era-surface='2000'] {
-  --bg-main: #0a1428;
-  --bg-card: #1a2942;
-  --text-main: #e8f1ff;
-  --text-muted: #9bb3d4;
-  --border-color: #4a6ea3;
+  --bg-main: #ffffff;
+  --bg-card: #ffffff;
+  --text-main: #000000;
+  --text-muted: #676767;
+  --nav-surface: #ffffff;
+  --nav-text: #000000;
+  --nav-text-muted: #676767;
+  --border-color: #c9d7f1;
   --border-width: 1px;
-  --border-radius: 8px;
-  --shadow-color: rgba(43, 216, 255, 0.25);
+  --border-radius: 0px;
+  --shadow-color: transparent;
   --shadow-offset-x: 0px;
   --shadow-offset-y: 0px;
-  --shadow-blur: 18px;
-  --font-main: 'Trebuchet MS', 'Verdana', 'Helvetica Neue', sans-serif;
-  --font-heading: 'Trebuchet MS', 'Verdana', 'Helvetica Neue', sans-serif;
-  --accent-color: #2bd8ff;
-  --nav-surface: #0f1a30;
-  --nav-text: #e8f1ff;
-  --nav-text-muted: #9bb3d4;
-  --btn-hover-transform: translateY(-1px);
+  --shadow-blur: 0px;
+  --font-main: Arial, 'Helvetica', sans-serif;
+  --font-heading: Arial, 'Helvetica', sans-serif;
+  --accent-color: #0000cc;
+  --btn-hover-transform: none;
   --grid-opacity: 0;
 
-  --notepad-bg: #1a2942;
-  --notepad-border: #2bd8ff;
-  --notepad-text: #e8f1ff;
-  --notepad-inner-bg: #0f1d36;
+  --notepad-bg: #ffffff;
+  --notepad-border: #c9d7f1;
+  --notepad-text: #000000;
+  --notepad-inner-bg: #ffffff;
 }
 
 /* 2003: MySpace · Web 2.0 social profile */
@@ -2826,31 +2806,6 @@ body[data-era='2003'], [data-era-surface='2003'] {
   --notepad-border: #003366;
   --notepad-text: #1a1a1a;
   --notepad-inner-bg: #f4f8ff;
-}
-
-/* 2006: Digg-style link aggregator (vote arrows + threads) */
-body[data-era='2006'], [data-era-surface='2006'] {
-  --bg-main: #f6f6ef;
-  --bg-card: #ffffff;
-  --text-main: #1a1a1a;
-  --text-muted: #555555;
-  --border-color: #d8d8c8;
-  --border-width: 1px;
-  --border-radius: 3px;
-  --shadow-color: rgba(0, 0, 0, 0.08);
-  --shadow-offset-x: 0px;
-  --shadow-offset-y: 1px;
-  --shadow-blur: 3px;
-  --font-main: 'Verdana', 'Geneva', 'Arial', sans-serif;
-  --font-heading: 'Verdana', 'Geneva', 'Arial', sans-serif;
-  --accent-color: #ee7600;
-  --btn-hover-transform: translateY(-1px);
-  --grid-opacity: 0;
-
-  --notepad-bg: #ffffff;
-  --notepad-border: #d8d8c8;
-  --notepad-text: #1a1a1a;
-  --notepad-inner-bg: #fafaf3;
 }
 
 /* 2009: iPhone OS 3 · skeuomorphic */
@@ -2906,113 +2861,32 @@ body[data-era='2013'], [data-era-surface='2013'] {
   --notepad-inner-bg: #f9f9fb;
 }
 
-/* 2018: Accessibility & Dark Prep */
-body[data-era='2018'], [data-era-surface='2018'] {
-  --bg-main: #ffffff;
-  --bg-card: #f5f5f5;
-  --text-main: #111111;
-  --text-muted: #3d3d3d;
-  --border-color: #1976d2;
-  --border-width: 2px;
-  --border-radius: 0px;
-  --shadow-color: rgba(0, 0, 0, 0.15);
-  --shadow-offset-x: 0px;
-  --shadow-offset-y: 8px;
-  --shadow-blur: 20px;
-  --font-main: 'system-ui', '-apple-system', sans-serif;
-  --font-heading: 'system-ui', '-apple-system', sans-serif;
-  --accent-color: #dc3545;
-  --btn-hover-transform: translateY(-1px);
-  --grid-opacity: 0;
-
-  --notepad-bg: #ffffff;
-  --notepad-border: #1976d2;
-  --notepad-text: #111111;
-  --notepad-inner-bg: #f2f6ff;
-}
-
-/* 2021: Linear-style issue tracker */
-body[data-era='2021'], [data-era-surface='2021'] {
-  --bg-main: #08090a;
-  --bg-card: #16171a;
-  --text-main: #f7f7f8;
-  --text-muted: #9095a0;
-  --border-color: #25262c;
-  --border-width: 1px;
-  --border-radius: 6px;
-  --shadow-color: rgba(94, 106, 210, 0.25);
-  --shadow-offset-x: 0px;
-  --shadow-offset-y: 4px;
-  --shadow-blur: 14px;
-  --font-main: 'Inter', '-apple-system', 'system-ui', sans-serif;
-  --font-heading: 'Inter', '-apple-system', 'system-ui', sans-serif;
-  --accent-color: #5e6ad2;
-  --nav-surface: #121316;
-  --nav-text: #f7f7f8;
-  --nav-text-muted: #a8adb8;
-  --btn-hover-transform: translateY(-1px);
-  --grid-opacity: 0;
-
-  --notepad-bg: #16171a;
-  --notepad-border: #25262c;
-  --notepad-text: #f7f7f8;
-  --notepad-inner-bg: #1d1e21;
-}
-
-/* 2023: AI-Native Interfaces */
-body[data-era='2023'], [data-era-surface='2023'] {
-  --bg-main: #0c0a1d;
-  --bg-card: #14112e;
-  --text-main: #f1f5f9;
-  --text-muted: #b3a9d9;
-  --border-color: rgba(168, 85, 247, 0.35);
-  --border-width: 1px;
-  --border-radius: 18px;
-  --shadow-color: rgba(168, 85, 247, 0.40);
-  --shadow-offset-x: 0px;
-  --shadow-offset-y: 16px;
-  --shadow-blur: 40px;
-  --font-main: 'General Sans', 'DM Sans', sans-serif;
-  --font-heading: 'Clash Display', 'Satoshi', sans-serif;
-  --accent-color: #a855f7;
-  --nav-surface: #0e0b22;
-  --nav-text: #f1f5f9;
-  --nav-text-muted: #c4b8e8;
-  --btn-hover-transform: translateY(-2px);
-  --grid-opacity: 0;
-
-  --notepad-bg: #14112e;
-  --notepad-border: rgba(168, 85, 247, 0.35);
-  --notepad-text: #f1f5f9;
-  --notepad-inner-bg: #0c0a1d;
-}
-
-/* 2026: Agentic Mission Control */
+/* 2026: The Pupil — one eye in a dark room */
 body[data-era='2026'], [data-era-surface='2026'] {
-  --bg-main: #070809;
-  --bg-card: rgba(255, 255, 255, 0.035);
-  --text-main: #e9f0ee;
-  --text-muted: rgba(233, 240, 238, 0.58);
-  --nav-surface: #0e1012;
-  --nav-text: #e9f0ee;
-  --nav-text-muted: rgba(233, 240, 238, 0.72);
-  --border-color: rgba(94, 234, 212, 0.22);
+  --bg-main: #060606;
+  --bg-card: #101012;
+  --text-main: #ecebe8;
+  --text-muted: #8d8a84;
+  --nav-surface: #060606;
+  --nav-text: #ecebe8;
+  --nav-text-muted: #8d8a84;
+  --border-color: #232326;
   --border-width: 1px;
   --border-radius: 14px;
-  --shadow-color: rgba(94, 234, 212, 0.18);
+  --shadow-color: rgba(0, 0, 0, 0.6);
   --shadow-offset-x: 0px;
-  --shadow-offset-y: 18px;
-  --shadow-blur: 50px;
-  --font-main: 'Geist', 'Inter', sans-serif;
-  --font-heading: 'Geist', 'Inter', sans-serif;
-  --accent-color: #5eead4;
-  --btn-hover-transform: translateY(-2px);
+  --shadow-offset-y: 1px;
+  --shadow-blur: 2px;
+  --font-main: 'Geist', 'Helvetica Neue', sans-serif;
+  --font-heading: 'Geist', 'Helvetica Neue', sans-serif;
+  --accent-color: #e9dcc6;
+  --btn-hover-transform: none;
   --grid-opacity: 0;
 
-  --notepad-bg: rgba(255, 255, 255, 0.035);
-  --notepad-border: rgba(94, 234, 212, 0.3);
-  --notepad-text: #e9f0ee;
-  --notepad-inner-bg: rgba(255, 255, 255, 0.05);
+  --notepad-bg: #101012;
+  --notepad-border: #232326;
+  --notepad-text: #ecebe8;
+  --notepad-inner-bg: #151517;
 }
 
 /* =========================================
@@ -3182,6 +3056,132 @@ html[data-era-picker-active] [role="button"] {
 
 .site-nav-link:focus-visible .site-nav-link-line {
   transform: scaleX(1);
+}
+
+/* Era stepper capsule — ‹ year › */
+.time-stepper-step,
+.time-stepper-center {
+  touch-action: manipulation;
+  transition: background-color 150ms ease-out;
+}
+
+.time-stepper-caret {
+  display: inline-block;
+  transition: rotate 180ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.time-stepper-step:not(:disabled):active,
+.time-stepper-center:active {
+  background: color-mix(in srgb, var(--nav-text) 14%, transparent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .time-stepper-step:not(:disabled):hover,
+  .time-stepper-center:hover {
+    background: color-mix(in srgb, var(--nav-text) 8%, transparent);
+  }
+}
+
+/* Eye nav — the lids frame the page; nav items ride them */
+#main-content {
+  padding-bottom: var(--eye-lid-bottom, 0px);
+}
+
+.eye-lids {
+  filter: drop-shadow(0 0 18px rgb(0 0 0 / 0.22));
+}
+
+.eye-nav .eye-fade {
+  transition: opacity 200ms ease-out;
+}
+
+.eye-nav[data-wide="1"] .eye-fade {
+  opacity: 0;
+}
+
+.eye-nav[data-wide="1"] .eye-fade,
+.eye-nav[data-wide="1"] .eye-fade * {
+  pointer-events: none !important;
+}
+
+.eye-year {
+  touch-action: manipulation;
+  transition: background-color 150ms ease-out, color 150ms ease-out;
+}
+
+.eye-year:focus-visible {
+  box-shadow: 0 0 0 2px var(--accent-color);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .eye-year:not([aria-pressed="true"]):hover {
+    background: color-mix(in srgb, var(--nav-text) 12%, transparent);
+    color: var(--nav-text) !important;
+  }
+}
+
+/* Era rail — every year inline in the bar */
+.era-rail-year {
+  touch-action: manipulation;
+  transition: color 150ms ease-out;
+}
+
+.era-rail-year:not([aria-pressed="true"]):active {
+  background: color-mix(in srgb, var(--nav-text) 14%, transparent);
+}
+
+.era-rail-year:focus-visible {
+  box-shadow: 0 0 0 2px var(--accent-color);
+}
+
+.era-rail-tip {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 120ms ease-out, visibility 0s linear 120ms;
+}
+
+.era-rail-year:focus-visible .era-rail-tip {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .era-rail-year:not([aria-pressed="true"]):hover {
+    color: var(--nav-text) !important;
+    background: color-mix(in srgb, var(--nav-text) 9%, transparent);
+  }
+
+  .era-rail-year:hover .era-rail-tip {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s;
+  }
+}
+
+/* Trail — "Work / Spera" after the brand */
+.site-trail-link {
+  color: var(--nav-text-muted);
+  transition: color 150ms ease-out;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .site-trail-link:hover {
+    color: var(--accent-color);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .time-stepper-caret,
+  .time-stepper-step,
+  .time-stepper-center,
+  .site-trail-link,
+  .era-rail-year,
+  .era-rail-tip,
+  .eye-nav .eye-fade,
+  .eye-year {
+    transition: none;
+  }
 }
 
 html {

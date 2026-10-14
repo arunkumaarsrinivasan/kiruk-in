@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
-
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ??
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://kiruk.in");
+import { SITE_URL } from "@/lib/site";
 
 const TITLE = "Contact Kiruk — Hire a design engineer in Bengaluru, India";
 const DESCRIPTION =
@@ -25,6 +22,27 @@ export const metadata: Metadata = {
   },
 };
 
+const contactJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "ContactPage",
+  "@id": `${SITE_URL}/contact#page`,
+  url: `${SITE_URL}/contact`,
+  name: TITLE,
+  description: DESCRIPTION,
+  isPartOf: { "@id": `${SITE_URL}/#website` },
+  about: { "@id": `${SITE_URL}/#person` },
+  mainEntity: { "@id": `${SITE_URL}/#person` },
+};
+
 export default function ContactLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return (
+    <>
+      <p className="sr-only">{DESCRIPTION}</p>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(contactJsonLd) }}
+      />
+      {children}
+    </>
+  );
 }

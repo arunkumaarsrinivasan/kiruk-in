@@ -78,7 +78,6 @@ const getShaderEffectsForEra = (eraId: string): ShaderEffectConfig => {
             };
 
         case '1991':
-        case '1993':
             return {
                 ...baseConfig,
                 dithering: true,
@@ -103,9 +102,7 @@ const getShaderEffectsForEra = (eraId: string): ShaderEffectConfig => {
             };
 
         case '2020':
-        case '2021':
         case '2022':
-        case '2023':
         case '2024':
             return {
                 ...baseConfig,

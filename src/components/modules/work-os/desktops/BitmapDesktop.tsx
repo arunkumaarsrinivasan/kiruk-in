@@ -1,25 +1,33 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Pixelify_Sans } from "next/font/google";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { isProjectNda } from "@/data/project-media";
 import { WindowFrame } from "../WindowFrame";
-import { buildWorkDir, linkGlyph } from "../work-fs";
+import { buildWorkDir, findDir, linkGlyph } from "../work-fs";
 import type { DirNode, DocNode, FsNode } from "../work-fs";
 import { DocBody } from "../DocBody";
-import type { DesktopEra, Project } from "../types";
+import { useFocusProject } from "../use-focus-project";
+import type { DesktopEra, DesktopProps } from "../types";
+
+const pixelify = Pixelify_Sans({ weight: ["400", "700"], subsets: ["latin"], display: "swap" });
+
+const CATEGORY_LABEL: Record<string, string> = { ai: "AI", web: "Web", mobile: "Mobile", design: "Design" };
 
 interface MacWin {
   key: string;
-  kind: "folder" | "doc";
+  kind: "folder" | "doc" | "about";
   title: string;
-  node: DirNode | DocNode;
+  node?: DirNode | DocNode;
   x: number;
   y: number;
   z: number;
 }
 
 /** 1984 — Macintosh System. Finder: open folders into windows, files into a viewer. */
-export function BitmapDesktop({ era, projects }: { era: DesktopEra; projects: Project[] }) {
+export function BitmapDesktop({ era: baseEra, projects, focusId }: DesktopProps) {
+  // Chrome in a bitmap face; long-form doc text stays in Geneva for reading.
+  const era = useMemo(() => ({ ...baseEra, fontUi: `${pixelify.style.fontFamily}, ${baseEra.fontUi}` }), [baseEra]);
   const t = era.tokens;
   const stageRef = useRef<HTMLDivElement>(null);
   const work = useRef<DirNode>(buildWorkDir(projects, era.id));
@@ -43,6 +51,16 @@ export function BitmapDesktop({ era, projects }: { era: DesktopEra; projects: Pr
     else globalThis.open(node.href, "_blank", "noopener,noreferrer");
   };
 
+  const openAbout = () => {
+    z.current += 1;
+    const nz = z.current;
+    setWins((w) =>
+      w.some((x) => x.kind === "about")
+        ? w.map((x) => (x.kind === "about" ? { ...x, z: nz } : x))
+        : [...w, { key: "about", kind: "about", title: "About This Work", x: 120, y: 60, z: nz }],
+    );
+  };
+
   const focus = (key: string) => {
     z.current += 1;
     setWins((w) => w.map((x) => (x.key === key ? { ...x, z: z.current } : x)));
@@ -57,13 +75,17 @@ export function BitmapDesktop({ era, projects }: { era: DesktopEra; projects: Pr
     z.current = 10;
   }, [projects]);
 
+  useFocusProject(focusId, (id) => { const d = findDir(work.current, [id]); if (d) addWin("folder", d); });
+
   return (
     <div className="flex h-full flex-col" style={{ fontFamily: era.fontUi, color: "#000" }}>
       {/* menu bar */}
       <div className="flex items-center gap-4 px-3 py-1 text-[13px] font-bold" style={{ background: "#fff", borderBottom: "2px solid #000" }}>
-        <span aria-hidden></span>
+        <button type="button" onClick={openAbout} aria-label="About This Work" className="-mx-1 grid h-5 place-items-center px-1 hover:bg-black hover:text-white">
+          <KMark />
+        </button>
         {["File", "Edit", "View", "Special"].map((m) => (
-          <span key={m}>{m}</span>
+          <span key={m} aria-hidden>{m}</span>
         ))}
         <span className="ml-auto font-normal">{era.brand}</span>
       </div>
@@ -82,7 +104,7 @@ export function BitmapDesktop({ era, projects }: { era: DesktopEra; projects: Pr
               <rect x="10" y="10" width="26" height="6" fill="#000" />
               <path d="M10 23h26" stroke="#000" strokeWidth="1.5" />
             </svg>
-            <span className="px-1 text-[11px] font-bold group-hover:bg-black group-hover:text-white">Work</span>
+            <span className="px-1 text-[11px] font-bold group-hover:bg-black group-focus-visible:bg-black group-hover:text-white group-focus-visible:text-white">Work</span>
           </button>
           <div className="flex flex-col items-center gap-0.5">
             <svg width="34" height="36" viewBox="0 0 34 36" aria-hidden>
@@ -98,7 +120,7 @@ export function BitmapDesktop({ era, projects }: { era: DesktopEra; projects: Pr
           <WindowFrame
             key={w.key}
             era={era}
-            title={w.kind === "folder" ? `📁 ${w.title}` : `📄 ${w.title}`}
+            title={w.title}
             z={w.z}
             x={w.x}
             y={w.y}
@@ -106,7 +128,9 @@ export function BitmapDesktop({ era, projects }: { era: DesktopEra; projects: Pr
             onFocus={() => focus(w.key)}
             dragConstraints={stageRef}
           >
-            {w.kind === "folder" ? (
+            {w.kind === "about" ? (
+              <AboutView projects={projects} />
+            ) : w.kind === "folder" ? (
               <FinderView dir={w.node as DirNode} onOpen={openNode} />
             ) : (
               <DocView doc={w.node as DocNode} t={t} />
@@ -127,7 +151,7 @@ function FinderView({ dir, onOpen }: { dir: DirNode; onOpen: (n: FsNode) => void
         <span>{dir.children.length} items</span>
         <span className="opacity-60">{dir.project ? dir.project.category : "Macintosh HD"}</span>
       </div>
-      <div className="grid grid-cols-3 gap-1 py-1">
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(88px,1fr))] gap-1 py-1">
         {dir.children.map((n) => (
           <FinderIcon key={n.name} node={n} onOpen={() => onOpen(n)} />
         ))}
@@ -144,7 +168,7 @@ function FinderIcon({ node, onOpen }: { node: FsNode; onOpen: () => void }) {
         <NodeGlyph node={node} />
         {nda ? <span className="absolute -right-1 -top-1 bg-black px-0.5 text-[7px] font-bold text-white">NDA</span> : null}
       </span>
-      <span className="line-clamp-2 px-0.5 text-[10px] font-bold leading-tight group-hover:bg-black group-hover:text-white">
+      <span className="line-clamp-2 px-0.5 text-[11px] leading-tight group-hover:bg-black group-focus-visible:bg-black group-hover:text-white group-focus-visible:text-white">
         {node.kind === "dir" ? node.label : node.name}
       </span>
     </button>
@@ -172,6 +196,46 @@ function NodeGlyph({ node }: { node: FsNode }) {
       <path d="M19 2v7h7" fill="none" stroke="#000" strokeWidth="1.5" />
       <path d="M8 15h14M8 20h14M8 25h9" stroke="#000" strokeWidth="1.2" />
     </svg>
+  );
+}
+
+/* ── Menu-bar mark: a 1-bit "k" drawn on the 7×9 grid ──────────────────── */
+
+function KMark() {
+  const px = ["X....X.", "X...X..", "X..X...", "X.X....", "XX.....", "X.X....", "X..X...", "X...X..", "X....X."];
+  return (
+    <svg width="11" height="14" viewBox="0 0 7 9" shapeRendering="crispEdges" aria-hidden>
+      {px.flatMap((row, y) => [...row].map((c, x) => (c === "X" ? <rect key={`${x}-${y}`} x={x} y={y} width="1" height="1" fill="currentColor" /> : null)))}
+    </svg>
+  );
+}
+
+/* ── About This Work: the "About This Macintosh" memory bars, but for work ── */
+
+function AboutView({ projects }: { projects: DesktopProps["projects"] }) {
+  const counts = projects.reduce<Record<string, number>>((acc, p) => ({ ...acc, [p.category]: (acc[p.category] ?? 0) + 1 }), {});
+  const max = Math.max(...Object.values(counts));
+  return (
+    <div className="px-4 py-3 text-[12px]" style={{ color: "#000" }}>
+      <div className="mb-3 flex items-center gap-3 border-b-2 border-black pb-2">
+        <span className="grid h-9 w-9 place-items-center border-2 border-black"><KMark /></span>
+        <div>
+          <p className="font-bold">Kiruk Studio Work Disk</p>
+          <p>{projects.length} projects · design engineering</p>
+        </div>
+      </div>
+      <ul className="flex flex-col gap-1.5">
+        {Object.entries(counts).map(([cat, n]) => (
+          <li key={cat} className="grid grid-cols-[7ch_1fr_3ch] items-center gap-2">
+            <span>{CATEGORY_LABEL[cat] ?? cat}</span>
+            <span className="h-3 border border-black" aria-hidden>
+              <span className="block h-full" style={{ width: `${(n / max) * 100}%`, background: "repeating-linear-gradient(45deg, #000 0 1px, #fff 1px 3px)" }} />
+            </span>
+            <span className="text-right tabular-nums">{n}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 

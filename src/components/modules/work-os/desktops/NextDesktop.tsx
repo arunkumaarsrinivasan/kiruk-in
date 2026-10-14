@@ -2,17 +2,18 @@
 
 import { useMemo, useState } from "react";
 import { isProjectNda } from "@/data/project-media";
-import { buildWorkDir, linkGlyph } from "../work-fs";
+import { buildWorkDir, findDir, linkGlyph } from "../work-fs";
 import type { DirNode, DocNode, FsNode, LinkNode } from "../work-fs";
 import { monogram } from "../helpers";
 import { DocBody } from "../DocBody";
-import type { DesktopEra, Project } from "../types";
+import { useFocusProject } from "../use-focus-project";
+import type { DesktopEra, DesktopProps, Project } from "../types";
 
 const BEVEL = "inset 1px 1px 0 #f0f0f4, inset -1px -1px 0 #6a6a70";
 const TITLE_DIMPLE = "repeating-linear-gradient(#7a7a82 0 1px, #4e4e54 1px 2px)";
 
 /** 1991 — NeXTSTEP. Detached vertical menu, File Viewer shelf + column browser. */
-export function NextDesktop({ era, projects }: { era: DesktopEra; projects: Project[] }) {
+export function NextDesktop({ era, projects, focusId }: DesktopProps) {
   const t = era.tokens;
   const root = useMemo(() => buildWorkDir(projects, era.id), [projects]);
   const [proj, setProj] = useState<DirNode | null>(null);
@@ -20,8 +21,11 @@ export function NextDesktop({ era, projects }: { era: DesktopEra; projects: Proj
 
   const selectProject = (d: DirNode) => {
     setProj(d);
-    setFile(null);
+    // Preview the readme straight away so the third column is never blank.
+    setFile(d.children.find((c) => c.kind === "doc") ?? null);
   };
+
+  useFocusProject(focusId, (id) => { const d = findDir(root, [id]); if (d) selectProject(d); });
 
   return (
     <div className="relative h-full overflow-hidden" style={{ fontFamily: era.fontUi, background: t.wallpaper }}>
@@ -30,7 +34,7 @@ export function NextDesktop({ era, projects }: { era: DesktopEra; projects: Proj
       ) : null}
 
       {/* File Viewer — fills the workspace */}
-      <div className="absolute left-3 right-[112px] top-3 bottom-3 flex flex-col" style={{ background: t.surface, boxShadow: `${BEVEL}, 6px 6px 0 rgba(0,0,0,0.45)` }}>
+      <div className="absolute bottom-2 left-2 right-2 top-2 flex flex-col sm:bottom-3 sm:left-3 sm:right-[112px] sm:top-3" style={{ background: t.surface, boxShadow: `${BEVEL}, 6px 6px 0 rgba(0,0,0,0.45)` }}>
         {/* dimpled title bar with working menu */}
         <div className="flex items-center gap-2 px-2 py-1" style={{ background: TITLE_DIMPLE }}>
           <span className="h-3 w-3" style={{ background: t.surface, boxShadow: BEVEL }} />
@@ -51,7 +55,11 @@ export function NextDesktop({ era, projects }: { era: DesktopEra; projects: Proj
         </div>
 
         {/* columns */}
-        <div className="grid min-h-0 flex-1 grid-cols-3" style={{ borderTop: "1px solid #6a6a70" }}>
+        <div
+          className="grid min-h-0 flex-1 grid-cols-1 grid-rows-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,2fr)] sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,2fr)] sm:grid-rows-1"
+          style={{ borderTop: "1px solid #6a6a70" }}
+          onKeyDown={browseKeys}
+        >
           <Column border>
             {root.children.map((d) => (
               <Row key={d.name} active={proj?.name === d.name} accent={t.accent} text={t.text} onClick={() => selectProject(d as DirNode)}>
@@ -88,8 +96,8 @@ export function NextDesktop({ era, projects }: { era: DesktopEra; projects: Proj
       </div>
 
       {/* right-edge dock */}
-      <div className="absolute right-0 top-0 z-[2] flex h-full w-[104px] flex-col items-center gap-2.5 overflow-y-auto px-2 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" style={{ background: "#1a1a1c", borderLeft: "2px solid #000" }}>
-        <span className="text-[9px] font-bold uppercase tracking-[0.22em]" style={{ color: "#8a8a92" }}>Projects</span>
+      <div className="absolute right-0 top-0 z-[2] hidden h-full w-[104px] flex-col sm:flex items-center gap-2.5 overflow-y-auto px-2 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" style={{ background: "#1a1a1c", borderLeft: "2px solid #000" }}>
+        <span className="text-[10px] font-bold uppercase tracking-[0.22em]" style={{ color: "#8a8a92" }}>Projects</span>
         {root.children.map((d) => {
           const p = (d as DirNode).project as Project;
           const on = proj?.name === d.name;
@@ -103,7 +111,7 @@ export function NextDesktop({ era, projects }: { era: DesktopEra; projects: Proj
                 <span className="absolute inset-x-0 bottom-0 h-1.5" style={{ background: cat }} />
                 {isProjectNda(p.id) ? <span className="absolute right-0 top-0 bg-black px-0.5 text-[7px] font-bold text-white">NDA</span> : null}
               </span>
-              <span className="w-full truncate text-center text-[9px] leading-tight" style={{ color: on ? t.accent : "#c8c8ce" }}>{(d as DirNode).label}</span>
+              <span className="w-full truncate text-center text-[10px] leading-tight" style={{ color: on ? t.accent : "#c8c8ce" }}>{(d as DirNode).label}</span>
             </button>
           );
         })}
@@ -148,12 +156,43 @@ function ShelfIcon({ glyph, label, active, accent, onClick, t }: { glyph: React.
 }
 
 function Column({ children, border }: { children: React.ReactNode; border?: boolean }) {
-  return <div className="min-h-0 overflow-y-auto py-0.5 [scrollbar-width:thin]" style={border ? { borderRight: "1px solid #6a6a70" } : undefined}>{children}</div>;
+  return (
+    <div
+      data-column
+      className={`min-h-0 overflow-y-auto py-0.5 [scrollbar-width:thin] ${border ? "border-b border-[#6a6a70] sm:border-b-0 sm:border-r" : ""}`}
+    >
+      {children}
+    </div>
+  );
+}
+
+/** NeXT browser keys: ↑/↓ move within a column (and select), ←/→ hop between columns. */
+function browseKeys(e: React.KeyboardEvent<HTMLDivElement>) {
+  const cols = [...e.currentTarget.querySelectorAll<HTMLElement>("[data-column]")];
+  const col = cols.findIndex((c) => c.contains(document.activeElement));
+  if (col < 0) return;
+  const rows = (i: number) => [...cols[i].querySelectorAll<HTMLButtonElement>("button")];
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    const list = rows(col);
+    const next = list[list.indexOf(document.activeElement as HTMLButtonElement) + (e.key === "ArrowDown" ? 1 : -1)];
+    if (!next) return;
+    e.preventDefault();
+    next.focus();
+    next.click();
+  } else if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+    const target = cols[col + (e.key === "ArrowRight" ? 1 : -1)];
+    if (!target) return;
+    const list = rows(cols.indexOf(target));
+    const next = list.find((b) => b.getAttribute("aria-current")) ?? list[0];
+    if (!next) return;
+    e.preventDefault();
+    next.focus();
+  }
 }
 
 function Row({ children, active, accent, text, onClick, onDouble }: { children: React.ReactNode; active: boolean; accent: string; text: string; onClick: () => void; onDouble?: () => void }) {
   return (
-    <button type="button" onClick={onClick} onDoubleClick={onDouble} className="flex w-full items-center gap-1.5 px-2 py-[5px] text-left text-[12px]" style={{ background: active ? accent : "transparent", color: active ? "#fff" : text }}>
+    <button type="button" onClick={onClick} onDoubleClick={onDouble} aria-current={active || undefined} className="flex w-full items-center gap-1.5 px-2 py-[5px] text-left text-[12px]" style={{ background: active ? accent : "transparent", color: active ? "#fff" : text }}>
       {children}
     </button>
   );
@@ -173,8 +212,8 @@ function Preview({ node, t }: { node: FsNode | null; t: DesktopEra["tokens"] }) 
   }
   const doc = node as DocNode;
   return (
-    <div className="px-3 py-2">
-      <p className="mb-1.5 border-b border-[#ccc] pb-1 text-[12px] font-bold" style={{ color: "#000" }}>{doc.name}</p>
+    <div className="max-w-[68ch] px-5 py-4">
+      <p className="mb-2 border-b border-[#ccc] pb-1 text-[12px] font-bold" style={{ color: "#000" }}>{doc.name}</p>
       <DocBody lines={doc.lines} skin="classic" t={t} />
     </div>
   );

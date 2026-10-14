@@ -22,7 +22,8 @@ function parse(lines: string[]): Block[] {
     if (/^\[.*\]$/.test(trimmed)) { out.push({ type: "note", text: trimmed.replace(/^\[\s?|\s?\]$/g, "") }); return; }
     if (/^[-•]\s+/.test(trimmed)) { out.push({ type: "bullet", text: trimmed.replace(/^[-•]\s+/, "") }); return; }
     if (/:$/.test(trimmed)) { out.push({ type: "heading", text: trimmed.replace(/:$/, "") }); return; }
-    const field = trimmed.match(/^([A-Za-z][\w ]*?):\s+(.+)$/);
+    // short labels only ("Role:", "Duration:") — a sentence with a colon is prose, not a field
+    const field = trimmed.match(/^([A-Za-z][\w]*(?: [\w]+){0,2}):\s+(.+)$/);
     if (field) { out.push({ type: "field", text: trimmed, key: field[1], value: field[2] }); return; }
     out.push({ type: "para", text: trimmed });
   });

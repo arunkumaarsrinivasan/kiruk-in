@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { ModuleOverlayHost } from "@/components/modules/ModuleOverlay";
 import { Navbar } from "./Navbar";
+import { NavTrailProvider } from "./NavTrail";
 import { EraTravelProvider } from "@/components/era-travel/EraTravelContext";
 import AppLoader from "@/components/ui/app-loader";
 import DetectiveStoryWrapper from "./DetectiveStoryWrapper";
@@ -29,6 +30,14 @@ interface LayoutClientShellProps {
 }
 
 export default function LayoutClientShell({ children }: Readonly<LayoutClientShellProps>) {
+  return (
+    <NavTrailProvider>
+      <ShellInner>{children}</ShellInner>
+    </NavTrailProvider>
+  );
+}
+
+function ShellInner({ children }: Readonly<LayoutClientShellProps>) {
   const pathname = usePathname();
   const { isSplitMode } = useLayoutMode();
 

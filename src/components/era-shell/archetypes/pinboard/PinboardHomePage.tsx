@@ -1507,7 +1507,7 @@ export function PinboardHomePage() {
           style={{
             position: "fixed",
             left: "50%",
-            bottom: 60,
+            bottom: "calc(var(--eye-lid-bottom, 0px) + 16px)",
             transform: "translateX(-50%)",
             zIndex: 100,
             padding: "8px 16px",

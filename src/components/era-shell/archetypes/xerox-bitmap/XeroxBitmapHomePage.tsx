@@ -1,28 +1,42 @@
 "use client";
 
 /**
- * XeroxBitmapHomePage — 1981 archetype home rendered as a Xerox Star
- * desktop, with era-1981 voice and bitmap-era interactions:
- *   - boot trace on mount
- *   - window controls: `_` minimises a window to its title bar; `✕`
- *     toggles a "closed" state with a desktop launcher to re-open
- *   - bevel button press inverts shadow (real mousedown feedback)
- *   - bottom status bar tracks free mem, open files and caret position
+ * XeroxBitmapHomePage — 1981 archetype home, a gray bevel desktop.
+ *
+ *   - boot trace on mount (instant under reduced motion)
+ *   - desktop icons, one per window: select an icon, then press a function
+ *     key — OPEN, PROPS, COPY, HELP. Noun first, verb second, as on the Star.
+ *     Pressing a selected icon again (double-click, Enter) also opens it.
+ *   - windows collapse (`_`) and close (`✕`); a closed window's icon is
+ *     available, an open one is drawn "in use"
+ *   - the function keys and status line live in one bar at the foot of the
+ *     screen, never under the navbar
+ *
+ * One bevel recipe (BEVEL / bevel() from ./star): 1px hilite top-left, 1px
+ * shadow bottom-right, 1px black edge; pressed is the same bevel inverted.
  */
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { Fragment, useEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent, type ReactNode } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useReducedMotion } from "framer-motion";
 import { Pixelify_Sans } from "next/font/google";
 import { useLayoutMode } from "@/contexts/LayoutModeContext";
+import { EraStoryBox } from "@/components/about-story/EraStoryBox";
 import {
   HERO,
+  WHY_KIRUK,
   PERSONA,
   EMPATHY_MAP,
   buildTimeline,
   IMPACT_METRICS,
   CARD_SORTING,
   USABILITY_TEST,
+  type EraProjectCard,
+  type EraTimelineNode,
 } from "@/data/era-page-content";
+import { BEVEL, bevel } from "./star";
+import { StarGlyph, type GlyphName } from "./glyphs";
 
 const pixelify = Pixelify_Sans({
   weight: ["400", "500", "700"],
@@ -31,76 +45,113 @@ const pixelify = Pixelify_Sans({
   variable: "--font-pixelify",
 });
 
-// ── Palette ─────────────────────────────────────────────────────────────
-const GRAY = "#c0c0c0";
-const GRAY_LIGHT = "#dcdcdc";
-const HILITE = "#ffffff";
-const SHADOW = "#808080";
-const BLACK = "#000000";
-const TITLE_BG = "#000080";
-const TITLE_TEXT = "#ffffff";
-const ACCENT = "#0000aa";
-const SELECTED = "#e6e6e6";
-const PINK = "#aa0000";
+const { gray: GRAY, grayLight: GRAY_LIGHT, hilite: HILITE, shadow: SHADOW, black: BLACK, titleBg: TITLE_BG, titleText: TITLE_TEXT, selected: SELECTED, alert: ALERT } = BEVEL;
 
-const FONT_STACK =
-  "'Pixelify Sans', 'IBM Plex Sans', 'Helvetica', sans-serif";
-const FONT_MONO = "'IBM Plex Mono', 'Courier New', monospace";
+/** Pixel face for chrome, labels and headings; a plain sans for reading. No mono. */
+const CHROME = "var(--font-pixelify), 'Helvetica', sans-serif";
+const BODY = "'Helvetica Neue', Helvetica, Arial, sans-serif";
 
-// ── Era-1981 voice: terse, technical, mainframe-printout ────────────────
-const ERA_1981 = {
-  hero: {
-    preTitle: "FILE: KIRUK · DESIGN ENGINEER ON RECORD",
-    framing:
-      "FIELD NOTES ON ARUN — DESIGN ENGINEER AT HP PRINT AI.  EACH RECORD BELOW IS ONE ARTIFACT A RESEARCHER WOULD PRINT WHILE STUDYING HOW HE WORKS: PERSONA, EMPATHY, JOURNEY, IMPACT, CARD-SORT, USABILITY.",
-  },
-  ctas: {
-    primary: "OPEN /WORK ▸",
-    secondary: "OPEN /CONTACT",
-  },
-  why: {
-    hook: "DESIGN-LED THINKING. ENGINEERING-GRADE EXECUTION.",
-    pain: "WHEN STRATEGY, DESIGN AND CODE RUN ON SEPARATE PROCESSES — SPEED AND INTENT DEGRADE.",
-    bridge:
-      "TRANSLATES VISION INTO PRODUCTION INTERFACES, DESIGN SYSTEMS, AND MEASURABLE OUTPUT.",
-    tagline: "ONE WORKFLOW. ONE OWNER. CLEAN LAUNCHES.",
-  },
-  persona: {
-    quote: PERSONA.quote.toUpperCase(),
-    backgroundIntro: "RECORD: BIO STREAM, CHRONOLOGICAL.",
-  },
-  empathy: {
-    saysQuote: `"${EMPATHY_MAP.says.quote.toUpperCase()}"`,
-  },
-  metrics: {
-    headerNote: "OUTPUT: AGGREGATED METRICS · LAST PRINT CYCLE",
-  },
-  cards: {
-    headerNote: "TAXONOMY: PROJECT INDEX · 4 CARDS LOADED",
-  },
-  usability: {
-    taskTitle: USABILITY_TEST.task.toUpperCase(),
-    taskBody: USABILITY_TEST.taskBody.toUpperCase(),
-    metrics: USABILITY_TEST.successMetrics.map((m) => m.toUpperCase()),
-  },
-};
+const RAISED = bevel("raised");
+const SUNKEN = bevel("sunken");
 
-// Era-toned phase + position labels for the timeline
-const TIMELINE_TONE: Record<string, { phase: string; position: string }> = {
-  "2018": { phase: "ORIGIN", position: "FREELANCE OPERATOR" },
-  "2019": { phase: "TRAINING", position: "ENGINEERING + CAMPUS DESIGN LEAD" },
-  "2022": { phase: "INTERFACE", position: "INTERACTION DESIGN INTERN" },
-  "2023": { phase: "DEPLOY", position: "R&D INTERN → SDE-1" },
-  "2025": { phase: "ACTIVE PROCESS", position: "DESIGN ENGINEER (LIVE)" },
-};
+// ── Content, lightly parsed ─────────────────────────────────────────────
+
+const PLACE = HERO.location.split(" - ")[0];
+const EMAIL = USABILITY_TEST.channels.find((c) => c.label === "Email")?.value ?? "";
+const sentence = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+/** "Status: AVAILABLE" → ["Status", "AVAILABLE"]; "Response time < 24 hours" → ["Response time", "< 24 hours"]. */
+function splitFact(s: string): [string, string] {
+  const colon = s.indexOf(":");
+  if (colon > 0) return [s.slice(0, colon).trim(), s.slice(colon + 1).trim()];
+  const lt = s.indexOf(" < ");
+  if (lt > 0) return [s.slice(0, lt).trim(), s.slice(lt + 1).trim()];
+  return ["", s];
+}
+const FACTS = USABILITY_TEST.successMetrics.map(splitFact);
+const fact = (name: string) => FACTS.find(([k]) => k.toLowerCase() === name)?.[1];
+const STATUS = (fact("status") ?? "").toLowerCase().replace(/-/g, " ");
+
+const CATEGORIES = CARD_SORTING.taxonomy.filter((t) => t !== "All");
+const inCategory = (p: EraProjectCard, t: string) => t === "All" || p.category.toLowerCase() === t.toLowerCase();
+const projectCount = (t: string) => CARD_SORTING.projects.filter((p) => inCategory(p, t)).length;
+
+// ── Objects on the desktop ──────────────────────────────────────────────
+
+type WindowKey = "hero" | "why" | "persona" | "empathy" | "journey" | "impact" | "cards" | "usability";
+type ProjectSel = `project:${string}`;
+type Sel = WindowKey | ProjectSel;
+type Verb = "open" | "props" | "copy" | "help";
+type Kind = "Document" | "Folder" | "Drawer" | "Basket";
+
+const WINDOWS: { k: WindowKey; title: string; subtitle: string; icon: string; glyph: GlyphName; kind: Kind }[] = [
+  { k: "hero", title: "KIRUK-DE.DOC", subtitle: "design engineer · file index", icon: "Kiruk", glyph: "cover", kind: "Document" },
+  { k: "why", title: "WHY-KIRUK.TXT", subtitle: "hook · pain · bridge", icon: "Why", glyph: "doc", kind: "Document" },
+  { k: "persona", title: "ABOUT.DOC", subtitle: "the subject, in his own words", icon: "About", glyph: "about", kind: "Document" },
+  { k: "empathy", title: "EMPATHY-MAP.DAT", subtitle: "says · thinks · does · feels", icon: "Empathy", glyph: "empathy", kind: "Document" },
+  { k: "journey", title: "JOURNEY-MAP.TSV", subtitle: "career · 2018 → now", icon: "Journey", glyph: "folder", kind: "Folder" },
+  { k: "impact", title: "IMPACT.METRICS", subtitle: "quantified outcomes", icon: "Impact", glyph: "impact", kind: "Document" },
+  { k: "cards", title: "CARD-SORT.IA", subtitle: "projects by taxonomy", icon: "Projects", glyph: "drawer", kind: "Drawer" },
+  { k: "usability", title: "USABILITY-TEST.SH", subtitle: "test the connection", icon: "Contact", glyph: "basket", kind: "Basket" },
+];
+const winOf = (k: WindowKey) => WINDOWS.find((w) => w.k === k)!;
+
+const KEYS: { verb: Verb; label: string; key: string }[] = [
+  { verb: "open", label: "Open", key: "O" },
+  { verb: "props", label: "Props", key: "P" },
+  { verb: "copy", label: "Copy", key: "C" },
+  { verb: "help", label: "Help", key: "H" },
+];
+
+const isProject = (s: Sel): s is ProjectSel => s.startsWith("project:");
+const projectOf = (s: ProjectSel) => CARD_SORTING.projects.find((p) => `project:${p.id}` === s);
+const labelOf = (s: Sel) => (isProject(s) ? (projectOf(s)?.title ?? "Project") : winOf(s).icon);
 
 const BOOT_LINES = [
   "BOOTING XEROX STAR / KIRUK.IN",
   "MOUNTING /DEV/HD0 ............... OK",
   "LOADING FONT  : PIXELIFY-SANS .... OK",
-  "ATTACHING WINDOWS ............... 7 FILES",
+  `ATTACHING WINDOWS ............... ${WINDOWS.length} FILES`,
   "READY",
 ];
+
+async function writeClipboard(text: string) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** States inline styles can't express: pressed, focus, hover-free touch, the foot bar's layout. */
+const CSS = `
+.xb button, .xb a { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.xb :focus-visible { outline: 2px solid ${TITLE_BG}; outline-offset: 2px; }
+.xb-btn { position: relative; background: ${GRAY}; color: ${BLACK}; border: 1px solid ${BLACK}; box-shadow: ${RAISED}; cursor: pointer; }
+.xb-btn:not([aria-disabled="true"]):active, .xb-btn[aria-pressed="true"], .xb-btn[data-flash] { box-shadow: ${SUNKEN}; background: ${GRAY_LIGHT}; }
+.xb-btn:not([aria-disabled="true"]):active > *, .xb-btn[data-flash] > * { transform: translate(1px, 1px); }
+.xb-btn[aria-disabled="true"] { cursor: default; color: ${SHADOW}; text-shadow: 1px 1px 0 ${HILITE}; }
+.xb-btn.xb-primary { background: ${TITLE_BG}; color: ${TITLE_TEXT}; box-shadow: inset 1px 1px 0 #3333aa, inset -1px -1px 0 #000044; }
+.xb-btn.xb-primary:active { box-shadow: inset 1px 1px 0 #000044, inset -1px -1px 0 #3333aa; }
+.xb-ctl::before { content: ""; position: absolute; inset: -13px -2px; }
+@media (pointer: coarse) { .xb-ctl { width: 40px; height: 30px; font-size: 13px; } .xb-ctl::before { inset: -7px -2px; } }
+.xb-icon { user-select: none; -webkit-touch-callout: none; cursor: pointer; }
+.xb-root { padding-bottom: calc(112px + var(--eye-lid-bottom, 0px) + env(safe-area-inset-bottom)); }
+.xb-foot { position: fixed; left: 0; right: 0; bottom: var(--eye-lid-bottom, 0px); z-index: 60; background: ${GRAY}; border-top: 1px solid ${BLACK};
+  box-shadow: inset 0 1px 0 ${HILITE}; padding: 6px 12px calc(6px + env(safe-area-inset-bottom));
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
+.xb-keys { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.xb-msg { order: -1; }
+.xb-wide { display: none; }
+@media (min-width: 768px) {
+  .xb-root { padding-bottom: calc(88px + var(--eye-lid-bottom, 0px)); }
+  .xb-foot { grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; }
+  .xb-keys { grid-template-columns: repeat(4, 96px); }
+  .xb-msg { order: 0; }
+  .xb-wide { display: flex; }
+}
+`;
 
 export function XeroxBitmapHomePage() {
   const { setLayoutMode } = useLayoutMode();
@@ -108,1227 +159,621 @@ export function XeroxBitmapHomePage() {
     setLayoutMode("full-digital");
   }, [setLayoutMode]);
 
+  const router = useRouter();
+  const reduce = useReducedMotion() ?? false;
+  const nodes = useMemo(buildTimeline, []);
+
   // ── Boot sequence ─────────────────────────────────────────────────────
   const [bootIdx, setBootIdx] = useState(0);
   useEffect(() => {
+    if (reduce) {
+      setBootIdx(BOOT_LINES.length);
+      return;
+    }
     let i = 0;
+    let timer = 0;
     const tick = () => {
       i += 1;
       setBootIdx(i);
-      if (i < BOOT_LINES.length) {
-        timer = window.setTimeout(tick, 110 + Math.random() * 60);
-      }
+      if (i < BOOT_LINES.length) timer = window.setTimeout(tick, 110 + Math.random() * 60);
     };
-    let timer = window.setTimeout(tick, 80);
+    timer = window.setTimeout(tick, 80);
     return () => clearTimeout(timer);
-  }, []);
+  }, [reduce]);
   const bootDone = bootIdx >= BOOT_LINES.length;
 
-  // ── Window state (collapsed / closed) ─────────────────────────────────
-  const initialWindows: WindowKey[] = [
-    "hero",
-    "why",
-    "persona",
-    "empathy",
-    "journey",
-    "impact",
-    "cards",
-    "usability",
-  ];
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
-  const [closed, setClosed] = useState<Record<string, boolean>>({});
-
-  const toggleCollapse = (k: WindowKey) =>
-    setCollapsed((s) => ({ ...s, [k]: !s[k] }));
-  const closeWindow = (k: WindowKey) =>
-    setClosed((s) => ({ ...s, [k]: true }));
-  const reopenWindow = (k: WindowKey) =>
-    setClosed((s) => ({ ...s, [k]: false }));
-
-  // ── Caret tracking for status bar ─────────────────────────────────────
-  const [caret, setCaret] = useState({ row: 1, col: 1 });
+  // ── Clock (client only, so server and client markup agree) ────────────
+  const [clock, setClock] = useState("");
   useEffect(() => {
-    const onMove = (e: MouseEvent) => {
-      setCaret({
-        row: Math.max(1, Math.floor(e.clientY / 14)),
-        col: Math.max(1, Math.floor(e.clientX / 7)),
-      });
-    };
-    window.addEventListener("mousemove", onMove, { passive: true });
-    return () => window.removeEventListener("mousemove", onMove);
+    const fmt = () =>
+      setClock(
+        new Date().toLocaleString("en-US", { month: "short", day: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false }),
+      );
+    fmt();
+    const t = window.setInterval(fmt, 30_000);
+    return () => clearInterval(t);
   }, []);
 
-  const closedCount = Object.values(closed).filter(Boolean).length;
-  const fileCount = initialWindows.length - closedCount;
+  // ── Desktop state ─────────────────────────────────────────────────────
+  const [collapsed, setCollapsed] = useState<Partial<Record<WindowKey, boolean>>>({});
+  const [closed, setClosed] = useState<Partial<Record<WindowKey, boolean>>>({});
+  const [selected, setSelected] = useState<Sel | null>(null);
+  const [sheet, setSheet] = useState<Sel | null>(null);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [filter, setFilter] = useState("All");
+  const [message, setMessage] = useState("Select an icon, then press a key.");
+  const [flash, setFlash] = useState<Verb | null>(null);
 
-  const nodes = useMemo(buildTimeline, []);
-  const now = new Date();
-  const stamp = now.toLocaleString("en-US", {
-    month: "short",
-    day: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
+  const iconRefs = useRef<Partial<Record<WindowKey, HTMLButtonElement | null>>>({});
+  const winRefs = useRef<Record<string, HTMLElement | null>>({});
+  const keyRefs = useRef<Partial<Record<Verb, HTMLButtonElement | null>>>({});
+  const flashTimer = useRef(0);
+  useEffect(() => () => window.clearTimeout(flashTimer.current), []);
+
+  // The navbar's About link lands on #about; if ABOUT.DOC was put away, bring it back.
+  useEffect(() => {
+    const ensureAbout = () => {
+      setClosed((s) => ({ ...s, persona: false }));
+      setCollapsed((s) => ({ ...s, persona: false }));
+    };
+    const onHash = () => {
+      if (window.location.hash === "#about") ensureAbout();
+    };
+    const onClick = (e: globalThis.MouseEvent) => {
+      const href = (e.target as Element | null)?.closest?.("a[href]")?.getAttribute("href");
+      if (href === "/#about" || href === "#about") ensureAbout();
+    };
+    onHash();
+    window.addEventListener("hashchange", onHash);
+    document.addEventListener("click", onClick, true);
+    return () => {
+      window.removeEventListener("hashchange", onHash);
+      document.removeEventListener("click", onClick, true);
+    };
+  }, []);
+
+  const openCount = WINDOWS.filter((w) => !closed[w.k]).length;
+
+  /** After a window renders: focus its title and bring it into view if its top is off screen. */
+  const reveal = (id: string) => {
+    requestAnimationFrame(() => {
+      const el = winRefs.current[id];
+      if (!el) return;
+      el.querySelector<HTMLElement>("[data-win-title]")?.focus({ preventScroll: true });
+      const nav = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--simple-game-nav-bottom")) || 56;
+      const top = el.getBoundingClientRect().top;
+      if (top < nav || top > window.innerHeight * 0.55) el.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+    });
+  };
+
+  const openWindow = (k: WindowKey) => {
+    setClosed((s) => ({ ...s, [k]: false }));
+    setCollapsed((s) => ({ ...s, [k]: false }));
+    reveal(k);
+  };
+
+  const select = (s: Sel) => {
+    setSelected(s);
+    setMessage(`${labelOf(s)} selected. Press Open, Props or Copy.`);
+  };
+
+  const pressKey = (verb: Verb) => {
+    window.clearTimeout(flashTimer.current);
+    setFlash(verb);
+    flashTimer.current = window.setTimeout(() => setFlash(null), 100);
+  };
+
+  const copyPayload = (s: Sel): [text: string, done: string] => {
+    const origin = window.location.origin;
+    if (isProject(s)) {
+      const p = projectOf(s);
+      const line = p ? `${p.title} — ${p.role}` : labelOf(s);
+      return [line, `Copied: ${line}`];
+    }
+    switch (s) {
+      case "hero":
+        return [`${origin}/`, "Copied the address of this desktop."];
+      case "why":
+        return [[WHY_KIRUK.hook, WHY_KIRUK.pain, WHY_KIRUK.bridge, WHY_KIRUK.tagline].join("\n"), "Copied WHY-KIRUK.TXT as text."];
+      case "persona":
+        return [`${origin}/#about`, "Copied the address of ABOUT.DOC."];
+      case "empathy":
+        return [
+          [
+            `Says: “${EMPATHY_MAP.says.quote}”`,
+            `Thinks: ${EMPATHY_MAP.thinks.join("; ")}`,
+            `Does: ${EMPATHY_MAP.does.join(", ")}`,
+            `Feels: ${EMPATHY_MAP.feels.join("; ")}`,
+          ].join("\n"),
+          "Copied the empathy map as text.",
+        ];
+      case "journey":
+        return [nodes.map((n) => `${n.year} · ${n.position}, ${n.org}. ${n.detail}`).join("\n"), "Copied the journey as text."];
+      case "impact":
+        return [IMPACT_METRICS.map((m) => `${m.value} ${m.label}${m.context ? ` (${m.context})` : ""}`).join("\n"), "Copied the impact figures."];
+      case "cards":
+        return [`${origin}/work`, "Copied the address of the work page."];
+      case "usability":
+        return [EMAIL, `Copied ${EMAIL}`];
+    }
+  };
+
+  /** Noun first, verb second. `target` defaults to the selection. */
+  const act = (verb: Verb, target: Sel | null = selected) => {
+    if (verb === "help") {
+      pressKey(verb);
+      setHelpOpen(true);
+      setMessage("Help is open at the top of the desktop.");
+      reveal("help");
+      return;
+    }
+    if (!target) {
+      setMessage(`Select an icon first, then press ${verb === "props" ? "Props" : sentence(verb)}.`);
+      return;
+    }
+    pressKey(verb);
+    const name = labelOf(target);
+    if (verb === "open") {
+      if (isProject(target)) {
+        setMessage(`Opening ${name}…`);
+        router.push(`/work/${target.slice(8)}`);
+        return;
+      }
+      setMessage(closed[target] || collapsed[target] ? `${winOf(target).title} opened.` : `${winOf(target).title} is already open.`);
+      openWindow(target);
+      return;
+    }
+    if (verb === "props") {
+      setSheet(target);
+      setMessage(`Property sheet for ${name}.`);
+      reveal("props");
+      return;
+    }
+    const [text, done] = copyPayload(target);
+    void writeClipboard(text).then((ok) => setMessage(ok ? done : "Copy failed. Select the text by hand."));
+  };
+
+  /** Closing returns focus to the icon. Pointer users keep their scroll; keyboard users follow focus. */
+  const focusBack = (el: HTMLElement | null | undefined, e: MouseEvent) => {
+    const byKeyboard = e.detail === 0;
+    requestAnimationFrame(() => el?.focus({ preventScroll: !byKeyboard }));
+  };
+
+  const closeWindow = (k: WindowKey, e: MouseEvent) => {
+    setClosed((s) => ({ ...s, [k]: true }));
+    setMessage(`${winOf(k).title} closed. Its icon is free on the desktop.`);
+    focusBack(iconRefs.current[k], e);
+  };
+  const toggleCollapse = (k: WindowKey) => setCollapsed((s) => ({ ...s, [k]: !s[k] }));
+
+  const onIcon = (k: WindowKey) => (selected === k ? act("open", k) : select(k));
+  const onCard = (id: string) => {
+    const s: Sel = `project:${id}`;
+    if (selected === s) act("open", s);
+    else select(s);
+  };
+
+  /** Arrow keys walk the icons by where they sit on screen, so rows can wrap freely. */
+  const step = (from: WindowKey, key: string) => {
+    const i = WINDOWS.findIndex((w) => w.k === from);
+    let j = i;
+    if (key === "ArrowLeft") j = Math.max(0, i - 1);
+    else if (key === "ArrowRight") j = Math.min(WINDOWS.length - 1, i + 1);
+    else if (key === "Home") j = 0;
+    else if (key === "End") j = WINDOWS.length - 1;
+    else {
+      const cur = iconRefs.current[from]?.getBoundingClientRect();
+      if (!cur) return;
+      let best = Infinity;
+      WINDOWS.forEach((w, n) => {
+        const r = iconRefs.current[w.k]?.getBoundingClientRect();
+        if (!r || n === i) return;
+        const dy = r.top - cur.top;
+        if (key === "ArrowDown" ? dy <= 4 : dy >= -4) return;
+        const score = Math.abs(dy) * 1000 + Math.abs(r.left - cur.left);
+        if (score < best) {
+          best = score;
+          j = n;
+        }
+      });
+    }
+    const next = WINDOWS[j].k;
+    select(next);
+    iconRefs.current[next]?.focus();
+  };
+
+  /** Keyboard grammar, only where nouns and verbs live (icons, project cards, function keys). */
+  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const t = e.target as HTMLElement;
+    if (!t.closest("[data-shortcuts]")) return;
+    const icon = t.closest<HTMLElement>("[data-icon]")?.dataset.icon as WindowKey | undefined;
+    const project = t.closest<HTMLElement>("[data-project]")?.dataset.project;
+    const focused: Sel | null = icon ?? (project ? `project:${project}` : null);
+
+    if (icon && ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(e.key)) {
+      e.preventDefault();
+      step(icon, e.key);
+      return;
+    }
+    if (e.key === "Escape" && selected) {
+      setSelected(null);
+      setMessage("Nothing selected.");
+      return;
+    }
+    const k = e.key.toLowerCase();
+    const verb: Verb | null =
+      e.key === "Enter" && focused ? "open" : k === "o" ? "open" : k === "p" ? "props" : k === "c" ? "copy" : k === "h" || k === "?" ? "help" : null;
+    if (!verb) return;
+    e.preventDefault();
+    const target = focused ?? selected;
+    if (target && target !== selected && verb !== "help") setSelected(target);
+    act(verb, target);
+  };
+
+  const rovingIcon: WindowKey = selected && !isProject(selected) ? selected : "hero";
+  const sheetAnchor: WindowKey | null = sheet ? (isProject(sheet) ? "cards" : sheet) : null;
+
+  const frame = (k: WindowKey) => ({
+    k,
+    title: winOf(k).title,
+    subtitle: winOf(k).subtitle,
+    collapsed: !!collapsed[k],
+    onCollapse: () => toggleCollapse(k),
+    onClose: (e: MouseEvent) => closeWindow(k, e),
+    windowRef: (el: HTMLElement | null) => {
+      winRefs.current[k] = el;
+    },
   });
+
+  const windowBody = (k: WindowKey): ReactNode => {
+    switch (k) {
+      case "hero":
+        return <HeroDoc bootDone={bootDone} clock={clock} />;
+      case "why":
+        return <WhyDoc />;
+      case "persona":
+        return <EraStoryBox />;
+      case "empathy":
+        return <EmpathyDoc />;
+      case "journey":
+        return <JourneyDoc nodes={nodes} />;
+      case "impact":
+        return <ImpactDoc />;
+      case "cards":
+        return <CardsDoc filter={filter} onFilter={setFilter} selected={selected} onCard={onCard} />;
+      case "usability":
+        return <ContactDoc />;
+    }
+  };
+
+  const propsWindow = sheet && (
+    <WindowFrame
+      k="props"
+      title="PROPERTIES"
+      subtitle={labelOf(sheet)}
+      windowRef={(el) => {
+        winRefs.current.props = el;
+      }}
+      onClose={(e) => {
+        const back = isProject(sheet) ? null : iconRefs.current[sheet];
+        setSheet(null);
+        setMessage("Property sheet closed.");
+        focusBack(back ?? iconRefs.current.cards, e);
+      }}
+    >
+      <PropertySheet target={sheet} nodes={nodes} />
+    </WindowFrame>
+  );
 
   return (
     <div
       id="xerox-home"
-      className={pixelify.className}
+      onKeyDown={onKeyDown}
+      className={`${pixelify.variable} xb xb-root`}
       style={{
         backgroundColor: GRAY,
         color: BLACK,
-        fontFamily: FONT_STACK,
+        fontFamily: CHROME,
         minHeight: "100vh",
         paddingTop: "calc(var(--simple-game-nav-bottom, 56px) + 24px)",
-        paddingBottom: 80,
-        backgroundImage:
-          "repeating-radial-gradient(circle at 0 0, transparent 0, transparent 5px, rgba(0,0,0,0.08) 5px, rgba(0,0,0,0.08) 6px)",
-        backgroundSize: "12px 12px",
+        backgroundImage: BEVEL.desktop,
+        backgroundSize: BEVEL.desktopSize,
       }}
     >
-      <div className="relative max-w-4xl mx-auto px-3 sm:px-6 flex flex-col gap-5">
-        <DesktopBar stamp={stamp} />
-
-        {/* ── BOOT TRACE WINDOW (auto-collapses after boot completes) ── */}
+      <style>{CSS}</style>
+      <div className="relative mx-auto flex max-w-4xl flex-col gap-4 px-3 sm:gap-5 sm:px-6">
+        {/* ── BOOT TRACE (dims once ready) ── */}
         <BootTraceWindow lines={BOOT_LINES.slice(0, bootIdx)} done={bootDone} />
 
-        {/* Re-launcher for closed windows */}
-        {closedCount > 0 && (
-          <ReopenDock
-            closed={closed}
-            initial={initialWindows}
-            onReopen={reopenWindow}
-          />
-        )}
-
-        {/* ── HERO — FILE TITLE PAGE (no identity here) ────── */}
-        <WindowFrame
-          k="hero"
-          title="KIRUK-DE.DOC"
-          subtitle="design engineer · file index"
-          icon="◰"
-          collapsed={collapsed.hero}
-          closed={closed.hero}
-          onCollapse={toggleCollapse}
-          onClose={closeWindow}
+        {/* ── DESKTOP ICONS: the nouns ── */}
+        <div
+          role="group"
+          aria-label="Desktop icons. Select one, then press a function key."
+          data-shortcuts
+          data-blueprint="desktop-icons"
+          className="grid gap-x-1 gap-y-2"
+          style={{ gridTemplateColumns: "repeat(auto-fill, minmax(76px, 1fr))" }}
         >
-          <div className="px-4 py-4" style={{ backgroundColor: HILITE }}>
-            <div
-              style={{
-                fontSize: 11,
-                color: SHADOW,
-                fontFamily: FONT_MONO,
-                marginBottom: 6,
-                letterSpacing: 1,
-              }}
-            >
-              {ERA_1981.hero.preTitle}
-            </div>
-
-            {/* Document title — brands Arun the design engineer, not "study" */}
-            <div
-              style={{
-                fontSize: "clamp(26px, 4.4vw, 40px)",
-                lineHeight: 1.0,
-                color: BLACK,
-                fontWeight: 700,
-                letterSpacing: 1,
-              }}
-            >
-              KIRUK / DESIGN ENGINEER
-            </div>
-            <div
-              style={{
-                fontSize: "clamp(14px, 1.7vw, 18px)",
-                color: TITLE_BG,
-                fontFamily: FONT_MONO,
-                marginTop: 4,
-                letterSpacing: 1,
-              }}
-            >
-              ▸ FIELD NOTES ON ARUN AT THE DESIGN ↔ ENGINEERING BRIDGE
-            </div>
-
-            <DitherRule />
-
-            {/* File metadata table */}
-            <div
-              style={{
-                fontFamily: FONT_MONO,
-                fontSize: 12,
-                color: BLACK,
-                lineHeight: 1.7,
-              }}
-            >
-              <FileRow k="FILE NO."     v="KIRUK-DE / 0001" />
-              <FileRow k="OPENED"       v={stamp.toUpperCase()} />
-              <FileRow k="SUBJECT REF"  v="ARUN-KS · SEE FILE PERSONA.DAT" />
-              <FileRow k="FORMAT"       v="BEVEL-WINDOW STREAM · 7 RECORDS" />
-              <FileRow k="STATUS"       v={bootDone ? "READY · OPEN FOR REVIEW" : "LOADING…"} />
-              <FileRow k="CLASSIFICATION" v="PUBLIC" />
-            </div>
-
-            <DitherRule />
-
-            <p
-              style={{
-                fontSize: 13,
-                color: BLACK,
-                lineHeight: 1.55,
-                fontFamily: FONT_MONO,
-                letterSpacing: 0.3,
-              }}
-            >
-              {ERA_1981.hero.framing}
-            </p>
-            <div className="flex flex-wrap gap-2 mt-4">
-              <BevelButton href="/portfolio" primary>
-                {ERA_1981.ctas.primary}
-              </BevelButton>
-              <BevelButton href="/contact">{ERA_1981.ctas.secondary}</BevelButton>
-            </div>
-          </div>
-        </WindowFrame>
-
-        {/* ── 01 · WHY KIRUK ─────────────────────────────── */}
-        <WindowFrame
-          k="why"
-          title="WHY-KIRUK.TXT"
-          subtitle="hook · pain · bridge"
-          icon="i"
-          collapsed={collapsed.why}
-          closed={closed.why}
-          onCollapse={toggleCollapse}
-          onClose={closeWindow}
-        >
-          <div
-            className="px-4 py-3 grid grid-cols-1 md:grid-cols-2 gap-3"
-            style={{ backgroundColor: HILITE }}
-          >
-            <KeyValue label="HOOK">{ERA_1981.why.hook}</KeyValue>
-            <KeyValue label="PAIN" tint={PINK}>{ERA_1981.why.pain}</KeyValue>
-            <KeyValue label="BRIDGE" tint={TITLE_BG}>{ERA_1981.why.bridge}</KeyValue>
-            <KeyValue label="CLOSE" mute>“{ERA_1981.why.tagline}”</KeyValue>
-          </div>
-        </WindowFrame>
-
-        {/* ── 02 · PERSONA — PERSONNEL RECORD CARD ─────────── */}
-        <WindowFrame
-          k="persona"
-          title="PERSONA.DAT"
-          subtitle="user profile · subject record"
-          icon="☺"
-          collapsed={collapsed.persona}
-          closed={closed.persona}
-          onCollapse={toggleCollapse}
-          onClose={closeWindow}
-        >
-          <div className="px-4 py-3" style={{ backgroundColor: HILITE }}>
-            {/* Subject ID strip */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "4px 8px",
-                marginBottom: 10,
-                backgroundColor: TITLE_BG,
-                color: TITLE_TEXT,
-                fontFamily: FONT_MONO,
-                fontSize: 11,
-                letterSpacing: 1,
-                border: `1px solid ${BLACK}`,
-              }}
-            >
-              <span>SUBJECT NO. 0001 — ARUN-KS</span>
-              <span>REC TYPE: PERSONNEL CARD</span>
-              <span>UPD: {stamp.split(",")[0].toUpperCase()}</span>
-            </div>
-
-            {/* Identity row: ASCII portrait + attribute table */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "min-content 1fr",
-                gap: 14,
-                marginBottom: 14,
-                alignItems: "start",
-              }}
-            >
-              <AsciiPortrait />
-
-              <div
-                style={{
-                  fontFamily: FONT_MONO,
-                  fontSize: 12,
-                  color: BLACK,
-                  lineHeight: 1.7,
-                  border: `1px solid ${BLACK}`,
-                  backgroundColor: GRAY_LIGHT,
-                  padding: "6px 10px",
+          {WINDOWS.map((w) => {
+            const on = selected === w.k;
+            const inUse = !closed[w.k];
+            return (
+              <button
+                key={w.k}
+                ref={(el) => {
+                  iconRefs.current[w.k] = el;
                 }}
+                type="button"
+                data-icon={w.k}
+                aria-pressed={on}
+                tabIndex={rovingIcon === w.k ? 0 : -1}
+                onClick={() => onIcon(w.k)}
+                className="xb-icon flex min-h-11 flex-col items-center gap-1 px-1 py-1.5"
               >
-                <FileRow k="NAME"        v={PERSONA.identity.name.toUpperCase()} />
-                <FileRow k="ROLE"        v={PERSONA.identity.role.toUpperCase()} />
-                <FileRow k="EMPLOYER"    v={PERSONA.identity.org.toUpperCase()} />
-                <FileRow k="LOCATION"    v={PERSONA.identity.location.toUpperCase()} />
-                <FileRow k="ARCHETYPE"   v="DESIGNER ↔ ENGINEER (BRIDGE)" />
-                <FileRow k="AVAILABILITY" v="OPEN · SELECTIVE FREELANCE" />
-                <FileRow k="DISCIPLINES" v="UX · DESIGN SYSTEMS · FE ENG · AI UX" />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <SunkenPanel header="GOALS" subtitle="what i strive for">
-                <BulletList
-                  items={[
-                    "SHIP USER-CENTRED PRODUCTS, FAST CYCLES",
-                    "BRIDGE DESIGN ↔ ENGINEERING PROCESSES",
-                    "BUILD SCALABLE DESIGN SYSTEMS",
-                  ]}
-                  marker="►"
-                />
-              </SunkenPanel>
-              <SunkenPanel header="FRUSTRATIONS" subtitle="what i fight" tint={PINK}>
-                <BulletList
-                  items={[
-                    "SILOED DESIGN ↔ DEV TEAMS",
-                    "SLOW DESIGN → PRODUCTION HANDOFFS",
-                    "CONTEXT LOST IN TRANSLATION",
-                  ]}
-                  marker="✕"
-                  tint={PINK}
-                />
-              </SunkenPanel>
-            </div>
-
-            <DitherRule />
-            <div
-              style={{
-                fontSize: 13,
-                fontWeight: 700,
-                color: TITLE_BG,
-                marginBottom: 4,
-                letterSpacing: 1,
-              }}
-            >
-              ❝ QUOTE ON FILE
-            </div>
-            <div
-              style={{
-                borderLeft: `4px solid ${TITLE_BG}`,
-                paddingLeft: 8,
-                fontSize: 15,
-                color: BLACK,
-                marginBottom: 12,
-                fontFamily: FONT_MONO,
-                letterSpacing: 0.5,
-              }}
-            >
-              “{ERA_1981.persona.quote}”
-            </div>
-
-            <div
-              style={{
-                fontSize: 11,
-                color: SHADOW,
-                fontFamily: FONT_MONO,
-                marginBottom: 4,
-                letterSpacing: 1,
-              }}
-            >
-              {ERA_1981.persona.backgroundIntro}
-            </div>
-            <p
-              style={{
-                fontSize: 13,
-                color: BLACK,
-                lineHeight: 1.55,
-                fontFamily: FONT_MONO,
-              }}
-            >
-              {PERSONA.background.toUpperCase()}
-            </p>
-          </div>
-        </WindowFrame>
-
-        {/* ── 03 · EMPATHY MAP ────────────────────────────── */}
-        <WindowFrame
-          k="empathy"
-          title="EMPATHY-MAP.DAT"
-          subtitle="says · thinks · does · feels"
-          icon="◐"
-          collapsed={collapsed.empathy}
-          closed={closed.empathy}
-          onCollapse={toggleCollapse}
-          onClose={closeWindow}
-        >
-          <div
-            className="px-4 py-3 grid grid-cols-1 sm:grid-cols-2 gap-3"
-            style={{ backgroundColor: HILITE }}
-          >
-            <SunkenPanel header="03.A SAYS" subtitle="skills i claim">
-              <p
-                style={{
-                  fontFamily: FONT_MONO,
-                  fontSize: 13,
-                  marginBottom: 6,
-                  letterSpacing: 0.5,
-                }}
-              >
-                {ERA_1981.empathy.saysQuote}
-              </p>
-              <Tags items={[...EMPATHY_MAP.says.skills].map((s) => s.toUpperCase())} />
-            </SunkenPanel>
-            <SunkenPanel header="03.B THINKS" subtitle="philosophy">
-              <BulletList
-                items={[
-                  "DESIGN ≡ ENGINEERING",
-                  "SHIP FAST · ITERATE FASTER",
-                  "USER PROBLEMS → SOLUTIONS",
-                ]}
-                marker="•"
-              />
-            </SunkenPanel>
-            <SunkenPanel header="03.C DOES" subtitle="stack in rotation">
-              <Tags items={[...EMPATHY_MAP.does].map((s) => s.toUpperCase())} />
-            </SunkenPanel>
-            <SunkenPanel header="03.D FEELS" subtitle="motivations">
-              <BulletList
-                items={[
-                  "PASSIONATE: CRAFT & DETAIL",
-                  "EXCITED: GAMIFIED EXPERIENCES",
-                  "CURIOUS: AI INTEGRATION",
-                ]}
-                marker="*"
-              />
-            </SunkenPanel>
-          </div>
-        </WindowFrame>
-
-        {/* ── 04 · JOURNEY MAP ────────────────────────────── */}
-        <WindowFrame
-          k="journey"
-          title="JOURNEY-MAP.TSV"
-          subtitle="career · 2018 → now"
-          icon="↗"
-          collapsed={collapsed.journey}
-          closed={closed.journey}
-          onCollapse={toggleCollapse}
-          onClose={closeWindow}
-        >
-          <div className="px-4 py-3" style={{ backgroundColor: HILITE }}>
-            <pre
-              style={{
-                fontFamily: FONT_MONO,
-                fontSize: 12,
-                color: SHADOW,
-                marginBottom: 8,
-                whiteSpace: "pre",
-              }}
-            >
-              {"YEAR  │ PHASE           │ ENTRY"}
-              {"\n"}
-              {"──────┼─────────────────┼" + "─".repeat(40)}
-            </pre>
-            <ol>
-              {nodes.map((n, i) => {
-                const last = i === nodes.length - 1;
-                const tone = TIMELINE_TONE[n.year];
-                const phase = tone?.phase ?? n.phase.toUpperCase();
-                const position = tone?.position ?? n.position.toUpperCase();
-                return (
-                  <li
-                    key={n.year}
-                    className="grid"
-                    style={{ gridTemplateColumns: "72px 170px 1fr" }}
-                  >
-                    <div
-                      style={{
-                        fontWeight: 700,
-                        fontFamily: FONT_MONO,
-                        fontSize: 16,
-                        color: BLACK,
-                        paddingTop: 2,
-                      }}
-                    >
-                      {n.year}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 700,
-                        color: n.live ? TITLE_BG : BLACK,
-                        letterSpacing: 1,
-                        paddingTop: 4,
-                        fontFamily: FONT_MONO,
-                      }}
-                    >
-                      {last ? "▼ " : "├ "}
-                      {phase}
-                    </div>
-                    <div style={{ paddingBottom: 12 }}>
-                      <div
-                        style={{
-                          fontSize: 13,
-                          fontWeight: 700,
-                          color: BLACK,
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 6,
-                          flexWrap: "wrap",
-                          letterSpacing: 0.5,
-                          fontFamily: FONT_MONO,
-                        }}
-                      >
-                        {position}
-                        {n.live && (
-                          <span
-                            style={{
-                              fontSize: 10,
-                              padding: "1px 6px",
-                              backgroundColor: TITLE_BG,
-                              color: TITLE_TEXT,
-                              letterSpacing: 1,
-                              fontFamily: FONT_MONO,
-                            }}
-                          >
-                            ◉ LIVE
-                          </span>
-                        )}
-                      </div>
-                      <div style={{ fontSize: 12, color: SHADOW }}>@ {n.org}</div>
-                      <div
-                        style={{
-                          fontSize: 12,
-                          color: BLACK,
-                          marginTop: 1,
-                          fontFamily: FONT_MONO,
-                          letterSpacing: 0.3,
-                        }}
-                      >
-                        {n.detail.toUpperCase()}
-                      </div>
-                    </div>
-                  </li>
-                );
-              })}
-            </ol>
-          </div>
-        </WindowFrame>
-
-        {/* ── 05 · IMPACT ─────────────────────────────────── */}
-        <WindowFrame
-          k="impact"
-          title="IMPACT.METRICS"
-          subtitle="quantified outcomes"
-          icon="▤"
-          collapsed={collapsed.impact}
-          closed={closed.impact}
-          onCollapse={toggleCollapse}
-          onClose={closeWindow}
-        >
-          <div className="px-4 py-3" style={{ backgroundColor: HILITE }}>
-            <div
-              style={{
-                fontSize: 11,
-                color: SHADOW,
-                fontFamily: FONT_MONO,
-                letterSpacing: 1,
-                marginBottom: 8,
-              }}
-            >
-              {ERA_1981.metrics.headerNote}
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-              {IMPACT_METRICS.slice(0, 8).map((m) => (
-                <SunkenPanel key={m.id} header="" subtitle="" compact>
-                  <div style={{ fontSize: 22, lineHeight: 1 }} aria-hidden>
-                    {m.icon}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 26,
-                      fontWeight: 700,
-                      color: TITLE_BG,
-                      fontFamily: FONT_MONO,
-                      marginTop: 6,
-                      lineHeight: 1,
-                    }}
-                  >
-                    {m.value}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 11,
-                      textTransform: "uppercase",
-                      letterSpacing: 1,
-                      color: BLACK,
-                      marginTop: 4,
-                      fontFamily: FONT_MONO,
-                    }}
-                  >
-                    {m.label}
-                  </div>
-                  {m.context && (
-                    <div
-                      style={{
-                        fontSize: 10,
-                        color: SHADOW,
-                        marginTop: 1,
-                        fontFamily: FONT_MONO,
-                      }}
-                    >
-                      {m.context.toUpperCase()}
-                    </div>
-                  )}
-                </SunkenPanel>
-              ))}
-            </div>
-          </div>
-        </WindowFrame>
-
-        {/* ── 06 · CARD SORTING ───────────────────────────── */}
-        <WindowFrame
-          k="cards"
-          title="CARD-SORT.IA"
-          subtitle="projects by taxonomy"
-          icon="▦"
-          collapsed={collapsed.cards}
-          closed={closed.cards}
-          onCollapse={toggleCollapse}
-          onClose={closeWindow}
-        >
-          <div className="px-4 py-3" style={{ backgroundColor: HILITE }}>
-            <div
-              style={{
-                fontSize: 11,
-                color: SHADOW,
-                fontFamily: FONT_MONO,
-                letterSpacing: 1,
-                marginBottom: 6,
-              }}
-            >
-              {ERA_1981.cards.headerNote}
-            </div>
-            <div className="flex flex-wrap gap-1.5 mb-3">
-              {CARD_SORTING.taxonomy.map((cat, i) => (
-                <span
-                  key={cat}
-                  style={{
-                    fontSize: 11,
-                    padding: "2px 8px",
-                    color: i === 0 ? TITLE_TEXT : BLACK,
-                    backgroundColor: i === 0 ? TITLE_BG : GRAY_LIGHT,
-                    border: `1px solid ${BLACK}`,
-                    letterSpacing: 1,
-                    fontFamily: FONT_MONO,
-                    textTransform: "uppercase",
-                  }}
-                >
-                  [{cat}]
+                <span aria-hidden style={{ lineHeight: 0, outline: on ? `1px dotted ${BLACK}` : undefined, outlineOffset: 1 }}>
+                  <StarGlyph name={w.glyph} ghost={inUse} size={40} />
                 </span>
-              ))}
-            </div>
-            <ol className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {CARD_SORTING.projects.map((p, i) => (
-                <li key={p.id}>
-                  <SunkenPanel
-                    header={`CARD ${String(i + 1).padStart(2, "0")}`}
-                    subtitle={p.duration.toUpperCase()}
-                  >
-                    <div
-                      style={{
-                        fontSize: 15,
-                        fontWeight: 700,
-                        color: BLACK,
-                        marginBottom: 4,
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      {p.title}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 11,
-                        color: TITLE_BG,
-                        textTransform: "uppercase",
-                        letterSpacing: 1,
-                        marginBottom: 6,
-                        fontFamily: FONT_MONO,
-                      }}
-                    >
-                      ▸ CATEGORY: {p.category}
-                    </div>
-                    <p
-                      style={{
-                        fontSize: 12,
-                        color: BLACK,
-                        marginBottom: 6,
-                        lineHeight: 1.45,
-                        fontFamily: FONT_MONO,
-                        letterSpacing: 0.3,
-                      }}
-                    >
-                      {p.description.toUpperCase()}
-                    </p>
-                    <Tags items={p.technologies.map((t) => t.toUpperCase())} />
-                  </SunkenPanel>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </WindowFrame>
+                <span
+                  className="px-1 text-center text-[12px] uppercase"
+                  style={{ letterSpacing: "0.06em", lineHeight: 1.3, background: on ? TITLE_BG : "transparent", color: on ? TITLE_TEXT : BLACK }}
+                >
+                  {w.icon}
+                  <span className="sr-only">{inUse ? ", window open" : ", window closed"}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
 
-        {/* ── 07 · USABILITY TEST ─────────────────────────── */}
-        <WindowFrame
-          k="usability"
-          title="USABILITY-TEST.SH"
-          subtitle="test the connection"
-          icon="✆"
-          collapsed={collapsed.usability}
-          closed={closed.usability}
-          onCollapse={toggleCollapse}
-          onClose={closeWindow}
-        >
-          <div
-            className="px-4 py-3 grid grid-cols-1 md:grid-cols-2 gap-3"
-            style={{ backgroundColor: HILITE }}
+        {/* ── WINDOWS, in desktop order ── */}
+        {helpOpen && (
+          <WindowFrame
+            k="help"
+            title="HELP.TXT"
+            subtitle="how this desktop works"
+            windowRef={(el) => {
+              winRefs.current.help = el;
+            }}
+            onClose={(e) => {
+              setHelpOpen(false);
+              setMessage("Help closed.");
+              focusBack(keyRefs.current.help, e);
+            }}
           >
-            <SunkenPanel header="07.A TEST SCENARIO" subtitle="task + metrics">
-              <div
-                style={{
-                  fontSize: 15,
-                  fontWeight: 700,
-                  color: TITLE_BG,
-                  marginBottom: 4,
-                  fontFamily: FONT_MONO,
-                  letterSpacing: 1,
-                }}
-              >
-                ▶ {ERA_1981.usability.taskTitle}
-              </div>
-              <p
-                style={{
-                  fontSize: 12,
-                  marginBottom: 8,
-                  fontFamily: FONT_MONO,
-                  letterSpacing: 0.3,
-                }}
-              >
-                {ERA_1981.usability.taskBody}
-              </p>
-              <div
-                style={{
-                  fontSize: 11,
-                  color: SHADOW,
-                  fontFamily: FONT_MONO,
-                  letterSpacing: 1,
-                  marginBottom: 4,
-                }}
-              >
-                SUCCESS METRICS
-              </div>
-              <BulletList
-                items={ERA_1981.usability.metrics}
-                marker="✓"
-                tint={TITLE_BG}
-              />
-            </SunkenPanel>
-            <SunkenPanel header="07.B TEST CHANNELS" subtitle="contact methods">
-              <ul className="flex flex-col gap-1.5">
-                {USABILITY_TEST.channels.map((c) => ({
-                  label: c.label.toUpperCase(),
-                  value: c.value,
-                  href: c.href,
-                  role: c.role.toUpperCase(),
-                })).map((c) => (
-                  <li key={c.label}>
-                    <a
-                      href={c.href}
-                      target={c.href.startsWith("http") ? "_blank" : undefined}
-                      rel={c.href.startsWith("http") ? "noopener noreferrer" : undefined}
-                      style={{ textDecoration: "none", color: BLACK }}
-                    >
-                      <div
-                        style={{
-                          fontSize: 11,
-                          letterSpacing: 1,
-                          color: SHADOW,
-                          fontFamily: FONT_MONO,
-                        }}
-                      >
-                        ▸ {c.label} — {c.role}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 13,
-                          color: TITLE_BG,
-                          textDecoration: "underline",
-                          fontFamily: FONT_MONO,
-                        }}
-                      >
-                        {c.value}
-                      </div>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </SunkenPanel>
-          </div>
-        </WindowFrame>
+            <HelpDoc />
+          </WindowFrame>
+        )}
+        {WINDOWS.map((w) => (
+          <Fragment key={w.k}>
+            {!closed[w.k] && (
+              <WindowFrame {...frame(w.k)} blueprint={w.k === "hero" ? "hero-window" : undefined}>
+                {windowBody(w.k)}
+              </WindowFrame>
+            )}
+            {sheetAnchor === w.k && propsWindow}
+          </Fragment>
+        ))}
+        {openCount === 0 && !sheet && !helpOpen && (
+          <p className="self-start px-3 py-2 text-[13px]" style={{ background: GRAY, border: `1px solid ${BLACK}`, boxShadow: RAISED }}>
+            All windows are closed. Select an icon, then press Open.
+          </p>
+        )}
+      </div>
 
-        {/* ── BOTTOM STATUS BAR ───────────────────────────── */}
-        <StatusBar
-          fileCount={fileCount}
-          totalFiles={initialWindows.length}
-          caret={caret}
-          bootDone={bootDone}
-        />
+      {/* ── FOOT BAR: the verbs, and the status line ── */}
+      <div className="xb-foot" data-blueprint="function-keys">
+        <div role="group" aria-label="Function keys" data-shortcuts className="xb-keys">
+          {KEYS.map(({ verb, label, key }) => {
+            const off = verb !== "help" && !selected;
+            return (
+              <button
+                key={verb}
+                ref={(el) => {
+                  keyRefs.current[verb] = el;
+                }}
+                type="button"
+                className="xb-btn flex min-h-11 items-center justify-center gap-2 px-2 text-[13px] uppercase"
+                style={{ letterSpacing: "0.08em" }}
+                aria-disabled={off || undefined}
+                aria-keyshortcuts={key}
+                data-flash={flash === verb ? "" : undefined}
+                onClick={() => act(verb)}
+              >
+                <span>{label}</span>
+                <span aria-hidden className="hidden text-[10px] md:inline" style={{ color: off ? undefined : SHADOW }}>
+                  {key}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        <p
+          role="status"
+          aria-live="polite"
+          className="xb-msg min-w-0 truncate px-2 py-1 text-[13px]"
+          style={{ background: SELECTED, border: `1px solid ${BLACK}`, boxShadow: SUNKEN }}
+        >
+          {message}
+        </p>
+        <div className="xb-wide items-center gap-3 text-[12px] uppercase" style={{ letterSpacing: "0.06em" }}>
+          <span>
+            Files {openCount}/{WINDOWS.length}
+          </span>
+          {clock && <span aria-label="Clock">{clock}</span>}
+        </div>
       </div>
     </div>
   );
 }
 
 // ───────────────────────────────────────────────────────────────────────
-// Window frame with collapse + close behaviour
+// Window frame: navy title bar, collapse + close
 // ───────────────────────────────────────────────────────────────────────
-
-type WindowKey =
-  | "hero"
-  | "why"
-  | "persona"
-  | "empathy"
-  | "journey"
-  | "impact"
-  | "cards"
-  | "usability";
 
 function WindowFrame({
   k,
   title,
   subtitle,
-  icon,
   collapsed,
-  closed,
   onCollapse,
   onClose,
+  windowRef,
+  blueprint,
   children,
 }: {
-  k: WindowKey;
+  k: string;
   title: string;
   subtitle?: string;
-  icon?: string;
   collapsed?: boolean;
-  closed?: boolean;
-  onCollapse: (k: WindowKey) => void;
-  onClose: (k: WindowKey) => void;
-  children: React.ReactNode;
+  onCollapse?: () => void;
+  onClose: (e: MouseEvent) => void;
+  windowRef?: (el: HTMLElement | null) => void;
+  blueprint?: string;
+  children: ReactNode;
 }) {
-  if (closed) return null;
+  const bodyId = `xb-${k}-body`;
   return (
-    <div
+    <section
+      ref={windowRef}
+      aria-labelledby={`xb-${k}-title`}
+      data-blueprint={blueprint}
       style={{
         backgroundColor: GRAY,
-        borderTop: `2px solid ${HILITE}`,
-        borderLeft: `2px solid ${HILITE}`,
-        borderRight: `2px solid ${SHADOW}`,
-        borderBottom: `2px solid ${SHADOW}`,
-        outline: `1px solid ${BLACK}`,
-        boxShadow: `3px 3px 0 ${BLACK}`,
+        border: `1px solid ${BLACK}`,
+        boxShadow: `${RAISED}, 3px 3px 0 ${BLACK}`,
+        padding: 2,
+        scrollMarginTop: "calc(var(--simple-game-nav-bottom, 56px) + 16px)",
       }}
     >
-      <button
-        type="button"
-        onClick={() => onCollapse(k)}
-        aria-label={`Toggle ${title}`}
-        style={{
-          width: "100%",
-          backgroundColor: TITLE_BG,
-          color: TITLE_TEXT,
-          padding: "3px 6px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 6,
-          borderBottom: `1px solid ${BLACK}`,
-          cursor: "pointer",
-          textAlign: "left",
-        }}
-      >
-        <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          {icon && (
-            <span
-              style={{
-                display: "inline-block",
-                width: 18,
-                textAlign: "center",
-                backgroundColor: GRAY,
-                color: BLACK,
-                border: `1px solid ${BLACK}`,
-                fontSize: 11,
-              }}
+      <div className="flex min-h-8 items-center gap-2 py-1 pl-2 pr-1" style={{ backgroundColor: TITLE_BG, color: TITLE_TEXT }}>
+        <h2 className="min-w-0 flex-1">
+          {onCollapse ? (
+            <button
+              type="button"
+              id={`xb-${k}-title`}
+              data-win-title
+              aria-expanded={!collapsed}
+              aria-controls={bodyId}
+              onClick={onCollapse}
+              className="flex w-full min-w-0 items-baseline gap-2 text-left"
+              style={{ outlineColor: TITLE_TEXT }}
             >
-              {icon}
+              <TitleText title={title} subtitle={subtitle} />
+            </button>
+          ) : (
+            <span id={`xb-${k}-title`} data-win-title tabIndex={-1} className="flex min-w-0 items-baseline gap-2" style={{ outlineColor: TITLE_TEXT }}>
+              <TitleText title={title} subtitle={subtitle} />
             </span>
           )}
-          <span
-            style={{
-              fontWeight: 700,
-              letterSpacing: 1,
-              fontSize: 12,
-              fontFamily: FONT_MONO,
-            }}
-          >
-            {title}
-          </span>
-          {subtitle && (
-            <span
-              style={{ fontSize: 11, opacity: 0.75, fontFamily: FONT_MONO }}
-            >
-              · {subtitle}
-            </span>
+        </h2>
+        <span className="flex shrink-0 gap-1">
+          {onCollapse && (
+            <WindowControl label={collapsed ? `Restore ${title}` : `Minimise ${title}`} onClick={onCollapse}>
+              {collapsed ? "▢" : "_"}
+            </WindowControl>
           )}
-        </span>
-        <span style={{ display: "flex", gap: 2 }}>
-          <WindowControl onClick={(e) => { e.stopPropagation(); onCollapse(k); }}>
-            {collapsed ? "▢" : "_"}
-          </WindowControl>
-          <WindowControl onClick={(e) => { e.stopPropagation(); onCollapse(k); }}>
-            □
-          </WindowControl>
-          <WindowControl onClick={(e) => { e.stopPropagation(); onClose(k); }}>
+          <WindowControl label={`Close ${title}`} onClick={onClose}>
             ✕
           </WindowControl>
         </span>
-      </button>
-      {!collapsed && children}
-    </div>
+      </div>
+      <div id={bodyId} hidden={collapsed} style={{ backgroundColor: HILITE, borderTop: `1px solid ${BLACK}`, fontFamily: BODY }}>
+        {children}
+      </div>
+    </section>
   );
 }
 
-function WindowControl({
-  children,
-  onClick,
-}: {
-  children: React.ReactNode;
-  onClick: (e: React.MouseEvent) => void;
-}) {
-  const [pressed, setPressed] = useState(false);
+function TitleText({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
-    <span
-      role="button"
-      tabIndex={0}
+    <>
+      <span className="shrink-0 text-[13px] font-bold" style={{ letterSpacing: "0.06em" }}>
+        {title}
+      </span>
+      {subtitle && (
+        <span className="hidden min-w-0 truncate text-[12px] sm:inline" style={{ color: GRAY_LIGHT }}>
+          · {subtitle}
+        </span>
+      )}
+    </>
+  );
+}
+
+function WindowControl({ children, label, onClick }: { children: ReactNode; label: string; onClick: (e: MouseEvent) => void }) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
       onClick={onClick}
-      onMouseDown={() => setPressed(true)}
-      onMouseUp={() => setPressed(false)}
-      onMouseLeave={() => setPressed(false)}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          onClick(e as unknown as React.MouseEvent);
-        }
-      }}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        width: 18,
-        height: 16,
-        backgroundColor: GRAY,
-        color: BLACK,
-        borderTop: `1px solid ${pressed ? SHADOW : HILITE}`,
-        borderLeft: `1px solid ${pressed ? SHADOW : HILITE}`,
-        borderRight: `1px solid ${pressed ? HILITE : SHADOW}`,
-        borderBottom: `1px solid ${pressed ? HILITE : SHADOW}`,
-        fontSize: 10,
-        lineHeight: 1,
-        fontFamily: FONT_MONO,
-        cursor: "pointer",
-        userSelect: "none",
-      }}
+      className="xb-btn xb-ctl inline-flex h-[18px] w-5 items-center justify-center text-[11px] leading-none"
+      style={{ outlineColor: TITLE_TEXT }}
     >
-      {children}
-    </span>
+      <span aria-hidden>{children}</span>
+    </button>
   );
 }
 
 // ───────────────────────────────────────────────────────────────────────
-// Boot trace window
+// Boot trace
 // ───────────────────────────────────────────────────────────────────────
 
-function BootTraceWindow({
-  lines,
-  done,
-}: {
-  lines: string[];
-  done: boolean;
-}) {
+function BootTraceWindow({ lines, done }: { lines: string[]; done: boolean }) {
   return (
     <div
+      data-blueprint="boot-trace"
       style={{
         backgroundColor: GRAY,
-        borderTop: `2px solid ${HILITE}`,
-        borderLeft: `2px solid ${HILITE}`,
-        borderRight: `2px solid ${SHADOW}`,
-        borderBottom: `2px solid ${SHADOW}`,
-        outline: `1px solid ${BLACK}`,
-        boxShadow: `2px 2px 0 ${BLACK}`,
+        border: `1px solid ${BLACK}`,
+        boxShadow: `${RAISED}, 2px 2px 0 ${BLACK}`,
+        padding: 2,
         opacity: done ? 0.78 : 1,
         transition: "opacity 220ms ease-out",
       }}
     >
-      <div
-        style={{
-          backgroundColor: TITLE_BG,
-          color: TITLE_TEXT,
-          padding: "2px 6px",
-          fontSize: 11,
-          fontFamily: FONT_MONO,
-          letterSpacing: 1,
-          borderBottom: `1px solid ${BLACK}`,
-        }}
-      >
+      <div className="px-2 py-0.5 text-[11px]" style={{ backgroundColor: TITLE_BG, color: TITLE_TEXT, letterSpacing: "0.08em" }}>
         SYS-BOOT · /DEV/HD0
       </div>
       <pre
-        style={{
-          margin: 0,
-          padding: "6px 10px",
-          backgroundColor: "#000000",
-          color: "#00aa00",
-          fontFamily: FONT_MONO,
-          fontSize: 12,
-          lineHeight: 1.4,
-          minHeight: 24,
-          whiteSpace: "pre-wrap",
-        }}
+        aria-label="Boot log"
+        className="m-0 px-2.5 py-1.5 text-[12px]"
+        style={{ backgroundColor: BLACK, color: "#00aa00", fontFamily: CHROME, lineHeight: 1.4, minHeight: 24, whiteSpace: "pre-wrap" }}
       >
         {lines.map((l, i) => (
-          <div key={i}>
+          <span key={i} className="block">
             <span style={{ color: SHADOW }}>$ </span>
             {l}
-          </div>
+          </span>
         ))}
-        {!done && <span style={{ color: "#00aa00" }}>$ _</span>}
+        {!done && <span>$ _</span>}
       </pre>
     </div>
   );
 }
 
 // ───────────────────────────────────────────────────────────────────────
-// Re-launcher dock for closed windows
+// Shared pieces: labels, panels, tags, buttons
 // ───────────────────────────────────────────────────────────────────────
 
-function ReopenDock({
-  closed,
-  initial,
-  onReopen,
-}: {
-  closed: Record<string, boolean>;
-  initial: WindowKey[];
-  onReopen: (k: WindowKey) => void;
-}) {
-  const closedKeys = initial.filter((k) => closed[k]);
+/** Small caps label — the only place capitals are used. */
+function Label({ children, tint, as: As = "span" }: { children: ReactNode; tint?: string; as?: "span" | "h3" | "dt" | "p" }) {
   return (
-    <div
-      style={{
-        backgroundColor: GRAY_LIGHT,
-        borderTop: `2px solid ${HILITE}`,
-        borderLeft: `2px solid ${HILITE}`,
-        borderRight: `2px solid ${SHADOW}`,
-        borderBottom: `2px solid ${SHADOW}`,
-        outline: `1px solid ${BLACK}`,
-        padding: 6,
-        display: "flex",
-        gap: 6,
-        flexWrap: "wrap",
-      }}
-    >
-      <span
-        style={{
-          fontSize: 11,
-          fontFamily: FONT_MONO,
-          color: SHADOW,
-          letterSpacing: 1,
-          alignSelf: "center",
-        }}
-      >
-        ▸ CLOSED:
-      </span>
-      {closedKeys.map((k) => (
-        <button
-          key={k}
-          type="button"
-          onClick={() => onReopen(k)}
-          style={{
-            fontSize: 11,
-            fontFamily: FONT_MONO,
-            color: BLACK,
-            padding: "2px 8px",
-            backgroundColor: GRAY,
-            borderTop: `1px solid ${HILITE}`,
-            borderLeft: `1px solid ${HILITE}`,
-            borderRight: `1px solid ${SHADOW}`,
-            borderBottom: `1px solid ${SHADOW}`,
-            cursor: "pointer",
-            letterSpacing: 1,
-            textTransform: "uppercase",
-          }}
-        >
-          OPEN {k}.WIN
-        </button>
-      ))}
-    </div>
+    <As className="text-[11px] uppercase" style={{ fontFamily: CHROME, letterSpacing: "0.08em", color: tint ?? SHADOW, lineHeight: 1.4 }}>
+      {children}
+    </As>
   );
 }
 
-// ───────────────────────────────────────────────────────────────────────
-// Status bar
-// ───────────────────────────────────────────────────────────────────────
-
-function StatusBar({
-  fileCount,
-  totalFiles,
-  caret,
-  bootDone,
-}: {
-  fileCount: number;
-  totalFiles: number;
-  caret: { row: number; col: number };
-  bootDone: boolean;
-}) {
+function SunkenPanel({ header, subtitle, children }: { header?: string; subtitle?: string; children: ReactNode }) {
   return (
-    <div
-      style={{
-        backgroundColor: GRAY_LIGHT,
-        borderTop: `2px solid ${SHADOW}`,
-        borderLeft: `2px solid ${SHADOW}`,
-        borderRight: `2px solid ${HILITE}`,
-        borderBottom: `2px solid ${HILITE}`,
-        outline: `1px solid ${BLACK}`,
-        padding: "4px 10px",
-        fontSize: 11,
-        fontFamily: FONT_MONO,
-        color: BLACK,
-        letterSpacing: 1,
-        display: "grid",
-        gridTemplateColumns: "1fr auto auto auto auto",
-        gap: 16,
-      }}
-    >
-      <span>
-        STATUS · {bootDone ? "READY" : "LOADING…"}
-      </span>
-      <span>FREE 32K</span>
-      <span>
-        FILES {fileCount}/{totalFiles}
-      </span>
-      <span>SECTOR 0001:0001</span>
-      <span>
-        CARET {String(caret.row).padStart(4, "0")}:
-        {String(caret.col).padStart(4, "0")}
-      </span>
-    </div>
-  );
-}
-
-// ───────────────────────────────────────────────────────────────────────
-// Desktop top bar (file/edit/view/help)
-// ───────────────────────────────────────────────────────────────────────
-
-function DesktopBar({ stamp }: { stamp: string }) {
-  return (
-    <div
-      style={{
-        backgroundColor: GRAY_LIGHT,
-        borderTop: `2px solid ${HILITE}`,
-        borderLeft: `2px solid ${HILITE}`,
-        borderRight: `2px solid ${SHADOW}`,
-        borderBottom: `2px solid ${SHADOW}`,
-        padding: "4px 8px",
-        fontSize: 12,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        fontFamily: FONT_MONO,
-        color: BLACK,
-      }}
-    >
-      <span>KIRUK ⌂ DESKTOP — XEROX STAR / 1981</span>
-      <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <span>FILE</span>
-        <span>EDIT</span>
-        <span>VIEW</span>
-        <span>HELP</span>
-        <span style={{ color: SHADOW }}>· {stamp}</span>
-      </span>
-    </div>
-  );
-}
-
-// ───────────────────────────────────────────────────────────────────────
-// Sunken inner panel
-// ───────────────────────────────────────────────────────────────────────
-
-function SunkenPanel({
-  header,
-  subtitle,
-  tint,
-  compact,
-  children,
-}: {
-  header: string;
-  subtitle: string;
-  tint?: string;
-  compact?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      style={{
-        backgroundColor: SELECTED,
-        borderTop: `2px solid ${SHADOW}`,
-        borderLeft: `2px solid ${SHADOW}`,
-        borderRight: `2px solid ${HILITE}`,
-        borderBottom: `2px solid ${HILITE}`,
-        outline: `1px solid ${BLACK}`,
-        padding: compact ? 8 : 10,
-      }}
-    >
+    <div className="p-3" style={{ backgroundColor: SELECTED, border: `1px solid ${BLACK}`, boxShadow: SUNKEN }}>
       {header && (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "baseline",
-            gap: 6,
-            paddingBottom: 4,
-            marginBottom: 6,
-            borderBottom: `1px dashed ${SHADOW}`,
-          }}
-        >
-          <span
-            style={{
-              fontSize: 12,
-              fontWeight: 700,
-              color: tint ?? TITLE_BG,
-              letterSpacing: 1,
-              fontFamily: FONT_MONO,
-              textTransform: "uppercase",
-            }}
-          >
-            ◆ {header}
-          </span>
+        <div className="mb-2 flex items-baseline gap-2 pb-1" style={{ borderBottom: `1px dashed ${SHADOW}` }}>
+          <Label as="h3" tint={TITLE_BG}>
+            {header}
+          </Label>
           {subtitle && (
-            <span
-              style={{
-                fontSize: 10,
-                marginLeft: "auto",
-                color: SHADOW,
-                fontFamily: FONT_MONO,
-              }}
-            >
+            <span className="ml-auto text-[11px]" style={{ fontFamily: CHROME, color: SHADOW }}>
               {subtitle}
             </span>
           )}
@@ -1339,75 +784,26 @@ function SunkenPanel({
   );
 }
 
-// ───────────────────────────────────────────────────────────────────────
-// Key/value, bullets, tags
-// ───────────────────────────────────────────────────────────────────────
-
-function KeyValue({
-  label,
-  children,
-  mute,
-  tint,
-}: {
-  label: string;
-  children: React.ReactNode;
-  mute?: boolean;
-  tint?: string;
-}) {
+function Tags({ items }: { items: readonly string[] }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-      <span
-        style={{
-          fontSize: 11,
-          color: tint ?? SHADOW,
-          fontFamily: FONT_MONO,
-          letterSpacing: 1,
-          textTransform: "uppercase",
-        }}
-      >
-        ▸ {label}
-      </span>
-      <span
-        style={{
-          fontSize: 13,
-          color: mute ? SHADOW : BLACK,
-          fontStyle: mute ? "italic" : "normal",
-          lineHeight: 1.5,
-          fontFamily: FONT_MONO,
-          letterSpacing: 0.3,
-        }}
-      >
-        {children}
-      </span>
-    </div>
+    <ul className="flex flex-wrap gap-1">
+      {items.map((t) => (
+        <li key={t} className="px-1.5 text-[12px]" style={{ backgroundColor: GRAY_LIGHT, border: `1px solid ${BLACK}`, fontFamily: CHROME }}>
+          {t}
+        </li>
+      ))}
+    </ul>
   );
 }
 
-function BulletList({
-  items,
-  marker = "►",
-  tint,
-}: {
-  items: readonly string[];
-  marker?: string;
-  tint?: string;
-}) {
+function BulletList({ items }: { items: readonly string[] }) {
   return (
-    <ul style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+    <ul className="flex flex-col gap-1 text-[14px]">
       {items.map((it) => (
-        <li
-          key={it}
-          style={{
-            display: "flex",
-            alignItems: "baseline",
-            gap: 6,
-            fontSize: 12,
-            color: BLACK,
-            fontFamily: FONT_MONO,
-            letterSpacing: 0.3,
-          }}
-        >
-          <span style={{ color: tint ?? ACCENT }}>{marker}</span>
+        <li key={it} className="flex items-baseline gap-2">
+          <span aria-hidden style={{ color: BEVEL.accent }}>
+            ►
+          </span>
           <span>{it}</span>
         </li>
       ))}
@@ -1415,170 +811,430 @@ function BulletList({
   );
 }
 
-function Tags({ items }: { items: readonly string[] }) {
-  return (
-    <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-      {items.map((t) => (
-        <span
-          key={t}
-          style={{
-            display: "inline-block",
-            fontSize: 11,
-            padding: "1px 6px",
-            color: BLACK,
-            backgroundColor: GRAY_LIGHT,
-            border: `1px solid ${BLACK}`,
-            fontFamily: FONT_MONO,
-            letterSpacing: 0.5,
-          }}
-        >
-          {t}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-// ───────────────────────────────────────────────────────────────────────
-// Bevel button with real mousedown sink
-// ───────────────────────────────────────────────────────────────────────
-
-function BevelButton({
-  children,
-  href,
-  primary,
-}: {
-  children: React.ReactNode;
-  href: string;
-  primary?: boolean;
-}) {
-  const [pressed, setPressed] = useState(false);
-  const bg = primary ? TITLE_BG : GRAY;
-  const color = primary ? TITLE_TEXT : BLACK;
-  const hi = primary ? "#3333aa" : HILITE;
-  const sh = primary ? "#000044" : SHADOW;
+function BevelLink({ children, href, primary }: { children: ReactNode; href: string; primary?: boolean }) {
   return (
     <Link
       href={href}
-      onMouseDown={() => setPressed(true)}
-      onMouseUp={() => setPressed(false)}
-      onMouseLeave={() => setPressed(false)}
-      style={{
-        display: "inline-block",
-        padding: "5px 12px",
-        backgroundColor: bg,
-        color,
-        textDecoration: "none",
-        borderTop: `2px solid ${pressed ? sh : hi}`,
-        borderLeft: `2px solid ${pressed ? sh : hi}`,
-        borderRight: `2px solid ${pressed ? hi : sh}`,
-        borderBottom: `2px solid ${pressed ? hi : sh}`,
-        outline: `1px solid ${BLACK}`,
-        fontSize: 12,
-        fontWeight: 700,
-        letterSpacing: 1,
-        fontFamily: FONT_MONO,
-        textTransform: "uppercase",
-        transform: pressed ? "translate(1px, 1px)" : "none",
-      }}
+      className={`xb-btn inline-flex min-h-11 items-center px-4 text-[13px] font-bold uppercase ${primary ? "xb-primary" : ""}`}
+      style={{ letterSpacing: "0.06em", textDecoration: "none", fontFamily: CHROME }}
     >
-      {children}
+      <span>{children}</span>
     </Link>
-  );
-}
-
-function FileRow({ k, v }: { k: string; v: string }) {
-  return (
-    <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-      <span
-        style={{
-          color: SHADOW,
-          width: 130,
-          flexShrink: 0,
-          letterSpacing: 1,
-        }}
-      >
-        {k.padEnd(14, ".")}
-      </span>
-      <span style={{ color: BLACK, fontWeight: 700, letterSpacing: 0.5 }}>
-        {v}
-      </span>
-    </div>
-  );
-}
-
-// 8-row pixel portrait — squared head + shoulders + hat — drawn from a
-// 16x18 bitmap matrix. Renders with 4px-pixel blocks for a real bitmap feel.
-function AsciiPortrait() {
-  const W = 16;
-  const H = 18;
-  const PX = 5;
-  // 0 = transparent, 1 = black outline, 2 = skin, 3 = hair, 4 = title-blue cap
-  const PIXELS: number[] = [
-    0,0,0,0,4,4,4,4,4,4,4,4,0,0,0,0,
-    0,0,0,4,4,4,4,4,4,4,4,4,4,0,0,0,
-    0,0,4,4,4,4,4,4,4,4,4,4,4,4,0,0,
-    0,0,4,4,3,3,3,3,3,3,3,3,4,4,0,0,
-    0,0,1,1,3,3,3,3,3,3,3,3,1,1,0,0,
-    0,1,2,2,2,2,2,2,2,2,2,2,2,2,1,0,
-    0,1,2,2,1,2,2,2,2,2,2,1,2,2,1,0,
-    0,1,2,2,1,2,2,2,2,2,2,1,2,2,1,0,
-    0,1,2,2,2,2,2,1,1,2,2,2,2,2,1,0,
-    0,1,2,2,2,2,2,2,2,2,2,2,2,2,1,0,
-    0,1,2,2,1,2,2,2,2,2,2,1,2,2,1,0,
-    0,1,2,2,2,1,1,1,1,1,1,2,2,2,1,0,
-    0,0,1,1,2,2,2,2,2,2,2,2,1,1,0,0,
-    0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,
-    0,1,1,1,3,3,3,3,3,3,3,3,1,1,1,0,
-    1,1,3,3,3,3,3,3,3,3,3,3,3,3,1,1,
-    1,3,3,3,3,3,3,3,3,3,3,3,3,3,3,1,
-    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-  ];
-  const swatch: Record<number, string> = {
-    1: BLACK,
-    2: "#e8c19a",
-    3: "#2d2d2d",
-    4: TITLE_BG,
-  };
-  return (
-    <div
-      style={{
-        width: W * PX,
-        height: H * PX,
-        display: "grid",
-        gridTemplateColumns: `repeat(${W}, ${PX}px)`,
-        gridAutoRows: `${PX}px`,
-        border: `1px solid ${BLACK}`,
-        outline: `2px solid ${SHADOW}`,
-        outlineOffset: 1,
-        backgroundColor: GRAY,
-        flexShrink: 0,
-        imageRendering: "pixelated",
-      }}
-    >
-      {PIXELS.map((p, i) => (
-        <span
-          key={i}
-          style={{
-            backgroundColor: p === 0 ? "transparent" : swatch[p],
-          }}
-        />
-      ))}
-    </div>
   );
 }
 
 function DitherRule() {
   return (
     <div
-      style={{
-        height: 4,
-        margin: "10px 0",
-        backgroundImage:
-          "repeating-linear-gradient(90deg, #000 0, #000 2px, transparent 2px, transparent 4px)",
-        opacity: 0.6,
-      }}
+      aria-hidden
+      className="my-3 h-1"
+      style={{ backgroundImage: "repeating-linear-gradient(90deg, #000 0, #000 2px, transparent 2px, transparent 4px)", opacity: 0.6 }}
     />
+  );
+}
+
+/** Facts as a label column and sunken white value boxes. */
+function Sheet({ rows }: { rows: [string, ReactNode][] }) {
+  return (
+    <dl className="flex flex-col gap-2">
+      {rows.map(([k, v]) => (
+        <div key={k} className="grid grid-cols-1 gap-1 sm:grid-cols-[120px_minmax(0,1fr)] sm:items-start sm:gap-3">
+          <Label as="dt">{k}</Label>
+          <dd className="px-2 py-1 text-[14px]" style={{ background: HILITE, border: `1px solid ${BLACK}`, boxShadow: SUNKEN, overflowWrap: "anywhere" }}>
+            {v}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+/** An enumerated value: every option shown as a bevel button, the current one pressed in. */
+function Choices({ options, current, label }: { options: readonly string[]; current: string; label: string }) {
+  return (
+    <ul aria-label={label} className="flex flex-wrap gap-1">
+      {options.map((o) => {
+        const on = o.toLowerCase() === current.toLowerCase();
+        return (
+          <li
+            key={o}
+            aria-current={on || undefined}
+            className="px-2 py-0.5 text-[12px]"
+            style={{ fontFamily: CHROME, border: `1px solid ${BLACK}`, background: on ? GRAY_LIGHT : GRAY, boxShadow: on ? SUNKEN : RAISED }}
+          >
+            {o}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+// ───────────────────────────────────────────────────────────────────────
+// Window bodies
+// ───────────────────────────────────────────────────────────────────────
+
+function HeroDoc({ bootDone, clock }: { bootDone: boolean; clock: string }) {
+  return (
+    <div className="px-4 py-4 sm:px-5">
+      <Label>File · Kiruk · design engineer on record</Label>
+      <p className="mt-1.5 font-bold" style={{ fontFamily: CHROME, fontSize: "clamp(26px, 4.4vw, 40px)", lineHeight: 1, letterSpacing: "0.02em" }}>
+        KIRUK / DESIGN ENGINEER
+      </p>
+      <p className="mt-1.5" style={{ fontFamily: CHROME, fontSize: "clamp(14px, 1.7vw, 18px)", color: TITLE_BG }}>
+        Field notes on Arun at the design ↔ engineering bridge
+      </p>
+      <DitherRule />
+      <Sheet
+        rows={[
+          ["Subject", HERO.name],
+          ["Role", `${HERO.role} at ${HERO.org}`],
+          ["Desk", PLACE],
+          ["Opened", clock || "—"],
+          ["Status", bootDone ? "Ready · open for review" : "Loading…"],
+        ]}
+      />
+      <DitherRule />
+      <p className="max-w-[65ch] text-[15px] leading-relaxed">{HERO.framing}</p>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <BevelLink href="/work" primary>
+          Open the work ▸
+        </BevelLink>
+        <BevelLink href="/contact">Write to Arun</BevelLink>
+      </div>
+    </div>
+  );
+}
+
+function WhyDoc() {
+  const rows: [string, string, string?][] = [
+    ["Hook", WHY_KIRUK.hook],
+    ["Pain", WHY_KIRUK.pain, ALERT],
+    ["Bridge", WHY_KIRUK.bridge, TITLE_BG],
+    ["Close", WHY_KIRUK.tagline],
+  ];
+  return (
+    <dl className="grid grid-cols-1 gap-4 px-4 py-4 sm:px-5 md:grid-cols-2">
+      {rows.map(([label, text, tint]) => (
+        <div key={label} className="flex flex-col gap-1">
+          <Label as="dt" tint={tint}>
+            ▸ {label}
+          </Label>
+          <dd className="text-[15px] leading-relaxed" style={{ fontStyle: label === "Close" ? "italic" : undefined }}>
+            {label === "Close" ? `“${text}”` : text}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+function EmpathyDoc() {
+  return (
+    <div className="grid grid-cols-1 gap-3 px-4 py-4 sm:grid-cols-2 sm:px-5">
+      <SunkenPanel header="Says" subtitle="skills I claim">
+        <p className="mb-2 text-[15px] italic leading-relaxed">“{EMPATHY_MAP.says.quote}”</p>
+        <Tags items={EMPATHY_MAP.says.skills} />
+      </SunkenPanel>
+      <SunkenPanel header="Thinks" subtitle="philosophy">
+        <BulletList items={EMPATHY_MAP.thinks} />
+      </SunkenPanel>
+      <SunkenPanel header="Does" subtitle="stack in rotation">
+        <Tags items={EMPATHY_MAP.does} />
+      </SunkenPanel>
+      <SunkenPanel header="Feels" subtitle="motivations">
+        <BulletList items={EMPATHY_MAP.feels} />
+      </SunkenPanel>
+    </div>
+  );
+}
+
+function JourneyDoc({ nodes }: { nodes: EraTimelineNode[] }) {
+  return (
+    <div className="px-4 py-4 sm:px-5">
+      <div className="hidden gap-3 pb-1.5 sm:grid sm:grid-cols-[64px_130px_minmax(0,1fr)]" style={{ borderBottom: `1px solid ${SHADOW}` }}>
+        <Label>Year</Label>
+        <Label>Phase</Label>
+        <Label>Entry</Label>
+      </div>
+      <ol>
+        {nodes.map((n, i) => (
+          <li
+            key={n.year}
+            className="grid grid-cols-[52px_minmax(0,1fr)] gap-3 py-3 sm:grid-cols-[64px_130px_minmax(0,1fr)]"
+            style={{ borderTop: i ? `1px dashed ${SHADOW}` : undefined }}
+          >
+            <span className="font-bold" style={{ fontFamily: CHROME, fontSize: 17, fontVariantNumeric: "tabular-nums" }}>
+              {n.year}
+            </span>
+            <span className="hidden pt-0.5 sm:block">
+              <PhaseTag node={n} />
+            </span>
+            <div className="flex min-w-0 flex-col gap-0.5">
+              <span className="sm:hidden">
+                <PhaseTag node={n} />
+              </span>
+              <p className="text-[15px] font-bold">{n.position}</p>
+              <p className="text-[13px]" style={{ color: SHADOW }}>
+                @ {n.org}
+              </p>
+              <p className="mt-0.5 max-w-[60ch] text-[14px] leading-relaxed">{n.detail}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+function PhaseTag({ node }: { node: EraTimelineNode }) {
+  if (!node.live) return <Label tint={BLACK}>{node.phase}</Label>;
+  return (
+    <span className="inline-block px-1.5 text-[11px] uppercase" style={{ backgroundColor: TITLE_BG, color: TITLE_TEXT, fontFamily: CHROME, letterSpacing: "0.08em" }}>
+      {node.phase} · live
+    </span>
+  );
+}
+
+function ImpactDoc() {
+  return (
+    <div className="px-4 py-4 sm:px-5">
+      <Label>Output: aggregated metrics · last print cycle</Label>
+      <ul className="mt-2 grid grid-cols-1 gap-2 min-[420px]:grid-cols-2 lg:grid-cols-4">
+        {IMPACT_METRICS.map((m) => (
+          <li key={m.id}>
+            <SunkenPanel>
+              <p className="font-bold" style={{ fontFamily: CHROME, fontSize: 28, lineHeight: 1, color: TITLE_BG, fontVariantNumeric: "tabular-nums" }}>
+                {m.value}
+              </p>
+              <p className="mt-1.5 text-[14px] font-bold leading-snug">{sentence(m.label)}</p>
+              {m.context && (
+                <p className="mt-0.5 text-[13px] leading-snug" style={{ color: SHADOW }}>
+                  {m.context}
+                </p>
+              )}
+            </SunkenPanel>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function CardsDoc({
+  filter,
+  onFilter,
+  selected,
+  onCard,
+}: {
+  filter: string;
+  onFilter: (t: string) => void;
+  selected: Sel | null;
+  onCard: (id: string) => void;
+}) {
+  const projects = CARD_SORTING.projects.filter((p) => inCategory(p, filter));
+  return (
+    <div className="px-4 py-4 sm:px-5">
+      <Label>Taxonomy: project index · {CARD_SORTING.projects.length} cards loaded</Label>
+      <div role="group" aria-label="Filter projects by category" className="mt-2 mb-4 flex flex-wrap gap-1.5">
+        {CARD_SORTING.taxonomy.map((t) => {
+          const n = projectCount(t);
+          return (
+            <button
+              key={t}
+              type="button"
+              aria-pressed={filter === t}
+              aria-disabled={n === 0 || undefined}
+              onClick={() => n > 0 && onFilter(t)}
+              className="xb-btn min-h-9 px-2.5 text-[12px] uppercase"
+              style={{ fontFamily: CHROME, letterSpacing: "0.06em" }}
+            >
+              <span>
+                {t} ({n})
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      <ol data-shortcuts className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        {projects.map((p) => {
+          const n = CARD_SORTING.projects.indexOf(p) + 1;
+          const on = selected === `project:${p.id}`;
+          return (
+            <li key={p.id}>
+              <SunkenPanel header={`Card ${String(n).padStart(2, "0")}`} subtitle={p.duration}>
+                <button
+                  type="button"
+                  data-project={p.id}
+                  aria-pressed={on}
+                  onClick={() => onCard(p.id)}
+                  className="-mx-1 mb-1 block min-h-11 px-1 text-left text-[15px] font-bold leading-snug"
+                  style={{ fontFamily: CHROME, background: on ? TITLE_BG : "transparent", color: on ? TITLE_TEXT : BLACK }}
+                >
+                  {p.title}
+                </button>
+                <p className="mb-1.5">
+                  <Label tint={TITLE_BG}>
+                    {p.category} · {p.role}
+                  </Label>
+                </p>
+                <p className="mb-2 text-[14px] leading-relaxed">{p.description}</p>
+                <Tags items={p.technologies} />
+                <p className="mt-3">
+                  <Link href={`/work/${p.id}`} className="text-[13px] underline underline-offset-2" style={{ color: BEVEL.accent, fontFamily: CHROME }}>
+                    Open card ▸<span className="sr-only"> {p.title}</span>
+                  </Link>
+                </p>
+              </SunkenPanel>
+            </li>
+          );
+        })}
+      </ol>
+      <div className="mt-4">
+        <BevelLink href="/work">All work ▸</BevelLink>
+      </div>
+    </div>
+  );
+}
+
+function ContactDoc() {
+  return (
+    <div className="grid grid-cols-1 gap-3 px-4 py-4 sm:px-5 md:grid-cols-2">
+      <SunkenPanel header="Test scenario" subtitle="task + metrics">
+        <p className="mb-1 font-bold" style={{ fontFamily: CHROME, fontSize: 15, color: TITLE_BG }}>
+          ▶ {USABILITY_TEST.task}
+        </p>
+        <p className="mb-2 text-[14px] leading-relaxed">{USABILITY_TEST.taskBody}</p>
+        <Label>Success metrics</Label>
+        <div className="mt-1">
+          <BulletList items={USABILITY_TEST.successMetrics.map((m) => m.replace(/: ([A-Z-]+)$/, (_, v: string) => `: ${sentence(v.toLowerCase().replace(/-/g, " "))}`))} />
+        </div>
+      </SunkenPanel>
+      <SunkenPanel header="Test channels" subtitle="contact methods">
+        <ul className="flex flex-col gap-2">
+          {USABILITY_TEST.channels.map((c) => {
+            const ext = c.href.startsWith("http");
+            return (
+              <li key={c.label}>
+                <Label>
+                  ▸ {c.label} — {c.role}
+                </Label>
+                <a
+                  href={c.href}
+                  target={ext ? "_blank" : undefined}
+                  rel={ext ? "noopener noreferrer" : undefined}
+                  className="block text-[14px] underline underline-offset-2"
+                  style={{ color: TITLE_BG, overflowWrap: "anywhere" }}
+                >
+                  {c.value}
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </SunkenPanel>
+      <div className="md:col-span-2">
+        <BevelLink href="/contact" primary>
+          Write to Arun ▸
+        </BevelLink>
+      </div>
+    </div>
+  );
+}
+
+function HelpDoc() {
+  return (
+    <div className="flex max-w-[65ch] flex-col gap-3 px-4 py-4 text-[15px] leading-relaxed sm:px-5">
+      <p className="font-bold">Everything on this desktop is an object. Select a thing, then press what to do with it.</p>
+      <ol className="flex list-decimal flex-col gap-1 pl-5">
+        <li>Click an icon to select it. Its name turns blue.</li>
+        <li>Press a key at the foot of the screen: Open shows its window, Props lists its properties, Copy puts it on your clipboard.</li>
+        <li>An icon drawn gray is in use. Close its window and the icon is free again.</li>
+      </ol>
+      <p>
+        Clicking a selected icon again also opens it. On a keyboard, arrow keys move between icons, Enter opens, and O, P, C and H press the keys.
+      </p>
+      <p className="text-[13px] italic" style={{ color: SHADOW }}>
+        The Xerox Star worked this way in 1981: the noun first, then the verb.
+      </p>
+    </div>
+  );
+}
+
+function PropertySheet({ target, nodes }: { target: Sel; nodes: EraTimelineNode[] }) {
+  const kinds: Kind[] = ["Document", "Folder", "Drawer", "Basket"];
+  const kind = (k: Kind): [string, ReactNode] => ["Kind", <Choices key="kind" label="Kind" options={kinds} current={k} />];
+  let rows: [string, ReactNode][];
+
+  if (isProject(target)) {
+    const p = projectOf(target);
+    rows = p
+      ? [
+          kind("Document"),
+          ["Title", p.title],
+          ["Role", p.role],
+          ["Duration", sentence(p.duration)],
+          ["Category", <Choices key="cat" label="Category" options={CATEGORIES} current={p.category} />],
+          ["Tools", p.technologies.join(", ")],
+        ]
+      : [];
+  } else {
+    const w = winOf(target);
+    const base: [string, ReactNode][] = [kind(w.kind), ["File", w.title]];
+    switch (target) {
+      case "hero":
+        rows = [...base, ["Name", HERO.name], ["Role", HERO.role], ["At", HERO.org], ["Desk", PLACE]];
+        break;
+      case "why":
+        rows = [...base, ["Tagline", WHY_KIRUK.tagline]];
+        break;
+      case "persona":
+        rows = [
+          ...base,
+          ["Subject", PERSONA.identity.name],
+          ["Motto", PERSONA.quote],
+          ["Goals", <BulletList key="g" items={PERSONA.goals} />],
+          ["Frustrations", <BulletList key="f" items={PERSONA.frustrations} />],
+        ];
+        break;
+      case "empathy":
+        rows = [...base, ["Contains", "Says, thinks, does, feels"], ["Quote", `“${EMPATHY_MAP.says.quote}”`]];
+        break;
+      case "journey":
+        rows = [
+          ...base,
+          ["Holds", `${nodes.length} entries`],
+          ["Span", `${nodes[0].year} to ${nodes[nodes.length - 1].year}`],
+          ["Now", `${nodes[nodes.length - 1].position}, ${nodes[nodes.length - 1].org}`],
+        ];
+        break;
+      case "impact":
+        rows = [
+          ...base,
+          ["Figures", String(IMPACT_METRICS.length)],
+          ["Sources", <BulletList key="s" items={[...new Set(IMPACT_METRICS.map((m) => m.context).filter((c): c is string => !!c))]} />],
+        ];
+        break;
+      case "cards":
+        rows = [...base, ["Holds", `${CARD_SORTING.projects.length} cards`], ["Filed under", CATEGORIES.map((c) => `${c} ${projectCount(c)}`).join(" · ")]];
+        break;
+      case "usability": {
+        rows = [...base];
+        if (STATUS) rows.push(["Status", <Choices key="st" label="Status" options={["Available", "Busy", "Not available"]} current={STATUS} />]);
+        const response = fact("response time");
+        const zone = fact("timezone");
+        if (response) rows.push(["Replies in", response]);
+        if (zone) rows.push(["Time zone", zone]);
+        if (EMAIL) rows.push(["Address", EMAIL]);
+        break;
+      }
+    }
+  }
+
+  return (
+    <div className="px-4 py-4 sm:px-5" style={{ backgroundColor: GRAY }}>
+      <Sheet rows={rows} />
+    </div>
   );
 }
 

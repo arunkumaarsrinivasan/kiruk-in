@@ -5,13 +5,16 @@ import { isProjectNda } from "@/data/project-media";
 import { useWindows } from "../use-windows";
 import { WindowLayer } from "../WindowLayer";
 import { label, monogram } from "../helpers";
-import type { DesktopEra, Project } from "../types";
+import { useFocusProject } from "../use-focus-project";
+import type { DesktopProps } from "../types";
 
 /** 2020 — Big Sur. Translucent menubar, top-right icons, floating dock. */
-export function ModernDesktop({ era, projects }: { era: DesktopEra; projects: Project[] }) {
+export function ModernDesktop({ era, projects, focusId }: DesktopProps) {
   const t = era.tokens;
   const stageRef = useRef<HTMLDivElement>(null);
   const { windows, open, close, focus } = useWindows(era.id, { x: 112, y: 24 });
+
+  useFocusProject(focusId, open);
 
   return (
     <div className="relative flex h-full flex-col" style={{ fontFamily: era.fontUi }}>
@@ -33,7 +36,7 @@ export function ModernDesktop({ era, projects }: { era: DesktopEra; projects: Pr
         <div className="absolute right-3 top-3 z-[1] flex max-h-full flex-col items-center gap-3 overflow-y-auto pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {projects.map((p) => (
             <button key={p.id} type="button" onClick={() => open(p.id)} className="group flex w-[80px] flex-col items-center gap-1 text-center">
-              <span className="relative grid h-14 w-14 place-items-center text-xl font-extrabold transition-transform group-hover:scale-105 group-active:scale-95"
+              <span className="relative grid h-14 w-14 place-items-center text-xl font-extrabold transition-transform group-hover:scale-105 group-active:scale-95 motion-reduce:transition-none motion-reduce:transform-none"
                 style={{ background: `linear-gradient(160deg, color-mix(in srgb, ${t.accent} 62%, #fff) 0%, ${t.accent} 50%, color-mix(in srgb, ${t.accent} 72%, #000) 100%)`, color: t.accentText, borderRadius: 16, boxShadow: "0 6px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.55)", textShadow: t.accentText === "#ffffff" ? "0 1px 2px rgba(0,0,0,0.45)" : "none" }}>
                 {monogram(p)}
                 {isProjectNda(p.id) ? <span className="absolute -right-1 -top-1 rounded-full bg-black/70 px-1 text-[8px] font-bold text-white">NDA</span> : null}

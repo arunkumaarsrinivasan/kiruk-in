@@ -10,28 +10,27 @@ type Route = {
 
 const STATIC_ROUTES: Route[] = [
   { path: "/", priority: 1.0, changeFrequency: "weekly" },
-  { path: "/about", priority: 0.9, changeFrequency: "monthly" },
   { path: "/work", priority: 0.9, changeFrequency: "monthly" },
   { path: "/notebook", priority: 0.8, changeFrequency: "weekly" },
   { path: "/contact", priority: 0.7, changeFrequency: "yearly" },
   { path: "/progress", priority: 0.6, changeFrequency: "weekly" },
   { path: "/roadmap", priority: 0.6, changeFrequency: "monthly" },
-  { path: "/life-roadmap", priority: 0.5, changeFrequency: "monthly" },
 ];
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const now = new Date();
+/** Content date for routes that are not a single dated essay. */
+const STATIC_UPDATED = new Date("2026-10-14T00:00:00.000Z");
 
+export default function sitemap(): MetadataRoute.Sitemap {
   const staticEntries: MetadataRoute.Sitemap = STATIC_ROUTES.map((r) => ({
-    url: `${SITE_URL}${r.path}`,
-    lastModified: now,
+    url: r.path === "/" ? SITE_URL : `${SITE_URL}${r.path}`,
+    lastModified: STATIC_UPDATED,
     changeFrequency: r.changeFrequency,
     priority: r.priority,
   }));
 
   const toLastModified = (date: string) => {
-    const parsed = date ? new Date(date) : now;
-    return Number.isNaN(parsed.getTime()) ? now : parsed;
+    const parsed = date ? new Date(date) : STATIC_UPDATED;
+    return Number.isNaN(parsed.getTime()) ? STATIC_UPDATED : parsed;
   };
 
   const notebookEntries: MetadataRoute.Sitemap = getNotebookEntries().flatMap((post) => {

@@ -2,7 +2,6 @@
 
 import { useEffect, useState, type CSSProperties } from "react";
 import { useNotebookEraOptional } from "./NotebookEraContext";
-import { NotebookLink } from "./NotebookLink";
 
 type Section = { id: string; title: string };
 
@@ -204,13 +203,6 @@ export function NotebookProgress({
       ) : null}
 
       <div className="era-toc-acts" data-gaze-ignore>
-        <NotebookLink
-          href="/notebook"
-          className="era-toc-act era-toc-back"
-          aria-label="All notebook pages"
-        >
-          ← all pages
-        </NotebookLink>
         <button type="button" className="era-toc-act era-toc-share" onClick={share}>
           {copiedLink ? "copied" : "share"}
         </button>

@@ -6,7 +6,8 @@ import { WindowFrame } from "../WindowFrame";
 import { buildWorkDir, linkGlyph } from "../work-fs";
 import type { DirNode, DocNode, FsNode } from "../work-fs";
 import { DocBody } from "../DocBody";
-import type { DesktopEra, Project } from "../types";
+import { useFocusProject } from "../use-focus-project";
+import type { DesktopEra, DesktopProps, Project } from "../types";
 
 const OUTSET = "inset -1px -1px 0 #000, inset 1px 1px 0 #fff, inset -2px -2px 0 #808080, inset 2px 2px 0 #dfdfdf";
 const INSET = "inset 1px 1px 0 #000, inset -1px -1px 0 #fff, inset 2px 2px 0 #808080, inset -2px -2px 0 #dfdfdf";
@@ -22,7 +23,7 @@ interface Win {
 }
 
 /** 2000 — Windows 2000. Classic gray, Explorer with the blue Web View banner. */
-export function Win2000Desktop({ era, projects }: { era: DesktopEra; projects: Project[] }) {
+export function Win2000Desktop({ era, projects, focusId }: DesktopProps) {
   const t = era.tokens;
   const stageRef = useRef<HTMLDivElement>(null);
   const root = useRef<DirNode>(buildWorkDir(projects, era.id));
@@ -70,6 +71,8 @@ export function Win2000Desktop({ era, projects }: { era: DesktopEra; projects: P
 
   const launch = (id: string) => { openExplorer([id]); setStartOpen(false); };
 
+  useFocusProject(focusId, (id) => openExplorer([id]));
+
   return (
     <div className="flex h-full flex-col" style={{ fontFamily: era.fontUi, color: "#000" }}>
       <div ref={stageRef} className="relative min-h-0 flex-1 overflow-hidden" style={{ background: t.wallpaper }} onClick={() => setStartOpen(false)}>
@@ -80,7 +83,7 @@ export function Win2000Desktop({ era, projects }: { era: DesktopEra; projects: P
               <rect x="8" y="8" width="24" height="14" fill="#1c5fb0" />
               <rect x="12" y="27" width="16" height="5" fill="#b8bcc4" stroke="#3a4a63" />
             </svg>
-            <span className="px-1 text-[11px] font-medium text-white group-hover:bg-[#0a246a]" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.7)" }}>Work</span>
+            <span className="px-1 text-[11px] font-medium text-white group-hover:bg-[#0a246a] group-focus-visible:bg-[#0a246a]" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.7)" }}>Work</span>
           </button>
         </div>
 

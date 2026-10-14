@@ -1,30 +1,17 @@
 "use client";
 
 /**
- * AboutExperience — the ABOUT module's full-screen experience: the real "Time
- * Travel" celestial life-journey from the /about route. Opening the landing
- * ABOUT.sh whoami expands into this; the module overlay's Close/Esc dismisses.
+ * AboutExperience — the ABOUT module (?module=about): the same era story box
+ * the home pages embed, given the whole overlay.
  */
 
 import React from "react";
-import dynamic from "next/dynamic";
-
-const AboutJourney = dynamic(() => import("@/app/about/page"), {
-  ssr: false,
-  loading: () => (
-    <div
-      className="flex h-full w-full items-center justify-center text-sm"
-      style={{ color: "var(--text-muted)", fontFamily: "var(--font-main)" }}
-    >
-      ✦ winding the clock…
-    </div>
-  ),
-});
+import { EraStoryBox } from "@/components/about-story/EraStoryBox";
 
 export function AboutExperience() {
   return (
-    <div className="relative h-full w-full overflow-hidden">
-      <AboutJourney />
+    <div className="mx-auto w-full max-w-4xl px-4 py-8">
+      <EraStoryBox variant="full" />
     </div>
   );
 }

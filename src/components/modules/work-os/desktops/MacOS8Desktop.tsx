@@ -4,10 +4,12 @@ import { motion, useDragControls } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import type { PointerEvent, ReactNode } from "react";
 import { isProjectNda } from "@/data/project-media";
-import { buildWorkDir, linkGlyph } from "../work-fs";
+import { buildWorkDir, findDir, linkGlyph } from "../work-fs";
 import type { DirNode, DocNode, FsNode } from "../work-fs";
 import { DocBody } from "../DocBody";
-import type { DesktopEra, Project } from "../types";
+import { fitWindow } from "../helpers";
+import { useFocusProject } from "../use-focus-project";
+import type { DesktopEra, DesktopProps } from "../types";
 
 const BEVEL = "inset 1px 1px 0 #fff, inset -1px -1px 0 #808080";
 
@@ -23,7 +25,7 @@ interface MacWin {
 }
 
 /** 1997 — Mac OS 8 Platinum. Finder folders, pinstripe title bars, window-shade. */
-export function MacOS8Desktop({ era, projects }: { era: DesktopEra; projects: Project[] }) {
+export function MacOS8Desktop({ era, projects, focusId }: DesktopProps) {
   const t = era.tokens;
   const stageRef = useRef<HTMLDivElement>(null);
   const work = useRef<DirNode>(buildWorkDir(projects, era.id));
@@ -53,6 +55,8 @@ export function MacOS8Desktop({ era, projects }: { era: DesktopEra; projects: Pr
   const close = (key: string) => setWins((w) => w.filter((x) => x.key !== key));
   const toggleCollapse = (key: string) => setWins((w) => w.map((x) => (x.key === key ? { ...x, collapsed: !x.collapsed } : x)));
 
+  useFocusProject(focusId, (id) => { const d = findDir(work.current, [id]); if (d) add("folder", d); });
+
   return (
     <div className="flex h-full flex-col" style={{ fontFamily: era.fontUi, color: "#000" }}>
       {/* menu bar */}
@@ -67,7 +71,7 @@ export function MacOS8Desktop({ era, projects }: { era: DesktopEra; projects: Pr
         <div className="absolute right-3 top-3 z-[1] flex flex-col items-center gap-5">
           <button type="button" onClick={() => add("folder", work.current)} className="group flex w-[80px] flex-col items-center gap-0.5">
             <DiskGlyph />
-            <span className="px-1 text-[11px] font-bold group-hover:bg-black group-hover:text-white">{era.brand}</span>
+            <span className="px-1 text-[11px] font-bold group-hover:bg-black group-focus-visible:bg-black group-hover:text-white group-focus-visible:text-white">{era.brand}</span>
           </button>
           <div className="flex flex-col items-center gap-0.5">
             <TrashGlyph />
@@ -94,7 +98,7 @@ function MacWindow({ win, stageRef, t, onClose, onFocus, onCollapse, children }:
       drag dragListener={false} dragControls={controls} dragMomentum={false} dragConstraints={stageRef}
       onPointerDown={onFocus}
       className="absolute flex max-h-[88%] flex-col"
-      style={{ left: win.x, top: win.y, width: 268, zIndex: win.z, background: t.surface, border: "1px solid #000", boxShadow: `${BEVEL}, 3px 3px 0 rgba(0,0,0,0.35)` }}
+      style={{ ...fitWindow(win.x, "clamp(268px, 24vw, 340px)"), top: win.y, zIndex: win.z, background: t.surface, border: "1px solid #000", boxShadow: `${BEVEL}, 3px 3px 0 rgba(0,0,0,0.35)` }}
     >
       {/* pinstripe title bar */}
       <div onPointerDown={(e: PointerEvent) => controls.start(e)} className="flex cursor-grab items-center gap-1.5 px-1.5 py-1 active:cursor-grabbing" style={{ background: t.titleBar, borderBottom: "1px solid #808080" }}>
@@ -121,7 +125,7 @@ function FinderView({ dir, onOpen }: { dir: DirNode; onOpen: (n: FsNode) => void
         {dir.children.map((n) => (
           <button key={n.name} type="button" onClick={() => onOpen(n)} className="group flex flex-col items-center gap-0.5 p-1 text-center">
             <span className="relative"><NodeGlyph node={n} />{n.kind === "dir" && n.project && isProjectNda(n.project.id) ? <span className="absolute -right-1 -top-1 bg-black px-0.5 text-[7px] font-bold text-white">NDA</span> : null}</span>
-            <span className="line-clamp-2 px-0.5 text-[10px] font-bold leading-tight group-hover:bg-black group-hover:text-white">{n.kind === "dir" ? (n as DirNode).label : n.name}</span>
+            <span className="line-clamp-2 px-0.5 text-[10px] font-bold leading-tight group-hover:bg-black group-focus-visible:bg-black group-hover:text-white group-focus-visible:text-white">{n.kind === "dir" ? (n as DirNode).label : n.name}</span>
           </button>
         ))}
       </div>

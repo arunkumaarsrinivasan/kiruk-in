@@ -1,24 +1,26 @@
 "use client";
 
-import { motion, useDragControls } from "framer-motion";
+import { motion, useDragControls, useReducedMotion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { PointerEvent } from "react";
 import { isProjectNda } from "@/data/project-media";
-import { buildWorkDir, linkGlyph } from "../work-fs";
+import { buildWorkDir, findDir, linkGlyph } from "../work-fs";
 import type { DirNode, DocNode, FsNode } from "../work-fs";
-import { monogram } from "../helpers";
+import { fitWindow, monogram } from "../helpers";
 import { DocBody } from "../DocBody";
-import type { DesktopEra, Project } from "../types";
+import { useFocusProject } from "../use-focus-project";
+import type { DesktopEra, DesktopProps, Project } from "../types";
 
 interface VWin { key: string; dir: DirNode; x: number; y: number; z: number }
 
 /** 2023 — Spatial OS. Glass slabs floating in real 3D depth, mouse parallax. */
-export function VisionDesktop({ era, projects }: { era: DesktopEra; projects: Project[] }) {
+export function VisionDesktop({ era, projects, focusId }: DesktopProps) {
   const t = era.tokens;
   const stageRef = useRef<HTMLDivElement>(null);
   const root = useMemo(() => buildWorkDir(projects, era.id), [projects]);
   const [wins, setWins] = useState<VWin[]>([]);
   const [par, setPar] = useState({ x: 0, y: 0 });
+  const reduceMotion = useReducedMotion();
   const [stageW, setStageW] = useState(800);
   const counter = useRef(0);
   const z = useRef(10);
@@ -31,21 +33,25 @@ export function VisionDesktop({ era, projects }: { era: DesktopEra; projects: Pr
   }, []);
 
   const open = (dir: DirNode) => {
-    const existing = wins.find((w) => w.dir.name === dir.name);
     z.current += 1;
-    if (existing) { setWins((w) => w.map((x) => (x.key === existing.key ? { ...x, z: z.current } : x))); return; }
-    counter.current += 1;
-    const n = counter.current;
-    setWins((w) => [...w, { key: `w${n}`, dir, x: 90 + (n % 4) * 150, y: 70 + (n % 3) * 70, z: z.current }]);
+    const nz = z.current;
+    setWins((w) => {
+      if (w.some((x) => x.dir.name === dir.name)) return w.map((x) => (x.dir.name === dir.name ? { ...x, z: nz } : x));
+      counter.current += 1;
+      const n = counter.current;
+      return [...w, { key: `w${n}`, dir, x: 90 + (n % 4) * 150, y: 70 + (n % 3) * 70, z: nz }];
+    });
   };
   const focus = (key: string) => { z.current += 1; setWins((w) => w.map((x) => (x.key === key ? { ...x, z: z.current } : x))); };
   const close = (key: string) => setWins((w) => w.filter((x) => x.key !== key));
 
   const onMove = (e: React.PointerEvent) => {
     const r = stageRef.current?.getBoundingClientRect();
-    if (!r) return;
+    if (!r || reduceMotion) return;
     setPar({ x: ((e.clientX - r.left) / r.width - 0.5) * 2, y: ((e.clientY - r.top) / r.height - 0.5) * 2 });
   };
+
+  useFocusProject(focusId, (id) => { const d = findDir(root, [id]); if (d) open(d); });
 
   return (
     <div
@@ -123,9 +129,9 @@ function VisionWindow({ win, tilt, stageRef, t, onClose, onFocus }: { win: VWin;
       initial={{ opacity: 0, scale: 0.9, rotateY: tilt }}
       animate={{ opacity: 1, scale: 1, rotateY: tilt, rotateX: -4 }}
       transition={{ type: "spring", stiffness: 180, damping: 22 }}
-      className="absolute flex max-h-[78%] w-[min(440px,88%)] flex-col overflow-hidden rounded-[26px]"
+      className="absolute flex max-h-[78%] flex-col overflow-hidden rounded-[26px]"
       style={{
-        left: win.x, top: win.y, zIndex: win.z,
+        ...fitWindow(win.x, "clamp(440px, 36vw, 580px)"), top: win.y, zIndex: win.z,
         background: "rgba(36,38,56,0.5)",
         border: "1px solid rgba(255,255,255,0.28)",
         backdropFilter: "blur(40px) saturate(1.5)",

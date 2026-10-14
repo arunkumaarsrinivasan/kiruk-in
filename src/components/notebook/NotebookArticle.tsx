@@ -6,7 +6,7 @@ import type { NotebookSummary } from "@/lib/content/notebook";
 import type { RelatedHit } from "@/lib/content/related";
 import { notebookReadingGrammar } from "@/lib/notebook";
 import { RelatedLinks } from "@/components/blog/RelatedLinks";
-import { SiteCrumbs } from "@/components/layout/SiteCrumbs";
+import { useNavTrail } from "@/components/layout/NavTrail";
 import { releaseGaze } from "./gaze/field";
 import { GazeHit, GazeTitle } from "./gaze/GazeTitle";
 import { dateYear, markFor } from "./gaze/marks";
@@ -47,6 +47,8 @@ export function NotebookArticle({
     if (terminal) releaseGaze();
   }, [terminal, summary.slug]);
 
+  useNavTrail([{ label: "Read", href: "/notebook" }, { label: summary.title }]);
+
   return (
     <div
       className={
@@ -65,17 +67,6 @@ export function NotebookArticle({
             : `relative z-10 era-read ${wide ? "px-1 md:px-2" : ""}`
         }
       >
-        {terminal ? null : (
-          <SiteCrumbs
-            className="mb-8"
-            items={[
-              { href: "/notebook", label: "Notebook" },
-              { label: summary.title },
-            ]}
-            link={NotebookLink}
-          />
-        )}
-
         {eraReady ? null : (
           <p
             className="era-era-note mb-6 max-w-[40rem] text-[0.78rem] leading-snug tracking-[0.02em]"

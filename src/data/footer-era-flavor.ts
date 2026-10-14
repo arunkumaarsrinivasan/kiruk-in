@@ -32,12 +32,6 @@ const FLAVOR_BY_ERA: Record<string, FooterEraFlavor> = {
     controlHint: "Click the correct link-cell · follow the underlined truth",
     winLine: "END OF DOCUMENT — thanks for visiting this node.",
   },
-  "1993": {
-    questName: "MOSAIC TIMELINE",
-    tagline: "Navigate the history stack before Netscape times out.",
-    controlHint: "Trace the timeline tiles · click to lock an era hop",
-    winLine: "CONNECTION RESET — dial up again from the footer dock.",
-  },
   "1995": {
     questName: "GEO PAINT STORM",
     tagline: "Under construction forever — leave neon trails on the guestbook grid.",
@@ -62,12 +56,6 @@ const FLAVOR_BY_ERA: Record<string, FooterEraFlavor> = {
     controlHint: "Sweep the grid · chain pickups for combo XP",
     winLine: "ACHIEVEMENT UNLOCKED — friend request pending.",
   },
-  "2006": {
-    questName: "STATUS FIREHOSE",
-    tagline: "Dodge the microblog blast radius — 140 chars of danger.",
-    controlHint: "Move fast · don't get @-mentioned into a wall",
-    winLine: "TRENDING #1 — log off, touch grass, email Kiruk.",
-  },
   "2009": {
     questName: "SKEUO MEMORY",
     tagline: "Flip the linen cards — find pairs before the home button wears out.",
@@ -79,24 +67,6 @@ const FLAVOR_BY_ERA: Record<string, FooterEraFlavor> = {
     tagline: "Snap flat tiles into columns — Pinterest your way to victory.",
     controlHint: "Click to rotate piece · hard-drop with rhythm",
     winLine: "BOARD CLEARED — pin this footer to your moodboard.",
-  },
-  "2018": {
-    questName: "BLOCK MINE SWEEP",
-    tagline: "Structured grid blocks hide intent — reveal without breaking the layout.",
-    controlHint: "Click to probe · read the numbers like a design critique",
-    winLine: "ALL BLOCKS PUBLISHED — ship to production.",
-  },
-  "2021": {
-    questName: "SPRINT COLUMN",
-    tagline: "Stack issues, clear the sprint, zero carry-over guilt.",
-    controlHint: "Tetris the backlog · one ticket per cell",
-    winLine: "VELOCITY MAXED — retro scheduled for morale.",
-  },
-  "2023": {
-    questName: "PROMPT QUIZ",
-    tagline: "Conversational Q&A — the model already knows your favorite font.",
-    controlHint: "Pick answers on-grid · hallucinations not included",
-    winLine: "ALIGNMENT OK — human-in-the-loop still required.",
   },
   "2026": {
     questName: "GENERATIVE PAINT",

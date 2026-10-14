@@ -4,19 +4,18 @@
  * Module registry — meta for the dock cards + the content component each
  * module expands into. `eras` has no content component here: it renders the
  * existing fullscreen EraTimeMachine directly (handled in ModuleOverlayHost).
+ *
+ * Bodies are separate chunks. The dock labels stay in this file; a body
+ * downloads when that module actually opens.
  */
 
+import dynamic from "next/dynamic";
 import type React from "react";
 import type { ModuleId } from "@/contexts/ModuleContext";
-import EraStoryContent from "./EraStoryContent";
-import { WorkObservatory } from "./WorkObservatory";
-import { CaseStudiesExperience } from "./CaseStudiesExperience";
-import { WorkOS } from "../work-os/WorkOS";
-import { AboutExperience } from "./AboutExperience";
-import { ProgressExperience } from "./ProgressExperience";
-import { BlogExperience } from "./BlogExperience";
-import { ContactExperience } from "./ContactExperience";
-import FooterGameFull from "./FooterGameFull";
+
+function body(load: () => Promise<{ default: React.ComponentType }>) {
+  return dynamic(load, { loading: () => null });
+}
 
 export interface ModuleMeta {
   id: ModuleId;
@@ -44,16 +43,16 @@ export const MODULES: ModuleMeta[] = [
 export const MODULE_CONTENT: Partial<
   Record<ModuleId, React.ComponentType>
 > = {
-  "era-story": EraStoryContent,
-  work: WorkOS,
+  "era-story": body(() => import("./EraStoryContent")),
+  work: body(() => import("../work-os/WorkOS")),
   /** @deprecated URL alias — original slider deep-dive body */
-  "case-studies": CaseStudiesExperience,
-  observatory: WorkObservatory,
-  about: AboutExperience,
-  progress: ProgressExperience,
-  blog: BlogExperience,
-  contact: ContactExperience,
-  "footer-game": FooterGameFull,
+  "case-studies": body(() => import("./CaseStudiesExperience")),
+  observatory: body(() => import("./WorkObservatory")),
+  about: body(() => import("./AboutExperience")),
+  progress: body(() => import("./ProgressExperience")),
+  blog: body(() => import("./BlogExperience")),
+  contact: body(() => import("./ContactExperience")),
+  "footer-game": body(() => import("./FooterGameFull")),
 };
 
 export function getModuleMeta(id: ModuleId): ModuleMeta | undefined {

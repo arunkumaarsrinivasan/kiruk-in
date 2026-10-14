@@ -53,6 +53,22 @@ import { eyeFrame } from "@/lib/era-eye-frame";
  */
 const POINTER_HOLD = 2.2;
 
+/**
+ * Tilt, on phones that hand it over without asking (Android; iOS gates it
+ * behind a permission dialog, so there the finger stays the only input).
+ * Degrees of tilt from where the phone is held that turn the eye all the way.
+ */
+const TILT_RANGE_X = 18;
+const TILT_RANGE_Y = 14;
+/** How fast "where the phone is held" re-learns a new resting posture, per second. */
+const TILT_RECENTER = 0.12;
+/** Sensor jitter filter, per second. */
+const TILT_SMOOTH = 10;
+/** How long tilt keeps the eye's attention after the phone last moved. */
+const TILT_HOLD = 4;
+/** Degrees the phone must move before it counts as the viewer doing something. */
+const TILT_NOTICE = 1.2;
+
 /** The span the era's page is authored to be legible at — a desktop's. */
 const REF_SPAN = 1.09;
 
@@ -71,7 +87,10 @@ const EXIT_DILATE = 13;
 /** Fragments the eye pass may shade per frame before quality gives way. */
 const PIXEL_BUDGET = 2_400_000;
 const DPR_MIN = 0.7;
-const DPR_MAX = 1.5;
+/** Phones are small in CSS pixels and 3× in device pixels. The budget below
+ *  still caps a large desktop; this only lets a phone spend the budget it
+ *  already has, so the cornea is not painted at half the display's resolution. */
+const DPR_MAX = 2;
 
 /** Blink shape, in seconds: snap shut, hold, open slower. */
 const BLINK_CLOSE = 0.07;
@@ -372,6 +391,23 @@ function EraEyeScene({
   const bufSize = useRef(new THREE.Vector2());
   /** Window-level pointer — the canvas itself is pointer-events: none. */
   const pointer = useRef({ x: 0, y: 0, seen: -1e3 });
+  /**
+   * Device tilt in screen axes, degrees: the raw reading, the posture it is
+   * measured from, the filtered offset, and when the phone last really moved.
+   */
+  const tilt = useRef({
+    rawX: 0,
+    rawY: 0,
+    baseX: 0,
+    baseY: 0,
+    x: 0,
+    y: 0,
+    at: -1,
+    noticeX: 0,
+    noticeY: 0,
+    moved: -1e3,
+    frame: -1,
+  });
   /** Seconds owed to the interface pass, and the frame-time watchdog. */
   const uiDue = useRef(1);
   const health = useRef({ ema: 1 / 60, cool: 2, floor: DPR_MIN, skip: 0 });
@@ -420,6 +456,46 @@ function EraEyeScene({
     };
   }, [interactive, reduce]);
 
+  // The eye keeps watching the viewer: tip the phone and the eye turns to
+  // stay on you. Only where orientation needs no permission — calling
+  // requestPermission would put a system dialog in front of the eye.
+  useEffect(() => {
+    if (!interactive || reduce || typeof window === "undefined") return;
+    if (!("DeviceOrientationEvent" in window)) return;
+    const DOE = window.DeviceOrientationEvent as unknown as {
+      requestPermission?: () => Promise<string>;
+    };
+    if (typeof DOE.requestPermission === "function") return;
+
+    const onTilt = (e: DeviceOrientationEvent) => {
+      if (e.beta == null || e.gamma == null) return;
+      // Device axes to screen axes, so landscape tilts the way it looks.
+      const angle = (screen.orientation?.angle ?? 0) % 360;
+      let sx = e.gamma;
+      let sy = e.beta;
+      if (angle === 90) [sx, sy] = [e.beta, -e.gamma];
+      else if (angle === 180) [sx, sy] = [-e.gamma, -e.beta];
+      else if (angle === 270 || angle === -90) [sx, sy] = [-e.beta, e.gamma];
+
+      const t = tilt.current;
+      t.rawX = sx;
+      t.rawY = sy;
+      if (t.at < 0) {
+        // first reading: however the phone is held right now is "straight on"
+        t.baseX = t.noticeX = sx;
+        t.baseY = t.noticeY = sy;
+      }
+      t.at = performance.now() / 1000;
+      if (Math.hypot(sx - t.noticeX, sy - t.noticeY) > TILT_NOTICE) {
+        t.noticeX = sx;
+        t.noticeY = sy;
+        t.moved = t.at;
+      }
+    };
+    window.addEventListener("deviceorientation", onTilt);
+    return () => window.removeEventListener("deviceorientation", onTilt);
+  }, [interactive, reduce]);
+
   useFrame((_state, delta) => {
     // Nothing on screen is worth a frame while the tab is in the background.
     if (hidden.current) return;
@@ -427,7 +503,8 @@ function EraEyeScene({
     // A long linger on the picker should not hold 60fps + bloom. Idle gaze
     // still lives, just at ~20fps until a pointer arrives again.
     const nowSec = performance.now() / 1000;
-    const pointerIdle = nowSec - pointer.current.seen > 2.8;
+    const pointerIdle =
+      nowSec - pointer.current.seen > 2.8 && nowSec - tilt.current.moved > 2.8;
     if (pointerIdle && !exiting) {
       health.current.skip = (health.current.skip + 1) % 3;
       if (health.current.skip !== 0) return;
@@ -458,15 +535,50 @@ function EraEyeScene({
     let tx = 0;
     let ty = 0;
     const fresh =
-      interactive &&
-      performance.now() / 1000 - pointer.current.seen < POINTER_HOLD;
+      interactive && nowSec - pointer.current.seen < POINTER_HOLD;
+    // Idle drift, so the eye still feels alive between touches.
+    const wanderX = Math.sin(u.uTime.value * 0.42) * 0.5;
+    const wanderY = Math.sin(u.uTime.value * 0.31 + 1.1) * 0.28;
+
+    // Tilt is filtered on wall-clock time, because idle frames are skipped.
+    const t = tilt.current;
+    const tiltLive = interactive && !reduce && t.at > 0 && nowSec - t.at < 1;
+    if (tiltLive) {
+      const tdt = t.frame < 0 ? 0 : Math.min(0.2, nowSec - t.frame);
+      t.frame = nowSec;
+      // The resting posture is re-learned slowly: lie back on the sofa and the
+      // eye settles to straight ahead again instead of staring at the ceiling.
+      t.baseX = damp(t.baseX, t.rawX, TILT_RECENTER, tdt);
+      t.baseY = damp(t.baseY, t.rawY, TILT_RECENTER, tdt);
+      t.x = damp(t.x, t.rawX - t.baseX, TILT_SMOOTH, tdt);
+      t.y = damp(t.y, t.rawY - t.baseY, TILT_SMOOTH, tdt);
+    }
+
     if (fresh && !reduce) {
       tx = THREE.MathUtils.clamp(pointer.current.x, -1, 1);
       ty = THREE.MathUtils.clamp(-pointer.current.y, -1, 1);
+    } else if (tiltLive) {
+      // Counter-rotate: tip the right edge away and the viewer is now off to
+      // the eye's left, so it looks left; tip the top toward you, it looks up.
+      // tanh rounds off the edge so a hard tilt eases into the corner.
+      const still = THREE.MathUtils.clamp(
+        (nowSec - t.moved - TILT_HOLD * 0.4) / (TILT_HOLD * 0.6),
+        0,
+        1,
+      );
+      tx = THREE.MathUtils.clamp(
+        Math.tanh(-t.x / TILT_RANGE_X) + wanderX * still * 0.5,
+        -1,
+        1,
+      );
+      ty = THREE.MathUtils.clamp(
+        Math.tanh(t.y / TILT_RANGE_Y) + wanderY * still * 0.5,
+        -1,
+        1,
+      );
     } else if (!reduce) {
-      // Idle drift, so the eye still feels alive between touches.
-      tx = Math.sin(u.uTime.value * 0.42) * 0.5;
-      ty = Math.sin(u.uTime.value * 0.31 + 1.1) * 0.28;
+      tx = wanderX;
+      ty = wanderY;
     }
     // A real eye holds a fixation, then jumps. Only re-target once the target
     // has drifted far enough and the hold has expired.
@@ -648,7 +760,7 @@ export interface EraEyeCanvasProps {
   eyeHeight?: number;
   exiting?: boolean;
   reduce?: boolean;
-  /** Cursor-tracked gaze (off for coarse pointers). */
+  /** Gaze follows the cursor or finger, and the phone's tilt where allowed. */
   interactive?: boolean;
   className?: string;
 }

@@ -3,38 +3,28 @@
 /**
  * TimeMachine — the era control for the navbar.
  *
- * Trigger: a segmented ‹ [ERA · year ▾] › capsule. ‹ › step to the adjacent
- * era; the center opens a "time-machine" console.
- *
- * Console: a vertical timeline (spine + nodes) of all eras, grouped by web-history
- * phase, with a single live eye-preview header for the focused era. Hover or
- * arrow-key to focus a row, Enter/click to travel. Monochrome — only the active
- * era's accent carries color, so it stays consistent with the rest of the bar.
+ * 1180px and up: every era sits in the bar as a year ('70 '81 … 2026). Click one to
+ * travel; the current year wears a pill that slides between years. Hover or
+ * focus a year to see its name.
+ * Narrower: a ‹ year › stepper, since ten years don't fit next to the links.
  */
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence, motion, useMotionValue, useReducedMotion } from "framer-motion";
+import React, { useRef } from "react";
+import { motion, useMotionValue, useReducedMotion } from "framer-motion";
 import { getEraEye } from "@/components/brand/eyes";
 import { prefetchEraArchetype } from "@/components/era-shell/registry";
-
-const EASE_OUT = [0.23, 1, 0.32, 1] as const;
 
 const PHASE: Record<string, string> = {
   "1970": "Pre-Web",
   "1981": "Pre-Web",
   "1991": "Web 1.0",
-  "1993": "Web 1.0",
   "1995": "Web 1.0",
   "1997": "Web 1.0",
   "2000": "Web 2.0",
   "2003": "Web 2.0",
-  "2006": "Web 2.0",
   "2009": "Mobile",
   "2013": "Mobile",
-  "2018": "Modern",
-  "2021": "Modern",
-  "2023": "AI Native",
-  "2026": "AI Native",
+  "2026": "Now",
 };
 const phaseOf = (id: string) => PHASE[id] ?? "";
 
@@ -42,20 +32,152 @@ const eraLabel = (name: string) => {
   const [, ...rest] = name.split(":");
   return rest.join(":").trim() || name;
 };
-const tagline = (desc?: string) => {
-  if (!desc) return "";
-  const first = desc.split(/[.–—]|--/)[0].trim();
-  return first.length > 64 ? `${first.slice(0, 62).trim()}…` : first;
-};
 
 export type EraLite = { id: string; name: string; description?: string; colors: { accent: string } };
 
-function MiniEye({ eraId, size = 46 }: Readonly<{ eraId: string; size?: number }>) {
+function MiniEye({ eraId, size = 24 }: Readonly<{ eraId: string; size?: number }>) {
   const z = useMotionValue(0);
   const Eye = getEraEye(eraId);
   return (
     <div className="shrink-0" style={{ width: size, height: size * 0.66 }}>
       <Eye gx={z} gy={z} reduce live={false} hovered={false} />
+    </div>
+  );
+}
+
+/** All eras inline. Arrow keys move focus along the row; Enter/click travels. */
+function EraRail({
+  eras,
+  currentId,
+  onPick,
+  reduce,
+}: Readonly<{ eras: EraLite[]; currentId: string; onPick: (id: string) => void; reduce: boolean }>) {
+  const rowRef = useRef<HTMLDivElement>(null);
+
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    const buttons = Array.from(rowRef.current?.querySelectorAll<HTMLButtonElement>("button") ?? []);
+    const at = buttons.indexOf(document.activeElement as HTMLButtonElement);
+    if (at < 0) return;
+    const to: Record<string, number> = {
+      ArrowRight: Math.min(at + 1, buttons.length - 1),
+      ArrowLeft: Math.max(at - 1, 0),
+      Home: 0,
+      End: buttons.length - 1,
+    };
+    if (e.key in to) {
+      e.preventDefault();
+      buttons[to[e.key]].focus();
+    }
+  };
+
+  return (
+    <div
+      ref={rowRef}
+      role="group"
+      aria-label="Design era"
+      onKeyDown={onKeyDown}
+      className="era-rail pointer-events-auto hidden h-11 items-center rounded-full border px-1 min-[1180px]:flex"
+      style={{
+        borderColor: "color-mix(in srgb, var(--nav-text) 18%, transparent)",
+        background: "color-mix(in srgb, var(--nav-text) 5%, transparent)",
+      }}
+    >
+      {eras.map((era, i) => {
+        const active = era.id === currentId;
+        const newPhase = i > 0 && phaseOf(era.id) !== phaseOf(eras[i - 1].id);
+        let tipAlign = "left-1/2 -translate-x-1/2";
+        if (i < 2) tipAlign = "left-0";
+        else if (i >= eras.length - 2) tipAlign = "right-0";
+        return (
+          <button
+            key={era.id}
+            type="button"
+            tabIndex={active ? 0 : -1}
+            aria-pressed={active}
+            aria-label={`${era.id} — ${eraLabel(era.name)}`}
+            onClick={() => !active && onPick(era.id)}
+            onPointerEnter={() => prefetchEraArchetype(era.id)}
+            onFocus={() => prefetchEraArchetype(era.id)}
+            className={`era-rail-year relative flex h-8 items-center justify-center rounded-full px-[7px] text-[12px] tabular-nums leading-none outline-none ${newPhase ? "ml-1" : ""}`}
+            style={{
+              color: active ? "var(--nav-surface, var(--bg-main))" : "var(--nav-text-muted)",
+              fontWeight: active ? 700 : 500,
+            }}
+          >
+            {active ? (
+              <motion.span
+                layoutId="era-rail-pill"
+                aria-hidden
+                className="absolute inset-0 rounded-full"
+                style={{ background: "var(--accent-color)" }}
+                transition={reduce ? { duration: 0 } : { type: "spring", duration: 0.35, bounce: 0.15 }}
+              />
+            ) : null}
+            <span className="relative">{active ? era.id : `’${era.id.slice(2)}`}</span>
+            <span
+              role="tooltip"
+              className={`era-rail-tip pointer-events-none absolute top-full z-10 mt-2 whitespace-nowrap rounded-md border px-2 py-1 text-left text-[11px] font-medium leading-tight ${tipAlign}`}
+              style={{
+                background: "var(--nav-surface, var(--bg-main))",
+                borderColor: "color-mix(in srgb, var(--nav-text) 18%, transparent)",
+                color: "var(--nav-text)",
+              }}
+            >
+              <span className="font-bold tabular-nums">{era.id}</span> · {eraLabel(era.name)}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** One-step era hop. Disabled (not hidden) at the ends so the capsule never changes width. */
+function StepButton({
+  dir,
+  target,
+  onStep,
+}: Readonly<{ dir: "prev" | "next"; target?: EraLite; onStep: (id: string) => void }>) {
+  let label = dir === "prev" ? "No earlier era" : "No later era";
+  if (target) label = `${dir === "prev" ? "Previous" : "Next"} era: ${target.id} ${eraLabel(target.name)}`;
+  return (
+    <button
+      type="button"
+      disabled={!target}
+      aria-label={label}
+      onClick={() => target && onStep(target.id)}
+      onPointerEnter={() => target && prefetchEraArchetype(target.id)}
+      className={`time-stepper-step flex w-9 shrink-0 items-center justify-center text-[15px] leading-none outline-none disabled:cursor-default disabled:opacity-30 ${dir === "prev" ? "rounded-l-full pl-1" : "rounded-r-full pr-1"}`}
+      style={{ color: "var(--nav-text)" }}
+    >
+      <span aria-hidden>{dir === "prev" ? "‹" : "›"}</span>
+    </button>
+  );
+}
+
+/** Compact ‹ year › for narrow screens. */
+function EraStepper({
+  eras,
+  currentId,
+  onPick,
+}: Readonly<{ eras: EraLite[]; currentId: string; onPick: (id: string) => void }>) {
+  const idx = Math.max(0, eras.findIndex((e) => e.id === currentId));
+  const current = eras[idx];
+  return (
+    <div
+      className="time-stepper pointer-events-auto flex min-h-11 items-stretch rounded-full border min-[1180px]:hidden"
+      style={{
+        borderColor: "color-mix(in srgb, var(--nav-text) 18%, transparent)",
+        background: "color-mix(in srgb, var(--nav-text) 5%, transparent)",
+        color: "var(--nav-text)",
+      }}
+    >
+      <StepButton dir="prev" target={eras[idx - 1]} onStep={onPick} />
+      <span aria-live="polite" className="flex items-center gap-1.5 px-1" title={eraLabel(current?.name ?? "")}>
+        <MiniEye eraId={current?.id ?? eras[0].id} />
+        <span className="text-[14px] font-bold tabular-nums leading-none">{current?.id}</span>
+      </span>
+      <StepButton dir="next" target={eras[idx + 1]} onStep={onPick} />
     </div>
   );
 }
@@ -73,286 +195,11 @@ export function TimeMachine({
 }>) {
   const reduceMotion = useReducedMotion();
   const reduce = reduceProp || !!reduceMotion;
-
-  const [open, setOpen] = useState(false);
-  const [shortcutHint, setShortcutHint] = useState("Ctrl+Shift+E");
-  const rootRef = useRef<HTMLDivElement>(null);
-  const listRef = useRef<HTMLDivElement>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-
-  const closeConsole = useCallback(() => {
-    setOpen(false);
-    requestAnimationFrame(() => triggerRef.current?.focus());
-  }, []);
-
-  const curIdx = Math.max(0, eras.findIndex((e) => e.id === currentId));
-  const current = eras[curIdx];
-  const [focusIdx, setFocusIdx] = useState(curIdx);
-  const focused = eras[focusIdx] ?? current;
-
-  const pick = useCallback(
-    (id: string) => {
-      closeConsole();
-      if (id !== currentId) onPick(id);
-    },
-    [closeConsole, currentId, onPick],
-  );
-
-  // flat render list: phase dividers + era rows (in chronological order)
-  const items = useMemo(() => {
-    const out: ({ type: "phase"; label: string } | { type: "era"; idx: number })[] = [];
-    let last = "";
-    eras.forEach((e, idx) => {
-      const ph = phaseOf(e.id);
-      if (ph !== last) {
-        out.push({ type: "phase", label: ph });
-        last = ph;
-      }
-      out.push({ type: "era", idx });
-    });
-    return out;
-  }, [eras]);
-
-  useEffect(() => {
-    const mac = /Mac|iPhone|iPad/.test(navigator.platform) || navigator.userAgent.includes("Mac");
-    setShortcutHint(mac ? "⌘⇧E" : "Ctrl+Shift+E");
-  }, []);
-
-  // panel keyboard nav (scoped to the focused console, not document, so it
-  // doesn't fight the site's other global arrow handlers)
-  const onPanelKey = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        closeConsole();
-      }
-      else if (e.key === "ArrowDown") {
-        e.preventDefault();
-        setFocusIdx((i) => Math.min(i + 1, eras.length - 1));
-      } else if (e.key === "ArrowUp") {
-        e.preventDefault();
-        setFocusIdx((i) => Math.max(i - 1, 0));
-      } else if (e.key === "Home") {
-        e.preventDefault();
-        setFocusIdx(0);
-      } else if (e.key === "End") {
-        e.preventDefault();
-        setFocusIdx(eras.length - 1);
-      } else if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        const t = eras[focusIdx];
-        if (t) pick(t.id);
-      }
-    },
-    [closeConsole, eras, focusIdx, pick],
-  );
-
-  // open: reset focus, autofocus the panel, wire outside-click
-  useEffect(() => {
-    if (!open) return;
-    setFocusIdx(curIdx);
-    const id = requestAnimationFrame(() => panelRef.current?.focus());
-    const onDoc = (e: MouseEvent) => {
-      if (!rootRef.current?.contains(e.target as Node)) closeConsole();
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        closeConsole();
-      }
-    };
-    document.addEventListener("mousedown", onDoc);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      cancelAnimationFrame(id);
-      document.removeEventListener("mousedown", onDoc);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [closeConsole, open, curIdx]);
-
-  // keep the focused row in view
-  useEffect(() => {
-    if (!open) return;
-    listRef.current?.querySelector<HTMLElement>(`[data-idx="${focusIdx}"]`)?.scrollIntoView({ block: "nearest" });
-  }, [open, focusIdx]);
-
-  useEffect(() => {
-    if (!open || !focused) return;
-    prefetchEraArchetype(focused.id);
-  }, [open, focused]);
-
   return (
-    <div ref={rootRef} className="relative">
-      {/* trigger chip — current era at a glance */}
-      <motion.button
-        ref={triggerRef}
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        aria-haspopup="listbox"
-        aria-label={`Era ${current?.id ?? ""} — ${eraLabel(current?.name ?? "")}. Open time machine`}
-        whileTap={reduce ? undefined : { scale: 0.97 }}
-        className="pointer-events-auto flex min-h-11 items-center gap-2.5 rounded-full border py-1 pl-1.5 pr-3 outline-none transition-colors duration-200"
-        style={{
-          borderColor: open ? "var(--accent-color)" : "color-mix(in srgb, var(--nav-text) 18%, transparent)",
-          background: open
-            ? "color-mix(in srgb, var(--nav-text) 9%, transparent)"
-            : "color-mix(in srgb, var(--nav-text) 5%, transparent)",
-          color: "var(--nav-text)",
-        }}
-      >
-        <span
-          className="flex items-center justify-center rounded-full"
-          style={{ width: 30, height: 30, background: "color-mix(in srgb, var(--accent-color) 14%, transparent)" }}
-        >
-          <MiniEye eraId={current?.id ?? eras[0].id} size={26} />
-        </span>
-        <span className="flex flex-col items-start leading-none">
-          <span className="text-[14px] font-bold tabular-nums leading-none" style={{ color: "var(--nav-text)" }}>
-            {current?.id}
-          </span>
-          <span className="mt-1 hidden max-w-[110px] truncate text-[8px] font-medium uppercase tracking-[0.14em] sm:block" style={{ color: "var(--nav-text-muted)" }}>
-            {eraLabel(current?.name ?? "")}
-          </span>
-        </span>
-        <motion.span
-          aria-hidden
-          className="ml-0.5 text-[8px]"
-          style={{ color: "var(--nav-text-muted)" }}
-          animate={{ rotate: open ? 180 : 0 }}
-          transition={{ duration: 0.18, ease: EASE_OUT }}
-        >
-          ▾
-        </motion.span>
-      </motion.button>
-
-      {/* console */}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            ref={panelRef}
-            tabIndex={-1}
-            onKeyDown={onPanelKey}
-            initial={reduce ? { opacity: 0 } : { opacity: 0, y: -8, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={reduce ? { opacity: 0 } : { opacity: 0, y: -6, scale: 0.98 }}
-            transition={{ duration: 0.2, ease: EASE_OUT }}
-            role="listbox"
-            aria-label="Travel eras"
-            className="absolute right-0 top-full z-[110] mt-2.5 w-[300px] overflow-hidden rounded-2xl border"
-            style={{ background: "var(--bg-card)", borderColor: "var(--border-color)", boxShadow: "0 20px 50px rgba(0,0,0,0.34)" }}
-          >
-            {/* header */}
-            <div className="flex items-center justify-between px-3.5 pt-3" style={{ color: "var(--text-main)" }}>
-              <span className="flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.22em]">
-                <span className="relative flex h-1.5 w-1.5">
-                  {reduce ? null : (
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-60" style={{ background: "var(--accent-color)" }} />
-                  )}
-                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full" style={{ background: "var(--accent-color)" }} />
-                </span>
-                Time Machine
-              </span>
-              <span className="text-[9px] uppercase tracking-[0.16em]" style={{ color: "var(--text-muted)" }}>
-                {eras.length} eras · {shortcutHint}
-              </span>
-            </div>
-
-            {/* live preview of the focused era */}
-            <div className="mx-3.5 mt-2.5 flex items-center gap-3 rounded-xl border px-3 py-2.5" style={{ borderColor: "var(--border-color)", background: "color-mix(in srgb, var(--accent-color) 6%, transparent)" }}>
-              <MiniEye eraId={focused.id} />
-              <div className="min-w-0">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-[16px] font-black tabular-nums leading-none" style={{ color: "var(--accent-color)" }}>
-                    {focused.id}
-                  </span>
-                  <span className="text-[8px] uppercase tracking-[0.16em]" style={{ color: "var(--text-muted)" }}>
-                    {phaseOf(focused.id)}
-                  </span>
-                </div>
-                <div className="mt-1 truncate text-[11px] font-semibold uppercase tracking-[0.06em]" style={{ color: "var(--text-main)" }}>
-                  {eraLabel(focused.name)}
-                </div>
-                {tagline(focused.description) && (
-                  <div className="mt-0.5 truncate text-[9px]" style={{ color: "var(--text-muted)" }}>
-                    {tagline(focused.description)}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* timeline list */}
-            <div ref={listRef} className="mt-2 max-h-[min(46vh,300px)] overflow-y-auto overscroll-contain px-2 pb-1.5">
-              {items.map((it, k) => {
-                if (it.type === "phase") {
-                  return (
-                    <div key={`p-${it.label}-${k}`} className="flex items-center gap-2 px-1.5 pb-1 pt-2.5">
-                      <span className="text-[8px] font-semibold uppercase tracking-[0.22em]" style={{ color: "var(--text-muted)" }}>
-                        {it.label}
-                      </span>
-                      <span className="h-px flex-1" style={{ background: "var(--border-color)" }} />
-                    </div>
-                  );
-                }
-                const e = eras[it.idx];
-                const active = e.id === currentId;
-                const isFocus = it.idx === focusIdx;
-                return (
-                  <button
-                    key={e.id}
-                    type="button"
-                    role="option"
-                    aria-selected={active}
-                    data-idx={it.idx}
-                    onClick={() => pick(e.id)}
-                    onMouseEnter={() => setFocusIdx(it.idx)}
-                    className="flex min-h-11 w-full items-center gap-2.5 rounded-lg py-1.5 pl-1.5 pr-2 text-left outline-none transition-colors duration-150"
-                    style={{ background: isFocus ? "color-mix(in srgb, var(--accent-color) 12%, transparent)" : "transparent" }}
-                  >
-                    {/* spine + node */}
-                    <span className="relative flex w-3 shrink-0 justify-center self-stretch">
-                      <span className="absolute inset-y-0 w-px" style={{ background: "var(--border-color)", opacity: 0.7 }} />
-                      <span
-                        className="relative z-10 mt-[5px] h-2 w-2 shrink-0 rounded-full transition-all duration-150"
-                        style={{
-                          background: active ? "var(--accent-color)" : isFocus ? "var(--accent-color)" : "var(--bg-card)",
-                          border: `1.5px solid ${active || isFocus ? "var(--accent-color)" : "var(--border-color)"}`,
-                          boxShadow: active ? "0 0 8px var(--accent-color)" : "none",
-                        }}
-                      />
-                    </span>
-
-                    <span className="w-[42px] shrink-0 text-[13px] font-bold tabular-nums leading-none" style={{ color: active ? "var(--accent-color)" : "var(--text-main)" }}>
-                      {e.id}
-                    </span>
-                    <span className="min-w-0 flex-1 truncate text-[10px] uppercase tracking-[0.04em] leading-none" style={{ color: active ? "var(--text-main)" : "var(--text-muted)" }}>
-                      {eraLabel(e.name)}
-                    </span>
-                    {active ? (
-                      <span className="shrink-0 text-[7px] font-semibold uppercase tracking-[0.14em]" style={{ color: "var(--accent-color)" }}>
-                        Now
-                      </span>
-                    ) : (
-                      <span aria-hidden className="shrink-0 text-[9px] opacity-0 transition-opacity duration-150 group-hover:opacity-100" style={{ color: "var(--accent-color)", opacity: isFocus ? 1 : 0 }}>
-                        →
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* footer hint */}
-            <div className="flex items-center justify-between border-t px-3.5 py-2 text-[8px] uppercase tracking-[0.14em]" style={{ borderColor: "var(--border-color)", color: "var(--text-muted)" }}>
-              <span>↑↓ Select</span>
-              <span>↵ Travel</span>
-              <span>Esc Close</span>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+    <>
+      <EraRail eras={eras} currentId={currentId} onPick={onPick} reduce={reduce} />
+      <EraStepper eras={eras} currentId={currentId} onPick={onPick} />
+    </>
   );
 }
 

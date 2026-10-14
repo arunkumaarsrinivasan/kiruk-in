@@ -385,10 +385,9 @@ float fbm(vec2 p) {
 
 /**
  * The era's page, sampled out of its own mipmap chain. uMip is added on top
- * of whatever blur the caller asks for: when the shot stands back — a phone,
- * where the eye is a third of the height rather than all of it — one texel of
- * that page lands on fewer pixels, and a 1-bit dither that reads as texture on
- * a desktop reads as a field of white specks. Standing back should cost detail,
+ * of whatever blur the caller asks for: when the shot stands back, one texel
+ * of that page lands on fewer pixels, and a 1-bit dither that reads as texture
+ * up close reads as a field of white specks. Standing back should cost detail,
  * not add it.
  */
 vec3 screenTex(vec2 uv, float blur) {

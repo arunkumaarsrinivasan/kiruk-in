@@ -4,7 +4,7 @@
  * Era Shell Registry — which archetype owns which slots.
  *
  * Home pages and shell layers load on demand (`next/dynamic`). Visiting /about
- * must not download MosaicHomePage just because 1993 is active; hovering an era
+ * must not download GeocitiesHomePage just because 1995 is active; hovering an era
  * in the time machine prefetches that era's chunks during the travel wipe.
  *
  * Archetype home copy: `@/data/era-page-content`.
@@ -64,17 +64,6 @@ export const ARCHETYPE_SHELLS: Partial<Record<EraArchetypeId, ArchetypeShell>> =
         ),
       },
     },
-    spatial: {
-      pages: {
-        home: dynamic(
-          () =>
-            import("./archetypes/spatial/SpatialHomePage").then((m) => ({
-              default: m.SpatialHomePage,
-            })),
-          { loading: PageChunkFallback },
-        ),
-      },
-    },
     "xerox-bitmap": {
       shellLayer: dynamic(
         () =>
@@ -104,23 +93,6 @@ export const ARCHETYPE_SHELLS: Partial<Record<EraArchetypeId, ArchetypeShell>> =
           () =>
             import("./archetypes/doc-html/DocHtmlHomePage").then((m) => ({
               default: m.DocHtmlHomePage,
-            })),
-          { loading: PageChunkFallback },
-        ),
-      },
-    },
-    mosaic: {
-      shellLayer: dynamic(
-        () =>
-          import("./archetypes/mosaic/MosaicShellLayer").then((m) => ({
-            default: m.MosaicShellLayer,
-          })),
-      ),
-      pages: {
-        home: dynamic(
-          () =>
-            import("./archetypes/mosaic/MosaicHomePage").then((m) => ({
-              default: m.MosaicHomePage,
             })),
           { loading: PageChunkFallback },
         ),
@@ -182,17 +154,6 @@ export const ARCHETYPE_SHELLS: Partial<Record<EraArchetypeId, ArchetypeShell>> =
         ),
       },
     },
-    microblog: {
-      pages: {
-        home: dynamic(
-          () =>
-            import("./archetypes/microblog/MicroblogHomePage").then((m) => ({
-              default: m.MicroblogHomePage,
-            })),
-          { loading: PageChunkFallback },
-        ),
-      },
-    },
     "iphone-skeu": {
       pages: {
         home: dynamic(
@@ -210,39 +171,6 @@ export const ARCHETYPE_SHELLS: Partial<Record<EraArchetypeId, ArchetypeShell>> =
           () =>
             import("./archetypes/pinboard/PinboardHomePage").then((m) => ({
               default: m.PinboardHomePage,
-            })),
-          { loading: PageChunkFallback },
-        ),
-      },
-    },
-    "block-editor": {
-      pages: {
-        home: dynamic(
-          () =>
-            import("./archetypes/block-editor/BlockEditorHomePage").then(
-              (m) => ({ default: m.BlockEditorHomePage }),
-            ),
-          { loading: PageChunkFallback },
-        ),
-      },
-    },
-    "issue-tracker": {
-      pages: {
-        home: dynamic(
-          () =>
-            import("./archetypes/issue-tracker/IssueTrackerHomePage").then(
-              (m) => ({ default: m.IssueTrackerHomePage }),
-            ),
-          { loading: PageChunkFallback },
-        ),
-      },
-    },
-    "ai-native": {
-      pages: {
-        home: dynamic(
-          () =>
-            import("./archetypes/ai-native/AiNativeHomePage").then((m) => ({
-              default: m.AiNativeHomePage,
             })),
           { loading: PageChunkFallback },
         ),
@@ -266,9 +194,6 @@ const ARCHETYPE_PREFETCH: Partial<Record<EraArchetypeId, () => void>> = {
     void import("./archetypes/terminal/TerminalHomePage");
     void import("./archetypes/terminal/TerminalShellLayer");
   },
-  spatial: () => {
-    void import("./archetypes/spatial/SpatialHomePage");
-  },
   "xerox-bitmap": () => {
     void import("./archetypes/xerox-bitmap/XeroxBitmapHomePage");
     void import("./archetypes/xerox-bitmap/XeroxBitmapShellLayer");
@@ -276,10 +201,6 @@ const ARCHETYPE_PREFETCH: Partial<Record<EraArchetypeId, () => void>> = {
   "doc-html": () => {
     void import("./archetypes/doc-html/DocHtmlHomePage");
     void import("./archetypes/doc-html/DocHtmlShellLayer");
-  },
-  mosaic: () => {
-    void import("./archetypes/mosaic/MosaicHomePage");
-    void import("./archetypes/mosaic/MosaicShellLayer");
   },
   geocities: () => {
     void import("./archetypes/geocities/GeocitiesHomePage");
@@ -295,23 +216,11 @@ const ARCHETYPE_PREFETCH: Partial<Record<EraArchetypeId, () => void>> = {
   "web2-candy": () => {
     void import("./archetypes/web2-candy/Web2CandyHomePage");
   },
-  microblog: () => {
-    void import("./archetypes/microblog/MicroblogHomePage");
-  },
   "iphone-skeu": () => {
     void import("./archetypes/iphone-skeu/IphoneSkeuHomePage");
   },
   pinboard: () => {
     void import("./archetypes/pinboard/PinboardHomePage");
-  },
-  "block-editor": () => {
-    void import("./archetypes/block-editor/BlockEditorHomePage");
-  },
-  "issue-tracker": () => {
-    void import("./archetypes/issue-tracker/IssueTrackerHomePage");
-  },
-  "ai-native": () => {
-    void import("./archetypes/ai-native/AiNativeHomePage");
   },
   "prompt-ui": () => {
     void import("./archetypes/prompt-ui/PromptUIHomePage");

@@ -3,8 +3,8 @@ import { AVAILABLE_THEMES } from "@/data/portfolio-data";
 /** Default public notebook skin — Era 1 (Terminal & ASCII). */
 export const DEFAULT_NOTEBOOK_ERA = "1970";
 
-/** Persists the reader's notebook-only era shuffle (does not touch site theme). */
-export const NOTEBOOK_ERA_STORAGE_KEY = "kiruk-notebook-era";
+/** The site-wide era key (ThemeContext). The notebook reads and writes the same era as every other page. */
+export const SITE_ERA_STORAGE_KEY = "portfolio-theme";
 
 /**
  * Eras with a reading-tuned blog skin. Shuffle still paints every year via

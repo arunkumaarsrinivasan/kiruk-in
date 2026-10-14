@@ -137,6 +137,10 @@ npm run start    # Serve production build
 
 ---
 
+## Spera
+
+Personal record of cofounder and design work, Feb–Sep 2026: [spera/](./spera/).
+
 ## 📞 Key Files to Know
 
 | File | Purpose |

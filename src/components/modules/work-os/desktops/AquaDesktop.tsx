@@ -2,25 +2,28 @@
 
 import { useMemo, useState } from "react";
 import { isProjectNda } from "@/data/project-media";
-import { buildWorkDir, linkGlyph } from "../work-fs";
+import { buildWorkDir, findDir, linkGlyph } from "../work-fs";
 import type { DirNode, DocNode, FsNode, LinkNode } from "../work-fs";
 import { label, monogram } from "../helpers";
 import { DocBody } from "../DocBody";
-import type { DesktopEra, Project } from "../types";
+import { useFocusProject } from "../use-focus-project";
+import type { DesktopProps, Project } from "../types";
 
 /** 2006 — Mac OS X Aqua. Finder column view + sidebar + Quick Look. */
-export function AquaDesktop({ era, projects }: { era: DesktopEra; projects: Project[] }) {
+export function AquaDesktop({ era, projects, focusId }: DesktopProps) {
   const t = era.tokens;
   const root = useMemo(() => buildWorkDir(projects, era.id), [projects]);
   const [proj, setProj] = useState<DirNode | null>(null);
   const [file, setFile] = useState<FsNode | null>(null);
   const [quick, setQuick] = useState<DocNode | null>(null);
 
-  const pick = (d: DirNode) => { setProj(d); setFile(null); };
+  const pick = (d: DirNode) => { setProj(d); setFile(d.children.find((c) => c.kind === "doc") ?? null); };
   const openFile = (n: FsNode) => {
     if (n.kind === "link") globalThis.open(n.href, "_blank", "noopener,noreferrer");
     else if (n.kind === "doc") setQuick(n);
   };
+
+  useFocusProject(focusId, (id) => { const d = findDir(root, [id]); if (d) pick(d); });
 
   return (
     <div className="relative flex h-full flex-col" style={{ fontFamily: era.fontUi }}>
@@ -47,14 +50,14 @@ export function AquaDesktop({ era, projects }: { era: DesktopEra; projects: Proj
           <div className="flex min-h-0 flex-1">
             {/* sidebar */}
             <div className="w-[128px] shrink-0 overflow-y-auto p-2 text-[12px]" style={{ background: "linear-gradient(#dfe6ef,#cfd9e6)", borderRight: "1px solid #b3bdca" }}>
-              <p className="px-1 pb-1 text-[9px] font-bold uppercase tracking-wider" style={{ color: "#7a8494" }}>Places</p>
+              <p className="px-1 pb-1 text-[10px] font-bold uppercase tracking-wider" style={{ color: "#7a8494" }}>Places</p>
               <button type="button" onClick={() => { setProj(null); setFile(null); }} className="mb-1 flex w-full items-center gap-1.5 rounded px-1.5 py-0.5 text-left" style={{ background: proj ? "transparent" : "#3b74e0", color: proj ? "#1a1a1a" : "#fff" }}>💼 Work</button>
-              <p className="px-1 pb-1 pt-1 text-[9px] font-bold uppercase tracking-wider" style={{ color: "#7a8494" }}>Projects</p>
+              <p className="px-1 pb-1 pt-1 text-[10px] font-bold uppercase tracking-wider" style={{ color: "#7a8494" }}>Projects</p>
               {root.children.map((d) => {
                 const on = proj?.name === d.name;
                 return (
                   <button key={d.name} type="button" onClick={() => pick(d as DirNode)} className="flex w-full items-center gap-1.5 truncate rounded px-1.5 py-0.5 text-left" style={{ background: on ? "#3b74e0" : "transparent", color: on ? "#fff" : "#1a1a1a" }}>
-                    <span className="grid h-4 w-4 shrink-0 place-items-center rounded text-[9px] font-bold text-white" style={{ background: t.accent }}>{monogram((d as DirNode).project as Project)}</span>
+                    <span className="grid h-4 w-4 shrink-0 place-items-center rounded text-[10px] font-bold text-white" style={{ background: t.accent }}>{monogram((d as DirNode).project as Project)}</span>
                     <span className="truncate">{(d as DirNode).label}</span>
                   </button>
                 );
@@ -66,7 +69,7 @@ export function AquaDesktop({ era, projects }: { era: DesktopEra; projects: Proj
               <AquaCol border>
                 {root.children.map((d) => (
                   <AquaRow key={d.name} active={proj?.name === d.name} onClick={() => pick(d as DirNode)}>
-                    <span className="grid h-4 w-4 place-items-center rounded text-[9px] font-bold text-white" style={{ background: t.accent }}>{monogram((d as DirNode).project as Project)}</span>
+                    <span className="grid h-4 w-4 place-items-center rounded text-[10px] font-bold text-white" style={{ background: t.accent }}>{monogram((d as DirNode).project as Project)}</span>
                     <span className="flex-1 truncate">{(d as DirNode).label}</span>
                     <span className="opacity-50">›</span>
                   </AquaRow>

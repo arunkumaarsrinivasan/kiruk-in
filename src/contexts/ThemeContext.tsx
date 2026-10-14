@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useCallback, useContext, useState, useEffect, ReactNode } from 'react';
 import { ThemeConfig, AVAILABLE_THEMES } from '@/data/portfolio-data';
 import { DesignSystemTokens, getDesignSystemForTheme } from '@/data/design-systems';
 
@@ -302,7 +302,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     releaseEraSwap(root);
   }, [designSystem]);
 
-  const setTheme = (themeId: string) => {
+  const setTheme = useCallback((themeId: string) => {
     if (themeId === 'custom') {
       const storedCustom = getStoredCustomEra();
       if (!storedCustom) return;
@@ -324,7 +324,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
 
     localStorage.setItem('portfolio-theme', themeId);
     localStorage.setItem('portfolio-theme-selected', 'true');
-  };
+  }, []);
 
   const value: ThemeContextType = {
     currentTheme,

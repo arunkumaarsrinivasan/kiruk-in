@@ -4,11 +4,12 @@ import { motion, useDragControls } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { PointerEvent, ReactNode } from "react";
 import { isProjectNda } from "@/data/project-media";
-import { buildWorkDir, linkGlyph } from "../work-fs";
+import { buildWorkDir, findDir, linkGlyph } from "../work-fs";
 import type { DirNode, DocNode, FsNode } from "../work-fs";
-import { monogram } from "../helpers";
+import { fitWindow, monogram } from "../helpers";
 import { DocBody } from "../DocBody";
-import type { DesktopEra, Project } from "../types";
+import { useFocusProject } from "../use-focus-project";
+import type { DesktopEra, DesktopProps, Project } from "../types";
 
 const OUTSET = "inset -1px -1px 0 #000, inset 1px 1px 0 #fff, inset -2px -2px 0 #808080, inset 2px 2px 0 #dfdfdf";
 const INSET = "inset 1px 1px 0 #000, inset -1px -1px 0 #fff, inset 2px 2px 0 #808080, inset -2px -2px 0 #dfdfdf";
@@ -29,7 +30,7 @@ interface W31 {
 }
 
 /** 1993 — Windows 3.1. Program Manager: groups → project windows → viewers. */
-export function Win31Desktop({ era, projects }: { era: DesktopEra; projects: Project[] }) {
+export function Win31Desktop({ era, projects, focusId }: DesktopProps) {
   const t = era.tokens;
   const clientRef = useRef<HTMLDivElement>(null);
   const root = useMemo(() => buildWorkDir(projects, era.id), [projects]);
@@ -81,6 +82,8 @@ export function Win31Desktop({ era, projects }: { era: DesktopEra; projects: Pro
     if (n.kind === "doc") add({ key: `d-${n.name}-${counter.current}`, kind: "viewer", title: n.name, doc: n, x: 130 + (counter.current % 5) * 26, y: 70 + (counter.current % 5) * 22, w: 300 });
   };
 
+  useFocusProject(focusId, (id) => { const d = findDir(root, [id]); if (d) openProject(d); });
+
   return (
     <div className="flex h-full flex-col" style={{ fontFamily: era.fontUi, color: "#000" }}>
       {/* Program Manager title + menu */}
@@ -123,16 +126,16 @@ function Win31Window({ win, clientRef, onFocus, onClose, children }: { win: W31;
       dragConstraints={clientRef}
       onPointerDown={onFocus}
       className="absolute flex max-h-[88%] flex-col"
-      style={{ left: win.x, top: win.y, width: win.w, zIndex: win.z, background: "#c0c0c0", boxShadow: `${OUTSET}, 2px 2px 5px rgba(0,0,0,0.4)`, padding: 2 }}
+      style={{ ...fitWindow(win.x, win.w), top: win.y, zIndex: win.z, background: "#c0c0c0", boxShadow: `${OUTSET}, 2px 2px 5px rgba(0,0,0,0.4)`, padding: 2 }}
     >
       <div
         onPointerDown={(e: PointerEvent) => controls.start(e)}
         className="flex cursor-grab items-center gap-1 px-1 py-0.5 active:cursor-grabbing"
         style={{ background: win.kind === "group" ? "#808080" : "#000080" }}
       >
-        <span className="grid h-3.5 w-3.5 place-items-center text-[9px] leading-none" style={{ background: "#c0c0c0", boxShadow: OUTSET }}>=</span>
+        <span className="grid h-3.5 w-3.5 place-items-center text-[10px] leading-none" style={{ background: "#c0c0c0", boxShadow: OUTSET }}>=</span>
         <span className="flex-1 truncate text-[12px] font-bold text-white">{win.title}</span>
-        <button type="button" aria-label="Close" onClick={onClose} className="grid h-3.5 w-3.5 place-items-center text-[9px] font-bold leading-none text-black" style={{ background: "#c0c0c0", boxShadow: OUTSET }}>×</button>
+        <button type="button" aria-label="Close" onClick={onClose} className="grid h-3.5 w-3.5 place-items-center text-[10px] font-bold leading-none text-black" style={{ background: "#c0c0c0", boxShadow: OUTSET }}>×</button>
       </div>
       <div className="min-h-0 flex-1 overflow-auto" style={{ background: win.kind === "group" ? "#c0c0c0" : "#fff", boxShadow: INSET }}>
         {children}
@@ -150,7 +153,7 @@ function PmIcon({ glyph, color, label, onOpen, nda }: { glyph: string; color: st
         {glyph}
         {nda ? <span className="absolute -right-1 -top-1 bg-black px-0.5 text-[7px] font-bold text-white">N</span> : null}
       </span>
-      <span className="line-clamp-2 text-[10px] leading-tight group-hover:bg-[#000080] group-hover:text-white">{label}</span>
+      <span className="line-clamp-2 text-[10px] leading-tight group-hover:bg-[#000080] group-focus-visible:bg-[#000080] group-hover:text-white group-focus-visible:text-white">{label}</span>
     </button>
   );
 }

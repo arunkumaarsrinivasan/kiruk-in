@@ -23,3 +23,13 @@ const CATEGORY_GLYPH: Record<string, string> = {
 export function categoryGlyph(category: string): string {
   return CATEGORY_GLYPH[category] ?? "▦";
 }
+
+/**
+ * Keep a window inside its stage on narrow screens: width never exceeds the
+ * stage, and the cascade offset `x` slides left until the right edge fits.
+ */
+export function fitWindow(x: number, width: number | string): { left: string; width: string } {
+  const w = typeof width === "number" ? `${width}px` : width;
+  const fitted = `min(${w}, calc(100% - 8px))`;
+  return { left: `max(4px, min(${x}px, calc(100% - ${fitted} - 4px)))`, width: fitted };
+}

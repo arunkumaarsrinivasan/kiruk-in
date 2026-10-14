@@ -4,13 +4,15 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useMemo, useState } from "react";
 import { isProjectNda } from "@/data/project-media";
 import { ProjectCaseStudy } from "../ProjectCaseStudy";
-import { label, categoryGlyph } from "../helpers";
-import type { DesktopEra, Project } from "../types";
+import { label } from "../helpers";
+import { useFocusProject } from "../use-focus-project";
+import { FONT_VARS_2026, MONO_2026 } from "@/components/era-shell/archetypes/prompt-ui/fonts";
+import type { DesktopProps, Project } from "../types";
 
 const FILTERS = ["All", "ai", "web", "mobile", "design"] as const;
 
-/** 2026 — AI-native. Prompt-driven, filterable glass cards, glass result panel. */
-export function AiDesktop({ era, projects }: { era: DesktopEra; projects: Project[] }) {
+/** 2026 — No Screen. Ask for work in words and filter, in the quiet room: ink, hairlines, the device orange. */
+export function AiDesktop({ era, projects, focusId }: DesktopProps) {
   const t = era.tokens;
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>("All");
@@ -28,43 +30,44 @@ export function AiDesktop({ era, projects }: { era: DesktopEra; projects: Projec
     });
   }, [projects, query, filter]);
 
+  useFocusProject(focusId, (id) => setSelected(projects.find((p) => p.id === id) ?? null));
+
   return (
-    <div className="relative flex h-full flex-col overflow-hidden" style={{ fontFamily: era.fontUi, background: t.wallpaper, color: t.text }}>
-      <div className="z-10 flex items-center px-5 py-3 text-[13px]">
-        <span className="font-semibold" style={{ color: t.text }}>◈ {era.brand}</span>
+    <div className={`relative flex h-full flex-col overflow-hidden ${FONT_VARS_2026}`} style={{ fontFamily: era.fontUi, background: t.wallpaper, color: t.text }}>
+      <div className="z-10 flex items-center px-5 py-3 text-[12px]" style={{ fontFamily: MONO_2026, borderBottom: `1px solid ${t.border}` }}>
+        <span style={{ color: t.text }}>{era.brand}</span>
         <span className="ml-auto" style={{ color: t.textMuted }}>{era.year}</span>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-8">
         {/* hero prompt */}
-        <div className="mx-auto max-w-2xl pt-4 text-center">
-          <h2 className="text-2xl font-semibold" style={{ color: t.text }}>
+        <div className="mx-auto max-w-4xl pt-8">
+          <h2 className="text-[28px] font-medium leading-tight tracking-[-0.02em] sm:text-[34px]" style={{ color: t.text }}>
             What do you want to see?
           </h2>
-          <p className="mt-1 text-[13px]" style={{ color: t.textMuted }}>
+          <p className="mt-2 text-[15px]" style={{ color: t.textMuted }}>
             Ask for work by tech, type, or outcome — or tap a filter.
           </p>
 
           <div
-            className="mt-4 flex items-center gap-2 px-4 py-3"
-            style={{ background: t.surface, border: `1px solid ${t.border}`, borderRadius: 14, backdropFilter: "blur(18px)" }}
+            className="mt-5 flex max-w-xl items-center gap-2 focus-within:[box-shadow:0_1px_0_0_currentColor]"
+            style={{ borderBottom: `1px solid ${t.text}` }}
           >
-            <span style={{ color: t.accent }}>✦</span>
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="e.g. “Next.js design system” or “AI fintech”"
-              className="flex-1 bg-transparent text-[14px] outline-none placeholder:opacity-60"
-              style={{ color: t.text }}
+              className="h-12 flex-1 bg-transparent text-[16px] outline-none sm:text-[16px]"
+              style={{ color: t.text, caretColor: t.accent, borderRadius: 0 }}
             />
             {query ? (
-              <button type="button" onClick={() => setQuery("")} className="text-[13px]" style={{ color: t.textMuted }}>
+              <button type="button" onClick={() => setQuery("")} className="min-h-11 px-1 text-[14px] underline underline-offset-4" style={{ color: t.textMuted }}>
                 clear
               </button>
             ) : null}
           </div>
 
-          <div className="mt-3 flex flex-wrap justify-center gap-1.5">
+          <div className="mt-4 flex flex-wrap gap-2">
             {FILTERS.map((f) => {
               const on = filter === f;
               return (
@@ -72,12 +75,13 @@ export function AiDesktop({ era, projects }: { era: DesktopEra; projects: Projec
                   key={f}
                   type="button"
                   onClick={() => setFilter(f)}
-                  className="px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors"
+                  className="min-h-11 px-3 text-[12px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                   style={{
-                    background: on ? t.accent : "transparent",
-                    color: on ? t.accentText : t.textMuted,
-                    border: `1px solid ${on ? t.accent : t.border}`,
-                    borderRadius: 999,
+                    background: on ? t.text : "transparent",
+                    color: on ? t.wallpaper : t.text,
+                    border: `1px solid ${on ? t.text : t.border}`,
+                    borderRadius: 6,
+                    fontFamily: MONO_2026,
                   }}
                 >
                   {f === "All" ? "All" : f}
@@ -88,26 +92,26 @@ export function AiDesktop({ era, projects }: { era: DesktopEra; projects: Projec
         </div>
 
         {/* result cards */}
-        <div className="mx-auto mt-6 grid max-w-4xl grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mx-auto mt-8 grid max-w-4xl grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {results.map((p) => (
             <button
               key={p.id}
               type="button"
               onClick={() => setSelected(p)}
-              className="group flex flex-col gap-2 p-4 text-left transition-transform hover:-translate-y-1"
-              style={{ background: t.surface, border: `1px solid ${t.border}`, borderRadius: 16, backdropFilter: "blur(16px)" }}
+              className="group flex flex-col gap-2 p-4 text-left transition-colors hover:[border-color:var(--wos-ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+              style={{ background: t.surface, border: `1px solid ${t.border}`, borderRadius: 10, ["--wos-ink" as string]: t.text }}
             >
               <div className="flex items-center justify-between">
-                <span className="grid h-9 w-9 place-items-center rounded-xl text-base" style={{ background: `color-mix(in srgb, ${t.accent} 22%, transparent)`, color: t.accent }}>
-                  {categoryGlyph(p.category)}
+                <span className="text-[12px]" style={{ color: t.textMuted, fontFamily: MONO_2026 }}>
+                  {p.category}
                 </span>
-                {isProjectNda(p.id) ? <span className="text-[9px] font-bold uppercase" style={{ color: t.textMuted }}>NDA</span> : null}
+                {isProjectNda(p.id) ? <span className="text-[11px]" style={{ color: t.textMuted, fontFamily: MONO_2026 }}>nda</span> : null}
               </div>
-              <p className="text-[15px] font-semibold leading-tight" style={{ color: t.text }}>{label(p)}</p>
-              <p className="line-clamp-2 text-[12px] leading-snug" style={{ color: t.textMuted }}>{p.description}</p>
+              <p className="text-[17px] font-medium leading-snug" style={{ color: t.text }}>{label(p)}</p>
+              <p className="line-clamp-2 text-[14px] leading-snug" style={{ color: t.textMuted }}>{p.description}</p>
               <div className="mt-auto flex flex-wrap gap-1 pt-1">
                 {p.technologies.slice(0, 3).map((tech) => (
-                  <span key={tech} className="px-1.5 py-0.5 text-[9px] uppercase tracking-wide" style={{ border: `1px solid ${t.border}`, color: t.textMuted, borderRadius: 4 }}>
+                  <span key={tech} className="text-[11px]" style={{ color: t.textMuted, fontFamily: MONO_2026 }}>
                     {tech}
                   </span>
                 ))}
@@ -127,7 +131,7 @@ export function AiDesktop({ era, projects }: { era: DesktopEra; projects: Projec
         {selected ? (
           <motion.div
             className="absolute inset-0 z-30 grid place-items-center p-4"
-            style={{ background: "rgba(4,6,14,0.55)", backdropFilter: "blur(4px)" }}
+            style={{ background: "rgba(26,25,21,0.28)" }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -135,17 +139,17 @@ export function AiDesktop({ era, projects }: { era: DesktopEra; projects: Projec
           >
             <motion.div
               className="flex max-h-[88%] w-[min(520px,94%)] flex-col overflow-hidden"
-              style={{ background: t.surface, border: `1px solid ${t.border}`, borderRadius: 18, backdropFilter: "blur(24px)", boxShadow: "0 30px 80px rgba(0,0,0,0.55)" }}
-              initial={{ scale: 0.92, opacity: 0 }}
+              style={{ background: t.surface, border: `1px solid ${t.border}`, borderRadius: 12, boxShadow: "0 1px 2px rgba(26,25,21,0.06), 0 8px 24px rgba(26,25,21,0.08), 0 24px 64px rgba(26,25,21,0.10)" }}
+              initial={{ scale: 0.96, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.94, opacity: 0 }}
+              exit={{ scale: 0.97, opacity: 0, transition: { duration: 0.14 } }}
               transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center gap-2 px-4 py-3" style={{ borderBottom: `1px solid ${t.border}` }}>
-                <span className="h-1.5 w-1.5 rounded-full" style={{ background: t.accent }} />
+                <span className="h-1.5 w-1.5" style={{ background: t.accent }} />
                 <span className="truncate text-[14px] font-semibold" style={{ color: t.text }}>{label(selected)}</span>
-                <button type="button" onClick={() => setSelected(null)} aria-label="Close" className="ml-auto grid h-6 w-6 place-items-center rounded-full text-[14px] hover:bg-white/10" style={{ color: t.text }}>
+                <button type="button" onClick={() => setSelected(null)} aria-label="Close" className="ml-auto -mr-2 grid h-11 w-11 place-items-center text-[18px] focus-visible:outline focus-visible:outline-2" style={{ color: t.text }}>
                   ×
                 </button>
               </div>

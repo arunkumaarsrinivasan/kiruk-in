@@ -66,11 +66,8 @@ export function dialectFor(eraId?: string): Dialect {
   switch (eraId) {
     case "term70": return "unix";
     case "gui84":
-    case "macos8":
-    case "aqua06":
-    case "vision23": return "mac";
+    case "macos8": return "mac";
     case "next91": return "next";
-    case "win31":
     case "win95":
     case "win2k": return "dos";
     default: return "win";

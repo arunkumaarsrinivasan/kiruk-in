@@ -31,14 +31,13 @@ const ABOUT_SPEC: BlueprintSpec = {
   ],
 };
 
-/** /contact — max-w-4xl: crumbs, centered header, telephone + channels. */
+/** /contact — per-era skin (contact-box): who/what header, draft, channels. */
 const CONTACT_SPEC: BlueprintSpec = {
-  column: { x: 0.15, w: 0.7, mobileX: 0.04, mobileW: 0.92 },
+  column: { x: 0.12, w: 0.76, mobileX: 0.04, mobileW: 0.92 },
   regions: [
-    { id: "crumbs", kind: "chrome", x: 0, w: 0.3, y: 0.09, h: 0.025, label: "CRUMBS" },
-    { id: "header", kind: "hero", x: 0.15, w: 0.7, y: 0.14, h: 0.1, label: "HEADER" },
-    { id: "phone", kind: "panel", x: 0, w: 0.485, y: 0.29, h: 0.42, label: "TELEPHONE" },
-    { id: "channels", kind: "panel", x: 0.515, w: 0.485, y: 0.29, h: 0.42, label: "CHANNELS" },
+    { id: "header", kind: "hero", x: 0, w: 0.8, y: 0.12, h: 0.2, label: "WHO · WHAT FOR" },
+    { id: "compose", kind: "panel", x: 0, w: 0.6, y: 0.36, h: 0.4, label: "DRAFT" },
+    { id: "channels", kind: "panel", x: 0.63, w: 0.37, y: 0.36, h: 0.4, label: "CHANNELS" },
   ],
 };
 
@@ -58,7 +57,6 @@ const BLOG_SPEC: BlueprintSpec = {
 const PROGRESS_SPEC: BlueprintSpec = {
   column: { x: 0.03, w: 0.94, mobileX: 0.04, mobileW: 0.92 },
   regions: [
-    { id: "crumbs", kind: "chrome", x: 0, w: 0.3, y: 0.07, h: 0.025, label: "CRUMBS" },
     { id: "header", kind: "hero", x: 0, w: 0.6, y: 0.11, h: 0.1, label: "THE LONG GAME" },
     { id: "tabs", kind: "chrome", x: 0, w: 0.8, y: 0.24, h: 0.05, label: "SECTIONS" },
     { id: "stats", kind: "grid", x: 0, w: 1, y: 0.32, h: 0.12, label: "STATS" },

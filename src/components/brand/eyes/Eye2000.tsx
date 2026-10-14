@@ -1,56 +1,34 @@
 "use client";
 
 /**
- * 2000 — Macromedia Flash. Glossy vector with a forever-loading preloader:
- * a progress ring fills around the iris (0→100% then resets — a load bar, not
- * a spinner), over muted web gradients. "Skip intro" energy.
+ * 2000 — The Search Box. The eye becomes a magnifying glass on a plain white
+ * ground: the outer ring is the lens rim, the iris ring the glass, the lid arc
+ * a highlight, and a handle angles out of the rim. Letter colours from the
+ * Kiruk wordmark. Flat, no gradients.
  */
 
 import React from "react";
 import { motion } from "framer-motion";
 import { EYE, EyeProps, usePupil } from "./eye-core";
 
-const BLUE = "#336699";
-const MAROON = "#993333";
-const GREEN = "#669933";
+const BLUE = "#1637F2";
+const PINK = "#F2055C";
+const ORANGE = "#F2A71B";
+const PLUM = "#BF0B80";
 
-export default function Eye2000({ gx, gy, reduce }: EyeProps) {
-  const looping = !reduce;
+// Handle leaves the outer rim at 135° (lower left).
+const HX = EYE.outer.cx - EYE.outer.r * Math.SQRT1_2;
+const HY = EYE.outer.cy + EYE.outer.r * Math.SQRT1_2;
+
+export default function Eye2000({ gx, gy }: EyeProps) {
   const { cx, cy } = usePupil(gx, gy, { tx: 8, ty: 5 });
   return (
     <svg viewBox="0 0 120 80" className="h-full w-full" style={{ overflow: "visible" }} aria-hidden>
-      <defs>
-        <linearGradient id="fl-bg" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#fbf7ee" />
-          <stop offset="100%" stopColor="#e3dccb" />
-        </linearGradient>
-        <radialGradient id="fl-pupil" cx="38%" cy="30%" r="75%">
-          <stop offset="0%" stopColor="#8fb3d6" />
-          <stop offset="55%" stopColor={BLUE} />
-          <stop offset="100%" stopColor="#1f4a6e" />
-        </radialGradient>
-      </defs>
-
-
-      <circle cx={EYE.outer.cx} cy={EYE.outer.cy} r={EYE.outer.r} fill="none" stroke={MAROON} strokeWidth="6" />
-      {/* faint track + animated preloader arc around the iris */}
-      <circle cx={EYE.iris.cx} cy={EYE.iris.cy} r={EYE.iris.r} fill="none" stroke="#cfc6b2" strokeWidth="6" />
-      <motion.circle
-        cx={EYE.iris.cx}
-        cy={EYE.iris.cy}
-        r={EYE.iris.r}
-        fill="none"
-        stroke={GREEN}
-        strokeWidth="6"
-        strokeLinecap="round"
-        transform={`rotate(-90 ${EYE.iris.cx} ${EYE.iris.cy})`}
-        initial={{ pathLength: 0 }}
-        animate={looping ? { pathLength: [0, 1, 1] } : { pathLength: 1 }}
-        transition={looping ? { duration: 1.8, times: [0, 0.75, 1], repeat: Infinity, ease: "easeInOut" } : undefined}
-      />
-      <path d={EYE.arc} fill="none" stroke={BLUE} strokeWidth="5" strokeLinecap="round" />
-
-      <motion.circle r="11" fill="url(#fl-pupil)" cx={cx} cy={cy} />
+      <line x1={HX} y1={HY} x2={HX - 12} y2={HY + 12} stroke={PLUM} strokeWidth="9" strokeLinecap="square" />
+      <circle cx={EYE.outer.cx} cy={EYE.outer.cy} r={EYE.outer.r} fill="#ffffff" stroke={BLUE} strokeWidth="6" />
+      <circle cx={EYE.iris.cx} cy={EYE.iris.cy} r={EYE.iris.r} fill="none" stroke={PINK} strokeWidth="6" />
+      <path d={EYE.arc} fill="none" stroke={ORANGE} strokeWidth="5" strokeLinecap="round" />
+      <motion.circle r="10" fill={BLUE} cx={cx} cy={cy} />
     </svg>
   );
 }

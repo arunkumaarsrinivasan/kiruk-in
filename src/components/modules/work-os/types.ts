@@ -6,17 +6,12 @@ export type DesktopId =
   | "term70"
   | "gui84"
   | "next91"
-  | "win31"
   | "win95"
   | "macos8"
   | "win2k"
   | "winxp"
-  | "aqua06"
   | "win7"
   | "flat15"
-  | "modern18"
-  | "win11"
-  | "vision23"
   | "ai26";
 
 export type ChromeStyle =
@@ -82,4 +77,11 @@ export interface WindowState {
   x: number;
   y: number;
   minimized?: boolean;
+}
+
+export interface DesktopProps {
+  readonly era: DesktopEra;
+  readonly projects: Project[];
+  /** Project folder to open on boot (deep link). */
+  readonly focusId?: string;
 }

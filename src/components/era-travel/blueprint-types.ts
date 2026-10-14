@@ -30,17 +30,12 @@ export const ERA_GRAMMAR: Record<string, BlueprintGrammar> = {
   "1970": "blink",
   "1981": "snap",
   "1991": "float",
-  "1993": "float",
   "1995": "glitch",
   "1997": "snap",
   "2000": "float",
   "2003": "pulse",
-  "2006": "float",
   "2009": "pulse",
   "2013": "none",
-  "2018": "none",
-  "2021": "morph",
-  "2023": "morph",
   "2026": "morph",
 };
 

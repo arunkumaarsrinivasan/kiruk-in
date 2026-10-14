@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { PixelIcon } from '@/components/ui/PixelIcon';
 import { GridBackground } from '@/components/ui/GridBackground';
-import { SiteCrumbs } from '@/components/layout/SiteCrumbs';
+import { useNavTrail } from '@/components/layout/NavTrail';
 import { useContextBar } from '@/contexts/ContextBarContext';
 import { useExperience } from '@/hooks/usePortfolioData';
 
@@ -29,6 +29,7 @@ const ObservatoryView = dynamic(
 );
 
 export default function WorkObservatoryPage() {
+  useNavTrail([{ label: 'Work', href: '/work' }, { label: 'Observatory' }]);
   const [showIntro, setShowIntro] = useState(true);
   const { setWorkData } = useContextBar();
   const experiencesData = useExperience();
@@ -57,7 +58,7 @@ export default function WorkObservatoryPage() {
       className="relative min-h-0 overflow-hidden"
       style={{
         backgroundColor: 'var(--bg-main)',
-        height: 'calc(100dvh - var(--simple-game-nav-bottom, 64px))',
+        height: 'calc(100dvh - var(--simple-game-nav-bottom, 64px) - var(--eye-lid-bottom, 0px))',
         marginTop: 'var(--simple-game-nav-bottom, 64px)',
       }}
     >
@@ -67,12 +68,6 @@ export default function WorkObservatoryPage() {
       >
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3">
           <div className="flex min-w-0 flex-col gap-1">
-            <SiteCrumbs
-              items={[
-                { href: '/work', label: 'Work' },
-                { label: 'Observatory' },
-              ]}
-            />
             <h1
               className="flex items-center gap-2 font-mono text-xl"
               style={{ color: 'var(--text-main)' }}
@@ -80,13 +75,6 @@ export default function WorkObservatoryPage() {
               <PixelIcon name="star" size={20} /> SKILLS OBSERVATORY
             </h1>
           </div>
-          <Link
-            href="/work"
-            className="site-chrome-link inline-flex min-h-11 items-center font-mono text-sm"
-            style={{ color: 'var(--text-muted)' }}
-          >
-            ← Work
-          </Link>
         </div>
       </div>
 

@@ -1,10 +1,7 @@
 import { EraPageArchetype } from '@/components/era-shell/EraPageArchetype';
+import { SITE_URL } from '@/lib/site';
 
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ??
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://kiruk.in');
-
-const LAST_MODIFIED = '2026-05-19';
+const LAST_MODIFIED = '2026-10-14';
 
 const faqJsonLd = {
   '@context': 'https://schema.org',

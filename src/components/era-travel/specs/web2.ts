@@ -7,16 +7,16 @@
 
 import type { BlueprintSpec } from "../blueprint-types";
 
-/** 2000 · Flash splash / Aqua — a desktop, not a document: header bar, two
- *  overlapping floating windows at absolute offsets, and the fixed status
- *  bar at the screen's foot. (There is no dock in the JSX.) */
+/** 2000 · The Search Box — the home state: a 560px centered column holding
+ *  the serif wordmark, one text box, two grey buttons and the line of links.
+ *  Region ids match data-blueprint markers on the page. */
 export const FLASH_SPLASH_HOME_SPEC: BlueprintSpec = {
-  column: { x: 0.04, w: 0.92, mobileX: 0.02, mobileW: 0.96 },
+  column: { x: 0.306, w: 0.389, mobileX: 0.032, mobileW: 0.936 },
   regions: [
-    { id: "aqua-header", kind: "chrome", x: 0, w: 1, y: 0.08, h: 0.09, label: "KIRUK.COM" },
-    { id: "window-intro", kind: "panel", x: 0.034, w: 0.39, y: 0.2, h: 0.34, label: "INTRO", mobile: { x: 0.04, w: 0.92, y: 0.19, h: 0.26 } },
-    { id: "window-profile", kind: "panel", x: 0.44, w: 0.3, y: 0.24, h: 0.3, label: "PROFILE", mobile: { x: 0.04, w: 0.92, y: 0.48, h: 0.26 } },
-    { id: "status-bar", kind: "chrome", space: "viewport", x: 0, w: 1, y: 0.965, h: 0.03, label: "STATUS" },
+    { id: "search-wordmark", kind: "hero", x: 0.2, w: 0.6, y: 0.18, h: 0.11, label: "KIRUK", mobile: { x: 0.15, w: 0.7, y: 0.19, h: 0.085 } },
+    { id: "search-box", kind: "panel", x: 0.071, w: 0.857, y: 0.31, h: 0.04, label: "SEARCH BOX", mobile: { x: 0, w: 1, y: 0.3, h: 0.054 } },
+    { id: "search-buttons", kind: "chrome", x: 0.27, w: 0.46, y: 0.365, h: 0.036, label: "SEARCH · CURIOUS", mobile: { x: 0, w: 1, y: 0.37, h: 0.054 } },
+    { id: "search-links", kind: "list", x: 0.25, w: 0.5, y: 0.47, h: 0.03, label: "WORK · ABOUT · CONTACT", mobile: { x: 0.1, w: 0.8, y: 0.53, h: 0.035 } },
   ],
 };
 
@@ -33,20 +33,6 @@ export const WEB2_CANDY_HOME_SPEC: BlueprintSpec = {
     { id: "contact-box", kind: "panel", x: 0, w: 0.245, y: 0.6, h: 0.2, label: "CONTACT BOX", mobile: { w: 1, y: 0.82, h: 0.12 } },
     { id: "blurbs", kind: "text", x: 0.265, w: 0.735, y: 0.23, h: 0.2, label: "BLURBS", mobile: { x: 0, w: 1, y: 0.47, h: 0.14 } },
     { id: "blog-grid", kind: "grid", x: 0.265, w: 0.735, y: 0.45, h: 0.35, label: "BLOG POSTS", mobile: { x: 0, w: 1, y: 0.63, h: 0.17 } },
-  ],
-};
-
-/** 2006 · Microblog / Digg (maxWidth 980) — orange header + category strip,
- *  sort tabs over the story river, 240px sidebar of cards on the right. */
-export const MICROBLOG_HOME_SPEC: BlueprintSpec = {
-  column: { x: 0.117, w: 0.766, mobileX: 0.03, mobileW: 0.94 },
-  regions: [
-    { id: "digg-header", kind: "chrome", space: "viewport", x: 0, w: 1, y: 0.005, h: 0.055, label: "DIGG" },
-    { id: "category-nav", kind: "chrome", space: "viewport", x: 0, w: 1, y: 0.06, h: 0.035, label: "TOPICS" },
-    { id: "sort-tabs", kind: "chrome", x: 0, w: 0.72, y: 0.12, h: 0.04, label: "SORT" },
-    { id: "story-a", kind: "list", x: 0, w: 0.72, y: 0.17, h: 0.15, label: "STORY", mobile: { w: 1, h: 0.13 } },
-    { id: "story-b", kind: "list", x: 0, w: 0.72, y: 0.33, h: 0.15, label: "STORY", mobile: { w: 1, y: 0.31, h: 0.13 } },
-    { id: "sidebar", kind: "panel", x: 0.74, w: 0.26, y: 0.12, h: 0.5, label: "SIDEBAR", mobile: { x: 0, w: 1, y: 0.46, h: 0.3 } },
   ],
 };
 

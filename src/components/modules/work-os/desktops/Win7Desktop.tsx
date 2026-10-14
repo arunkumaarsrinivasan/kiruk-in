@@ -6,9 +6,10 @@ import type { PointerEvent, ReactNode } from "react";
 import { isProjectNda } from "@/data/project-media";
 import { buildWorkDir, linkGlyph } from "../work-fs";
 import type { DirNode, DocNode, FsNode } from "../work-fs";
-import { label, monogram } from "../helpers";
+import { fitWindow, label, monogram } from "../helpers";
 import { DocBody } from "../DocBody";
-import type { DesktopEra, Project } from "../types";
+import { useFocusProject } from "../use-focus-project";
+import type { DesktopEra, DesktopProps, Project } from "../types";
 
 interface Win {
   key: string;
@@ -21,7 +22,7 @@ interface Win {
 }
 
 /** 2009 — Windows 7. Aero glass Explorer + libraries + translucent superbar. */
-export function Win7Desktop({ era, projects }: { era: DesktopEra; projects: Project[] }) {
+export function Win7Desktop({ era, projects, focusId }: DesktopProps) {
   const t = era.tokens;
   const stageRef = useRef<HTMLDivElement>(null);
   const root = useRef<DirNode>(buildWorkDir(projects, era.id));
@@ -51,6 +52,8 @@ export function Win7Desktop({ era, projects }: { era: DesktopEra; projects: Proj
   };
   const openDoc = (doc: DocNode) => { counter.current += 1; const n = counter.current; const nz = bump(); setWins((w) => [...w, { key: `doc${n}`, kind: "doc", doc, title: doc.name, x: 130 + (n % 5) * 26, y: 64 + (n % 5) * 24, z: nz }]); };
   const onOpen = (n: FsNode) => { if (n.kind === "dir") openExplorer([n.name]); else if (n.kind === "doc") openDoc(n); else globalThis.open(n.href, "_blank", "noopener,noreferrer"); };
+
+  useFocusProject(focusId, (id) => openExplorer([id]));
 
   return (
     <div className="flex h-full flex-col" style={{ fontFamily: era.fontUi, color: t.text }}>
@@ -127,7 +130,7 @@ function Win7Window({ win, stageRef, t, onClose, onFocus, children }: { win: Win
       drag dragListener={false} dragControls={controls} dragMomentum={false} dragConstraints={stageRef}
       onPointerDown={onFocus}
       className="absolute flex max-h-[90%] flex-col overflow-hidden"
-      style={{ left: win.x, top: win.y, width: "min(460px, 88%)", zIndex: win.z, borderRadius: 8, border: "1px solid rgba(255,255,255,0.5)", boxShadow: "0 20px 50px rgba(0,0,0,0.5)" }}
+      style={{ ...fitWindow(win.x, "clamp(460px, 40vw, 640px)"), top: win.y, zIndex: win.z, borderRadius: 8, border: "1px solid rgba(255,255,255,0.5)", boxShadow: "0 20px 50px rgba(0,0,0,0.5)" }}
     >
       <div onPointerDown={(e: PointerEvent) => controls.start(e)} className="flex cursor-grab items-center gap-2 px-3 py-1.5 active:cursor-grabbing" style={{ background: t.titleBar, backdropFilter: "blur(18px)", borderBottom: "1px solid rgba(255,255,255,0.4)" }}>
         <span className="flex-1 truncate text-[12px] font-semibold" style={{ color: t.titleText }}>{win.title}</span>

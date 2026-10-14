@@ -19,7 +19,6 @@ import { useLayoutMode } from "@/contexts/LayoutModeContext";
 import {
   HERO,
   WHY_KIRUK,
-  PERSONA,
   EMPATHY_MAP,
   buildTimeline,
   IMPACT_METRICS,
@@ -31,8 +30,7 @@ import {
   TelescopeBox,
   type TelescopeNode,
 } from "@/components/era-games/TelescopeBox";
-import { LifeWalk } from "@/components/era-games/LifeWalk";
-import { LIFE_MOMENTS } from "@/data/life-moments";
+import { EraStoryBox } from "@/components/about-story/EraStoryBox";
 import type { GamePalette } from "@/components/era-games/types";
 
 const vt323 = VT323({
@@ -73,22 +71,6 @@ function stamp(date: Date) {
 
 /** Same width as a real stamp, so the teletype rules never reflow on mount. */
 const STAMP_PLACEHOLDER = "---------- --:--:--";
-
-function wrap(text: string, width: number): string[] {
-  const words = text.split(/\s+/);
-  const lines: string[] = [];
-  let cur = "";
-  for (const w of words) {
-    if ((cur + " " + w).trim().length > width) {
-      lines.push(cur);
-      cur = w;
-    } else {
-      cur = cur ? cur + " " + w : w;
-    }
-  }
-  if (cur) lines.push(cur);
-  return lines.length ? lines : [""];
-}
 
 export function TerminalHomePage() {
   const reduced = useReducedMotion();
@@ -140,6 +122,9 @@ export function TerminalHomePage() {
         paddingTop: "var(--simple-game-nav-bottom, 56px)",
       }}
     >
+      <h1 className="sr-only">
+        {HERO.name} — {HERO.role}, co-founder at {HERO.org}, Bengaluru
+      </h1>
       <AnimatePresence initial={false}>
         {!scrolled && (
           <motion.div
@@ -249,74 +234,16 @@ export function TerminalHomePage() {
           <Pair label="CLOSE" mute>“{WHY_KIRUK.tagline}”</Pair>
         </motion.section>
 
-        {/* ── RECORD 002 — PERSONA ───────────────────────── */}
-        <LogStamp seq={2} file="persona.dat" subtitle="user profile · subject under study" time={openTime} delay={0.14} reduced={reduced} />
-        <motion.section
+        {/* ── RECORD 002 — ABOUT (the story box; nav "About" lands here) ── */}
+        <LogStamp seq={2} file="about.log" subtitle="the subject, in his own words" time={openTime} delay={0.14} reduced={reduced} />
+        <motion.div
           initial={reduced ? { opacity: 1 } : { opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.32, delay: 0.16, ease: "easeOut" }}
           className="mb-10"
         >
-          {/* Identity */}
-          <div
-            className="text-[28px] sm:text-[34px] font-bold leading-tight"
-            style={{ color: PHOSPHOR_BRIGHT }}
-          >
-            {PERSONA.identity.name}
-          </div>
-          <div className="text-[16px] mb-4" style={{ color: PHOSPHOR }}>
-            {PERSONA.identity.role} @ {PERSONA.identity.org} ·{" "}
-            {PERSONA.identity.location}
-          </div>
-
-          {/* Goals + Frustrations split */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-            <Panel header="GOALS" hint="what i strive for" blueprint="persona-goals">
-              <BulletList lines={PERSONA.goals as readonly string[]} marker="→" />
-            </Panel>
-            <Panel header="FRUSTRATIONS" hint="what i fight" tint={ALERT} blueprint="persona-frustrations">
-              <BulletList
-                lines={PERSONA.frustrations as readonly string[]}
-                marker="✕"
-                tint={ALERT}
-              />
-            </Panel>
-          </div>
-
-          {/* Quote */}
-          <div
-            className="border-l-2 pl-3 py-1 mb-4"
-            style={{ borderColor: PHOSPHOR_BRIGHT }}
-          >
-            <div className="text-[19px] italic" style={{ color: PHOSPHOR_BRIGHT }}>
-              “{PERSONA.quote}”
-            </div>
-          </div>
-
-          {/* Background */}
-          <div
-            className="text-[14px] uppercase tracking-[0.2em] mb-1"
-            style={{ color: PHOSPHOR_DIM }}
-          >
-            BACKGROUND
-          </div>
-          <NumberedBlock startLine={1} lines={wrap(PERSONA.background, 68)} />
-        </motion.section>
-
-        {/* ── ABOUT · constellation (interactive nav box) ──── */}
-        <motion.section
-          initial={reduced ? { opacity: 1 } : { opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.32, delay: 0.17, ease: "easeOut" }}
-          className="mb-10"
-        >
-          <LifeWalk
-            palette={TERMINAL_PALETTE}
-            moments={LIFE_MOMENTS}
-            onOpen={() => router.push("/about")}
-            height={210}
-          />
-        </motion.section>
+          <EraStoryBox />
+        </motion.div>
 
         {/* ── RECORD 003 — EMPATHY MAP ───────────────────── */}
         <LogStamp seq={3} file="empathy-map.dat" subtitle="says · thinks · does · feels" time={openTime} delay={0.18} reduced={reduced} />
@@ -828,29 +755,6 @@ function Tag({ children }: { children: React.ReactNode }) {
     >
       {children}
     </span>
-  );
-}
-
-function NumberedBlock({
-  startLine,
-  lines,
-}: {
-  startLine: number;
-  lines: string[];
-}) {
-  return (
-    <pre
-      className="whitespace-pre-wrap break-words text-[16px] leading-[1.5]"
-      style={{ color: PHOSPHOR }}
-    >
-      {lines.map((line, i) => (
-        <div key={i}>
-          <span style={{ color: PHOSPHOR_FAINT }}>{pad(startLine + i, 4)}</span>
-          {"   "}
-          <span>{line}</span>
-        </div>
-      ))}
-    </pre>
   );
 }
 

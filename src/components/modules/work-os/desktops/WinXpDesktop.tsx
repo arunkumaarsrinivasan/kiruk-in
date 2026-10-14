@@ -6,7 +6,8 @@ import { WindowFrame } from "../WindowFrame";
 import { buildWorkDir, linkGlyph } from "../work-fs";
 import type { DirNode, DocNode, FsNode } from "../work-fs";
 import { DocBody } from "../DocBody";
-import type { DesktopEra, Project } from "../types";
+import { useFocusProject } from "../use-focus-project";
+import type { DesktopEra, DesktopProps, Project } from "../types";
 
 interface Win {
   key: string;
@@ -19,7 +20,7 @@ interface Win {
 }
 
 /** 2001 — Windows XP Luna. Explorer (task pane + thumbnails) + Notepad. */
-export function WinXpDesktop({ era, projects }: { era: DesktopEra; projects: Project[] }) {
+export function WinXpDesktop({ era, projects, focusId }: DesktopProps) {
   const t = era.tokens;
   const stageRef = useRef<HTMLDivElement>(null);
   const root = useRef<DirNode>(buildWorkDir(projects, era.id));
@@ -67,6 +68,8 @@ export function WinXpDesktop({ era, projects }: { era: DesktopEra; projects: Pro
 
   const launch = (id: string) => { openExplorer([id]); setStartOpen(false); };
 
+  useFocusProject(focusId, (id) => openExplorer([id]));
+
   return (
     <div className="flex h-full flex-col" style={{ fontFamily: era.fontUi, color: "#0a0a0a" }}>
       <div ref={stageRef} className="relative min-h-0 flex-1 overflow-hidden" style={{ background: t.wallpaper }} onClick={() => setStartOpen(false)}>
@@ -76,7 +79,7 @@ export function WinXpDesktop({ era, projects }: { era: DesktopEra; projects: Pro
               <path d="M4 8h12l4 4h18v20H4z" fill="#f8d36b" stroke="#c79a2a" strokeWidth="1.2" />
               <path d="M4 8h12l4 4H4z" fill="#ffe7a0" />
             </svg>
-            <span className="px-1 text-[11px] font-medium text-white group-hover:bg-[#1c4ba8]" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.8)" }}>My Projects</span>
+            <span className="px-1 text-[11px] font-medium text-white group-hover:bg-[#1c4ba8] group-focus-visible:bg-[#1c4ba8]" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.8)" }}>My Projects</span>
           </button>
         </div>
 
@@ -176,7 +179,7 @@ function ExplorerXP({ root, path, setPath, onOpen, accent }: { root: DirNode; pa
             {cur.children.map((n) => (
               <button key={n.name} type="button" onClick={() => onOpen(n)} className="group flex flex-col items-center gap-1 rounded p-1.5 text-center hover:bg-[#e8f0fc]">
                 <XpTile node={n} accent={accent} />
-                <span className="line-clamp-2 text-[11px] leading-tight group-hover:bg-[#316ac5] group-hover:text-white">{n.kind === "dir" ? (n as DirNode).label : n.name}</span>
+                <span className="line-clamp-2 text-[11px] leading-tight group-hover:bg-[#316ac5] group-focus-visible:bg-[#316ac5] group-hover:text-white group-focus-visible:text-white">{n.kind === "dir" ? (n as DirNode).label : n.name}</span>
               </button>
             ))}
           </div>

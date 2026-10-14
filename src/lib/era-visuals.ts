@@ -99,13 +99,6 @@ export const ERA_VISUALS: Record<string, EraVisual> = {
     pixel: 2.5, dither: 0.5, posterize: 3,
     bloom: 0.18, noise: 0.02, vignette: 0.2,
   }),
-  // Mosaic: inline images arrive next to the text.
-  '1993': v({
-    pupil: 0.30, reflect: 0.74,
-    style: 2, scroll: 0.022, crt: 0.75, tech: 0,
-    pixel: 2, dither: 0.28, posterize: 6,
-    bloom: 0.25, noise: 0.03, vignette: 0.22,
-  }),
   // GeoCities: clashing tiles, animated junk, tearing.
   '1995': v({
     pupil: 0.36, reflect: 0.82,
@@ -120,7 +113,7 @@ export const ERA_VISUALS: Record<string, EraVisual> = {
     pixel: 1.5, posterize: 8,
     bloom: 0.22, noise: 0.02, vignette: 0.22,
   }),
-  // CSS Zen Garden: type-led, generous whitespace.
+  // Aqua & Flash: draggable gel windows on a desktop.
   '2000': v({
     pupil: 0.28, reflect: 0.7,
     style: 5, scroll: 0.018, crt: 0.45, tech: 0.5,
@@ -132,13 +125,6 @@ export const ERA_VISUALS: Record<string, EraVisual> = {
     style: 6, scroll: 0.012, crt: 0.3, tech: 1,
     glow: 0.12,
     bloom: 0.85, vignette: 0.3,
-  }),
-  // Apple / blog renaissance: a wide content column, restrained chrome.
-  '2006': v({
-    pupil: 0.29, reflect: 0.85,
-    style: 7, scroll: 0.016, crt: 0.18, tech: 1,
-    glow: 0.08,
-    bloom: 0.6, vignette: 0.28,
   }),
   // iPhone: an app grid, bright and crisp.
   '2009': v({
@@ -152,26 +138,6 @@ export const ERA_VISUALS: Record<string, EraVisual> = {
     pupil: 0.26, reflect: 0.88,
     style: 8, scroll: 0.008, crt: 0.04, tech: 2,
     bloom: 0.35, vignette: 0.18,
-  }),
-  // Accessibility: fewer, larger, higher-contrast blocks.
-  '2018': v({
-    pupil: 0.26, reflect: 0.85,
-    style: 5, scroll: 0.014, crt: 0.03, tech: 2,
-    bloom: 0.25, vignette: 0.14,
-  }),
-  // Material You: soft tonal blobs on a dark surface.
-  '2021': v({
-    pupil: 0.36, reflect: 0.88,
-    style: 9, scroll: 0.012, crt: 0.03, tech: 2.4,
-    glow: 0.16, wobble: 0.3,
-    bloom: 0.75, vignette: 0.3,
-  }),
-  // AI-native: a conversation column that keeps rewriting itself.
-  '2023': v({
-    pupil: 0.40, reflect: 0.92,
-    style: 10, scroll: 0.038, crt: 0.04, tech: 3,
-    glow: 0.25, wobble: 0.55,
-    bloom: 1.05, chroma: 0.0014, noise: 0.06, vignette: 0.34,
   }),
   // Generative: the interface never settles.
   '2026': v({

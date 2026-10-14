@@ -1,0 +1,36 @@
+/* Shared craft floor for every era desktop. Chrome stays era-authentic; these
+   rules only add what the originals lacked: a keyboard focus ring and
+   finger-sized hit areas. */
+
+/* globals.css restyles every <button>/<input> with the site's era font, radius,
+   tracking and transitions, unlayered — so it beats the desktops' Tailwind
+   utilities. Inside a desktop, hand those properties back to the layered
+   styles so each OS draws its own controls. */
+[data-work-os] :is(button, [role="button"], input, textarea, select) {
+  font-family: revert-layer;
+  letter-spacing: revert-layer;
+  border-radius: revert-layer;
+  transition: revert-layer;
+}
+
+[data-work-os] :is(button, a, [tabindex]:not(input)):focus-visible {
+  outline: 2px solid var(--wos-focus);
+  outline-offset: 2px;
+}
+
+/* Window controls are drawn at period size (12–16px). On touch, grow the
+   invisible hit area to ~44px without changing the pixels. */
+@media (pointer: coarse) {
+  [data-work-os] button:is([aria-label="Close"], [aria-label="Back"]) {
+    position: relative;
+  }
+  [data-work-os] button:is([aria-label="Close"], [aria-label="Back"])::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    transform: translate(-50%, -50%);
+  }
+}

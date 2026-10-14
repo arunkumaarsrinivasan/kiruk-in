@@ -63,7 +63,7 @@ export function GET(): Response {
     `<title>${xmlEscape(SITE_NAME)}</title>`,
     `<link>${SITE_URL}</link>`,
     `<description>Kiruk Studio notebook — pen-and-paper thinking through to shipped pixels.</description>`,
-    "<language>en</language>",
+    "<language>en-IN</language>",
     `<atom:link href="${SITE_URL}/feed.xml" rel="self" type="application/rss+xml"/>`,
     items,
     "</channel>",

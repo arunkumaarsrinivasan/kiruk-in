@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getNotebookEntries } from "@/lib/content/notebook";
 import { resolveRelated } from "@/lib/content/related";
 import { NotebookList } from "@/components/blog/BlogListClient";
+import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Notebook",
@@ -36,5 +37,29 @@ export default async function NotebookPage({
       work: resolveRelated(entry.related).filter((hit) => hit.kind === "work"),
     }));
 
-  return <NotebookList entries={entries} query={query} />;
+  const notebookJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "@id": `${SITE_URL}/notebook#page`,
+    url: `${SITE_URL}/notebook`,
+    name: "Notebook — Kiruk Studio",
+    description:
+      "Notebook of Arun Kumaar Sreenivasan (Kiruk), a design engineer in Bengaluru. Essays on craft, variation, and how the work gets made.",
+    isPartOf: { "@id": `${SITE_URL}/#website` },
+    about: { "@id": `${SITE_URL}/#person` },
+  };
+
+  return (
+    <>
+      <p className="sr-only">
+        Notebook of Arun Kumaar Sreenivasan (Kiruk), a design engineer in
+        Bengaluru. Essays on craft, variation, and how the work gets made.
+      </p>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(notebookJsonLd) }}
+      />
+      <NotebookList entries={entries} query={query} />
+    </>
+  );
 }

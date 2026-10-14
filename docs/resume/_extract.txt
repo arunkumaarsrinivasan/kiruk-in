@@ -1,0 +1,40 @@
+Arun Kumaar Sreenivasan
+Co-founder · Design, Spera
+Bengaluru, India · +91 94865 82579 · arunkumaar.srinivasan@gmail.com · kiruk.in · LinkedIn · GitHub · spera.bot
+SUMMARY
+Product designer and design engineer. Co-founder at Spera, where I design spera.bot and ship it in Next.js
+and TypeScript. Before that, UX Design Engineer on HP Print AI and Mudra, a design system used by 500+
+employees.
+EXPERIENCE
+Spera — Co-founder, Design · Remote · Feb 2026 – Present
+Led the design of spera.bot from 0 to 1 with the founder and our marketing teammate, and shipped the
+brand and the product in Next.js and TypeScript.
+Designed the trading workspace from sessions with traders. Real-time charts and metrics sit in a layout
+they can rearrange, and the screen stays readable when it is full.
+Defined the design system for color, type, spacing, motion, and accessibility as 180 screen specs tied to
+tokens. Figma mirrors 16 production frames, and a check stops a push that doesn't match.
+Set up how design and code stay together. A review comes back as a screenshot tied to the spec and the
+skill. I prototype in code and hand it to the AI that writes the implementation. Skills from repeat mistakes
+cut those UI mistakes by 95%.
+HP Inc — UX Design Engineer, Innovation for India · Bengaluru · Aug 2023 – Feb 2026
+R&D Intern, Feb – Jul 2023
+Designed the consumer and B2B flows for HP Print AI, the industry's first intelligent print experience.
+Built Mudra, the design system for Innovation for India, in Figma and Next.js. 500+ employees use it,
+including generative prompts that create images inside the stack.
+Shipped Get my Prints, a Flutter web app for doorstep print jobs, and Print Learn Center, a WhatsApp flow
+parents use to pull worksheets.
+As an R&D intern, built COE BOT in Spring Boot to generate Splunk dashboards and alerts for printer
+fleets.
+SNS Square — SME and Design Lead, Square Bridge · Remote · Feb 2023 – Jul 2023
+Led 3 designers on Square Bridge, a placement product for students, recruiters, and officers. One system,
+150+ screens, tested with 200+ candidates.
+PeopleGamez.com — Interaction Design Intern · Remote · Nov 2022 – Jan 2023
+Designed gamified HR flows for 4Plantz and Motivuz, including 100+ game assets and performance
+dashboards.
+SKILLS
+Product design, Design systems, Interaction design, Data visualization, UX research, Prototyping, Motion,
+Accessibility, Figma, Next.js, React, TypeScript, Tailwind, Flutter, AI UX
+EDUCATION
+B.E. Computer Science and Engineering, Sona College of Technology · 2019 – 2023 · CGPA 8.9/10
+ADDITIONAL
+UX and UI workshops for 100+ students. Freelance branding and product design, 2020 – 2023.

@@ -2,6 +2,7 @@
 
 import { motion, useDragControls } from "framer-motion";
 import type { PointerEvent, ReactNode } from "react";
+import { fitWindow } from "./helpers";
 import type { DesktopEra } from "./types";
 
 interface WindowFrameProps {
@@ -37,10 +38,9 @@ export function WindowFrame({
 
   const frameStyle: React.CSSProperties = {
     position: "absolute",
-    left: x,
+    ...fitWindow(x, "clamp(440px, 38vw, 600px)"),
     top: y,
     zIndex: z,
-    width: "min(440px, 86%)",
     maxHeight: "calc(100% - 96px)",
     background: t.surface,
     color: t.text,
@@ -144,27 +144,28 @@ function TitleBar({
     return (
       <div
         {...drag}
-        className={`${common} justify-between py-1`}
+        className={`${common} relative justify-between py-1`}
         style={{ borderBottom: `2px solid ${t.border}`, background: t.surface }}
       >
-        <button
-          type="button"
-          aria-label="Close"
-          onClick={onClose}
-          className="grid h-3.5 w-3.5 place-items-center"
-          style={{ border: `2px solid ${t.border}`, background: t.surface }}
-        />
+        {/* the 1984 title bar: six 1px rules, with the close box and title knocked out of them */}
         <span
-          className="flex-1 text-center text-[12px] font-bold tracking-wide"
-          style={{
-            color: t.titleText,
-            // classic horizontal-line title fill behind the label is faked
-            // with letter-spacing; keep it simple + legible here.
-          }}
-        >
+          aria-hidden
+          className="pointer-events-none absolute inset-x-[3px] inset-y-[4px]"
+          style={{ background: `repeating-linear-gradient(${t.border} 0 1px, transparent 1px 2px)` }}
+        />
+        <span className="relative px-1" style={{ background: t.surface }}>
+          <button
+            type="button"
+            aria-label="Close"
+            onClick={onClose}
+            className="grid h-3.5 w-3.5 place-items-center"
+            style={{ border: `1.5px solid ${t.border}`, background: t.surface }}
+          />
+        </span>
+        <span className="relative min-w-0 truncate px-2 text-center text-[12px] font-bold" style={{ color: t.titleText, background: t.surface }}>
           {title}
         </span>
-        <span className="h-3.5 w-3.5" />
+        <span className="relative h-3.5 w-5" />
       </div>
     );
   }
@@ -282,7 +283,7 @@ function TitleBar({
         </span>
         <div className="flex items-center gap-1">
           {["–", "▢"].map((g) => (
-            <span key={g} className="grid h-4 w-4 place-items-center rounded-[3px] text-[9px] font-bold leading-none text-white" style={{ background: "rgba(255,255,255,0.25)", border: "1px solid rgba(255,255,255,0.6)" }}>
+            <span key={g} className="grid h-4 w-4 place-items-center rounded-[3px] text-[10px] font-bold leading-none text-white" style={{ background: "rgba(255,255,255,0.25)", border: "1px solid rgba(255,255,255,0.6)" }}>
               {g}
             </span>
           ))}

@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
-
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ??
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://kiruk.in");
+import { SITE_URL } from "@/lib/site";
 
 const TITLE = "Roadmap — What Kiruk is building next";
 const DESCRIPTION =
@@ -26,5 +23,10 @@ export const metadata: Metadata = {
 };
 
 export default function RoadmapLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return (
+    <>
+      <p className="sr-only">{DESCRIPTION}</p>
+      {children}
+    </>
+  );
 }

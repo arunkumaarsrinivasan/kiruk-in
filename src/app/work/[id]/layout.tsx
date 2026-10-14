@@ -1,11 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { CASE_STUDIES } from "@/app/case-studies/data";
-
-interface LayoutProps {
-  children: ReactNode;
-  params: Promise<{ id: string }>;
-}
+import { portfolioData } from "@/data/portfolio-data";
 
 export async function generateMetadata({
   params,
@@ -13,20 +8,16 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const study = CASE_STUDIES.find((item) => item.id === id);
-  if (!study) {
-    return {
-      title: "Case study coming soon",
-      description: "This case study is still being written. Browse other work from Kiruk Studio.",
-    };
-  }
+  const project = portfolioData.projects.find((p) => p.id === id);
+  if (!project) return { title: "Project not found" };
   return {
-    title: study.title,
-    description: study.summary,
-    alternates: { canonical: `/work/${study.id}` },
+    title: project.title,
+    description: project.description,
+    alternates: { canonical: `/work/${project.id}` },
+    openGraph: { title: project.title, description: project.description, url: `/work/${project.id}` },
   };
 }
 
-export default function WorkIdLayout({ children }: LayoutProps) {
+export default function WorkIdLayout({ children }: { children: ReactNode }) {
   return children;
 }

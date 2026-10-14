@@ -4,7 +4,7 @@
  * First-visit era picker.
  *
  * The whole screen is one eye, and the eye is the control: sweep left or right
- * across it to travel through fifteen eras, and the interface reflected in its
+ * across it to travel through ten eras, and the interface reflected in its
  * cornea changes with you — a phosphor terminal at the left end, generative
  * surfaces at the right.
  *
@@ -48,8 +48,8 @@ const SWEEP_INSET = 0.08;
 const TAP_SLOP = 8;
 const TAP_MS = 520;
 /**
- * A touch drag scrubs by distance, not by where it landed. Mapping fifteen
- * eras across 375 points of phone would put twenty-five points between years
+ * A touch drag scrubs by distance, not by where it landed. Mapping ten
+ * eras across 375 points of phone would put under forty points between years
  * and hide the one you wanted under your own thumb; a swipe that moves this
  * many points per year can be thrown, repeated and reversed.
  */
@@ -81,17 +81,12 @@ const ARRIVALS: Record<string, EraChangeStyle> = {
   "1970": "blink",
   "1981": "snap",
   "1991": "float",
-  "1993": "float",
   "1995": "glitch",
   "1997": "snap",
   "2000": "float",
   "2003": "pulse",
-  "2006": "float",
   "2009": "pulse",
   "2013": "none",
-  "2018": "none",
-  "2021": "morph",
-  "2023": "morph",
   "2026": "morph",
 };
 
@@ -272,7 +267,7 @@ export default function ImmersiveEraLoadingPage({
   /** Sweep across the eye: the left edge is 1970, the right edge is 2026. */
   const indexFromX = useCallback(
     (clientX: number) => {
-      const w = Math.max(window.innerWidth, 1);
+      const w = Math.max(window.visualViewport?.width ?? window.innerWidth, 1);
       const t = (clientX / w - SWEEP_INSET) / (1 - SWEEP_INSET * 2);
       return Math.round(Math.min(1, Math.max(0, t)) * last);
     },
@@ -286,7 +281,12 @@ export default function ImmersiveEraLoadingPage({
    */
   const overIrisAt = useCallback(
     (clientX: number, clientY: number) => {
-      const f = eyeFrame(window.innerWidth, window.innerHeight, EYE_HEIGHT);
+      const vv = window.visualViewport;
+      const f = eyeFrame(
+        vv?.width ?? window.innerWidth,
+        vv?.height ?? window.innerHeight,
+        EYE_HEIGHT,
+      );
       const r = Math.max(
         IRIS_TAP_MIN,
         f.irisPx * (isCoarse ? IRIS_TAP_COARSE : 1),
@@ -482,7 +482,7 @@ export default function ImmersiveEraLoadingPage({
 
   return (
     <motion.div
-      className="fixed inset-0 z-[200] flex flex-col overflow-hidden"
+      className="fixed inset-x-0 top-0 z-[200] flex h-dvh w-full flex-col overflow-hidden"
       initial={{ opacity: 1 }}
       animate={{ opacity: exiting ? 0 : 1 }}
       transition={{
@@ -490,7 +490,12 @@ export default function ImmersiveEraLoadingPage({
         delay: exiting && !reduce ? 0.22 : 0,
         ease: EASE_OUT,
       }}
-      style={{ background: ROOM, touchAction: "none" }}
+      style={{
+        background: ROOM,
+        touchAction: "none",
+        overscrollBehavior: "none",
+        WebkitTapHighlightColor: "transparent",
+      }}
       role="dialog"
       aria-modal="true"
       aria-label="Choose a design era"
@@ -543,7 +548,7 @@ export default function ImmersiveEraLoadingPage({
           comes up to meet it — the dial and the year always have something to
           sit on. Painted under the dial, not over it. */}
       <motion.div
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[52vh]"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[48%]"
         animate={{ opacity: exiting ? 0 : 1 }}
         transition={{ duration: reduce ? 0.12 : 0.3, ease: EASE_OUT }}
         style={{
@@ -582,13 +587,13 @@ export default function ImmersiveEraLoadingPage({
         >
           {/* the movement this year belongs to */}
           <span
-            className="text-[9px] uppercase tracking-[0.4em]"
-            style={{ color: ink, opacity: 0.42 }}
+            className="text-[11px] uppercase tracking-[0.22em] opacity-70 sm:text-[9px] sm:tracking-[0.4em] sm:opacity-[0.42]"
+            style={{ color: ink }}
           >
             {focused.era}
           </span>
           <span
-            className="text-[clamp(2.6rem,7.5vw,4.6rem)] leading-[0.95]"
+            className="text-[clamp(2.75rem,12vw,4.6rem)] leading-[0.95]"
             style={{
               color: accent,
               fontFamily: focused.fonts.primary,
@@ -598,7 +603,7 @@ export default function ImmersiveEraLoadingPage({
             {focused.id}
           </span>
           <span
-            className="text-[11px] uppercase tracking-[0.34em]"
+            className="text-[12px] uppercase tracking-[0.22em] sm:text-[11px] sm:tracking-[0.34em]"
             style={{ color: ink, opacity: 0.72 }}
           >
             {eraLabel}
@@ -609,8 +614,8 @@ export default function ImmersiveEraLoadingPage({
         <p
           className={cn(
             "relative z-[1] px-5 pt-4 text-center uppercase",
-            "text-[9px] leading-[2.1] tracking-[0.12em]",
-            "transition-opacity duration-500 sm:text-[10px] sm:tracking-[0.2em]",
+            "text-[11px] leading-relaxed tracking-[0.12em]",
+            "transition-opacity duration-500 sm:text-[10px] sm:leading-[2.1] sm:tracking-[0.2em]",
           )}
           style={{ color: ink, opacity: overIris ? 0.85 : 0.45 }}
         >

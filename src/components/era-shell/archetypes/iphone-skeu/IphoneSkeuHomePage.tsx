@@ -623,7 +623,7 @@ export function IphoneSkeuHomePage() {
             role="status"
             style={{
               position: "fixed",
-              bottom: 30,
+              bottom: "calc(var(--eye-lid-bottom, 0px) + 12px)",
               left: "50%",
               transform: "translateX(-50%)",
               zIndex: 80,

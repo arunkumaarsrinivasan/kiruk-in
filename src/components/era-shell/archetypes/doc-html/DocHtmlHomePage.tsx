@@ -19,10 +19,10 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { EraStoryBox } from "@/components/about-story/EraStoryBox";
 import { useLayoutMode } from "@/contexts/LayoutModeContext";
 import {
   WHY_KIRUK,
-  PERSONA,
   EMPATHY_MAP,
   buildTimeline,
   IMPACT_METRICS,
@@ -44,7 +44,7 @@ const FONT_MONO = "'Courier New', 'Courier', monospace";
 
 const SECTIONS = [
   { id: "why",       num: "1.", title: "Why: A Bridge Between Crafts" },
-  { id: "persona",   num: "2.", title: "Subject — Persona on File" },
+  { id: "persona",   num: "2.", title: "About the Author" },
   { id: "empathy",   num: "3.", title: "An Empathy Map" },
   { id: "journey",   num: "4.", title: "Career Path — A Hypertext Trail" },
   { id: "impact",    num: "5.", title: "Quantified Impact" },
@@ -63,7 +63,7 @@ const FOOTNOTES: Footnote[] = [
   {
     n: 1,
     body:
-      'HP Print AI — Sreenivasan, A. (2023–present). Co-shipped the industry-first intelligent print experience. Email/webmail print workflows in Spring Boot + Node, mobile-first Flutter onboarding, AI Stack design system used by 500+ HP employees, Splunk observability across 7+ microservices.',
+      'HP Print AI — Sreenivasan, A. (2023–2026). Co-shipped the industry-first intelligent print experience. Email/webmail print workflows in Spring Boot + Node, mobile-first Flutter onboarding, AI Stack design system used by 500+ HP employees, Splunk observability across 7+ microservices.',
     href: "https://www.hp.com/us-en/printers/ai-printers.html",
   },
   {
@@ -344,7 +344,7 @@ export function DocHtmlHomePage() {
             }}
           >
             Field notes on Arun Kumaar Sreenivasan, working at the
-            design-engineering bridge at HP Print AI, Bengaluru.
+            design-engineering bridge, now co-founder and design lead at Spera.
           </p>
           <p
             style={{
@@ -354,7 +354,7 @@ export function DocHtmlHomePage() {
               margin: 0,
             }}
           >
-            By <Link href="/about" mark={trailMark} visited={visited} setHoverUrl={setHoverUrl}>The Author</Link>
+            By <Anchor href="#about" mark={trailMark} visited={visited} setHoverUrl={setHoverUrl}>The Author</Anchor>
             {" · "}First published 1991 · Revised {lastModified}.
           </p>
           <Rule />
@@ -429,45 +429,8 @@ export function DocHtmlHomePage() {
 
         {/* ── 2 PERSONA ─────────────────────────────────────────── */}
         <section id="persona" ref={setSectionRef("persona")}>
-          <h2 style={h2}>2. Subject — Persona on File</h2>
-          <dl style={dl}>
-            <dt style={dt}>Name</dt>
-            <dd style={dd}>{PERSONA.identity.name}</dd>
-            <dt style={dt}>Role</dt>
-            <dd style={dd}>{PERSONA.identity.role}</dd>
-            <dt style={dt}>Employer</dt>
-            <dd style={dd}>{PERSONA.identity.org}</dd>
-            <dt style={dt}>Location</dt>
-            <dd style={dd}>{PERSONA.identity.location}</dd>
-            <dt style={dt}>Archetype</dt>
-            <dd style={dd}>Designer ↔ Engineer (bridge)</dd>
-          </dl>
-
-          <h3 style={h3}>2.1 Goals</h3>
-          <ul style={ul}>
-            {PERSONA.goals.map((g) => (
-              <li key={g}>{g}</li>
-            ))}
-          </ul>
-
-          <h3 style={h3}>2.2 Frustrations</h3>
-          <ul style={ul}>
-            {PERSONA.frustrations.map((f) => (
-              <li key={f}>{f}</li>
-            ))}
-          </ul>
-
-          <h3 style={h3}>2.3 Self-Description</h3>
-          <blockquote style={blockquote}>
-            “{PERSONA.quote}”<Sup n={4} setHoverUrl={setHoverUrl} />
-          </blockquote>
-
-          <h3 style={h3}>2.4 Background</h3>
-          <p style={p}>
-            {PERSONA.background}<Sup n={6} setHoverUrl={setHoverUrl} />
-            {" "}Higher studies + first design leadership were anchored at Sona College of Technology<Sup n={5} setHoverUrl={setHoverUrl} />, before the PeopleGamez interaction design internship<Sup n={3} setHoverUrl={setHoverUrl} /> and HP Inc.
-          </p>
-
+          <h2 style={h2}>2. About the Author</h2>
+          <EraStoryBox />
           <BackToTop mark={trailMark} visited={visited} setHoverUrl={setHoverUrl} />
         </section>
 
@@ -866,7 +829,7 @@ export function DocHtmlHomePage() {
         style={{
           position: "fixed",
           insetInline: 0,
-          bottom: 0,
+          bottom: "var(--eye-lid-bottom, 0px)",
           padding: "4px 12px",
           borderTop: `1px solid ${TEXT}`,
           backgroundColor: "#f0f0f0",
@@ -1384,7 +1347,7 @@ function HypertextConsole({
         case "whois": {
           reply([
             "kiruk · arun kumaar sreenivasan",
-            "  role.... design engineer @ HP Print AI",
+            "  role.... co-founder, design lead @ Spera",
             "  loc..... bengaluru, india",
             "  work.... design + engineering, one workflow",
             "  online.. kiruk.in · @kirukism",
@@ -1565,7 +1528,7 @@ function HypertextTrail({
       style={{
         position: "fixed",
         right: 16,
-        bottom: 44,
+        bottom: "calc(var(--eye-lid-bottom, 0px) + 44px)",
         zIndex: 55,
         width: collapsed ? 140 : 240,
         maxWidth: "calc(100vw - 32px)",
@@ -1791,7 +1754,7 @@ function ViewSourceOverlay({ onClose }: { onClose: () => void }) {
 <BODY>
   <H1>Kiruk — A Design Engineer on Record.</H1>
   <P>Field notes on Arun Kumaar Sreenivasan, working at the
-     design-engineering bridge at HP Print AI, Bengaluru.</P>
+     design-engineering bridge, now co-founder and design lead at Spera.</P>
 
   <HR>
   <H2>Abstract</H2>
@@ -1800,7 +1763,7 @@ function ViewSourceOverlay({ onClose }: { onClose: () => void }) {
   <H2>On this page</H2>
   <OL>
     <LI><A HREF="#why">1 Why: A Bridge Between Crafts</A>
-    <LI><A HREF="#persona">2 Subject — Persona on File</A>
+    <LI><A HREF="#persona">2 About the Author</A>
     <LI><A HREF="#empathy">3 An Empathy Map</A>
     <LI><A HREF="#journey">4 Career Path — A Hypertext Trail</A>
     <LI><A HREF="#impact">5 Quantified Impact</A>

@@ -143,7 +143,7 @@ function TerminalIndex({
           >
             <div className="era-banner-stack era-banner-kiruk">
               <pre className="era-banner">{BANNER_KIRUK.join("\n")}</pre>
-              <p className="era-banner-word">NOTEBOOK</p>
+              <h1 className="era-banner-word">NOTEBOOK</h1>
             </div>
             <div className="era-banner-stack era-banner-arun" aria-hidden>
               <pre className="era-banner">{BANNER_ARUN.join("\n")}</pre>
