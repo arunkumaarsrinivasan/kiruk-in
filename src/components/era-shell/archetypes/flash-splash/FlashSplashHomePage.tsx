@@ -192,7 +192,7 @@ export function FlashSplashHomePage() {
               <Link href="/work">Work</Link>
             </li>
             <li>
-              <a href="/#about">About</a>
+              <Link href="/#about">About</Link>
             </li>
             <li>
               <Link href="/contact">Contact</Link>
@@ -260,7 +260,7 @@ function Results({
     <div className="ks-results">
       <h1 className="sr-only">{q ? `Search results for ${q}` : "All pages on kiruk.in"}</h1>
       <div className="ks-head">
-        <a
+        <Link
           href="/"
           className="ks-home-link"
           aria-label="Kiruk search home"
@@ -270,7 +270,7 @@ function Results({
           }}
         >
           <Wordmark size="small" />
-        </a>
+        </Link>
         {form}
       </div>
 

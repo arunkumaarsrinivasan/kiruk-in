@@ -111,13 +111,13 @@ function FingerBlock({ clock, awake }: { clock: string; awake: boolean }) {
     ["Local:", `${clock || "--:--"} IST ${awake ? "(around)" : "(asleep)"}`],
     [
       "Plan:",
-      <>
+      <span key="plan">
         {FACTS.now}. <span style={{ color: DIM }}>Before: {FACTS.before}.</span>
-      </>,
+      </span>,
     ],
     [
       "Open to:",
-      <span className="flex flex-col">
+      <span key="open-to" className="flex flex-col">
         {FACTS.openTo.map((o) => (
           <span key={o}>- {o.toLowerCase()}</span>
         ))}

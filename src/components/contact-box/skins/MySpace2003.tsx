@@ -17,6 +17,7 @@
  */
 
 import { useCallback, useId, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import Link from "next/link";
 import { CHANNELS, EMAIL, FACTS, INTENTS, WHO, getChannel, type Channel, type ChannelId } from "@/data/contact";
 import type { ContactSkinProps } from "../types";
 import type { Contact } from "../use-contact";
@@ -711,13 +712,13 @@ export function MySpace2003({ contact: c }: ContactSkinProps) {
               </p>
               <p className="text-[12px]">
                 <strong>View my:</strong>{" "}
-                <a href="/work" className={`ks-link ${FOCUS}`} style={focusStyle}>
+                <Link href="/work" className={`ks-link ${FOCUS}`} style={focusStyle}>
                   Work
-                </a>{" "}
+                </Link>{" "}
                 |{" "}
-                <a href="/notebook" className={`ks-link ${FOCUS}`} style={focusStyle}>
+                <Link href="/notebook" className={`ks-link ${FOCUS}`} style={focusStyle}>
                   Notebook
-                </a>
+                </Link>
               </p>
             </section>
 

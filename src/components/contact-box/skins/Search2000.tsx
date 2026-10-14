@@ -17,6 +17,7 @@
  */
 
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import Link from "next/link";
 import { EMAIL, FACTS, INTENTS, WHO, getChannel, getIntent, type Channel, type ChannelId, type ContactWhoId, type IntentId } from "@/data/contact";
 import type { ContactSkinProps } from "../types";
 import { CalEmbed, external, statusLine } from "../contact-ui";
@@ -852,9 +853,9 @@ export function Search2000({ contact: c }: ContactSkinProps) {
             {r.about && (
               <section aria-label="About Arun" className="border-l-4 py-1 pl-3" style={{ borderColor: RULE }}>
                 <h3 className="m-0 font-normal">
-                  <a href="/#about" className={`inline-flex min-h-11 items-center text-[16px] ${linkCls}`} style={{ color: LINK, outlineColor: LINK }}>
+                  <Link href="/#about" className={`inline-flex min-h-11 items-center text-[16px] ${linkCls}`} style={{ color: LINK, outlineColor: LINK }}>
                     {FACTS.name} - the long version of my story
-                  </a>
+                  </Link>
                 </h3>
                 <dl className="m-0 grid gap-x-3 sm:grid-cols-[6.5rem_1fr]">
                   <dt style={{ color: MUTED }}>Now</dt>

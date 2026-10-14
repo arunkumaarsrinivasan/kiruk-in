@@ -14,6 +14,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { AnimatePresence } from "framer-motion";
 import { useLayoutMode } from "@/contexts/LayoutModeContext";
 import { BEATS } from "@/data/about-story";
@@ -49,7 +50,7 @@ function Index() {
       <ul>
         {portfolioData.projects.map((p) => (
           <li key={p.id}>
-            <a href={`/work/${p.id}`}>{getProjectCoverLabel(p.id, p.title)}</a>: {p.description}
+            <Link href={`/work/${p.id}`}>{getProjectCoverLabel(p.id, p.title)}</Link>: {p.description}
           </li>
         ))}
       </ul>
@@ -62,7 +63,7 @@ function Index() {
         ))}
       </ul>
       <p>
-        <a href="/notebook">My notebook</a>
+        <Link href="/notebook">My notebook</Link>
       </p>
     </nav>
   );
