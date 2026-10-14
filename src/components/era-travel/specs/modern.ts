@@ -5,7 +5,7 @@
 
 import type { BlueprintSpec } from "../blueprint-types";
 
-/** 2026 · The Pupil — a dark room and one brown eye, centred between
+/** 2026 · The Pupil — a dark room and one dotted pupil in dotted rings, centred between
  *  the navbar's lids: the pupil, the question line and state word under it,
  *  and the lens it dilates into (560px, 92vw on phones). No grid: there is
  *  no layout to draw. */

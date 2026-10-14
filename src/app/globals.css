@@ -2861,32 +2861,33 @@ body[data-era='2013'], [data-era-surface='2013'] {
   --notepad-inner-bg: #f9f9fb;
 }
 
-/* 2026: The Pupil — one eye in a dark room */
+/* 2026: The Pupil — the screen is one eye: black lids (the navbar), the white of the page, a halftone pupil. */
 body[data-era='2026'], [data-era-surface='2026'] {
-  --bg-main: #060606;
-  --bg-card: #101012;
-  --text-main: #ecebe8;
-  --text-muted: #8d8a84;
-  --nav-surface: #060606;
-  --nav-text: #ecebe8;
-  --nav-text-muted: #8d8a84;
-  --border-color: #232326;
+  --bg-main: #fafafa;
+  --bg-card: #ffffff;
+  --text-main: #0b0b0b;
+  --text-muted: #6b6863;
+  --nav-surface: #0b0b0b;
+  --nav-text: #f4f3f0;
+  --nav-text-muted: #9a968f;
+  --border-color: #e2dfda;
   --border-width: 1px;
   --border-radius: 14px;
-  --shadow-color: rgba(0, 0, 0, 0.6);
+  --shadow-color: rgba(0, 0, 0, 0.12);
   --shadow-offset-x: 0px;
   --shadow-offset-y: 1px;
   --shadow-blur: 2px;
   --font-main: 'Geist', 'Helvetica Neue', sans-serif;
   --font-heading: 'Geist', 'Helvetica Neue', sans-serif;
-  --accent-color: #e9dcc6;
+  /* the accent lives on the black lids (active year, captions) */
+  --accent-color: #f4f3f0;
   --btn-hover-transform: none;
   --grid-opacity: 0;
 
-  --notepad-bg: #101012;
-  --notepad-border: #232326;
-  --notepad-text: #ecebe8;
-  --notepad-inner-bg: #151517;
+  --notepad-bg: #ffffff;
+  --notepad-border: #e2dfda;
+  --notepad-text: #0b0b0b;
+  --notepad-inner-bg: #fafafa;
 }
 
 /* =========================================

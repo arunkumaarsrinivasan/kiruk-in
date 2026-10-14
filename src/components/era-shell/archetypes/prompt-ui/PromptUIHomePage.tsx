@@ -3,11 +3,18 @@
 /**
  * PromptUIHomePage — 2026: The Pupil.
  *
- * The navbar draws an eye; this page is its pupil. There is no interface
- * beyond one eye in a dark room. Type anywhere (or tap the eye) and it listens; press
- * Enter and it narrows for a beat, then dilates into a lens holding the
- * answer, told in my own words from the site's data (pupil/reader.ts). Esc or
- * a click outside closes it back into the pupil.
+ * The whole screen is one eye: the navbar is its black lids, the page is the
+ * white, and in the middle a round pupil drawn as a halftone (big black dots
+ * easing to specks). The outer specks map everything on the site (roles,
+ * projects, story, skills and life; one dot per real thing). The pupil looks
+ * toward you, flattening as it turns.
+ *
+ * Ask in the box under the pupil, type anywhere, tap a suggestion, or click
+ * a dot. The lids blink, the pupil narrows, the sources grow and travel into
+ * the middle, and the conversation begins: the ask box glides to the bottom,
+ * the pupil rises to watch, and each answer composes beneath it from a small
+ * catalog of parts (src/lib/pupil). Every word comes from the site's own data.
+ * Older answers fold away; End chat (or Esc) returns to the resting pupil.
  *
  * /work, /contact and /#about in 2026 land here with the question already
  * asked (?ask=work|contact|about).
@@ -15,29 +22,47 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { AnimatePresence } from "framer-motion";
 import { useLayoutMode } from "@/contexts/LayoutModeContext";
 import { BEATS } from "@/data/about-story";
 import { CHANNELS } from "@/data/contact";
+import { books, games, travelLocations, treks } from "@/data/life-progress-data";
 import { portfolioData } from "@/data/portfolio-data";
 import { getProjectCoverLabel } from "@/data/project-media";
 import { CSS } from "./styles";
 import { FONT_STYLE_2026, FONT_VARS_2026 } from "./fonts";
-import { Lens } from "./pupil/Lens";
-import { Pupil } from "./pupil/Pupil";
-import { SUGGESTIONS } from "./pupil/reader";
-import { usePupil, useReducedMotion } from "./pupil/usePupil";
+import { HalftonePupil, type HalftonePupilHandle } from "./pupil/HalftonePupil";
+import { halftoneSize } from "./pupil/halftone-scene";
+import { PUPIL } from "./pupil/rings";
+import { Composer } from "./pupil/Composer";
+import { Thread } from "./pupil/Thread";
+import { loadEngine, usePupil, useReducedMotion } from "./pupil/usePupil";
 
-/** Stillness before the dot offers something to ask. */
-const IDLE_MS = 4000;
+const EYE = halftoneSize(PUPIL);
+const SUGGESTIONS = ["Show me your work", "Is he good?", "How do I reach you?"];
 
 const isField = (el: Element | null) =>
   !!el && (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || el instanceof HTMLSelectElement || (el as HTMLElement).isContentEditable);
 
-/** Everything the dot can say, as plain links, for screen readers and no-JS readers. */
+/** Everything the pupil knows, as plain text and links, for screen readers and no-JS readers. */
 function Index() {
   return (
-    <nav className="r26-sr" aria-label="Everything the dot knows">
+    <nav className="r26-sr" aria-label="Everything the pupil knows">
+      <h2>Where I've worked</h2>
+      <ul>
+        {portfolioData.experience.map((e) => (
+          <li key={e.id}>
+            {e.position}, {e.company}: {e.description}
+          </li>
+        ))}
+      </ul>
+      <h2>My work</h2>
+      <ul>
+        {portfolioData.projects.map((p) => (
+          <li key={p.id}>
+            <Link href={`/work/${p.id}`}>{getProjectCoverLabel(p.id, p.title)}</Link>: {p.description}
+          </li>
+        ))}
+      </ul>
       <h2>My story</h2>
       <ol>
         {BEATS.map((b) => (
@@ -46,12 +71,27 @@ function Index() {
           </li>
         ))}
       </ol>
-      <h2>My work</h2>
+      <h2>Skills</h2>
       <ul>
-        {portfolioData.projects.map((p) => (
-          <li key={p.id}>
-            <Link href={`/work/${p.id}`}>{getProjectCoverLabel(p.id, p.title)}</Link>: {p.description}
+        {portfolioData.skills.map((s) => (
+          <li key={s.id}>
+            {s.name}: {s.description}
           </li>
+        ))}
+      </ul>
+      <h2>Life</h2>
+      <ul>
+        {treks.map((t) => (
+          <li key={t.id}>Trek: {t.name}</li>
+        ))}
+        {travelLocations.map((t) => (
+          <li key={t.id}>Place: {t.name}</li>
+        ))}
+        {games.map((g) => (
+          <li key={g.id}>Game: {g.title}</li>
+        ))}
+        {books.map((b) => (
+          <li key={b.id}>Book: {b.title}</li>
         ))}
       </ul>
       <h2>Reach me</h2>
@@ -83,124 +123,117 @@ export function PromptUIHomePage() {
   }, []);
 
   const reduce = useReducedMotion();
-  const { mode, draft, setDraft, current, asked, ask, close } = usePupil(reduce);
+  const { mode, draft, setDraft, turns, latest, lit, ask, askEntity, end, chatting } = usePupil(reduce);
   const pupilRef = useRef<HTMLButtonElement>(null);
+  const dotsRef = useRef<HalftonePupilHandle>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const [touch, setTouch] = useState(false);
-  const [idle, setIdle] = useState(false);
-  const [focused, setFocused] = useState(false);
+  /** Older answers the visitor opened again (the newest is always open). */
+  const [open, setOpen] = useState<Set<number>>(new Set());
+  /** A thing pointed at in an answer: its dot swells in the pupil. */
+  const [highlight, setHighlight] = useState<string | null>(null);
 
-  useEffect(() => {
-    setTouch(!window.matchMedia("(pointer: fine)").matches);
-  }, []);
-
-  const shut = useCallback(() => {
-    close();
+  const finish = useCallback(() => {
+    end();
+    setOpen(new Set());
+    setHighlight(null);
     requestAnimationFrame(() => pupilRef.current?.focus({ preventScroll: true }));
-  }, [close]);
+  }, [end]);
 
-  // Type anywhere: a printable key outside a field starts the question.
+  /** Typing: keep the words, and ripple the pupil once per new letter. */
+  const type = useCallback(
+    (text: string) => {
+      if (text.length > draft.length) dotsRef.current?.ripple();
+      setDraft(text);
+    },
+    [draft, setDraft],
+  );
+
+  const send = useCallback(
+    (q: string) => {
+      setHighlight(null);
+      void ask(q);
+      inputRef.current?.focus({ preventScroll: true });
+    },
+    [ask],
+  );
+
+  // Type anywhere: a printable key outside a field goes to the ask box.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        if (mode === "speaking") {
+        if (chatting && !isField(document.activeElement)) {
           e.preventDefault();
-          shut();
+          finish();
         }
         return;
       }
       if (e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1 || isField(document.activeElement)) return;
       if (e.key === " " && document.activeElement instanceof HTMLButtonElement) return;
       e.preventDefault();
-      if (mode === "speaking") close();
-      setDraft(e.key);
+      dotsRef.current?.ripple();
+      setDraft(draft + e.key);
       inputRef.current?.focus({ preventScroll: true });
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [mode, close, shut, setDraft]);
+  }, [chatting, draft, finish, setDraft]);
 
-  // After a few still seconds, offer three things to ask. Any input resets it.
-  useEffect(() => {
-    setIdle(false);
-    if (mode !== "resting" || draft) return;
-    if (reduce) {
-      setIdle(true);
-      return;
-    }
-    const t = window.setTimeout(() => setIdle(true), IDLE_MS);
-    return () => window.clearTimeout(t);
-  }, [mode, draft, reduce]);
-
-  const speaking = mode === "speaking" && !!current;
-  const hint = touch ? "tap the eye to ask" : "type to ask";
-  // A focused, empty question line already counts as listening.
-  const shown = mode === "resting" && focused ? "listening" : mode;
-  const stateWord =
-    shown === "listening" ? (draft ? "listening · enter to ask" : "listening") : shown === "thinking" ? "thinking" : shown === "speaking" ? "" : hint;
-
-  const announcement = current ? `${current.title}. ${current.say.join(" ")}`.slice(0, 600) : "";
+  const followUps = latest?.nodes.find((n) => n.type === "next");
+  const chips = chatting ? (followUps && followUps.type === "next" ? followUps.asks : []) : SUGGESTIONS;
+  const firstText = latest?.nodes.find((n) => n.type === "text");
+  const announcement = latest ? `${latest.title.text}. ${firstText && firstText.type === "text" ? firstText.text.text : ""}`.slice(0, 500) : "";
 
   return (
-    <div id="kiruk-noscreen" className={`r26 ${FONT_VARS_2026}`} style={FONT_STYLE_2026}>
+    <div id="kiruk-noscreen" className={`r26 ${FONT_VARS_2026}`} style={{ ...FONT_STYLE_2026, ["--eye-w" as string]: `${EYE.width}px`, ["--eye-h" as string]: `${EYE.height}px` }}>
       <style>{CSS}</style>
-      <section className="r26-stage" aria-label="Kiruk, 2026" onClick={() => speaking && shut()}>
-        <h1 className="r26-sr">Arun Kumaar Sreenivasan. Ask the dot anything about my work, my story, or how to reach me.</h1>
+      <section className="r26-stage" aria-label="Kiruk, 2026">
+        <h1 className="r26-sr">Arun Kumaar Sreenivasan. Ask the pupil anything about my work, my story, or how to reach me.</h1>
 
-        <div className="r26-field">
-          <Pupil ref={pupilRef} mode={shown} reduce={reduce} onPress={() => inputRef.current?.focus()} />
-
-          <div className="r26-under" data-hidden={speaking || undefined}>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                ask(draft);
+        <div className="r26-field" data-chatting={chatting || undefined}>
+          <div className="r26-eye">
+            <HalftonePupil
+              ref={dotsRef}
+              options={PUPIL}
+              mode={mode}
+              lit={lit}
+              highlight={highlight}
+              reduce={reduce}
+              onPick={(id) => {
+                const name = PUPIL.entities.find((e) => e.id === id)?.name ?? id;
+                void askEntity(id, name);
               }}
-            >
-              <input
-                ref={inputRef}
-                className="r26-ask"
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                onFocus={() => setFocused(true)}
-                onBlur={() => setFocused(false)}
-                onKeyDown={(e) => {
-                  if (e.key === "Escape") {
-                    e.stopPropagation();
-                    setDraft("");
-                    pupilRef.current?.focus({ preventScroll: true });
-                  }
-                }}
-                aria-label="Ask Kiruk"
-                placeholder="Ask anything"
-                autoComplete="off"
-                autoCapitalize="sentences"
-                enterKeyHint="send"
-                maxLength={200}
-                tabIndex={speaking ? -1 : 0}
-              />
-            </form>
-            <p className="r26-state" data-mode={shown}>
-              {stateWord}
-            </p>
-            {!draft && mode === "resting" ? (
-              <div className="r26-suggest" data-show={idle || undefined} aria-hidden={!idle || undefined}>
-                {SUGGESTIONS.map((s) => (
-                  <button key={s} type="button" tabIndex={idle ? 0 : -1} onClick={() => ask(s)}>
-                    {s}
-                  </button>
-                ))}
-              </div>
-            ) : null}
+            />
+            <button
+              ref={pupilRef}
+              type="button"
+              className="r26-pupil-hit"
+              aria-label="Ask Arun a question"
+              onClick={() => {
+                void loadEngine();
+                inputRef.current?.focus();
+              }}
+            />
           </div>
 
-          <AnimatePresence>
-            {speaking ? <Lens key={current.title + current.depth} answer={current} asked={asked} reduce={reduce} onAsk={ask} onClose={shut} /> : null}
-          </AnimatePresence>
+          {chatting ? <Thread turns={turns} open={open} onToggle={(id) => setOpen((s) => new Set(s.has(id) ? [...s].filter((x) => x !== id) : [...s, id]))} onAsk={send} onHoverRef={setHighlight} reduce={reduce} /> : null}
+
+          <Composer
+            ref={inputRef}
+            draft={draft}
+            onType={type}
+            onAsk={send}
+            chips={chips}
+            docked={chatting}
+            thinking={mode === "thinking"}
+            reduce={reduce}
+            onEnd={finish}
+            onFocus={() => void loadEngine()}
+            onEscape={() => (chatting ? finish() : pupilRef.current?.focus({ preventScroll: true }))}
+          />
         </div>
 
         <div className="r26-sr" aria-live="polite" aria-atomic="true">
-          {announcement}
+          {mode === "thinking" ? "Thinking" : announcement}
         </div>
       </section>
       <Index />

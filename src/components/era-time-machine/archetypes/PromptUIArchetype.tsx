@@ -3,7 +3,7 @@
 /**
  * PromptUIArchetype — 2026 era preview inside <EraTimeMachine>.
  *
- * Matches the 2026 home: a dark room and one brown eye. The preview plays
+ * Matches the 2026 home: black lids, a white page, one halftone pupil. The preview plays
  * one ask on a loop: a question is typed under the dot, the dot narrows,
  * then dilates into a dark lens holding the era's traits. Reduced motion
  * shows the open lens.
@@ -13,15 +13,16 @@ import React, { useEffect, useState } from "react";
 import type { EraSurfaceProps } from "../shared/EraSurface";
 import { hideArchetypeTransport } from "../shared/eraChrome";
 
-const ROOM = "#060606";
-const INK = "#ecebe8";
-const MUTED = "#8d8a84";
-const LINE = "#232326";
-const LENS = "#0e0e10";
-const LENS_TEXT = "#ecebe8";
-const LENS_MUTED = "#8d8a84";
-const IVORY = "#e9dcc6";
-const IRIS = "radial-gradient(circle, #0b0603 0 30%, #4a3019 46%, #3a2614 64%, #0d0805 94%)";
+const ROOM = "#fafafa";
+const INK = "#0b0b0b";
+const MUTED = "#6b6863";
+const LINE = "#e2dfda";
+const LENS = "#ffffff";
+const LENS_TEXT = "#0b0b0b";
+const LENS_MUTED = "#6b6863";
+const IVORY = "#0b0b0b";
+/** A halftone pupil: a dot grid, masked so the dots read big in the middle. */
+const DOTS = "radial-gradient(circle, #0b0b0b 1.6px, transparent 1.9px) 0 0 / 5px 5px";
 
 const FONT_UI = "'Geist', 'Helvetica Neue', Arial, sans-serif";
 const FONT_MONO = "'Geist Mono', ui-monospace, monospace";
@@ -64,14 +65,14 @@ export const PromptUIArchetype: React.FC<EraSurfaceProps> = ({
   const open = tick >= OPEN_AT;
   const thinking = tick >= THINK_AT && !open;
   const typing = tick > 0 && tick < THINK_AT;
-  const pupil = thinking ? 7 : typing ? 13 : 10;
+  const pupil = thinking ? 17 : typing ? 27 : 22;
   const word = open ? "" : thinking ? "thinking" : typing ? "listening" : "type to ask";
 
   return (
     <div className="absolute inset-0 overflow-hidden" style={{ background: ROOM, color: INK, fontFamily: FONT_UI }}>
       <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column" }}>
         <header style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", borderBottom: `1px solid ${LINE}` }}>
-          <span aria-hidden style={{ width: 8, height: 8, borderRadius: "50%", background: IRIS }} />
+          <span aria-hidden style={{ width: 8, height: 8, borderRadius: "50%", background: DOTS }} />
           <span style={{ fontSize: 12.5, fontWeight: 500 }}>kiruk</span>
           <span style={{ color: MUTED, fontSize: 10, fontFamily: FONT_MONO }}>era {era.id}</span>
           <span style={{ marginLeft: "auto", display: "flex", gap: 4 }}>
@@ -92,25 +93,22 @@ export const PromptUIArchetype: React.FC<EraSurfaceProps> = ({
             <>
               <span
                 aria-hidden
-                style={{ position: "absolute", left: "50%", top: "46%", width: 44, height: 44, marginLeft: -22, marginTop: -22, borderRadius: "50%", background: IRIS }}
-              >
-                <span
-                  style={{
-                    position: "absolute",
-                    left: "50%",
-                    top: "50%",
-                    width: pupil,
-                    height: pupil,
-                    marginLeft: -pupil / 2,
-                    marginTop: -pupil / 2,
-                    borderRadius: "50%",
-                    background: "#010101",
-                    transition: "width 300ms, height 300ms, margin 300ms",
-                  }}
-                />
-                <span style={{ position: "absolute", left: 13, top: 12, width: 6, height: 5, borderRadius: 2, background: "rgba(255,255,255,0.6)" }} />
-              </span>
-              <div style={{ position: "absolute", left: 0, right: 0, top: "calc(46% + 30px)", textAlign: "center" }}>
+                style={{
+                  position: "absolute",
+                  left: "50%",
+                  top: "46%",
+                  width: pupil * 2,
+                  height: pupil * 2,
+                  marginLeft: -pupil,
+                  marginTop: -pupil,
+                  borderRadius: "50%",
+                  background: DOTS,
+                  WebkitMaskImage: "radial-gradient(circle, #000 45%, transparent 72%)",
+                  maskImage: "radial-gradient(circle, #000 45%, transparent 72%)",
+                  transition: "width 300ms, height 300ms, margin 300ms",
+                }}
+              />
+              <div style={{ position: "absolute", left: 0, right: 0, top: "calc(46% + 40px)", textAlign: "center" }}>
                 <div style={{ fontSize: 11, minHeight: 14 }}>{typing || thinking ? ASK.slice(0, Math.min(tick, TYPED_AT)) : ""}</div>
                 <div style={{ fontFamily: FONT_MONO, fontSize: 8.5, color: MUTED, marginTop: 4, letterSpacing: 0.6 }}>{word}</div>
               </div>

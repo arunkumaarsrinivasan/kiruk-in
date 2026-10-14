@@ -289,6 +289,16 @@ export function Navbar() {
     return () => ctl.stop();
   }, [pathname, reduce, blink]);
 
+  // The 2026 pupil asks the lids to blink while it thinks: the navbar is that eye's lids.
+  useEffect(() => {
+    if (reduce) return;
+    const onBlink = () => {
+      animate(blink, [0, 1, 1, 0], { duration: 0.34, times: [0, 0.3, 0.42, 1], ease: [0.4, 0, 0.2, 1] });
+    };
+    window.addEventListener("kiruk:blink", onBlink);
+    return () => window.removeEventListener("kiruk:blink", onBlink);
+  }, [reduce, blink]);
+
   useEffect(() => {
     if (menuOpen) setWide(false);
   }, [menuOpen]);

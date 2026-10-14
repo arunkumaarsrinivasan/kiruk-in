@@ -255,7 +255,7 @@ export const travelLocations: TravelLocation[] = [
     lng: 77.5946,
     type: 'current',
     visitDate: '2023-08',
-    description: 'Current work location at HP.',
+    description: 'Home base.',
   },
   // Tamil Nadu
   {
