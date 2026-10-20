@@ -29,7 +29,7 @@ import {
 import { TIERS } from "@/components/three/eye/tiers";
 import type { GazeSample } from "@/components/three/eye/rig/gaze";
 import { GAZE_PATTERNS, type GazePattern } from "@/components/three/eye/look";
-import { POSTER_VARIANTS, posterSrc, type PosterSet, type PosterVariant } from "@/components/three/eye/posters";
+import { POSTER_VARIANTS, posterSrc, type PosterVariant } from "@/components/three/eye/posters";
 import { ROOM_HEX } from "@/components/three/eye/nodes/room";
 
 const EraEyeCanvas = dynamic(() => import("@/components/three/EraEyeCanvas"), { ssr: false });
@@ -39,14 +39,6 @@ const GlslScreenRef = dynamic(() => import("./GlslScreenRef"), { ssr: false });
 const MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
 /** Long enough for the live eye to fade in, swap palettes and settle its pupil. */
 const SETTLE_MS = 3400;
-
-/** The era passes' batches (docs/EYE_TSL_PLAN.md P11), for staging TSL posters. */
-const POSTER_BATCHES = [
-  { label: "A", eras: ["1970", "1981", "1991"] },
-  { label: "B", eras: ["1995", "1997", "2000"] },
-  { label: "C", eras: ["2003", "2009", "2013"] },
-  { label: "2026", eras: ["2026"] },
-];
 
 type StageKind = "tsl" | "glsl";
 /** How the live shader's screen is set against the TSL one. */
@@ -428,19 +420,16 @@ export default function EyeLab() {
     [ref],
   );
 
-  /** Which eye the capture frame renders: the live GLSL eye, or the TSL eye (staged apart). */
-  const [capSet, setCapSet] = useState<PosterSet>("live");
-
-  const captureAll = useCallback(async (set: PosterSet = "live", only?: string[]) => {
+  /** Captures what the loader shows: the live eye through each era's own screen. */
+  const captureAll = useCallback(async (only?: string[]) => {
     setCapLog([]);
-    setCapSet(set);
     const log = (line: string) => setCapLog((l) => [...l, line]);
     const eras = only ? themes.filter((t) => only.includes(t.id)) : themes;
     for (const variant of Object.keys(POSTER_VARIANTS) as PosterVariant[]) {
       setCapEra(eras[0]);
       setCapVariant(variant);
-      // the TSL eye compiles behind its own poster first: give it the time
-      if (set === "tsl") await sleep(SETTLE_MS * 2);
+      // the eye compiles behind its own poster first: give it the time
+      await sleep(SETTLE_MS * 2);
       for (const t of eras) {
         setCapEra(t);
         await sleep(SETTLE_MS);
@@ -454,7 +443,7 @@ export default function EyeLab() {
         const res = await fetch("/api/lab/eye-poster", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ era: t.id, variant, png, set }),
+          body: JSON.stringify({ era: t.id, variant, png }),
         });
         const out = (await res.json().catch(() => ({}))) as { bytes?: number; error?: string };
         log(
@@ -536,11 +525,7 @@ export default function EyeLab() {
           aria-hidden="true"
           style={{ position: "fixed", left: -20000, top: 0, width: capSize.cssW, height: capSize.cssH }}
         >
-          {capSet === "tsl" ? (
-            <EyeStage key={`tsl-${capVariant}`} era={capEra} reduce interactive={false} capture={capture} />
-          ) : (
-            <EraEyeCanvas key={capVariant} era={capEra} reduce interactive={false} capture={capture} />
-          )}
+          <EyeStage key={`cap-${capVariant}`} era={capEra} reduce interactive={false} media capture={capture} />
         </div>
       )}
 
@@ -952,30 +937,17 @@ export default function EyeLab() {
           <Section title="Posters">
             <div className="flex flex-col gap-2">
               <p className="text-[10px] leading-relaxed text-white/45">
-                Stills of the live eye for each era, wide and tall, written to public/eye/posters.
-                The loader paints them before any shader compiles. Takes about a minute.
+                Stills of the live eye through each era&apos;s own screen, wide and tall, written to
+                public/eye/posters. The loader paints them before any shader compiles. Takes about a minute.
               </p>
               <button
                 type="button"
                 disabled={capturing}
-                onClick={() => captureAll("live")}
+                onClick={() => captureAll()}
                 className="self-start rounded bg-[#f4f3f0] px-2 py-1 text-[11px] text-[#0b0b0b] disabled:opacity-40"
               >
                 {capturing ? `Capturing ${capEra.id} ${capVariant}…` : "Capture all eras"}
               </button>
-              <div className="flex flex-wrap gap-1">
-                {POSTER_BATCHES.map((b) => (
-                  <button
-                    key={b.label}
-                    type="button"
-                    disabled={capturing}
-                    onClick={() => captureAll("tsl", b.eras)}
-                    className="rounded bg-white/10 px-2 py-1 text-[11px] disabled:opacity-40"
-                  >
-                    {`TSL posters ${b.label}`}
-                  </button>
-                ))}
-              </div>
               {capPreview && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={capPreview} alt="Last capture" className="w-full rounded border border-white/10" />
@@ -993,7 +965,7 @@ export default function EyeLab() {
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       key={t.id}
-                      src={`${posterSrc(t.id, "wide", capSet)}?v=${posterRev}`}
+                      src={`${posterSrc(t.id, "wide")}?v=${posterRev}`}
                       alt={t.id}
                       className="aspect-video w-full rounded object-cover"
                     />

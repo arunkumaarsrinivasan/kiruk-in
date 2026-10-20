@@ -22,19 +22,9 @@ export type PosterVariant = keyof typeof POSTER_VARIANTS;
 
 export const POSTER_DIR = "/eye/posters";
 
-/**
- * Which eye a poster is of: the live (GLSL) eye the loader runs today, or the
- * TSL eye, whose posters are staged apart until it replaces the live one, so
- * the loader's poster always matches the eye that fades in over it.
- */
-export type PosterSet = "live" | "tsl";
-
-export function posterDir(set: PosterSet = "live"): string {
-  return set === "tsl" ? `${POSTER_DIR}/tsl` : POSTER_DIR;
-}
-
-export function posterSrc(eraId: string, variant: PosterVariant, set: PosterSet = "live"): string {
-  return `${posterDir(set)}/${eraId}-${variant}.avif`;
+/** A still of the live eye, its era's screen and all, so the eye that fades in over it matches. */
+export function posterSrc(eraId: string, variant: PosterVariant): string {
+  return `${POSTER_DIR}/${eraId}-${variant}.avif`;
 }
 
 /** The capture closest in shape to this viewport. */

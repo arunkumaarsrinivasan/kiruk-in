@@ -187,12 +187,12 @@ export function createEyeUniforms() {
       seed: uniform(0).setGroup(renderGroup),
     },
     /**
-     * Ten ways of seeing (post/era-medium.ts), a dev experiment, as era
-     * numbers (0 none): the era on screen, and the eras either side glimpsed
-     * at the edges; how far each glimpse reaches in at the eye's line (a share
-     * of the width: a sliver at rest, past the far edge as it takes over); how
-     * long the current era has been up, s; and the pupil on screen (UV) with
-     * its radius as a share of the height.
+     * Ten ways of seeing (post/era-medium.ts), as era numbers (0 none): the
+     * era on screen, and the era sweeping in from either side while you
+     * travel; how far each sweep has reached (a share of the width, past the
+     * far edge once it has taken over; 0 at rest); how long the current era
+     * has been up, s; and the pupil on screen (UV) with its radius as a share
+     * of the height.
      */
     medium: {
       cur: uniform(0).setGroup(renderGroup),

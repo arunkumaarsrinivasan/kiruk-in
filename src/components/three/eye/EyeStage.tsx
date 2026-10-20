@@ -1285,7 +1285,7 @@ export interface EyeStageProps {
   control?: React.MutableRefObject<EyeStageControl | null>;
   /** The shot on a wide screen (FrameBox); the loader makes room for its chrome with it. */
   frameBox?: FrameBox;
-  /** Ten ways of seeing (post/era-medium.ts): the frame through each era's own screen and image technology. A dev experiment. */
+  /** Ten ways of seeing (post/era-medium.ts): the frame through each era's own screen and image technology. The loader always asks for it. */
   media?: boolean;
   /** Lab: resolves with the next drawn frame as a PNG data URL (poster capture). */
   capture?: React.MutableRefObject<(() => Promise<string>) | null>;

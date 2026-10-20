@@ -16,7 +16,7 @@
  *   2026 the pupil's own look: a halftone, black lids on a white page
  *
  * It runs after everything else, on the graded frame rendered to a texture
- * (the stage builds the pipeline with it only when asked: a dev experiment).
+ * (the loader always builds the pipeline with it; the lab can leave it out).
  * At rest only the era on screen shows. To travel, the next era sweeps in
  * from its side (a later one from the right) behind a front drawn the way
  * that era drew things (a scanline comb, a dither, interlaced rows, big

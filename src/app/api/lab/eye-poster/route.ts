@@ -1,11 +1,11 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import sharp from "sharp";
-import { POSTER_VARIANTS, posterDir, type PosterVariant } from "@/components/three/eye/posters";
+import { POSTER_DIR, POSTER_VARIANTS, type PosterVariant } from "@/components/three/eye/posters";
 
 /**
  * Dev-only poster writer for /lab/eye.
- *   POST /api/lab/eye-poster  { era, variant, png, set? }  → public/eye/posters[/tsl]/<era>-<variant>.avif
+ *   POST /api/lab/eye-poster  { era, variant, png }  → public/eye/posters/<era>-<variant>.avif
  *
  * The lab captures a frame of the eye as a PNG data URL; this encodes it to
  * AVIF at the variant's output width and writes it where the loader looks.
@@ -27,7 +27,6 @@ export async function POST(req: Request): Promise<Response> {
     era?: unknown;
     variant?: unknown;
     png?: unknown;
-    set?: unknown;
   } | null;
 
   const era = typeof body?.era === "string" && /^(19|20)\d{2}$/.test(body.era) ? body.era : null;
@@ -53,8 +52,7 @@ export async function POST(req: Request): Promise<Response> {
     .avif({ quality: 52, effort: 6 })
     .toBuffer();
 
-  const set = body?.set === "tsl" ? "tsl" : "live";
-  const base = posterDir(set);
+  const base = POSTER_DIR;
   const dir = join(process.cwd(), "public", ...base.split("/").filter(Boolean));
   mkdirSync(dir, { recursive: true });
   const file = `${era}-${variant}.avif`;

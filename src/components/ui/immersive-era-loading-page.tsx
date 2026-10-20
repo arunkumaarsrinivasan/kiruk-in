@@ -10,32 +10,28 @@
  *
  * There is no button. You sweep to travel and you tap the iris to go in —
  * through the pupil, which is the same opening the exit transition dilates.
- * The eras ride a U round the lower half of the eye (loader/EraOrbit): its
- * arms climb the empty sides to the eye's height, and the lit node is always
- * under the sweep. The era you are on sits inside the U, under the eye.
+ * There are no words either. Each era is told by the eye itself, seen through
+ * that era's own screen (three/eye/post/era-medium.ts): a phosphor terminal, a
+ * 1-bit bitmap, a grey GIF still loading on a white page, and so on to the
+ * halftone of 2026. Travelling sweeps the next era in over the last. For a
+ * screen reader, the slider's value names the era.
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import {
-  motion,
-  useReducedMotion,
-  type TargetAndTransition,
-  type Transition,
-} from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { AVAILABLE_THEMES, type ThemeConfig } from "@/data/portfolio-data";
 import { useTheme } from "@/contexts/ThemeContext";
-import { type EraChangeStyle } from "@/components/ui/EraDial";
-import EraOrbit from "@/components/ui/loader/EraOrbit";
-import type { EyeStageControl, FrameBox } from "@/components/three/eye/EyeStage";
+import type { EyeStageControl } from "@/components/three/eye/EyeStage";
 import { eyeFrame } from "@/lib/era-eye-frame";
 import { cn } from "@/lib/utils";
 import EyePoster from "@/components/three/eye/EyePoster";
 
+/** The old GLSL eye: only if the live eye cannot start. */
 const EraEyeCanvas = dynamic(() => import("@/components/three/EraEyeCanvas"), {
   ssr: false,
 });
-/** The TSL eye being built in /lab/eye. Dev only, behind ?eye=tsl. */
+/** The live eye (docs/EYE_TSL_PLAN.md): WebGPU, or WebGL2 where there is none. */
 const EyeStage = dynamic(() => import("@/components/three/eye/EyeStage"), {
   ssr: false,
 });
@@ -47,12 +43,6 @@ const ERA_PICKER_ATTR = "data-era-picker-active";
 const EYE_HEIGHT = 1;
 /** The room the eye sits in — dark in every era, whatever the era's page is. */
 const ROOM = "#040507";
-/**
- * The live eye's shot on a wide screen, mm round the eye (EyeStage FrameBox):
- * the brow above, and below the lower lid room for the era inside the
- * orbit's U, so the words never sit on the lashes.
- */
-const LOADER_BOX: FrameBox = { halfW: 16, top: 12, bottom: -16.5 };
 /** Dead zone at each side of the sweep, so both ends are easy to reach. */
 const SWEEP_INSET = 0.08;
 /** A press shorter and stiller than this is a tap, not a sweep. */
@@ -79,86 +69,6 @@ const IRIS_TAP_COARSE = 1.3;
 const WHEEL_PITCH = 90;
 /** Wheel travel is forgotten if nothing arrives for this long. */
 const WHEEL_IDLE_MS = 320;
-
-/**
- * How an era announces itself when you land on it. Each year gets the entrance
- * its own interfaces used: 1970 blinks like a cursor, 1981 cuts in with no
- * transition because a 1-bit display had none to give, 1995 tears, 2003 and
- * 2009 spring, 2013 simply appears, and the generative years resolve out of
- * nothing. The theme's own token is only the fallback — most eras declare
- * "none", which is a statement about their page, not about their arrival.
- */
-const ARRIVALS: Record<string, EraChangeStyle> = {
-  "1970": "blink",
-  "1981": "snap",
-  "1991": "float",
-  "1995": "glitch",
-  "1997": "snap",
-  "2000": "float",
-  "2003": "pulse",
-  "2009": "pulse",
-  "2013": "none",
-  "2026": "morph",
-};
-
-function arrivalOf(
-  change: EraChangeStyle,
-  reduce: boolean,
-): { initial: TargetAndTransition; animate: TargetAndTransition; transition: Transition } {
-  if (reduce) {
-    return {
-      initial: { opacity: 0 },
-      animate: { opacity: 1 },
-      transition: { duration: 0.12 },
-    };
-  }
-  switch (change) {
-    case "snap":
-      // no transition at all, because the display had none: a beat of nothing,
-      // and then the frame is simply there
-      return {
-        initial: { opacity: 0 },
-        animate: { opacity: [0, 0, 1] },
-        transition: { duration: 0.16, times: [0, 0.72, 0.73], ease: "linear" },
-      };
-    case "blink":
-      return {
-        initial: { opacity: 0 },
-        animate: { opacity: [0, 1, 0, 1] },
-        transition: { duration: 0.34, times: [0, 0.3, 0.55, 1] },
-      };
-    case "glitch":
-      return {
-        initial: { opacity: 0, x: -14, skewX: 14 },
-        animate: { opacity: 1, x: [-14, 9, -4, 0], skewX: [14, -8, 3, 0] },
-        transition: { duration: 0.4, ease: "easeOut" },
-      };
-    case "pulse":
-      return {
-        initial: { opacity: 0, scale: 0.9 },
-        animate: { opacity: 1, scale: 1 },
-        transition: { type: "spring", stiffness: 420, damping: 16 },
-      };
-    case "float":
-      return {
-        initial: { opacity: 0, y: 14 },
-        animate: { opacity: 1, y: 0 },
-        transition: { duration: 0.5, ease: EASE_OUT },
-      };
-    case "morph":
-      return {
-        initial: { opacity: 0, scale: 1.08, filter: "blur(10px)" },
-        animate: { opacity: 1, scale: 1, filter: "blur(0px)" },
-        transition: { duration: 0.55, ease: EASE_OUT },
-      };
-    default:
-      return {
-        initial: { opacity: 0 },
-        animate: { opacity: 1 },
-        transition: { duration: 0.28, ease: EASE_OUT },
-      };
-  }
-}
 
 function useCoarsePointer() {
   const [coarse, setCoarse] = useState(false);
@@ -208,19 +118,14 @@ export default function ImmersiveEraLoadingPage({
   /** The live eye has faded in over its poster. */
   const [eyeReady, setEyeReady] = useState(false);
   const onEyeReady = useCallback(() => setEyeReady(true), []);
-  const [stage, setStage] = useState<"glsl" | "tsl">("glsl");
-  /**
-   * Dev experiment, ?eye=tsl&see=1: ten ways of seeing (docs/LOADER_WORDS_PLAN.md).
-   * Each era is told by its own screen technology over the whole frame, and
-   * there are no words at all.
-   */
-  const [see, setSee] = useState(false);
-  /** Once you have moved through time, the instruction has done its job. */
-  const [traveled, setTraveled] = useState(false);
+  /** The live eye, unless it fails to start; then the old GLSL eye. */
+  const [stage, setStage] = useState<"glsl" | "tsl">("tsl");
+  /** Ten ways of seeing (docs/LOADER_WORDS_PLAN.md): each era's own screen over the whole frame. */
+  const [see, setSee] = useState(true);
   /** Whether the cursor is over the iris, so it can offer itself as a way in. */
   const [overIris, setOverIris] = useState(false);
   const exitTimer = useRef(0);
-  /** The live eye: where it sits, for the orbit, and where its iris really is. */
+  /** The live eye: where its iris really is, for the tap that goes in. */
   const eyeControl = useRef<EyeStageControl | null>(null);
   const dragging = useRef(false);
   const wheel = useRef({ acc: 0, at: 0 });
@@ -233,23 +138,17 @@ export default function ImmersiveEraLoadingPage({
   const idxRef = useRef(0);
 
   const focused = themes[index] ?? themes[0];
-  const arrival = arrivalOf(
-    ARRIVALS[focused.id] ??
-      ((focused.designTokens.animationStyle ?? "none") as EraChangeStyle),
-    reduce,
-  );
 
   useEffect(() => {
     idxRef.current = index;
   }, [index]);
 
+  // dev comparisons: ?eye=glsl is the old eye, ?see=0 the live eye without its era's screen
   useEffect(() => {
     if (process.env.NODE_ENV === "production") return;
     const q = new URLSearchParams(window.location.search);
-    if (q.get("eye") === "tsl") {
-      setStage("tsl");
-      setSee(q.get("see") === "1");
-    }
+    if (q.get("eye") === "glsl") setStage("glsl");
+    if (q.get("see") === "0") setSee(false);
   }, []);
 
   useEffect(() => {
@@ -266,7 +165,6 @@ export default function ImmersiveEraLoadingPage({
       if (clamped === idxRef.current) return;
       idxRef.current = clamped;
       setIndex(clamped);
-      setTraveled(true);
     },
     [last],
   );
@@ -543,7 +441,6 @@ export default function ImmersiveEraLoadingPage({
                 reduce={reduce}
                 interactive
                 control={eyeControl}
-                frameBox={see ? undefined : LOADER_BOX}
                 media={see}
                 onReady={onEyeReady}
                 onFail={() => setStage("glsl")}
@@ -593,21 +490,6 @@ export default function ImmersiveEraLoadingPage({
         </div>
       )}
 
-      {/* --- the words: the eras' orbit round the eye (none when seeing) ---- */}
-      {!(see && stage === "tsl") && <EraOrbit
-        themes={themes}
-        index={index}
-        onSelect={goTo}
-        control={eyeControl}
-        centreFallback={irisFromFrame}
-        reduce={reduce}
-        exiting={exiting}
-        traveled={traveled}
-        overIris={overIris}
-        coarse={isCoarse}
-        sweepInset={SWEEP_INSET}
-        arrival={arrival}
-      />}
     </motion.div>
   );
 }

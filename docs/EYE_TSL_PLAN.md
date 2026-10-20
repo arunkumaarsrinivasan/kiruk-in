@@ -430,7 +430,24 @@ The casting is a proposal. Change any of it.
 - A production `next build`; it was skipped because it would have overwritten the running dev server's `.next`.
 - The bundle delta.
 
-### The loader's words: the eras' orbit (2026-10-20), from your thirteenth review
+### P12, early (2026-10-20): the loader runs the TSL eye through each era's own screen
+
+Your call after seeing the three loaders side by side ("the GLSL looks so simple now"): ship the TSL eye now, with the ten ways of seeing, and no words anywhere.
+
+- **The loader** (`immersive-era-loading-page.tsx`) starts the TSL eye with `media` on. `WebGPURenderer` takes WebGL2 where WebGPU is missing (T1). The GLSL eye (`EraEyeCanvas`) runs only if the TSL stage fails to start.
+- **No words.** The orbit below (`loader/EraOrbit.tsx`) is deleted. The slider's `aria-valuetext` still names the era for a screen reader, and the line shown without WebGL stays.
+- **Dev comparisons:** `?eye=glsl` shows the old eye; `?see=0` shows the TSL eye without its era's screen.
+- **Posters** are stills of this eye, its era's screen included, for all ten eras, wide and tall (`public/eye/posters/`). The staged `tsl/` set is gone. The lab's "Capture all eras" makes them.
+- **Checked** (headless, real GPU, dev server):
+  - Desktop 1440 × 900: the poster at 1.5 s, the live eye at 8.0 s (the GLSL eye took 8.4 s). 1970 → 1981 → 1991 and a sweep to 2026, with no console errors.
+  - Phone 390 × 844: the poster and the live eye line up, and every era's screen holds at the tall shape.
+  - WebGL2 (T1) in the lab: every era's screen renders, at 16–22 ms GPU.
+- **Still open for P12:**
+  - The device matrix on real phones: the lid shader plus the medium's extra full-frame target on T1 and T2.
+  - INP and LCP on the live site.
+  - Deleting the GLSL eye, and pmndrs `postprocessing` with it, once nothing needs the fallback.
+
+### The loader's words: the eras' orbit (2026-10-20), from your thirteenth review (superseded by P12, early)
 
 You turned down the eye study (readout corners, a leader from the cornea, a scale along the bottom): the type and the concept did not suit, the old dial's U showed the eras better, and the wide screen's left and right sides sat empty. You asked for a clearer focus and a more intuitive layout.
 

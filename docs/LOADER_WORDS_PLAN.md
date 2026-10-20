@@ -89,6 +89,8 @@ The outcome: a cold first-time visitor understands in a few seconds what this is
 
 - Round 7 (user: "no way, revert the last three changes and show without anything"): the gallery, the corner lines and the timeline in the eye are dropped, with their mock page (`public/mock-timeline/`). The live prototype shows nothing at rest but the era on screen: no edge glimpses, no words (`EraEdges.tsx` deleted). Kept: the stronger looks from round 2, and the era-textured sweep when you travel.
 
+- Round 8 (2026-10-20; user: "the GLSL looks so simple now"; answers: swap now to ways of seeing, no words): the live loader is the TSL eye through each era's own screen, with no words in any path. `EraOrbit.tsx` is deleted. The slider's `aria-valuetext` names the era for a screen reader. See EYE_TSL_PLAN.md, "P12, early".
+
 ## Done-criteria (draft)
 - [ ] Desktop: no words above or below the eye; both side panels sit on the eye's centre line — check: screenshots at 1280×720, 1440×900, 1600×900, 2560×1080.
 - [ ] Phone: words only above and below the eye — check: 390×844 and 360×740 screenshots.
