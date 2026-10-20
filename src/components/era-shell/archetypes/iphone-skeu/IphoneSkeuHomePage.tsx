@@ -41,6 +41,7 @@ import {
   CARD_SORTING,
   USABILITY_TEST,
 } from "@/data/era-page-content";
+import { eyeClear } from "@/components/layout/eye-clear";
 
 // ── Palette ──────────────────────────────────────────────────────────
 
@@ -256,7 +257,8 @@ export function IphoneSkeuHomePage() {
           `radial-gradient(ellipse 90% 60% at 50% 40%, #5a3a1a 0%, #3a2210 60%, #1a0e04 100%)`,
         color: "#fff",
         fontFamily: FONT_UI,
-        paddingTop: "calc(var(--simple-game-nav-bottom, 56px) + 12px)",
+        // First row is the narrow mode-chip strip, so it can sit high in the eye.
+        paddingTop: eyeClear(560),
         paddingBottom: 24,
         overflow: "hidden",
       }}

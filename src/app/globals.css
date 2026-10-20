@@ -2941,8 +2941,9 @@ body {
   cursor: auto;
   width: 100%;
   height: auto;
-  overflow-x: hidden;
-  overflow-y: auto;
+  /* clip, not hidden: hidden makes <body> its own (never-scrolling) scroll
+     container, which silently turns every position: sticky into static. */
+  overflow-x: clip;
   background: var(--bg-main);
   color: var(--text-main);
   font-family: var(--font-main);

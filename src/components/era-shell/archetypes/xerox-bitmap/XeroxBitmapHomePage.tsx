@@ -37,6 +37,7 @@ import {
 } from "@/data/era-page-content";
 import { BEVEL, bevel } from "./star";
 import { StarGlyph, type GlyphName } from "./glyphs";
+import { eyeClear } from "@/components/layout/eye-clear";
 
 const pixelify = Pixelify_Sans({
   weight: ["400", "500", "700"],
@@ -476,7 +477,7 @@ export function XeroxBitmapHomePage() {
         color: BLACK,
         fontFamily: CHROME,
         minHeight: "100vh",
-        paddingTop: "calc(var(--simple-game-nav-bottom, 56px) + 24px)",
+        paddingTop: eyeClear(896),
         backgroundImage: BEVEL.desktop,
         backgroundSize: BEVEL.desktopSize,
       }}

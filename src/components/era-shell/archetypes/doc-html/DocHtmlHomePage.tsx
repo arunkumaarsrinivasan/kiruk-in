@@ -20,6 +20,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { EraStoryBox } from "@/components/about-story/EraStoryBox";
+import { EYE_BAR_GAP, eyeDepth } from "@/components/layout/eye-clear";
 import { useLayoutMode } from "@/contexts/LayoutModeContext";
 import {
   WHY_KIRUK,
@@ -298,7 +299,8 @@ export function DocHtmlHomePage() {
         backgroundColor: BG,
         color: TEXT,
         fontFamily: FONT_SERIF,
-        paddingTop: "calc(var(--simple-game-nav-bottom, 56px) + 24px)",
+        // Below the console bar, which sits in the eye just under the lid.
+        paddingTop: `calc(${CONSOLE_TOP} + ${CONSOLE_H}px + 20px)`,
         paddingBottom: 80,
         minHeight: "100vh",
         lineHeight: 1.6,
@@ -1094,6 +1096,10 @@ interface ConsoleOutput {
   lines: string[];
 }
 
+const CONSOLE_W = 696;
+const CONSOLE_H = 29;
+const CONSOLE_TOP = `calc(${eyeDepth(CONSOLE_W)} + ${EYE_BAR_GAP}px)`;
+
 function HypertextConsole({
   activeSection,
   onJump,
@@ -1388,10 +1394,13 @@ function HypertextConsole({
       style={{
         position: "fixed",
         insetInline: 0,
-        top: "var(--simple-game-nav-bottom, 56px)",
+        top: CONSOLE_TOP,
         zIndex: 55,
+        // As wide as the article (text + 12px), so it tucks into the eye's opening.
+        width: `min(${CONSOLE_W}px, calc(100% - 24px))`,
+        marginInline: "auto",
         backgroundColor: "#f0f0f0",
-        borderBottom: `1px solid ${TEXT}`,
+        border: `1px solid ${TEXT}`,
         fontFamily: FONT_MONO,
         fontSize: 12,
         color: TEXT,

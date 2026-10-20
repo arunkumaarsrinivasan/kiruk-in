@@ -54,6 +54,7 @@ import {
   CARD_SORTING,
   USABILITY_TEST,
 } from "@/data/era-page-content";
+import { EYE_BAR_GAP, eyeDepth } from "@/components/layout/eye-clear";
 
 // ── Palette — iOS 7 flat ─────────────────────────────────────────────
 
@@ -757,6 +758,10 @@ function useIsMobile(breakpoint = 768): boolean {
 
 // ── Main component ───────────────────────────────────────────────────
 
+/** The frosted header floats in the eye, as wide as the board below it. */
+const BAR_W = 1144;
+const BAR_TOP = `calc(${eyeDepth(BAR_W)} + ${EYE_BAR_GAP}px)`;
+
 export function PinboardHomePage() {
   const { setLayoutMode } = useLayoutMode();
   useEffect(() => {
@@ -987,7 +992,7 @@ export function PinboardHomePage() {
         background: bg,
         color: ink,
         fontFamily: FONT_UI,
-        paddingTop: 0,
+        paddingTop: BAR_TOP,
         paddingBottom: 30,
         transition: "background 240ms, color 240ms",
       }}
@@ -1025,13 +1030,18 @@ export function PinboardHomePage() {
       {/* ── HEADER ───────────────────────────────────────── */}
       <header
         style={{
-          position: "sticky",
-          top: "calc(var(--simple-game-nav-bottom, 56px))",
+          // On phones the stacked header is too tall to pin.
+          position: isMobile ? "relative" : "sticky",
+          top: isMobile ? undefined : BAR_TOP,
           zIndex: 20,
+          width: `min(${BAR_W}px, calc(100% - 16px))`,
+          margin: "0 auto",
+          borderRadius: isMobile ? 14 : 18,
           background: theme === "light" ? "rgba(242,242,247,0.86)" : "rgba(10,10,15,0.86)",
           backdropFilter: "blur(18px) saturate(160%)",
           WebkitBackdropFilter: "blur(18px) saturate(160%)",
-          borderBottom: `1px solid ${hairline}`,
+          border: `1px solid ${hairline}`,
+          boxShadow: theme === "light" ? "0 6px 20px rgba(0,0,0,0.06)" : "0 6px 20px rgba(0,0,0,0.4)",
           padding: isMobile ? "8px 12px" : "10px 18px",
           display: "grid",
           gridTemplateColumns: isMobile ? "1fr" : "auto 1fr auto",
@@ -1175,15 +1185,15 @@ export function PinboardHomePage() {
           style={{
             display: "flex",
             gap: 4,
+            width: "calc(100% - 16px)",
+            margin: "8px auto 0",
             padding: "8px 12px",
             overflowX: "auto",
+            borderRadius: 14,
             background: theme === "light" ? "rgba(242,242,247,0.86)" : "rgba(10,10,15,0.86)",
             backdropFilter: "blur(12px)",
             WebkitBackdropFilter: "blur(12px)",
-            borderBottom: `1px solid ${hairline}`,
-            position: "sticky",
-            top: "calc(var(--simple-game-nav-bottom, 56px) + 56px)",
-            zIndex: 19,
+            border: `1px solid ${hairline}`,
           }}
         >
           <Chip label="All" active={!filter} tint={IOS_BLUE} onClick={() => setFilter(null)} />
@@ -1278,7 +1288,7 @@ export function PinboardHomePage() {
           <aside
             style={{
               position: "sticky",
-              top: "calc(var(--simple-game-nav-bottom, 56px) + 80px)",
+              top: `calc(${BAR_TOP} + 88px)`,
               display: "flex",
               flexDirection: "column",
               gap: 8,
@@ -2429,8 +2439,7 @@ function StatsBar({
   return (
     <div
       style={{
-        position: "sticky",
-        bottom: 0,
+        position: "relative",
         zIndex: 18,
         background: theme === "light" ? "rgba(242,242,247,0.92)" : "rgba(10,10,15,0.92)",
         backdropFilter: "blur(14px) saturate(160%)",

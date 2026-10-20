@@ -35,6 +35,7 @@ import {
   CARD_SORTING,
   USABILITY_TEST,
 } from "@/data/era-page-content";
+import { eyeClear } from "@/components/layout/eye-clear";
 
 // Palette — Encarta-era warm earth tones
 const WINE = "#6b1f2e";
@@ -792,7 +793,7 @@ export function FramesetHomePage() {
         color: PAPER,
         fontFamily: FONT_UI,
         minHeight: "100vh",
-        paddingTop: "calc(var(--simple-game-nav-bottom, 56px) + 16px)",
+        paddingTop: eyeClear(1080),
         paddingBottom: 32,
       }}
     >

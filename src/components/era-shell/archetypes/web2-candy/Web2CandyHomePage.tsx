@@ -39,6 +39,7 @@ import {
   CARD_SORTING,
   USABILITY_TEST,
 } from "@/data/era-page-content";
+import { EYE_BAR_GAP, eyeDepth } from "@/components/layout/eye-clear";
 
 // ── Palette — classic MySpace 2003 ───────────────────────────────────
 
@@ -201,6 +202,10 @@ function useIsMobile(breakpoint = 768): boolean {
 }
 
 // ── Main component ───────────────────────────────────────────────────
+
+/** Header + bulletins ride together as one strip in the eye, as wide as the profile column. */
+const BAR_W = 956;
+const BAR_TOP = `calc(${eyeDepth(BAR_W)} + ${EYE_BAR_GAP}px)`;
 
 export function Web2CandyHomePage() {
   const { setLayoutMode } = useLayoutMode();
@@ -432,7 +437,7 @@ export function Web2CandyHomePage() {
         backgroundColor: SKY,
         color: INK,
         fontFamily: FONT_UI,
-        paddingTop: 0,
+        paddingTop: BAR_TOP,
         paddingBottom: 30,
       }}
     >
@@ -467,241 +472,247 @@ export function Web2CandyHomePage() {
         }
       `}</style>
 
-      {/* ── TOP NAV BAR ─────────────────────────────────────── */}
-      <header
-        ref={refTop}
+      <div
         style={{
           position: "sticky",
-          top: "calc(var(--simple-game-nav-bottom, 56px))",
+          top: BAR_TOP,
           zIndex: 30,
-          background: `linear-gradient(180deg, ${NAV_DEEP} 0%, ${NAV_DEEP2} 100%)`,
-          borderBottom: `1px solid #000`,
-          color: "#fff",
-          padding: "6px 14px",
-          display: "grid",
-          gridTemplateColumns: isMobile ? "1fr" : "auto 1fr auto",
-          alignItems: "center",
-          gap: 12,
-          fontSize: 11,
-          letterSpacing: 0.3,
+          width: `min(${BAR_W}px, calc(100% - 16px))`,
+          margin: "0 auto",
+          borderRadius: 8,
+          overflow: "hidden",
+          border: "1px solid #000",
           boxShadow: "0 2px 8px rgba(0,0,0,0.45)",
         }}
       >
-        {/* Brand + BETA — clickable */}
-        <button
-          type="button"
-          onClick={() => scrollTo(refTop.current)}
+        {/* ── TOP NAV BAR ─────────────────────────────────────── */}
+        <header
+          ref={refTop}
           style={{
+            background: `linear-gradient(180deg, ${NAV_DEEP} 0%, ${NAV_DEEP2} 100%)`,
+            borderBottom: `1px solid #000`,
+            color: "#fff",
+            padding: "6px 14px",
+            display: "grid",
+            gridTemplateColumns: isMobile ? "1fr" : "auto 1fr auto",
+            alignItems: "center",
+            gap: 12,
+            fontSize: 11,
+            letterSpacing: 0.3,
+          }}
+        >
+          {/* Brand + BETA — clickable */}
+          <button
+            type="button"
+            onClick={() => scrollTo(refTop.current)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              background: "transparent",
+              border: "none",
+              color: "inherit",
+              cursor: "pointer",
+              padding: 0,
+            }}
+          >
+            <span
+              style={{
+                fontFamily: FONT_DISPLAY,
+                fontSize: 17,
+                letterSpacing: -0.4,
+                color: "#fff",
+                textShadow: "0 1px 0 #000",
+              }}
+            >
+              My<span style={{ color: mood.tint }}>Kiruk</span>.com
+            </span>
+            <span
+              style={{
+                padding: "1px 6px",
+                fontSize: 9,
+                fontWeight: 700,
+                letterSpacing: 1,
+                color: "#fff",
+                background: `linear-gradient(180deg, ${mood.tint} 0%, ${mood.tintDeep} 100%)`,
+                border: `1px solid ${mood.tintDeep}`,
+                borderRadius: 3,
+                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.5)",
+                textShadow: "0 1px 0 rgba(0,0,0,0.3)",
+                position: "relative",
+                overflow: "hidden",
+              }}
+            >
+              BETA
+              <span
+                aria-hidden
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: 30,
+                  height: "100%",
+                  background:
+                    "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.6) 50%, transparent 100%)",
+                  animation: "kiruk-2003-beta-shine 3.2s linear infinite",
+                }}
+              />
+            </span>
+          </button>
+
+          {/* Functional nav links */}
+          {!isMobile && (
+            <nav
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                fontFamily: FONT_UI,
+                justifyContent: "center",
+                flexWrap: "wrap",
+              }}
+            >
+              <NavLink onClick={() => scrollTo(refTop.current)}>Home</NavLink>
+              <NavLink onClick={() => scrollTo(refAbout.current)}>Profile</NavLink>
+              <NavLink onClick={() => scrollTo(refFriends.current)}>Friends</NavLink>
+              <NavLink onClick={() => scrollTo(refBlog.current)}>Blog</NavLink>
+              <NavLink onClick={() => scrollTo(refComments.current)}>Comments</NavLink>
+              <div style={{ position: "relative" }}>
+                <NavLink
+                  onClick={() => {
+                    setMailOpen((o) => {
+                      const next = !o;
+                      if (next) markMailRead();
+                      return next;
+                    });
+                  }}
+                  badge={mailUnread > 0 ? mailUnread : undefined}
+                  accent={mood.tint}
+                >
+                  Mail
+                </NavLink>
+                {mailOpen && (
+                  <Inbox
+                    mailbox={mailbox}
+                    onClose={() => setMailOpen(false)}
+                  />
+                )}
+              </div>
+            </nav>
+          )}
+
+          {/* Right side: search + login */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              justifyContent: "flex-end",
+              flexWrap: "wrap",
+            }}
+          >
+            {!isMobile && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                  background: "#001a36",
+                  border: "1px solid #04335a",
+                  borderRadius: 3,
+                  padding: "1px 3px 1px 6px",
+                }}
+              >
+                <span style={{ color: "#cfe3ff", fontSize: 10 }}>🔍</span>
+                <input
+                  value={navQuery}
+                  onChange={(e) => setNavQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") submitNavQuery();
+                  }}
+                  placeholder="jump to section…"
+                  style={{
+                    width: 140,
+                    background: "transparent",
+                    border: "none",
+                    outline: "none",
+                    color: "#fff",
+                    fontFamily: FONT_UI,
+                    fontSize: 11,
+                    padding: "1px 4px",
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={submitNavQuery}
+                  style={{
+                    padding: "1px 6px",
+                    fontFamily: FONT_DISPLAY,
+                    fontSize: 9,
+                    fontWeight: 700,
+                    letterSpacing: 1,
+                    color: "#fff",
+                    background: `linear-gradient(180deg, ${mood.tint} 0%, ${mood.tintDeep} 100%)`,
+                    border: `1px solid ${mood.tintDeep}`,
+                    borderRadius: 2,
+                    cursor: "pointer",
+                  }}
+                >
+                  Go
+                </button>
+              </div>
+            )}
+          </div>
+        </header>
+
+        {/* ── BULLETINS TICKER ────────────────────────────────── */}
+        <div
+          style={{
+            background: "#ffffcc",
+            color: "#5a4500",
+            fontFamily: FONT_UI,
+            fontSize: 11,
+            padding: "3px 12px",
             display: "flex",
             alignItems: "center",
-            gap: 8,
-            background: "transparent",
-            border: "none",
-            color: "inherit",
-            cursor: "pointer",
-            padding: 0,
+            gap: 10,
+            boxShadow: "0 2px 4px rgba(0,0,0,0.18)",
+            overflow: "hidden",
           }}
         >
           <span
             style={{
               fontFamily: FONT_DISPLAY,
-              fontSize: 17,
-              letterSpacing: -0.4,
-              color: "#fff",
-              textShadow: "0 1px 0 #000",
+              fontSize: 9,
+              letterSpacing: 2,
+              color: "#cc6600",
+              textTransform: "uppercase",
+              fontWeight: 700,
+              background: "#fff8d6",
+              padding: "1px 6px",
+              border: "1px solid #cc9900",
+              borderRadius: 2,
+              whiteSpace: "nowrap",
             }}
           >
-            My<span style={{ color: mood.tint }}>Kiruk</span>.com
+            📣 Bulletins
           </span>
           <span
+            key={bulletinIdx}
             style={{
-              padding: "1px 6px",
-              fontSize: 9,
-              fontWeight: 700,
-              letterSpacing: 1,
-              color: "#fff",
-              background: `linear-gradient(180deg, ${mood.tint} 0%, ${mood.tintDeep} 100%)`,
-              border: `1px solid ${mood.tintDeep}`,
-              borderRadius: 3,
-              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.5)",
-              textShadow: "0 1px 0 rgba(0,0,0,0.3)",
-              position: "relative",
+              flex: 1,
+              whiteSpace: "nowrap",
               overflow: "hidden",
+              textOverflow: "ellipsis",
+              animation: "kiruk-2003-bulletin-fade 420ms ease-out",
             }}
           >
-            BETA
-            <span
-              aria-hidden
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: 30,
-                height: "100%",
-                background:
-                  "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.6) 50%, transparent 100%)",
-                animation: "kiruk-2003-beta-shine 3.2s linear infinite",
-              }}
-            />
+            {bulletins[bulletinIdx]}
           </span>
-        </button>
-
-        {/* Functional nav links */}
-        {!isMobile && (
-          <nav
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              fontFamily: FONT_UI,
-              justifyContent: "center",
-              flexWrap: "wrap",
-            }}
-          >
-            <NavLink onClick={() => scrollTo(refTop.current)}>Home</NavLink>
-            <NavLink onClick={() => scrollTo(refAbout.current)}>Profile</NavLink>
-            <NavLink onClick={() => scrollTo(refFriends.current)}>Friends</NavLink>
-            <NavLink onClick={() => scrollTo(refBlog.current)}>Blog</NavLink>
-            <NavLink onClick={() => scrollTo(refComments.current)}>Comments</NavLink>
-            <div style={{ position: "relative" }}>
-              <NavLink
-                onClick={() => {
-                  setMailOpen((o) => {
-                    const next = !o;
-                    if (next) markMailRead();
-                    return next;
-                  });
-                }}
-                badge={mailUnread > 0 ? mailUnread : undefined}
-                accent={mood.tint}
-              >
-                Mail
-              </NavLink>
-              {mailOpen && (
-                <Inbox
-                  mailbox={mailbox}
-                  onClose={() => setMailOpen(false)}
-                />
-              )}
-            </div>
-          </nav>
-        )}
-
-        {/* Right side: search + login */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            justifyContent: "flex-end",
-            flexWrap: "wrap",
-          }}
-        >
-          {!isMobile && (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 4,
-                background: "#001a36",
-                border: "1px solid #04335a",
-                borderRadius: 3,
-                padding: "1px 3px 1px 6px",
-              }}
-            >
-              <span style={{ color: "#cfe3ff", fontSize: 10 }}>🔍</span>
-              <input
-                value={navQuery}
-                onChange={(e) => setNavQuery(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") submitNavQuery();
-                }}
-                placeholder="jump to section…"
-                style={{
-                  width: 140,
-                  background: "transparent",
-                  border: "none",
-                  outline: "none",
-                  color: "#fff",
-                  fontFamily: FONT_UI,
-                  fontSize: 11,
-                  padding: "1px 4px",
-                }}
-              />
-              <button
-                type="button"
-                onClick={submitNavQuery}
-                style={{
-                  padding: "1px 6px",
-                  fontFamily: FONT_DISPLAY,
-                  fontSize: 9,
-                  fontWeight: 700,
-                  letterSpacing: 1,
-                  color: "#fff",
-                  background: `linear-gradient(180deg, ${mood.tint} 0%, ${mood.tintDeep} 100%)`,
-                  border: `1px solid ${mood.tintDeep}`,
-                  borderRadius: 2,
-                  cursor: "pointer",
-                }}
-              >
-                Go
-              </button>
-            </div>
-          )}
+          <span style={{ fontSize: 9, color: "#a87a00", letterSpacing: 1 }}>
+            {bulletinIdx + 1}/{bulletins.length}
+          </span>
         </div>
-      </header>
-
-      {/* ── BULLETINS TICKER ────────────────────────────────── */}
-      <div
-        style={{
-          position: "sticky",
-          top: "calc(var(--simple-game-nav-bottom, 56px) + 30px)",
-          zIndex: 29,
-          background: "#ffffcc",
-          borderBottom: "1px solid #cc9900",
-          color: "#5a4500",
-          fontFamily: FONT_UI,
-          fontSize: 11,
-          padding: "3px 12px",
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          boxShadow: "0 2px 4px rgba(0,0,0,0.18)",
-          overflow: "hidden",
-        }}
-      >
-        <span
-          style={{
-            fontFamily: FONT_DISPLAY,
-            fontSize: 9,
-            letterSpacing: 2,
-            color: "#cc6600",
-            textTransform: "uppercase",
-            fontWeight: 700,
-            background: "#fff8d6",
-            padding: "1px 6px",
-            border: "1px solid #cc9900",
-            borderRadius: 2,
-            whiteSpace: "nowrap",
-          }}
-        >
-          📣 Bulletins
-        </span>
-        <span
-          key={bulletinIdx}
-          style={{
-            flex: 1,
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            animation: "kiruk-2003-bulletin-fade 420ms ease-out",
-          }}
-        >
-          {bulletins[bulletinIdx]}
-        </span>
-        <span style={{ fontSize: 9, color: "#a87a00", letterSpacing: 1 }}>
-          {bulletinIdx + 1}/{bulletins.length}
-        </span>
       </div>
 
       {/* ── PROFILE CONTAINER ────────────────────────────────── */}

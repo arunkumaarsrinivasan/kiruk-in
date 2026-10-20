@@ -31,6 +31,7 @@ import {
   type TelescopeNode,
 } from "@/components/era-games/TelescopeBox";
 import { EraStoryBox } from "@/components/about-story/EraStoryBox";
+import { EYE_BAR_GAP, eyeDepth } from "@/components/layout/eye-clear";
 import type { GamePalette } from "@/components/era-games/types";
 
 const vt323 = VT323({
@@ -71,6 +72,9 @@ function stamp(date: Date) {
 
 /** Same width as a real stamp, so the teletype rules never reflow on mount. */
 const STAMP_PLACEHOLDER = "---------- --:--:--";
+
+/** The tty status line sits in the eye, as wide as the page column. */
+const STATUS_TOP = `calc(${eyeDepth(768)} + ${EYE_BAR_GAP}px)`;
 
 export function TerminalHomePage() {
   const reduced = useReducedMotion();
@@ -119,7 +123,7 @@ export function TerminalHomePage() {
         color: PHOSPHOR,
         fontFamily: `${vt323.style.fontFamily}, "IBM Plex Mono", "Courier New", monospace`,
         textShadow: greenTextShadow,
-        paddingTop: "var(--simple-game-nav-bottom, 56px)",
+        paddingTop: STATUS_TOP,
       }}
     >
       <h1 className="sr-only">
@@ -130,9 +134,9 @@ export function TerminalHomePage() {
           <motion.div
             key="tty-status"
             data-blueprint="tty-status"
-            className="fixed inset-x-0 z-[55] flex items-center justify-between border-b px-4 py-1 text-[14px] uppercase tracking-[0.18em]"
+            className="fixed inset-x-0 z-[55] mx-auto flex w-[min(768px,calc(100%-24px))] items-center justify-between gap-3 whitespace-nowrap border px-4 py-1 text-[13px] uppercase tracking-[0.12em] sm:text-[14px] sm:tracking-[0.18em]"
             style={{
-              top: "var(--simple-game-nav-bottom, 56px)",
+              top: STATUS_TOP,
               backgroundColor: "rgba(0,0,0,0.78)",
               borderColor: PHOSPHOR_GHOST,
               color: "rgba(0,255,65,0.85)",
@@ -143,10 +147,8 @@ export function TerminalHomePage() {
             transition={{ duration: reduced ? 0.12 : 0.22, ease: "easeOut" }}
           >
             <span>
-              tty1 · kiruk@1970 · {HERO.location.split(",")[0].trim()}
-            </span>
-            <span className="hidden md:inline">
-              era 1970 — phosphor &amp; ascii
+              tty1 · kiruk@1970
+              <span className="hidden sm:inline"> · {HERO.location.split(",")[0].trim()}</span>
             </span>
             <span>{openStamp} UTC</span>
           </motion.div>

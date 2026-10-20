@@ -7,6 +7,7 @@
  */
 
 import React from "react";
+import { eyeClear } from "@/components/layout/eye-clear";
 
 /** Kiruk brand colours, one per letter (from the brand eye). */
 export const BRAND = { blue: "#1637F2", pink: "#F2055C", orange: "#F2A71B", plum: "#BF0B80" } as const;
@@ -112,7 +113,7 @@ export const SEARCH_CSS = `
   --ks-url:#008000;
   --era-radius:0px;
   min-height:100dvh;overflow-x:clip;
-  padding:calc(var(--simple-game-nav-bottom,56px) + 16px) 16px calc(var(--eye-lid-bottom,58px) + 32px);
+  padding:${eyeClear(1000)} 16px calc(var(--eye-lid-bottom,58px) + 32px);
   background:var(--bg-main,#fff);color:var(--ks-ink);
   font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.4;
 }

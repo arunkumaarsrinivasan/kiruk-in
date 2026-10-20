@@ -90,7 +90,7 @@ export default function WireframeManualLayout() {
         {/* Inner header — hidden in sketch/digital split (SimpleGameNav is the only top bar). */}
         {isSplitMode ? null : (
           <motion.header
-            className="sticky top-0 z-40 border-b-2"
+            className="relative z-40 border-b-2"
             data-cursor-zone="inner-nav"
             style={{
               backgroundColor: "var(--bg-main)",

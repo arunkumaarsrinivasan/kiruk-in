@@ -221,11 +221,14 @@ export function Navbar() {
   }, []);
 
   // Pages pad against the resting lids; the values never change with scroll.
+  // --eye-mid and --eye-vw let a centred column follow the curve (see eye-clear.ts).
   useLayoutEffect(() => {
     const root = document.documentElement.style;
     root.setProperty("--simple-game-nav-bottom", `${rest.top.edge}px`);
+    root.setProperty("--eye-mid", `${rest.top.mid}px`);
     root.setProperty("--eye-lid-bottom", `${rest.bottom.edge}px`);
-  }, [rest.top.edge, rest.bottom.edge]);
+    if (size.w) root.setProperty("--eye-vw", String(size.w));
+  }, [rest.top.edge, rest.top.mid, rest.bottom.edge, size.w]);
 
   const draw = useCallback(() => {
     const { w, h } = size;

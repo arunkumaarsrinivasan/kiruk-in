@@ -29,6 +29,7 @@ import {
   IMPACT_METRICS,
   CARD_SORTING,
 } from "@/data/era-page-content";
+import { eyeClear } from "@/components/layout/eye-clear";
 
 const comic = Comic_Neue({
   weight: ["400", "700"],
@@ -302,7 +303,7 @@ export function GeocitiesHomePage() {
         color: CREAM,
         fontFamily: FONT_COMIC,
         minHeight: "100vh",
-        paddingTop: "calc(var(--simple-game-nav-bottom, 56px) + 12px)",
+        paddingTop: eyeClear(920),
         paddingBottom: 40,
       }}
     >
