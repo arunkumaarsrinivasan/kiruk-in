@@ -79,6 +79,16 @@ function ShellInner({ children }: Readonly<LayoutClientShellProps>) {
     );
   }
 
+  // The eye lab measures one canvas. The loader, navbar, cursor and help bot
+  // would each add GPU or main-thread work to its numbers, so it gets none.
+  if (pathname.startsWith("/lab/eye")) {
+    return (
+      <main id="main-content" tabIndex={-1} className="min-h-screen">
+        {children}
+      </main>
+    );
+  }
+
   if (isNotebook || isDeskPreview) {
     return (
       <main id="main-content" tabIndex={-1} className="min-h-screen">

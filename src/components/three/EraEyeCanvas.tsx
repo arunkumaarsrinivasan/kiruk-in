@@ -20,7 +20,7 @@
  *  · nothing renders at all while the tab is in the background.
  */
 
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import {
   BloomEffect,
@@ -166,7 +166,13 @@ interface EyeSceneProps {
   exiting: boolean;
   reduce: boolean;
   interactive: boolean;
+  onReady?: () => void;
+  capture?: React.MutableRefObject<(() => Promise<string>) | null>;
+  setCanvasDpr: (dpr: number) => void;
 }
+
+/** The eye counts as up once its intro fade has arrived this far. */
+const READY_AT = 0.97;
 
 function EraEyeScene({
   era,
@@ -174,13 +180,18 @@ function EraEyeScene({
   exiting,
   reduce,
   interactive,
+  onReady,
+  capture,
+  setCanvasDpr,
 }: EyeSceneProps) {
   const gl = useThree((s) => s.gl);
   const scene = useThree((s) => s.scene);
   const camera = useThree((s) => s.camera);
   const size = useThree((s) => s.size);
   const dpr = useThree((s) => s.viewport.dpr);
-  const setDpr = useThree((s) => s.setDpr);
+  // R3F 9.8 re-applies the Canvas dpr prop on every render of the Canvas, so
+  // the watchdog sets it through the Canvas's owner (see EraEyeCanvas below).
+  const setDpr = setCanvasDpr;
 
   // The post chain is built directly on `postprocessing` rather than the R3F
   // wrapper: the wrapper JSON-stringifies its props to memoise effect args, so
@@ -374,6 +385,25 @@ function EraEyeScene({
     [ui, shared],
   );
 
+  /**
+   * The eye material, built here rather than as a <shaderMaterial> element:
+   * R3F 9.8 copies a `uniforms` prop into fresh objects, so writes to the
+   * uniforms above would never reach the shader (the eye stayed at uFade 0).
+   */
+  const eyeMaterial = useMemo(
+    () =>
+      new THREE.ShaderMaterial({
+        vertexShader: ERA_EYE_VERT,
+        fragmentShader: ERA_EYE_FRAG,
+        uniforms,
+        depthTest: false,
+        depthWrite: false,
+        toneMapped: false,
+      }),
+    [uniforms],
+  );
+  useEffect(() => () => eyeMaterial.dispose(), [eyeMaterial]);
+
   /** Damped post-processing state — effects are driven imperatively. */
   const post = useRef({ bloom: 0.35, chroma: 0, noise: 0.02, vignette: 0.3 });
 
@@ -412,6 +442,20 @@ function EraEyeScene({
   const uiDue = useRef(1);
   const health = useRef({ ema: 1 / 60, cool: 2, floor: DPR_MIN, skip: 0 });
   const hidden = useRef(false);
+  const readySent = useRef(false);
+  /** A poster capture waiting for the next drawn frame (lab only). */
+  const pendingCapture = useRef<((png: string) => void) | null>(null);
+
+  useEffect(() => {
+    if (!capture) return;
+    capture.current = () =>
+      new Promise<string>((resolve) => {
+        pendingCapture.current = resolve;
+      });
+    return () => {
+      capture.current = null;
+    };
+  }, [capture]);
 
   /**
    * The light reflex. A step change in the light is what a pupil is for: it
@@ -505,7 +549,7 @@ function EraEyeScene({
     const nowSec = performance.now() / 1000;
     const pointerIdle =
       nowSec - pointer.current.seen > 2.8 && nowSec - tilt.current.moved > 2.8;
-    if (pointerIdle && !exiting) {
+    if (pointerIdle && !exiting && !pendingCapture.current) {
       health.current.skip = (health.current.skip + 1) % 3;
       if (health.current.skip !== 0) return;
     }
@@ -726,6 +770,16 @@ function EraEyeScene({
     // --- pass two: the eye, through the post chain --------------------------
     composer.render(dt);
 
+    // Read back in the same task as the draw: the buffer is not preserved.
+    if (pendingCapture.current) {
+      pendingCapture.current(gl.domElement.toDataURL("image/png"));
+      pendingCapture.current = null;
+    }
+    if (!readySent.current && u.uFade.value > READY_AT) {
+      readySent.current = true;
+      onReady?.();
+    }
+
     // --- and a watchdog on the cost of all that -----------------------------
     // Integrated GPUs cannot hold this shader at full resolution; rather than
     // dropping frames for the whole visit, give up pixels once and stay smooth.
@@ -740,16 +794,8 @@ function EraEyeScene({
   }, 1);
 
   return (
-    <mesh frustumCulled={false}>
+    <mesh frustumCulled={false} material={eyeMaterial}>
       <planeGeometry args={[2, 2]} />
-      <shaderMaterial
-        vertexShader={ERA_EYE_VERT}
-        fragmentShader={ERA_EYE_FRAG}
-        uniforms={uniforms}
-        depthTest={false}
-        depthWrite={false}
-        toneMapped={false}
-      />
     </mesh>
   );
 }
@@ -762,6 +808,10 @@ export interface EraEyeCanvasProps {
   reduce?: boolean;
   /** Gaze follows the cursor or finger, and the phone's tilt where allowed. */
   interactive?: boolean;
+  /** Once the first faded-in frame is up, so a poster underneath can go. */
+  onReady?: () => void;
+  /** Lab: reads the next drawn frame back as a PNG data URL. */
+  capture?: React.MutableRefObject<(() => Promise<string>) | null>;
   className?: string;
 }
 
@@ -771,9 +821,11 @@ export default function EraEyeCanvas({
   exiting = false,
   reduce = false,
   interactive = true,
+  onReady,
+  capture,
   className,
 }: EraEyeCanvasProps) {
-  const dpr = useMemo(budgetDpr, []);
+  const [dpr, setDpr] = useState(budgetDpr);
 
   return (
     <Canvas
@@ -793,6 +845,9 @@ export default function EraEyeCanvas({
         exiting={exiting}
         reduce={reduce}
         interactive={interactive}
+        onReady={onReady}
+        capture={capture}
+        setCanvasDpr={setDpr}
       />
     </Canvas>
   );

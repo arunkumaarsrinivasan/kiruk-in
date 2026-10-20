@@ -10,8 +10,9 @@
  *
  * There is no button. You sweep to travel and you tap the iris to go in —
  * through the pupil, which is the same opening the exit transition dilates.
- * The only chrome is the era's own year, the track you are sweeping along, and
- * one line of instruction that rewrites itself once you have understood it.
+ * The eras ride a U round the lower half of the eye (loader/EraOrbit): its
+ * arms climb the empty sides to the eye's height, and the lit node is always
+ * under the sweep. The era you are on sits inside the U, under the eye.
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -24,14 +25,18 @@ import {
 } from "framer-motion";
 import { AVAILABLE_THEMES, type ThemeConfig } from "@/data/portfolio-data";
 import { useTheme } from "@/contexts/ThemeContext";
-import EraDial, {
-  useDialGeometry,
-  type EraChangeStyle,
-} from "@/components/ui/EraDial";
+import { type EraChangeStyle } from "@/components/ui/EraDial";
+import EraOrbit from "@/components/ui/loader/EraOrbit";
+import type { EyeStageControl, FrameBox } from "@/components/three/eye/EyeStage";
 import { eyeFrame } from "@/lib/era-eye-frame";
 import { cn } from "@/lib/utils";
+import EyePoster from "@/components/three/eye/EyePoster";
 
 const EraEyeCanvas = dynamic(() => import("@/components/three/EraEyeCanvas"), {
+  ssr: false,
+});
+/** The TSL eye being built in /lab/eye. Dev only, behind ?eye=tsl. */
+const EyeStage = dynamic(() => import("@/components/three/eye/EyeStage"), {
   ssr: false,
 });
 
@@ -42,6 +47,12 @@ const ERA_PICKER_ATTR = "data-era-picker-active";
 const EYE_HEIGHT = 1;
 /** The room the eye sits in — dark in every era, whatever the era's page is. */
 const ROOM = "#040507";
+/**
+ * The live eye's shot on a wide screen, mm round the eye (EyeStage FrameBox):
+ * the brow above, and below the lower lid room for the era inside the
+ * orbit's U, so the words never sit on the lashes.
+ */
+const LOADER_BOX: FrameBox = { halfW: 16, top: 12, bottom: -16.5 };
 /** Dead zone at each side of the sweep, so both ends are easy to reach. */
 const SWEEP_INSET = 0.08;
 /** A press shorter and stiller than this is a tap, not a sweep. */
@@ -194,11 +205,23 @@ export default function ImmersiveEraLoadingPage({
 
   const [index, setIndex] = useState(0);
   const [exiting, setExiting] = useState(false);
+  /** The live eye has faded in over its poster. */
+  const [eyeReady, setEyeReady] = useState(false);
+  const onEyeReady = useCallback(() => setEyeReady(true), []);
+  const [stage, setStage] = useState<"glsl" | "tsl">("glsl");
+  /**
+   * Dev experiment, ?eye=tsl&see=1: ten ways of seeing (docs/LOADER_WORDS_PLAN.md).
+   * Each era is told by its own screen technology over the whole frame, and
+   * there are no words at all.
+   */
+  const [see, setSee] = useState(false);
   /** Once you have moved through time, the instruction has done its job. */
   const [traveled, setTraveled] = useState(false);
   /** Whether the cursor is over the iris, so it can offer itself as a way in. */
   const [overIris, setOverIris] = useState(false);
   const exitTimer = useRef(0);
+  /** The live eye: where it sits, for the orbit, and where its iris really is. */
+  const eyeControl = useRef<EyeStageControl | null>(null);
   const dragging = useRef(false);
   const wheel = useRef({ acc: 0, at: 0 });
   /** Where a touch drag started, and which era it started on. */
@@ -210,16 +233,6 @@ export default function ImmersiveEraLoadingPage({
   const idxRef = useRef(0);
 
   const focused = themes[index] ?? themes[0];
-  const accent = focused.colors.accent || focused.colors.primary;
-  /**
-   * The room is dark in every year, so the chrome is lit for the room and not
-   * for the era — half the eras have near-black body text, which would vanish.
-   * Only the year itself is allowed to wear the era's colour.
-   */
-  const ink = "#ffffff";
-  /** "1970: Terminal & ASCII" → the part that is not already the year. */
-  const eraLabel = (focused.name.split(":")[1] ?? focused.era).trim();
-  const dial = useDialGeometry();
   const arrival = arrivalOf(
     ARRIVALS[focused.id] ??
       ((focused.designTokens.animationStyle ?? "none") as EraChangeStyle),
@@ -229,6 +242,15 @@ export default function ImmersiveEraLoadingPage({
   useEffect(() => {
     idxRef.current = index;
   }, [index]);
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production") return;
+    const q = new URLSearchParams(window.location.search);
+    if (q.get("eye") === "tsl") {
+      setStage("tsl");
+      setSee(q.get("see") === "1");
+    }
+  }, []);
 
   useEffect(() => {
     document.documentElement.setAttribute(ERA_PICKER_ATTR, "");
@@ -279,21 +301,21 @@ export default function ImmersiveEraLoadingPage({
    * drawing with, so the target is under the iris on a phone — where the shot
    * has pushed in and lifted the eye — and not where a desktop's would be.
    */
+  /** Where the shared framing puts the iris, CSS px (the GLSL eye's, and the fallback). */
+  const irisFromFrame = useCallback(() => {
+    const vv = window.visualViewport;
+    const f = eyeFrame(vv?.width ?? window.innerWidth, vv?.height ?? window.innerHeight, EYE_HEIGHT);
+    return { x: f.cx, y: f.cy, r: f.irisPx };
+  }, []);
+
   const overIrisAt = useCallback(
     (clientX: number, clientY: number) => {
-      const vv = window.visualViewport;
-      const f = eyeFrame(
-        vv?.width ?? window.innerWidth,
-        vv?.height ?? window.innerHeight,
-        EYE_HEIGHT,
-      );
-      const r = Math.max(
-        IRIS_TAP_MIN,
-        f.irisPx * (isCoarse ? IRIS_TAP_COARSE : 1),
-      );
-      return Math.hypot(clientX - f.cx, clientY - f.cy) < r;
+      // the live eye knows where its iris is; the shared framing is the fallback
+      const iris = eyeControl.current?.irisAt() ?? irisFromFrame();
+      const r = Math.max(IRIS_TAP_MIN, iris.r * (isCoarse ? IRIS_TAP_COARSE : 1));
+      return Math.hypot(clientX - iris.x, clientY - iris.y) < r;
     },
-    [isCoarse],
+    [isCoarse, irisFromFrame],
   );
 
   /** Points of drag that move one year, on a touch screen. */
@@ -501,15 +523,42 @@ export default function ImmersiveEraLoadingPage({
       aria-label="Choose a design era"
     >
       {/* --- the eye ------------------------------------------------------- */}
+      {/* A still of the eye paints first; the live eye compiles behind it and
+          fades in on top, so the loader is never an empty room. */}
       <div className="pointer-events-none absolute inset-0">
+        <EyePoster eraId={focused.id} hidden={eyeReady} eyeHeight={EYE_HEIGHT} />
         {webgl === true && (
-          <EraEyeCanvas
-            era={focused}
-            eyeHeight={EYE_HEIGHT}
-            exiting={exiting}
-            reduce={reduce}
-            interactive
-          />
+          <div
+            className="absolute inset-0"
+            style={{
+              opacity: eyeReady ? 1 : 0,
+              transition: reduce ? "none" : "opacity 450ms cubic-bezier(0.23, 1, 0.32, 1)",
+            }}
+          >
+            {stage === "tsl" ? (
+              <EyeStage
+                era={focused}
+                eyeHeight={EYE_HEIGHT}
+                exiting={exiting}
+                reduce={reduce}
+                interactive
+                control={eyeControl}
+                frameBox={see ? undefined : LOADER_BOX}
+                media={see}
+                onReady={onEyeReady}
+                onFail={() => setStage("glsl")}
+              />
+            ) : (
+              <EraEyeCanvas
+                era={focused}
+                eyeHeight={EYE_HEIGHT}
+                exiting={exiting}
+                reduce={reduce}
+                interactive
+                onReady={onEyeReady}
+              />
+            )}
+          </div>
         )}
       </div>
 
@@ -536,7 +585,7 @@ export default function ImmersiveEraLoadingPage({
       {webgl === false && (
         <div
           className="absolute inset-0 z-10 flex items-center justify-center px-8 text-center"
-          style={{ color: ink }}
+          style={{ color: "#ffffff" }}
         >
           <p className="max-w-xs text-xs leading-relaxed opacity-45">
             The eye needs WebGL. Sweep left or right anyway, then press Enter.
@@ -544,97 +593,21 @@ export default function ImmersiveEraLoadingPage({
         </div>
       )}
 
-      {/* The eye is lit and the chrome is small, so the floor of the room
-          comes up to meet it — the dial and the year always have something to
-          sit on. Painted under the dial, not over it. */}
-      <motion.div
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[48%]"
-        animate={{ opacity: exiting ? 0 : 1 }}
-        transition={{ duration: reduce ? 0.12 : 0.3, ease: EASE_OUT }}
-        style={{
-          background: `linear-gradient(to top, ${ROOM} 0%, ${ROOM}f2 30%, ${ROOM}a6 58%, transparent 100%)`,
-        }}
-        aria-hidden="true"
-      />
-
-      {/* --- the dial: the eras ride a ring around the bottom of the eye -- */}
-      <EraDial
+      {/* --- the words: the eras' orbit round the eye (none when seeing) ---- */}
+      {!(see && stage === "tsl") && <EraOrbit
         themes={themes}
         index={index}
-        era={focused}
         onSelect={goTo}
+        control={eyeControl}
+        centreFallback={irisFromFrame}
         reduce={reduce}
         exiting={exiting}
-      />
-
-      {/* --- the title card, sitting inside the arc ------------------------ */}
-      <motion.div
-        className="pointer-events-none absolute inset-x-0 z-30 select-none"
-        animate={{ opacity: exiting ? 0 : 1 }}
-        transition={{ duration: reduce ? 0.12 : 0.3, ease: EASE_OUT }}
-        style={{
-          fontFamily: focused.fonts.accent,
-          // just inside the ring, so the card and the dial read as one dial
-          bottom: dial.h ? Math.max(14, dial.h - (dial.cy + dial.r) + 30) : 96,
-        }}
-      >
-        <motion.div
-          key={focused.id}
-          className="relative flex flex-col items-center gap-1 text-center"
-          initial={arrival.initial}
-          animate={arrival.animate}
-          transition={arrival.transition}
-        >
-          {/* the movement this year belongs to */}
-          <span
-            className="text-[11px] uppercase tracking-[0.22em] opacity-70 sm:text-[9px] sm:tracking-[0.4em] sm:opacity-[0.42]"
-            style={{ color: ink }}
-          >
-            {focused.era}
-          </span>
-          <span
-            className="text-[clamp(2.75rem,12vw,4.6rem)] leading-[0.95]"
-            style={{
-              color: accent,
-              fontFamily: focused.fonts.primary,
-              textShadow: `0 0 30px ${accent}55`,
-            }}
-          >
-            {focused.id}
-          </span>
-          <span
-            className="text-[12px] uppercase tracking-[0.22em] sm:text-[11px] sm:tracking-[0.34em]"
-            style={{ color: ink, opacity: 0.72 }}
-          >
-            {eraLabel}
-          </span>
-        </motion.div>
-
-        {/* instruction, which rewrites itself once you have understood it */}
-        <p
-          className={cn(
-            "relative z-[1] px-5 pt-4 text-center uppercase",
-            "text-[11px] leading-relaxed tracking-[0.12em]",
-            "transition-opacity duration-500 sm:text-[10px] sm:leading-[2.1] sm:tracking-[0.2em]",
-          )}
-          style={{ color: ink, opacity: overIris ? 0.85 : 0.45 }}
-        >
-          {traveled ? (
-            <>tap the eye to enter {focused.id}</>
-          ) : (
-            <>
-              {/* one line on a phone, one sentence on a desktop */}
-              <span className="block sm:inline">
-                {isCoarse
-                  ? "swipe across the eye, or turn the ring"
-                  : "arrow keys, scroll, or sweep across the eye"}
-              </span>
-              <span className="mx-2 hidden opacity-50 sm:inline">·</span>
-              <span className="block sm:inline">tap the eye to enter</span>
-            </>
-          )}
-        </p>
-      </motion.div>
+        traveled={traveled}
+        overIris={overIris}
+        coarse={isCoarse}
+        sweepInset={SWEEP_INSET}
+        arrival={arrival}
+      />}
     </motion.div>
   );
 }

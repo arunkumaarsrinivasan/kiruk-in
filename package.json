@@ -14,6 +14,7 @@
     "build": "set NODE_OPTIONS=--no-deprecation && next build",
     "start": "set NODE_OPTIONS=--no-deprecation && next start",
     "lint": "next lint",
+    "eye:screens": "node scripts/eye-screens.mjs",
     "dev:trace": "set NODE_OPTIONS=--trace-deprecation && next dev --turbopack",
     "newpost": "node scripts/newpost.mjs",
     "pupil:eval": "node scripts/pupil-eval.mjs"
@@ -29,10 +30,10 @@
     "@neplex/vectorizer": "^0.1.0",
     "@notionhq/client": "^2.2.13",
     "@react-three/drei": "^10.1.2",
-    "@react-three/fiber": "^9.1.2",
+    "@react-three/fiber": "^9.8.2",
     "@react-three/postprocessing": "^3.0.4",
     "@supabase/supabase-js": "^2.53.0",
-    "@types/three": "^0.176.0",
+    "@types/three": "^0.186.0",
     "@vercel/analytics": "^1.6.1",
     "@vercel/speed-insights": "^1.2.0",
     "clsx": "^2.1.1",
@@ -45,6 +46,7 @@
     "openai": "^5.1.1",
     "perfect-freehand": "^1.2.3",
     "phosphor-react": "^1.4.1",
+    "postprocessing": "^6.39.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "reading-time": "^1.5.0",
@@ -58,7 +60,7 @@
     "sharp": "^0.35.3",
     "shiki": "^4.3.1",
     "tailwind-merge": "^3.4.0",
-    "three": "^0.177.0",
+    "three": "^0.186.1",
     "zod": "^3.25.76"
   },
   "devDependencies": {
