@@ -3,7 +3,8 @@
 // hidden; this is the reliable way to look at the lab. Needs the dev server.
 //
 // usage: node scripts/eye-lab-shots.mjs <chrome> <outDir> <url> <shots.json> [gpu|swiftshader] [WxH]
-//   a width under 500 emulates a phone (exact viewport, touch); SHOT_EXACT=1 makes any size exact
+//   a width under 500 emulates a phone (exact viewport, touch); SHOT_EXACT=1 makes any size exact;
+//   SHOT_DPR=<n> (with an exact size) sets the device pixel ratio
 //
 // shots.json: [{ "name": "1970-final", "clicks": ["1970", "final"], "wait": 1500, "keys": ["h"] }, ...]
 //   clicks — button/label text, clicked in order (exact text match)
@@ -83,7 +84,7 @@ await send("Page.enable");
 await send("Runtime.enable");
 // a phone size (or SHOT_EXACT=1) gets an exact viewport, and a phone gets touch
 if (W < 500 || process.env.SHOT_EXACT === "1") {
-  await send("Emulation.setDeviceMetricsOverride", { width: W, height: H, deviceScaleFactor: 1, mobile: W < 500 });
+  await send("Emulation.setDeviceMetricsOverride", { width: W, height: H, deviceScaleFactor: Number(process.env.SHOT_DPR ?? 1), mobile: W < 500 });
   if (W < 500) await send("Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 5 });
 }
 await send("Page.navigate", { url });
