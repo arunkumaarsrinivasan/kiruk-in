@@ -493,7 +493,7 @@ export function DocHtmlHomePage() {
             this page.
           </p>
 
-          <dl style={dl}>
+          <dl className="doc-html-dl" style={dl}>
             {nodes.map((n, i) => {
               const nextNode = nodes[i + 1];
               return (
@@ -643,7 +643,7 @@ export function DocHtmlHomePage() {
           </ul>
 
           <h3 style={h3}>7.b Channels</h3>
-          <dl style={dl}>
+          <dl className="doc-html-dl" style={dl}>
             {USABILITY_TEST.channels.map((c) => (
               <React.Fragment key={c.label}>
                 <dt style={dt}>{c.label}</dt>
@@ -824,6 +824,11 @@ export function DocHtmlHomePage() {
           background-color: #fff399;
           transition: background-color 0.9s ease-out;
         }
+        @media (max-width: 639px) {
+          .doc-html-dl { --doc-dl-cols: minmax(0, 1fr); }
+          .doc-html-dl > dt:not(:first-child) { margin-top: 6px; }
+          .doc-html-dl > dd { padding-left: 24px; overflow-wrap: anywhere; }
+        }
       `}</style>
 
       {/* ── NCSA-style hover status bar ─────────────────────────── */}
@@ -889,10 +894,12 @@ const ul: React.CSSProperties = {
   listStyleType: "disc",
 };
 
+// Phones stack each term over its definition (see .doc-html-dl), the way an
+// unstyled <dl> rendered in 1991.
 const dl: React.CSSProperties = {
   margin: "0 0 12px",
   display: "grid",
-  gridTemplateColumns: "minmax(120px, max-content) 1fr",
+  gridTemplateColumns: "var(--doc-dl-cols, minmax(120px, max-content) 1fr)",
   columnGap: 16,
   rowGap: 4,
 };

@@ -81,11 +81,15 @@ export class ScreenDriver {
    * @param stepScroll the page moves only by kicks (a reading eye turning
    *                   pages), not at the era's steady rate
    */
-  update(dt: number, visual: EraVisual, pal: PaletteColors, reduce: boolean, stepScroll = false, rate = 1) {
+  /**
+   * @param snap land every change at once (the lids are shut on a cut between
+   *             eras, so the new screen should be whole when they open)
+   */
+  update(dt: number, visual: EraVisual, pal: PaletteColors, reduce: boolean, stepScroll = false, rate = 1, snap = false) {
     const s = this.state;
     if (!reduce) s.time += dt;
 
-    const k = reduce ? 1 : 1 - Math.exp(-5 * dt);
+    const k = reduce || snap ? 1 : 1 - Math.exp(-5 * dt);
     s.bg.lerp(pal.bg, k);
     s.ink.lerp(pal.ink, k);
     s.panel.lerp(pal.panel, k);
@@ -111,17 +115,18 @@ export class ScreenDriver {
       s.styleB = visual.style;
       s.styleMix = 0;
     }
-    s.styleMix = Math.min(1, s.styleMix + dt * (reduce ? 8 : 2.6));
+    s.styleMix = snap ? 1 : Math.min(1, s.styleMix + dt * (reduce ? 8 : 2.6));
 
-    s.scan = damp(s.scan, visual.scan, L, dt);
-    s.pixel = damp(s.pixel, visual.pixel, L, dt);
-    s.dither = damp(s.dither, visual.dither, L, dt);
-    s.posterize = damp(s.posterize, visual.posterize, L, dt);
-    s.glow = damp(s.glow, visual.glow, L, dt);
-    s.wobble = damp(s.wobble, reduce ? 0 : visual.wobble, L, dt);
-    s.warp = damp(s.warp, reduce ? 0 : visual.warp, L, dt);
+    const Lk = snap ? 1e6 : L;
+    s.scan = damp(s.scan, visual.scan, Lk, dt);
+    s.pixel = damp(s.pixel, visual.pixel, Lk, dt);
+    s.dither = damp(s.dither, visual.dither, Lk, dt);
+    s.posterize = damp(s.posterize, visual.posterize, Lk, dt);
+    s.glow = damp(s.glow, visual.glow, Lk, dt);
+    s.wobble = damp(s.wobble, reduce ? 0 : visual.wobble, Lk, dt);
+    s.warp = damp(s.warp, reduce ? 0 : visual.warp, Lk, dt);
     // a scrub through the ring walks from a cathode-ray tube to an OLED without a cut
-    s.tech = damp(s.tech, visual.tech, L, dt);
-    s.crt = damp(s.crt, visual.crt, L, dt);
+    s.tech = damp(s.tech, visual.tech, Lk, dt);
+    s.crt = damp(s.crt, visual.crt, Lk, dt);
   }
 }

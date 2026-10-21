@@ -26,6 +26,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLayoutMode } from "@/contexts/LayoutModeContext";
+import { useCalmMotion } from "@/hooks/useCalmMotion";
 import {
   WHY_KIRUK,
   PERSONA,
@@ -738,12 +739,15 @@ export function FramesetHomePage() {
     }
   }, []);
 
-  // Session timer (disc track timing)
+  // Session timer (disc track timing). Phones count whole minutes, so the
+  // status bar isn't ticking under the thumb every second.
+  const calm = useCalmMotion();
   const [elapsed, setElapsed] = useState(0);
   useEffect(() => {
-    const id = window.setInterval(() => setElapsed((e) => e + 1), 1000);
+    const step = calm ? 60 : 1;
+    const id = window.setInterval(() => setElapsed((e) => e + step), step * 1000);
     return () => window.clearInterval(id);
-  }, []);
+  }, [calm]);
 
   // Keyboard shortcuts: ← prev · → next · b bookmark · / search · esc close overlays
   useEffect(() => {
@@ -1063,6 +1067,7 @@ export function FramesetHomePage() {
                 onChange={(e) => navigate(e.target.value)}
                 style={{
                   flex: 1,
+                  minWidth: 0,
                   padding: "5px 8px",
                   fontFamily: FONT_UI,
                   fontSize: 13,
@@ -1422,6 +1427,7 @@ export function FramesetHomePage() {
             <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
               <span
                 aria-hidden
+                data-era-calm
                 style={{
                   width: 8,
                   height: 8,
@@ -1436,6 +1442,7 @@ export function FramesetHomePage() {
             <StatusPill>
               <span
                 aria-hidden
+                data-era-calm
                 style={{
                   display: "inline-block",
                   width: 8,

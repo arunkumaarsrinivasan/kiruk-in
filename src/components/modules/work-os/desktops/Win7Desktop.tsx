@@ -70,8 +70,8 @@ export function Win7Desktop({ era, projects, focusId }: DesktopProps) {
         {/* pearl start */}
         <button type="button" onClick={(e) => { e.stopPropagation(); setStartOpen((v) => !v); }} className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[16px] text-white" style={{ background: "radial-gradient(circle at 50% 30%, #6db8ff, #1a6fd4 55%, #0a3f86)", boxShadow: "inset 0 1px 2px rgba(255,255,255,0.7), 0 0 10px rgba(40,140,255,0.7)" }} aria-label="Start">⊞</button>
 
-        {/* pinned + running */}
-        <div className="flex flex-1 items-center gap-1.5">
+        {/* pinned + running — a phone can't fit all nine, so the row scrolls */}
+        <div className="flex min-w-0 flex-1 items-center gap-1.5 max-sm:overflow-x-auto">
           {root.current.children.slice(0, 9).map((d) => {
             const open = wins.some((w) => w.kind === "explorer" && path[0] === d.name);
             return (

@@ -24,10 +24,9 @@ interface EyePosterProps {
   eraId: string;
   /** The live eye is up; the poster can go. */
   hidden: boolean;
-  eyeHeight?: number;
 }
 
-export default function EyePoster({ eraId, hidden, eyeHeight = 1 }: EyePosterProps) {
+export default function EyePoster({ eraId, hidden }: EyePosterProps) {
   const box = useRef<HTMLDivElement | null>(null);
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
   const [gone, setGone] = useState(false);
@@ -58,7 +57,7 @@ export default function EyePoster({ eraId, hidden, eyeHeight = 1 }: EyePosterPro
   if (size && size.w > 0 && size.h > 0) {
     const variant = posterVariantFor(size.w, size.h);
     src = posterSrc(eraId, variant);
-    place = posterPlacement(size.w, size.h, variant, eyeHeight);
+    place = posterPlacement(size.w, size.h, variant);
   }
 
   return (

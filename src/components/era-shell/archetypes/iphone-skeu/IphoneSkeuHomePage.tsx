@@ -1075,6 +1075,7 @@ function AppIcon({
         {badge !== undefined && badge > 0 && (
           <span
             aria-hidden
+            data-era-calm
             style={{
               position: "absolute",
               top: -4,

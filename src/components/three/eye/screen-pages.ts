@@ -94,12 +94,24 @@ export class ScreenPages {
     return page;
   }
 
+  /** Starts loading an era's page before it is needed (the era being travelled to). */
+  prefetch(era: string) {
+    this.load(era);
+  }
+
+  /** Whether an era's page has arrived (or will never: it failed). */
+  ready(era: string) {
+    const page = this.load(era);
+    return page.tex !== null || page.failed;
+  }
+
   /**
    * Once a frame, with the era that should be up. A page that has not arrived
    * yet leaves the last one up (or the stand-in) until it does.
    * @returns whether a fade is running (the screen pass must keep drawing)
    */
-  update(era: string, enabled: boolean, dt: number, reduce: boolean): boolean {
+  /** @param snap a new page lands whole, with no fade (the lids are shut on a cut between eras) */
+  update(era: string, enabled: boolean, dt: number, reduce: boolean, snap = false): boolean {
     const page = this.load(era);
     if (page.tex && era !== this.eraB) {
       if (this.eraB) {
@@ -114,7 +126,7 @@ export class ScreenPages {
       this.b.value = page.tex;
       this.viewB = page.view;
     }
-    this.mix = Math.min(1, this.mix + dt * (reduce ? 8 : 2.6));
+    this.mix = snap ? 1 : Math.min(1, this.mix + dt * (reduce ? 8 : 2.6));
     const goal = enabled && this.eraB !== null && !page.failed ? 1 : 0;
     this.on = damp(this.on, goal, reduce ? 60 : 5, dt);
     if (Math.abs(this.on - goal) < 0.002) this.on = goal;

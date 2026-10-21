@@ -21,7 +21,7 @@
  * behind), "emissive" (what blooms).
  */
 
-import { RenderPipeline, UnsignedByteType, type Camera, type RenderTarget, type Scene, type WebGPURenderer } from "three/webgpu";
+import { LinearMipmapLinearFilter, RenderPipeline, UnsignedByteType, type Camera, type RenderTarget, type Scene, type WebGPURenderer } from "three/webgpu";
 import { bloom } from "three/addons/tsl/display/BloomNode.js";
 import { T } from "../nodes/tsl";
 import type { EyeUniforms } from "../uniforms";
@@ -33,7 +33,7 @@ import { eraLensDisplay, eraLensLinear } from "./era-lens";
 import { eraMedium } from "./era-medium";
 import { macroFocus } from "./focus";
 
-const { Fn, abs, clamp, convertToTexture, float, length, mix, mrt, output, pass, sRGBTransferEOTF, screenUV, select, smoothstep, vec2, vec3, vec4 } = T;
+const { Fn, abs, clamp, convertToTexture, float, length, max, mix, mrt, output, pass, pow, sRGBTransferEOTF, screenUV, select, smoothstep, vec2, vec3, vec4 } = T;
 
 const SCREEN_VIEW = DEBUG_VIEWS.indexOf("screen");
 const FOCUS_VIEW = DEBUG_VIEWS.indexOf("focus");
@@ -133,8 +133,24 @@ export function createEyePipeline(
       1,
     );
   })();
-  // the medium resamples the finished frame (cells, curves, halftone), so it reads it as a texture
-  pipeline.outputNode = media ? eraMedium(Ux, convertToTexture(finished)) : finished;
+  // The medium resamples the finished frame (cells, curves, halftone), so it
+  // reads it as a texture: display-encoded, 8 bits a channel, as a screen
+  // shows it (every medium works on display values; half the bandwidth of
+  // a linear half-float copy, and no decode per tap). Its mips are the
+  // frosted glass's blur, a few taps of a coarse level. Its alpha is the
+  // depth, ±20 mm about the focal plane (near is 1), which 2013's components
+  // stand on.
+  const relief = clamp(float(0.5).sub(viewZ.negate().sub(U.cam.focus).div(40)), 0, 1);
+  pipeline.outputNode = media
+    ? eraMedium(
+        Ux,
+        convertToTexture(vec4(pow(max(finished.rgb, 0), vec3(1 / 2.2)), relief), null, null, {
+          type: UnsignedByteType,
+          generateMipmaps: true,
+          minFilter: LinearMipmapLinearFilter,
+        }),
+      )
+    : finished;
 
   return {
     pipeline,

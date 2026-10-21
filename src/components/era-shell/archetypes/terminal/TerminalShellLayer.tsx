@@ -10,15 +10,20 @@
  *  - subtle screen flicker
  *  - vignette to imply curvature
  *
+ * Phones keep the static glass (scanlines, vignette, bloom) and drop the
+ * beam and flicker — see useCalmMotion.
+ *
  * Does NOT recolor pages — that's the era's CSS variables. This layer is
  * purely atmospheric so it composites cleanly over any underlying UI.
  */
 
 import { motion, useReducedMotion } from "framer-motion";
+import { useCalmMotion } from "@/hooks/useCalmMotion";
 import type { ShellLayerProps } from "../../registry";
 
 export function TerminalShellLayer({ active }: ShellLayerProps) {
   const reduced = useReducedMotion();
+  const still = useCalmMotion() || reduced;
   if (!active) return null;
 
   return (
@@ -53,7 +58,7 @@ export function TerminalShellLayer({ active }: ShellLayerProps) {
       />
 
       {/* Travelling horizontal beam */}
-      {!reduced && (
+      {!still && (
         <motion.div
           className="absolute inset-x-0"
           style={{
@@ -69,7 +74,7 @@ export function TerminalShellLayer({ active }: ShellLayerProps) {
       )}
 
       {/* Random flicker */}
-      {!reduced && (
+      {!still && (
         <motion.div
           className="absolute inset-0 mix-blend-screen"
           style={{ backgroundColor: "rgba(0,255,65,1)", opacity: 0.02 }}

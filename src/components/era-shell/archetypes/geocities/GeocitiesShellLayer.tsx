@@ -6,7 +6,8 @@
  * Twinkling starfield over deep navy. Generated once from a deterministic
  * seed so the pattern is stable across renders. Each star pulses on its
  * own delay → that authentic "background.gif" feel without weighing the
- * page down with an actual tiled image.
+ * page down with an actual tiled image. On phones the stars hold still
+ * (data-era-calm), like the real tiled GIF did.
  */
 
 import { useMemo } from "react";
@@ -48,13 +49,18 @@ export function GeocitiesShellLayer({ active }: ShellLayerProps) {
           0%, 100% { opacity: 0.25; transform: scale(1); }
           50% { opacity: 1; transform: scale(1.4); }
         }
+        /* Phones: still stars sit at a mid glow, not the twinkle's peak. */
+        @media (pointer: coarse), (max-width: 767px) {
+          .kiruk-1995-star { opacity: 0.5; }
+        }
       `}</style>
       {/* Twinkling starfield — layer stays transparent so page bg shows */}
       {stars.map((s, i) => (
         <span
           key={i}
           aria-hidden
-          className="absolute rounded-full"
+          data-era-calm
+          className="kiruk-1995-star absolute rounded-full"
           style={{
             left: `${s.x}%`,
             top: `${s.y}%`,

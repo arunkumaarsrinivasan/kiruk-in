@@ -9,12 +9,12 @@
  * Pure TS: imported by the loader, the lab and the capture route alike.
  */
 
-import { eyeFrame } from "@/lib/era-eye-frame";
+import { eyeShot } from "./framing";
 
 export const POSTER_VARIANTS = {
   /** Desktop and landscape: the whole almond. */
   wide: { cssW: 1600, cssH: 900, outW: 1600 },
-  /** Phones: the pushed-in crop. Twice a 390 × 844 phone, so it is sharp at 2×. */
+  /** Phones: the whole almond across a tall frame. Twice a 390 × 844 phone, so it is sharp at 2×. */
   tall: { cssW: 780, cssH: 1688, outW: 780 },
 } as const;
 
@@ -45,15 +45,10 @@ export interface PosterPlacement {
  * odd shape; the room behind it is the same near-black, and the edges of every
  * poster are already vignetted down to it.
  */
-export function posterPlacement(
-  w: number,
-  h: number,
-  variant: PosterVariant,
-  eyeHeight = 1,
-): PosterPlacement {
+export function posterPlacement(w: number, h: number, variant: PosterVariant): PosterPlacement {
   const v = POSTER_VARIANTS[variant];
-  const at = eyeFrame(v.cssW, v.cssH, eyeHeight);
-  const here = eyeFrame(w, h, eyeHeight);
+  const at = eyeShot(v.cssW, v.cssH);
+  const here = eyeShot(w, h);
   const scale = (h / here.span) / (v.cssH / at.span);
   const width = v.cssW * scale;
   const height = v.cssH * scale;

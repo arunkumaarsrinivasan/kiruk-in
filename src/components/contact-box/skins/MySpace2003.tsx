@@ -688,6 +688,7 @@ export function MySpace2003({ contact: c }: ContactSkinProps) {
                     <p className="flex items-center gap-1.5 font-bold" style={{ color: "#1f6b1f" }}>
                       <span
                         aria-hidden
+                        data-era-calm
                         className="inline-block h-2.5 w-2.5 rounded-full"
                         style={{ background: "#3ec43e", boxShadow: "0 0 5px #3ec43e", animation: c.reduce ? "none" : "ks-blink 1.6s ease-in-out infinite" }}
                       />

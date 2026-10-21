@@ -45,6 +45,7 @@ import React, {
   useState,
 } from "react";
 import { useLayoutMode } from "@/contexts/LayoutModeContext";
+import { useCalmMotion } from "@/hooks/useCalmMotion";
 import {
   WHY_KIRUK,
   PERSONA,
@@ -848,10 +849,13 @@ export function PinboardHomePage() {
     [pins, lightboxId],
   );
 
-  // Featured rotating pin
+  // Featured rotating pin. Phones hold the pin still — skip steps it — so
+  // the board isn't changing under the thumb every eight seconds.
+  const calm = useCalmMotion();
   const [featuredIdx, setFeaturedIdx] = useState(0);
   const [featuredProgress, setFeaturedProgress] = useState(0);
   useEffect(() => {
+    if (calm) return;
     const id = window.setInterval(() => {
       setFeaturedProgress((p) => {
         if (p >= 100) {
@@ -862,7 +866,7 @@ export function PinboardHomePage() {
       });
     }, 100);
     return () => window.clearInterval(id);
-  }, [pins.length]);
+  }, [pins.length, calm]);
   const featuredPin = pins[featuredIdx % pins.length];
 
   // Flipped state (board view)
@@ -1221,6 +1225,7 @@ export function PinboardHomePage() {
           <FeaturedStrip
             pin={featuredPin}
             progress={featuredProgress}
+            compact={isMobile}
             card={card}
             ink={ink}
             inkDim={inkDim}
@@ -2232,6 +2237,7 @@ function CircleBtn({
 function FeaturedStrip({
   pin,
   progress,
+  compact,
   card,
   ink,
   inkDim,
@@ -2243,6 +2249,8 @@ function FeaturedStrip({
 }: {
   pin: Pin;
   progress: number;
+  /** Phone width: the actions drop under the title instead of squeezing it. */
+  compact: boolean;
   card: string;
   ink: string;
   inkDim: string;
@@ -2256,7 +2264,7 @@ function FeaturedStrip({
     <section
       style={{
         display: "grid",
-        gridTemplateColumns: "auto 1fr auto",
+        gridTemplateColumns: compact ? "auto minmax(0, 1fr)" : "auto 1fr auto",
         gap: 12,
         alignItems: "center",
         padding: "10px 14px",
@@ -2347,7 +2355,13 @@ function FeaturedStrip({
         </div>
       </div>
 
-      <div style={{ display: "flex", gap: 6 }}>
+      <div
+        style={{
+          display: "flex",
+          gap: 6,
+          ...(compact && { gridColumn: "1 / -1", justifyContent: "flex-end" }),
+        }}
+      >
         <FeatBtn onClick={onSkip} hairline={hairline} ink={ink} title="Skip">
           ↷ skip
         </FeatBtn>

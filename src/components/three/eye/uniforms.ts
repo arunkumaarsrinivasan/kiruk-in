@@ -8,8 +8,8 @@
  * once per object that reads them.
  */
 
-import { Color, Vector2, Vector3 } from "three/webgpu";
-import { renderGroup, uniform } from "three/tsl";
+import { Color, Vector2, Vector3, Vector4 } from "three/webgpu";
+import { renderGroup, uniform, uniformArray } from "three/tsl";
 import type { ScreenState } from "./rig/screen";
 
 function screenUniforms() {
@@ -187,22 +187,72 @@ export function createEyeUniforms() {
       seed: uniform(0).setGroup(renderGroup),
     },
     /**
-     * Ten ways of seeing (post/era-medium.ts), as era numbers (0 none): the
-     * era on screen, and the era sweeping in from either side while you
-     * travel; how far each sweep has reached (a share of the width, past the
-     * far edge once it has taken over; 0 at rest); how long the current era
-     * has been up, s; and the pupil on screen (UV) with its radius as a share
-     * of the height.
+     * Ten ways of seeing (post/era-medium.ts), written by the director
+     * (post/medium-director.ts) and the stage.
+     *
+     * `cur` is the era on screen as a number (1..10, 0 none). It changes only
+     * while the lids are shut: every cut between eras is the person's blink.
+     * `dep` is the outgoing era's departure (0..1, played as the lids close),
+     * `arr` the incoming era's arrival (0..1, played as they open), `dir` the
+     * way of travel (−1, 0, 1). `clock` runs the era's sign, s, and keeps
+     * running under reduced motion, where `steady` (1) holds every sign on;
+     * `since` is how long the era has been up, s.
+     * `signA` fades the sign in once the era has arrived (0 during a cut).
+     * `hover`, `press` and `enter` are the visitor's hand over the iris, on it,
+     * and going in (0..1 each). `ptr` is the pointer (top-left UV), `ptrOn`
+     * whether it is here, `idle` how long since it moved, s. `eye` is the globe's centre on screen (UV), `irisR`
+     * the iris's radius, `apX` the fissure's medial and lateral reach and
+     * `apY` its upper and lower reach (shares of the height; `apY.x` already
+     * closes with a blink). `pupil` is the pupil's centre (UV) and `pupilR`
+     * its radius (a share of the height). `seed` steps at a film's rate.
      */
     medium: {
       cur: uniform(0).setGroup(renderGroup),
-      prev: uniform(0).setGroup(renderGroup),
-      next: uniform(0).setGroup(renderGroup),
-      reachL: uniform(0).setGroup(renderGroup),
-      reachR: uniform(0).setGroup(renderGroup),
-      age: uniform(0).setGroup(renderGroup),
+      dep: uniform(0).setGroup(renderGroup),
+      arr: uniform(1).setGroup(renderGroup),
+      dir: uniform(0).setGroup(renderGroup),
+      clock: uniform(0).setGroup(renderGroup),
+      since: uniform(1e3).setGroup(renderGroup),
+      steady: uniform(0).setGroup(renderGroup),
+      signA: uniform(1).setGroup(renderGroup),
+      hover: uniform(0).setGroup(renderGroup),
+      press: uniform(0).setGroup(renderGroup),
+      enter: uniform(0).setGroup(renderGroup),
+      idle: uniform(0).setGroup(renderGroup),
+      ptr: uniform(new Vector2(0.5, 0.5)).setGroup(renderGroup),
+      ptrOn: uniform(0).setGroup(renderGroup),
+      eye: uniform(new Vector2(0.5, 0.5)).setGroup(renderGroup),
+      irisR: uniform(0.1).setGroup(renderGroup),
+      apX: uniform(new Vector2(0.25, 0.22)).setGroup(renderGroup),
+      apY: uniform(new Vector2(0.08, 0.1)).setGroup(renderGroup),
       pupil: uniform(new Vector2(0.5, 0.5)).setGroup(renderGroup),
       pupilR: uniform(0.02).setGroup(renderGroup),
+      seed: uniform(0).setGroup(renderGroup),
+      /** Seconds since the eye noticed the pointer coming near (2026's ripple); large when not. */
+      ripple: uniform(1e3).setGroup(renderGroup),
+      /** How much is moving (the pointer or the eye), 0..1, eased: 2026's trackers lose certainty with it. */
+      listen: uniform(0).setGroup(renderGroup),
+      /** Whether the visitor's pointer or finger is here (touch too, and under reduced motion), 0..1. */
+      track: uniform(0).setGroup(renderGroup),
+      /** The eye's turn, degrees: yaw (right +) and pitch (up +). */
+      gazeDeg: uniform(new Vector2()).setGroup(renderGroup),
+      /** The pupil's diameter, mm. */
+      pupilMm: uniform(3.5).setGroup(renderGroup),
+      /**
+       * The visitor's last six fixations (post/attention.ts): centre (top-left
+       * UV), dwell (s) and how much still shows; `fixN` is each one's number.
+       */
+      fix: uniformArray(Array.from({ length: 6 }, () => new Vector4()), "vec4").setGroup(renderGroup),
+      fixN: uniformArray(Array.from({ length: 6 }, () => 0), "float").setGroup(renderGroup),
+      /** How many fixations the visit has made, and how many blinks the eye has. */
+      fixTotal: uniform(0).setGroup(renderGroup),
+      blinks: uniform(0).setGroup(renderGroup),
+      /** The pupil's diameter over the last six seconds, mm, oldest first (32 samples). */
+      pupilHist: uniformArray(Array.from({ length: 32 }, () => 3.5), "float").setGroup(renderGroup),
+      /** How far 2026's gimbal has turned about the gaze axis, rad (it scans while the pointer is over the iris). */
+      spin: uniform(0).setGroup(renderGroup),
+      /** Lab: which of 2026's layers draw, as bits (plate, registration, geometry, landmarks, you, sign); 63 all. */
+      layers: uniform(63).setGroup(renderGroup),
     },
     /** The globe's radius, mm (anatomical 12). The stand-in iris is measured against it. */
     ballRadius: uniform(12).setGroup(renderGroup),

@@ -30,6 +30,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLayoutMode } from "@/contexts/LayoutModeContext";
+import { useCalmMotion } from "@/hooks/useCalmMotion";
 import {
   WHY_KIRUK,
   PERSONA,
@@ -364,13 +365,17 @@ export function Web2CandyHomePage() {
     [],
   );
   const [bulletinIdx, setBulletinIdx] = useState(0);
+  const nextBulletin = useCallback(
+    () => setBulletinIdx((b) => (b + 1) % bulletins.length),
+    [bulletins.length],
+  );
+  // Phones don't get a self-advancing ticker; the counter steps it instead.
+  const calm = useCalmMotion();
   useEffect(() => {
-    const id = window.setInterval(
-      () => setBulletinIdx((b) => (b + 1) % bulletins.length),
-      4200,
-    );
+    if (calm) return;
+    const id = window.setInterval(nextBulletin, 4200);
     return () => window.clearInterval(id);
-  }, [bulletins.length]);
+  }, [calm, nextBulletin]);
 
   // Custom CSS injection (MySpace iconic)
   const [cssInput, setCssInput] = useState("");
@@ -546,6 +551,7 @@ export function Web2CandyHomePage() {
               BETA
               <span
                 aria-hidden
+                data-era-calm="hide"
                 style={{
                   position: "absolute",
                   top: 0,
@@ -709,9 +715,30 @@ export function Web2CandyHomePage() {
           >
             {bulletins[bulletinIdx]}
           </span>
-          <span style={{ fontSize: 9, color: "#a87a00", letterSpacing: 1 }}>
-            {bulletinIdx + 1}/{bulletins.length}
-          </span>
+          {calm ? (
+            <button
+              type="button"
+              onClick={nextBulletin}
+              aria-label="Next bulletin"
+              style={{
+                fontSize: 9,
+                color: "#a87a00",
+                letterSpacing: 1,
+                whiteSpace: "nowrap",
+                background: "none",
+                border: 0,
+                padding: "8px 0 8px 8px",
+                margin: "-8px 0",
+                cursor: "pointer",
+              }}
+            >
+              {bulletinIdx + 1}/{bulletins.length} ›
+            </button>
+          ) : (
+            <span style={{ fontSize: 9, color: "#a87a00", letterSpacing: 1 }}>
+              {bulletinIdx + 1}/{bulletins.length}
+            </span>
+          )}
         </div>
       </div>
 
@@ -846,6 +873,7 @@ export function Web2CandyHomePage() {
               >
                 <span
                   aria-hidden
+                  data-era-calm
                   style={{
                     width: 10,
                     height: 10,
@@ -1027,6 +1055,7 @@ export function Web2CandyHomePage() {
               <button
                 type="button"
                 onClick={friendStep}
+                data-era-calm
                 style={{
                   padding: "6px 14px",
                   fontFamily: FONT_DISPLAY,

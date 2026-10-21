@@ -10,6 +10,7 @@
  */
 
 import React, { useEffect, useId, useMemo, useRef, useState } from "react";
+import { CALM_MOTION_QUERY } from "@/hooks/useCalmMotion";
 import type { GamePalette } from "./types";
 
 export interface TelescopeNode {
@@ -181,9 +182,8 @@ export function TelescopeBox({
   const [reduce, setReduce] = useState(false);
 
   useEffect(() => {
-    setReduce(
-      globalThis.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false,
-    );
+    // Phones get still stars too: the twinkle is decoration, not data.
+    setReduce(globalThis.matchMedia?.(CALM_MOTION_QUERY).matches ?? false);
   }, []);
 
   const pts: Pt[] = useMemo(() => {

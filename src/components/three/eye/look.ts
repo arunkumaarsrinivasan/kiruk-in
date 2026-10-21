@@ -203,7 +203,72 @@ const ERA_LIGHT: Record<string, ScreenLight> = {
     size: [1560, 1170],
     fill: { dir: [-0.78, 0.12, 0.62], color: "#ffc985", strength: 0.38, pos: [-430, 40, 250], size: [150, 150], round: 1 },
   },
+  // a beige 14" CRT at home at night, centred and a little low: the page's
+  // navy and neon are the only light in the room
+  "1995": { device: "crt", key: [0.05, -0.12, 0.99], pos: [0, -40, 300], normal: [0, 0, -1], size: [1480, 1110] },
+  // a selfie: an iPhone 5s held a little high at arm's length, its bright
+  // screen above the eyes and a white tabletop throwing light up from below
+  "2013": {
+    device: "phone",
+    key: [0, 0.3, 0.95],
+    pos: [0, 110, 290],
+    normal: [0, 0, -1],
+    size: [1000, 1640],
+    fill: { dir: [0, -0.7, 0.7], color: "#ffffff", strength: 0.35, pos: [0, -500, 320], size: [1600, 500], round: 0.3 },
+  },
+  // no screen: the interface is the eye, and it is daylight; a window to the
+  // left, the page itself still in the cornea
+  "2026": {
+    device: "window",
+    key: [0, 0.1, 0.99],
+    pos: [0, 40, 320],
+    normal: [0, 0, -1],
+    size: [2200, 1400],
+    fill: { dir: [-0.7, 0.35, 0.6], color: "#f5f3ee", strength: 0.35, pos: [-600, 200, 300], size: [500, 700], round: 0.05 },
+  },
 };
+
+/**
+ * How each era's picture leaves, arrives and lets you in (post/era-medium.ts,
+ * post/medium-director.ts). A cut between eras is the person's blink: the
+ * outgoing era departs as the lids close (`departMs`), the incoming one
+ * arrives as they open (`arriveMs`), and its sign comes last. `enterMs` is
+ * how long its way in plays when the iris is tapped, ending on `flood`.
+ * `cssCursor` is the loader's cursor over the iris: the era's own way of
+ * saying "this opens".
+ */
+export interface EraMedium {
+  departMs: number;
+  arriveMs: number;
+  enterMs: number;
+  flood: string;
+  cssCursor: string;
+}
+
+/** The Xerox Star's arrow, 16×16: solid ink with a paper halo, hotspot at the tip. */
+const STAR_ARROW =
+  'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAgMAAABinRfyAAAACVBMVEUAAADx7+gUExJtmyHTAAAAAXRSTlMAQObYZgAAADtJREFUeNodyjERwDAMwEAtIVE0hmAQXmI0WcIgS4uypyw/6EQApJRMaWMvOfLKF9A7YdrKMSUe78uAH8OEC1JcYgpZAAAAAElFTkSuQmCC") 0 0, default';
+
+const ERA_MEDIUM: Record<string, EraMedium> = {
+  // the raster collapses to a line, then a dot; it warms up from dark
+  "1970": { departMs: 200, arriveMs: 420, enterMs: 400, flood: "#000000", cssCursor: "default" },
+  // one field clears the bitmap; two interlaced fields paint it
+  "1981": { departMs: 130, arriveMs: 300, enterMs: 300, flood: "#f1efe8", cssCursor: STAR_ARROW },
+  // four greys drop to two; the refresh sweeps a still into detail
+  "1991": { departMs: 120, arriveMs: 440, enterMs: 360, flood: "#ffffff", cssCursor: "default" },
+  // 216 colours drop to 27; the interlaced GIF's four passes fill down
+  "1995": { departMs: 120, arriveMs: 360, enterMs: 380, flood: "#000033", cssCursor: "pointer" },
+  "1997": { departMs: 130, arriveMs: 330, enterMs: 400, flood: "#6e1f2f", cssCursor: "default" },
+  "2000": { departMs: 100, arriveMs: 600, enterMs: 300, flood: "#ffffff", cssCursor: "text" },
+  "2003": { departMs: 120, arriveMs: 500, enterMs: 380, flood: "#6a98cb", cssCursor: "pointer" },
+  "2009": { departMs: 120, arriveMs: 380, enterMs: 380, flood: "#2b1d12", cssCursor: "pointer" },
+  "2013": { departMs: 130, arriveMs: 420, enterMs: 420, flood: "#efeff4", cssCursor: "default" },
+  "2026": { departMs: 130, arriveMs: 640, enterMs: 400, flood: "#fafafa", cssCursor: "default" },
+};
+
+export function getEraMedium(eraId: string): EraMedium {
+  return ERA_MEDIUM[eraId] ?? { departMs: 120, arriveMs: 360, enterMs: 380, flood: "#000000", cssCursor: "default" };
+}
 
 /** The era's one capture artefact (post/era-lens.ts draws each). */
 export type LensArtefact = "none" | "film" | "comet" | "webcam" | "interlace" | "ccd" | "flash" | "flare";
@@ -305,24 +370,31 @@ const ERA_LENS: Record<string, Partial<EraLens>> = {
     amount: 1,
     bloom: 1.4,
   },
-  // a broadcast tube camera: soft, a little bloom, highlights smearing into a comet tail on moves
-  "1981": { grain: 0.045, halation: 0.22, sharpen: -0.5, wb: -0.1, artefact: "comet", amount: 1, bloom: 1.35 },
+  // a broadcast tube camera: soft, a little bloom, highlights smearing into a
+  // comet tail on moves (no grain: the medium's dither is the grain)
+  "1981": { grain: 0, halation: 0.22, sharpen: -0.5, wb: -0.1, artefact: "comet", amount: 1, bloom: 1.35 },
   // 35 mm slide film, editorial: clean and fine, a warm and cool split, a touch of contrast
-  "1991": { grain: 0.04, grainSize: 1.2, split: 0.6, sat: 1.1, gamma: 0.96, wb: 0.08 },
-  // an early colour webcam at 320×240: blocks, exposure pumping, smeared colour
-  "1995": { grain: 0.05, chroma: 0.6, sat: 1.15, artefact: "webcam", amount: 1 },
-  // a CCD camcorder: interlace combing on fast moves, sharpening halos, cool white
-  "1997": { grain: 0.045, wb: -0.5, sharpen: 0.55, artefact: "interlace", amount: 1 },
-  // an early digital camera at 640×480: JPEG blocks in the shadows, purple fringes, a vertical CCD smear
-  "2000": { grain: 0.045, chroma: 0.35, artefact: "ccd", amount: 1 },
+  "1991": { grain: 0, grainSize: 1.2, split: 0.6, sat: 1.1, gamma: 0.96, wb: 0.08 },
+  // a little smeared colour; the medium's web-safe cells are the low-res
+  // picture (a webcam's blocks and exposure pumping under them only beat)
+  "1995": { grain: 0, chroma: 0.35, sat: 1 },
+  // a CCD camcorder: interlace combing on fast moves, sharpening halos, a
+  // little cool; opened up, since its 16-bit bands crushed it to near black
+  "1997": { grain: 0, wb: -0.12, gain: 1.15, gamma: 0.92, sharpen: 0.35, artefact: "interlace", amount: 0.6 },
+  // a cold laptop panel at night: a little lateral colour, cool white (the
+  // CCD's smear and shadow blocks went with the box that used to crop them:
+  // full frame, they read as ghosts)
+  "2000": { grain: 0.03, chroma: 0.35, wb: -0.3 },
   // a compact with an on-camera flash: flat front light, a hard catchlight
   "2003": { grain: 0.04, vignette: 0.15, lift: 0.02, artefact: "flash", amount: 1 },
   // an early 3 MP phone: soft, warm, noisy shadows, lens flare
-  "2009": { grain: 0.07, grainSize: 1.4, wb: 0.45, sharpen: -0.35, artefact: "flare", amount: 1 },
+  // (the flare's ghosts at half: full frame, at full strength they read as rings on the brow)
+  "2009": { grain: 0.07, grainSize: 1.4, wb: 0.45, sharpen: -0.35, artefact: "flare", amount: 0.45 },
   // the filter era: lifted blacks, a warm fade, a vignette
-  "2013": { grain: 0.04, lift: 0.09, wb: 0.35, sat: 0.82, vignette: 0.6, gain: 0.97 },
+  // bright and clean (the medium's frosted glass does the softening)
+  "2013": { grain: 0.02, lift: 0.03, wb: 0.1, sat: 0.95, vignette: 0, gain: 1 },
   // computational: clean, a little too sharp, monochrome
-  "2026": { grain: 0.025, sharpen: 0.6, sat: 0, aperture: 0.8 },
+  "2026": { grain: 0, sharpen: 0.4, sat: 0, aperture: 0.8 },
 };
 
 export const GAZE_DEFAULTS: GazeParams = {
@@ -366,10 +438,11 @@ const ERA_GAZE: Record<string, { pattern: GazePattern; gaze: Partial<GazeParams>
   "2003": { pattern: "idle", gaze: {} },
   // ~15° down at the phone, riding the scroll and jumping back
   "2009": { pattern: "scroll", gaze: { rest: [0, -1.5], fixMs: 700, scrollSpeed: 1.6, blinkEvery: 4.5 } },
-  // ~10° down at the phone, with glances up at the window
+  // a selfie: up into the front camera's lens, then down a little to the
+  // screen to see how it looks, and back
   "2013": {
     pattern: "two-target",
-    gaze: { rest: [0, -1], a: [0.02, -1], b: [0.18, 0.45], dwellA: 6, dwellB: 0.9, fixMs: 750, blinkEvery: 4 },
+    gaze: { rest: [0, 0.3], a: [0, 0.45], b: [0.04, 0.25], dwellA: 1.2, dwellB: 4, fixMs: 750, blinkEvery: 4 },
   },
   // eye contact: straight into the camera, following the pointer best of all
   "2026": { pattern: "contact", gaze: { microRate: 0.6, pursuitGain: 0.97, catchUp: 1, blinkEvery: 4.2 } },

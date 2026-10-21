@@ -9,13 +9,14 @@
  * is up, so the loader can crossfade it over its poster.
  *
  * The renderer picks WebGPU or WebGL2 once, at init. Everything compiles
- * behind the poster (compileAsync) before the first frame is drawn, and the
- * node graphs are never rebuilt after that: eras, gaze and blinks only write
- * uniforms.
+ * behind the poster before the stage fades in (on WebGPU, off the GPU's main
+ * thread: see "warm up"), and the node graphs are never rebuilt after that:
+ * eras, gaze and blinks only write uniforms.
  *
  * Cost discipline, carried over from the live eye:
  *  · nothing renders while the tab is in the background;
  *  · an idle stage drops to every third frame until a pointer arrives;
+ *  · a covered stage (the loader's opening over it) draws only now and then;
  *  · the drawing buffer is held to a pixel budget and backs off if frames run long.
  */
 
@@ -23,7 +24,6 @@ import React, { Component, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three/webgpu";
 import type { ThemeConfig } from "@/data/portfolio-data";
-import { eyeFrame } from "@/lib/era-eye-frame";
 import { getEraVisual } from "@/lib/era-visuals";
 import {
   ANATOMY,
@@ -36,6 +36,7 @@ import {
   GAZE_YAW,
   MM_PER_UNIT,
 } from "./anatomy";
+import { eyeShot, type FrameBox } from "./framing";
 import { DPR_MIN, TIERS, budgetDpr, pickTier, readTierSignals, type EyeTier } from "./tiers";
 import { createEyeUniforms, writeScreenUniforms, type EyeUniforms } from "./uniforms";
 import { ScreenPages } from "./screen-pages";
@@ -53,23 +54,40 @@ import { createSkinFaceBake } from "./bake/skin-face";
 import { createLashes } from "./nodes/lashes";
 import { meniscusGeometry, meniscusMaterial } from "./nodes/meniscus";
 import { createTearFilm } from "./bake/tear";
-import { fissureAngles } from "./nodes/margins";
+import { FISSURE_MM, MARGIN_RADIUS, fissureAngles } from "./nodes/margins";
 import { createSkinBake } from "./bake/skin";
 import { createVesselBake } from "./bake/vessels";
 import { createIrisBake } from "./bake/iris";
 import { DEFAULT_IDENTITY, LID_SHAPES, MONK_TONES, getEyeIdentity } from "./identity";
-import { CURSOR_KIND, LENS_ARTEFACTS, getEraLook, type EraLens, type GazePattern } from "./look";
+import { CURSOR_KIND, LENS_ARTEFACTS, getEraLook, getEraMedium, type EraLens, type GazePattern } from "./look";
 import { UI_FPS, createScreenPass } from "./nodes/screen";
 import { createEyePipeline } from "./post/pipeline";
 import { ERA_MEDIA, mediumOf } from "./post/era-medium";
+import { MediumDirector } from "./post/medium-director";
+import { Attention } from "./post/attention";
 import { createEraScreenTexture, type EraScreenTexture } from "@/components/three/era-screen-texture";
 
 /** How long the gaze keeps following a pointer that has stopped arriving. */
 const POINTER_HOLD = 2.2;
 /** The stage counts as up once its intro fade has arrived this far. */
 const READY_AT = 0.97;
+/** A covered stage draws a frame this often, s: enough to keep its clock, its fade and its warm-up going. */
+const COVERED_EVERY = 0.1;
+/** The stage is warm once its frames have asked for no new GPU pipeline for this long, s. */
+const WARM_QUIET = 0.3;
+/** The eye's parts a warming stage adds, one group a frame, after the post chain (the biggest shaders kept apart). */
+const WARM_PARTS: EyeLayer[][] = [[], ["lids"], ["tears", "lashes"], ["eyeball", "cornea", "socket", "room"]];
 /** The span the era's page is authored to be legible at — a desktop's. */
 const REF_SPAN = 1.09;
+/**
+ * A calm stage (phones): the same eye, turned down. Visitors on a phone found
+ * the loader too busy, so the film grain is fainter and a finger pulls the
+ * gaze less far (and the cut between eras runs a quarter slower: the
+ * director's `calm`).
+ */
+const CALM = { grain: 0.45, gaze: 0.6 } as const;
+/** A press that moves further than this (CSS px) is a drag, not a press on the iris. */
+const PRESS_SLOP = 6;
 
 export const EYE_LAYERS = ["room", "eyeball", "cornea", "lids", "lashes", "tears", "socket"] as const;
 export type EyeLayer = (typeof EYE_LAYERS)[number];
@@ -132,6 +150,18 @@ export interface EyeStageControl {
   setGazePattern(pattern: GazePattern | null): void;
   /** Ten ways of seeing: show this medium (an era number, 1..10; 0 none) whatever the era, or null for the era's own. */
   setMedium(id: number | null): void;
+  /** Lab: runs the cut between eras (and its signs) at this rate, 1 normal; for filmstrips. */
+  slowMedium(rate: number): void;
+  /** Lab: which of 2026's layers draw (bits: plate, registration, geometry, landmarks, you, sign; 63 all), for the exploded view. */
+  mediumLayers(mask: number): void;
+  /** Lab: the cut's state, read for filmstrips. */
+  mediumInfo(): { cur: number; dep: number; arr: number; blink: number; signA: number; busy: boolean; scrub: boolean; since: number; idle: number };
+  /**
+   * Scrubbing: the unrounded era position under the hand (0 is the first era),
+   * sent while a drag, a swipe or the ghost finger travels; null when it lets
+   * go. The hand then works the lids (post/medium-director.ts).
+   */
+  travel(pos: number | null): void;
   /** The last ~6 s of gaze, degrees, ~120 Hz, with what the eye was doing. */
   gazeTrace(): GazeSample[];
   /** The way of looking in force, and the mean seconds between blinks. */
@@ -192,55 +222,21 @@ const PATTERN_ERA: Record<GazePattern, string> = {
   contact: "2026",
 };
 
-/**
- * What a wide screen frames, mm round the globe's centre: the whole brow
- * with a little forehead above it, the lower lid's bulge and lashes below,
- * and the corners with some face to each side. The shot fits this box
- * whatever the window's shape, so the brow never leaves the frame.
- */
-const FRAME_BOX: FrameBox = { halfW: 16, top: 12, bottom: -10 };
-
-/** A wide screen's shot, mm round the globe's centre (`FRAME_BOX`); the loader passes its own to make room for its chrome. */
-export interface FrameBox {
-  halfW: number;
-  top: number;
-  bottom: number;
-}
+export type { FrameBox } from "./framing";
 
 /** The era screens' size as the eye sees them (look.ts), × this. */
 const SCREEN_SCALE = 0.62;
 
-/**
- * The shared framing (era-eye-frame), reframed on a wide screen to hold
- * FRAME_BOX: as tall as the box, or as wide, whichever the window needs, and
- * centred on it (so the eye sits below the middle and the brow is in the
- * shot). A portrait screen already crops to the eyeball and is left as it
- * is; in between, the two blend. Everything measured in the frame (span,
- * offset, the iris's centre and size on screen) moves together.
- */
-function tslFrame(w: number, h: number, eyeHeight: number, box: FrameBox = FRAME_BOX) {
-  const f = eyeFrame(w, h, eyeHeight);
-  const aspect = w / Math.max(h, 1);
-  const wide = Math.min(1, Math.max(0, (aspect - 1.05) / 0.3));
-  const B = box;
-  const boxMm = Math.max(B.top - B.bottom, (B.halfW * 2) / aspect);
-  const span = f.span + (boxMm / MM_PER_UNIT - f.span) * wide;
-  const zoom = f.span / span;
-  // the frame's middle on the box's middle: the camera looks that far above the eye
-  const offsetY = (f.offsetY / zoom) * (1 - wide) - (((B.top + B.bottom) / 2) * wide) / MM_PER_UNIT;
-  return { ...f, span, offsetY, cy: (0.5 - offsetY / span) * h, irisPx: f.irisPx * zoom, zoom };
-}
-
-/** Frames the macro shot from the same numbers the dial and the tap target use, pushed in (tslFrame). */
-function frameCamera(camera: THREE.PerspectiveCamera, w: number, h: number, eyeHeight: number, box?: FrameBox) {
-  const f = tslFrame(w, h, eyeHeight, box);
+/** Frames the macro shot from the same numbers the poster and the tap target use (framing.ts). */
+function frameCamera(camera: THREE.PerspectiveCamera, w: number, h: number, box?: FrameBox) {
+  const f = eyeShot(w, h, box);
   const heightMm = f.span * MM_PER_UNIT;
   const dist = heightMm / 2 / Math.tan(THREE.MathUtils.degToRad(CAMERA_FOV) / 2);
   camera.fov = CAMERA_FOV;
   camera.aspect = w / Math.max(h, 1);
   camera.near = Math.max(1, dist - ANATOMY.eyeballRadius * 4);
   camera.far = dist + ANATOMY.eyeballRadius * 20;
-  // the eye sits above centre on a phone, so the camera sits below it
+  // the camera looks at the box's middle, not the eye's
   camera.position.set(0, -f.offsetY * MM_PER_UNIT, FRAME_PLANE_Z + dist);
   camera.rotation.set(0, 0, 0);
   camera.updateProjectionMatrix();
@@ -248,7 +244,6 @@ function frameCamera(camera: THREE.PerspectiveCamera, w: number, h: number, eyeH
 
 interface SceneProps {
   era: ThemeConfig;
-  eyeHeight: number;
   exiting: boolean;
   reduce: boolean;
   interactive: boolean;
@@ -265,11 +260,12 @@ interface SceneProps {
   capture?: React.MutableRefObject<(() => Promise<string>) | null>;
   frameBox?: FrameBox;
   media?: boolean;
+  calm?: boolean;
+  covered?: boolean;
 }
 
 function EyeScene({
   era,
-  eyeHeight,
   exiting,
   reduce,
   interactive,
@@ -281,6 +277,8 @@ function EyeScene({
   capture,
   frameBox,
   media = false,
+  calm = false,
+  covered = false,
 }: SceneProps) {
   const gl = useThree((s) => s.gl) as unknown as THREE.WebGPURenderer;
   const scene = useThree((s) => s.scene) as unknown as THREE.Scene;
@@ -435,6 +433,8 @@ function EyeScene({
     tears: true,
     socket: true,
   });
+  const layerObject = (layer: EyeLayer): THREE.Object3D =>
+    ({ eyeball: eyeball.ball, cornea: eyeball.cornea, lids, lashes, tears: meniscus, socket, room })[layer];
 
   useEffect(() => {
     scene.add(eyeball.group);
@@ -475,12 +475,61 @@ function EyeScene({
   );
   useEffect(() => () => pipeline.dispose(), [pipeline]);
 
-  /* ---- compile behind the poster -------------------------------------- */
+  /* ---- warm up behind the poster -------------------------------------- */
+
+  // WebGPU: the first frames build every pipeline they need off the GPU's
+  // main thread (createRenderPipelineAsync), and whatever is not ready yet is
+  // simply not drawn. A pipeline built the plain way compiles on the GPU
+  // process's main thread, and the whole browser's frames wait for it: the
+  // post chain alone is ~430 KB of WGSL, and it froze every frame on screen
+  // for five seconds on an integrated GPU. (compileAsync built them too, but
+  // for other targets and vertex stages than the frames draw with, so each
+  // was built twice, the second time the plain way.) The stage is warm once
+  // its frames have asked for nothing new for a moment and nothing is pending;
+  // only then does it fade in. While it is covered, new pipelines are still
+  // built this way: something not drawn for a moment is out of sight there.
+  const warm = useRef({ async: true, pending: 0, made: 0, seen: 0, quietSince: 0, step: 0, done: false });
+  useEffect(() => {
+    const W = warm.current;
+    const backend = gl.backend as unknown as {
+      isWebGPUBackend?: boolean;
+      createRenderPipeline: (renderObject: unknown, promises: Promise<void>[] | null) => void;
+    };
+    // (WebGL2 compiles behind the poster below instead)
+    if (backend.isWebGPUBackend !== true) {
+      W.done = true;
+      return;
+    }
+    const make = backend.createRenderPipeline;
+    backend.createRenderPipeline = function (renderObject, promises) {
+      if (promises || !W.async) return make.call(this, renderObject, promises);
+      const built: Promise<void>[] = [];
+      make.call(this, renderObject, built);
+      W.made += 1;
+      W.pending += built.length;
+      void Promise.all(built).finally(() => {
+        W.pending -= built.length;
+      });
+    };
+    return () => {
+      backend.createRenderPipeline = make;
+    };
+  }, [gl]);
+  /** Something opaque is over the stage (the loader's opening); read by the frame. */
+  const coveredRef = useRef(covered);
+  useEffect(() => {
+    coveredRef.current = covered;
+  }, [covered]);
 
   const compiled = useRef(false);
   useEffect(() => {
+    // WebGPU warms on its first frames instead (above)
+    if (info.backend === "webgpu") {
+      compiled.current = true;
+      return;
+    }
     let live = true;
-    frameCamera(camera, size.width, size.height, eyeHeight, frameBox);
+    frameCamera(camera, size.width, size.height, frameBox);
     Promise.all([
       gl.compileAsync(scene, camera),
       gl.compileAsync(screen.quad, screen.quad.camera),
@@ -501,9 +550,18 @@ function EyeScene({
 
   /* ---- what the era decides, resolved once per era -------------------- */
 
-  const visual = useMemo(() => getEraVisual(era.id), [era.id]);
-  const identity = useMemo(() => getEyeIdentity(era.id), [era.id]);
-  const look = useMemo(() => getEraLook(era.id), [era.id]);
+  // With the media on, the era's light, lens, page and gaze change only while
+  // the lids are shut (post/medium-director.ts): `view` is the era on screen,
+  // which follows `era` at the director's swap. Without them it is `era`.
+  const seenEras = useRef<Record<string, ThemeConfig>>({});
+  seenEras.current[era.id] = era;
+  const [shownId, setShownId] = useState(era.id);
+  const view = media ? (seenEras.current[shownId] ?? era) : era;
+  /** The medium whose light and lens are up (the director waits for it before opening the lids). */
+  const applied = useRef(0);
+  const visual = useMemo(() => getEraVisual(view.id), [view.id]);
+  const identity = useMemo(() => getEyeIdentity(view.id), [view.id]);
+  const look = useMemo(() => getEraLook(view.id), [view.id]);
   /** Lab: another era's way of looking. */
   const patternOverride = useRef<GazePattern | null>(null);
   const [patternRev, setPatternRev] = useState(0);
@@ -539,15 +597,9 @@ function EyeScene({
     LS.mascara.value = identity.lashes.mascara;
     LS.root.value.set(identity.lashes.root);
     LS.tip.value.set(identity.lashes.tip);
-    // arriving somewhere new, an eye often blinks
-    if (irisState.current.baked > 0 && !reduce && Math.random() < 0.6) blinkRig.trigger();
-    // four or more eras in a second is a sweep fast enough to bring tears
-    {
-      const tr = tears.current;
-      const t = performance.now() / 1000;
-      tr.eras = tr.eras.filter((x) => t - x < 1).concat(t);
-      if (tr.eras.length >= 4 && !reduce) tr.tearing = Math.min(1, tr.tearing + 0.25);
-    }
+    // arriving somewhere new, an eye often blinks (with the media on, every
+    // arrival already is a blink: the director's)
+    if (!media && irisState.current.baked > 0 && !reduce && Math.random() < 0.6) blinkRig.trigger();
     vessels.setSeed(identity.seed);
     // The iris is baked into whichever set is not on screen, then crossfaded
     // in. A fast sweep coalesces to the era it lands on: a bake is a few
@@ -570,6 +622,18 @@ function EyeScene({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [identity, vessels, irisBake, U]);
 
+  // Four or more eras asked for in a second is a sweep fast enough to bring
+  // tears (counted on the request: with the media on, the cuts that follow
+  // are rate-limited and would never reach four).
+  useEffect(() => {
+    if (reduce) return;
+    const tr = tears.current;
+    const t = performance.now() / 1000;
+    tr.eras = tr.eras.filter((x) => t - x < 1).concat(t);
+    if (tr.eras.length >= 4) tr.tearing = Math.min(1, tr.tearing + 0.25);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [era.id]);
+
   // The screen they are looking at, as a light and a mirror: where it is, how
   // big, and which way its own right and up run as the person sees it.
   useEffect(() => {
@@ -586,8 +650,9 @@ function EyeScene({
     // eye, so they are scaled down to leave the iris round the reflection)
     L.size.value.set(look.light.size[0] * SCREEN_SCALE, look.light.size[1] * SCREEN_SCALE);
     U.screen.cursorKind.value = CURSOR_KIND[look.cursor];
-  }, [look, U]);
-  const pal = useMemo(() => eraPalette(era), [era]);
+    applied.current = mediumOf(view.id);
+  }, [look, U, view.id]);
+  const pal = useMemo(() => eraPalette(view), [view]);
   const palCols = useMemo(() => paletteColors(pal), [pal]);
   const lum = useMemo(() => screenLuminance(pal), [pal]);
 
@@ -596,8 +661,8 @@ function EyeScene({
   const painted = useRef<string | null>(null);
   useEffect(() => {
     const paint = () => {
-      painted.current = era.id;
-      code.update(era.id, pal);
+      painted.current = view.id;
+      code.update(view.id, pal);
     };
     if (painted.current === null) {
       paint();
@@ -605,13 +670,26 @@ function EyeScene({
     }
     const id = window.setTimeout(paint, 64);
     return () => window.clearTimeout(id);
-  }, [code, era.id, pal]);
+  }, [code, view.id, pal]);
+  // the page of the era being travelled to starts loading at once, so it is
+  // there by the time the lids are shut
+  useEffect(() => {
+    pages.prefetch(era.id);
+  }, [pages, era.id]);
 
   /* ---- input ------------------------------------------------------------ */
 
   const gazeRig = useMemo(() => new GazeRig(), []);
   const blinkRig = useMemo(() => new BlinkRig(), []);
-  const pointer = useRef({ x: 0, y: 0, seen: -1e3 });
+  const pointer = useRef({ x: 0, y: 0, seen: -1e3, mouse: true, down: false, downAt: 0, onIris: false, dragged: false, sx: 0, sy: 0 });
+  /** Where the gaze was when the cut began: the glance toward the next era is taken from there. */
+  const glanceFrom = useRef<number | null>(null);
+  /** Where the pointer and the iris were last frame (top-left UV; CSS px), for how much is moving. */
+  const listenFrom = useRef({ x: NaN, y: NaN, ix: NaN, iy: NaN });
+  /** Where the visitor's pointer rests (2026 measures you back). */
+  const attention = useMemo(() => new Attention(), []);
+  /** The eye's blinks, counted as the lids shut (2026 reads them out). */
+  const blinkCount = useRef({ n: 0, shut: false });
   /** How much the pointer resting on the eye interests it, 0..1, eased: the brow lifts with it. */
   const browInterest = useRef(0);
   /** Where the iris was drawn last frame, CSS px, for the loader's tap target. */
@@ -623,9 +701,14 @@ function EyeScene({
   const browFlash = useRef(-1e3);
   const pupilRig = useMemo(() => new PupilRig(), []);
   const trace = useRef<{ samples: number[]; due: number }>({ samples: [], due: 0 });
-  /** Ten ways of seeing: the era on screen, its glimpsed neighbours and a crossing under way; and the lab's choice of medium (null: the era's own). */
-  const mediumState = useRef({ cur: 0, target: 0, prev: 0, next: 0, dir: 0, t: 0, from: 0, reachL: 0, reachR: 0, age: 0 });
+  /** Ten ways of seeing: the cut between eras (a blink), and the lab's choice of medium (null: the era's own). */
+  const director = useMemo(() => new MediumDirector((m) => getEraMedium(ERA_MEDIA[m - 1] ?? "")), []);
+  /** The look the last frame used: when it changes under the media, its light and lens land at once. */
+  const lastLook = useRef<ReturnType<typeof getEraLook> | null>(null);
   const mediumHold = useRef<number | null>(null);
+  const mediumRate = useRef(1);
+  /** The loader's scrub: the unrounded era index under the hand, or null. */
+  const travelPos = useRef<number | null>(null);
   const hold = useRef<{
     gaze: { x: number; y: number } | null;
     pupil: number | null;
@@ -664,6 +747,7 @@ function EyeScene({
    */
   const tears = useRef({ sinceBlink: 0, shut: false, opened: -1e3, seed: 0, tearing: 0, eras: [] as number[] });
   const lashLag = useRef({ up: NaN, lo: NaN, xU: 0, vU: 0, xL: 0, vL: 0 });
+  const lidReach = useRef<{ up: number; lo: number }>({ up: FISSURE_MM.upper, lo: FISSURE_MM.lower });
   const hidden = useRef(false);
   const readySent = useRef(false);
   /** Seconds owed to the screen pass; starts due, so the first frame has a screen. */
@@ -672,7 +756,7 @@ function EyeScene({
   const irisState = useRef({ active: 0 as 0 | 1, baked: 0, goal: 0 });
   /** The membrane's lag after a turn: offset and velocity (mm), last turn rate. */
   const wobble = useRef({ x: 0, y: 0, vx: 0, vy: 0, yaw: 0, pitch: 0, wYaw: 0, wPitch: 0 });
-  const health = useRef({ ema: 1 / 60, cool: 2, skip: 0, owed: 0, moved: 0 });
+  const health = useRef({ ema: 1 / 60, cool: 2, skip: 0, owed: 0, moved: 0, heldBlink: -1, drawn: -1 });
   /** A poster capture waiting for the next drawn frame (lab only). */
   const pendingCapture = useRef<((png: string) => void) | null>(null);
   useEffect(() => {
@@ -708,20 +792,45 @@ function EyeScene({
     return () => document.removeEventListener("visibilitychange", sync);
   }, []);
 
+  // (also under reduced motion: the gaze then ignores the pointer, but the
+  // era's sign still answers hover and press)
   useEffect(() => {
-    if (!interactive || reduce) return;
+    if (!interactive) return;
+    const P = pointer.current;
     const onMove = (e: PointerEvent) => {
-      pointer.current.x = (e.clientX / Math.max(window.innerWidth, 1)) * 2 - 1;
-      pointer.current.y = (e.clientY / Math.max(window.innerHeight, 1)) * 2 - 1;
+      P.x = (e.clientX / Math.max(window.innerWidth, 1)) * 2 - 1;
+      P.y = (e.clientY / Math.max(window.innerHeight, 1)) * 2 - 1;
+      P.mouse = e.pointerType === "mouse";
       const t = performance.now() / 1000;
-      if (t - pointer.current.seen > 2.5 && t - browFlash.current > 4) browFlash.current = t + 0.08;
-      pointer.current.seen = t;
+      if (!reduce && t - P.seen > 2.5 && t - browFlash.current > 4) browFlash.current = t + 0.08;
+      P.seen = t;
+      if (P.down && Math.hypot(e.clientX - P.sx, e.clientY - P.sy) > PRESS_SLOP) P.dragged = true;
+    };
+    // a press on the iris, for the era's press feedback (the loader decides what a tap does)
+    const onDown = (e: PointerEvent) => {
+      onMove(e);
+      const iris = irisOnScreen.current;
+      P.down = true;
+      P.downAt = performance.now() / 1000;
+      P.dragged = false;
+      P.sx = e.clientX;
+      P.sy = e.clientY;
+      // (a finger gets a little more room than a cursor, as the loader's tap does)
+      P.onIris = Math.hypot(e.clientX - iris.x, e.clientY - iris.y) < (P.mouse ? iris.r * 1.05 : Math.max(iris.r * 1.3, 28));
+    };
+    const onUp = () => {
+      P.down = false;
+      P.dragged = false;
     };
     window.addEventListener("pointermove", onMove, { passive: true });
-    window.addEventListener("pointerdown", onMove, { passive: true });
+    window.addEventListener("pointerdown", onDown, { passive: true });
+    window.addEventListener("pointerup", onUp, { passive: true });
+    window.addEventListener("pointercancel", onUp, { passive: true });
     return () => {
       window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerdown", onMove);
+      window.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
     };
   }, [interactive, reduce]);
 
@@ -778,6 +887,31 @@ function EyeScene({
       setMedium(id) {
         mediumHold.current = id;
       },
+      slowMedium(rate) {
+        mediumRate.current = Math.max(0.01, rate);
+      },
+      mediumLayers(mask) {
+        U.medium.layers.value = mask;
+      },
+      mediumInfo: () => ({
+        cur: director.cur,
+        dep: director.dep,
+        arr: director.arr,
+        blink: U.blink.value,
+        signA: director.signA,
+        busy: director.busy,
+        scrub: director.scrubbing,
+        since: director.since,
+        idle: U.medium.idle.value,
+      }),
+      travel(pos) {
+        travelPos.current = pos;
+        // both eras either side of the hand load now, so a cut never waits for one
+        if (pos !== null) {
+          pages.prefetch(ERA_MEDIA[Math.max(0, Math.floor(pos))] ?? ERA_MEDIA[0]);
+          pages.prefetch(ERA_MEDIA[Math.min(ERA_MEDIA.length - 1, Math.ceil(pos))] ?? ERA_MEDIA[0]);
+        }
+      },
       setGazePattern(pattern) {
         if (patternOverride.current === pattern) return;
         patternOverride.current = pattern;
@@ -803,7 +937,7 @@ function EyeScene({
     return () => {
       control.current = null;
     };
-  }, [control, U, info, eyeball, lids, lashes, meniscus, socket, room, scene, blinkRig, gazeRig, driver, pupilRig, look, pages]);
+  }, [control, U, info, eyeball, lids, lashes, meniscus, socket, room, scene, blinkRig, gazeRig, driver, pupilRig, look, pages, director]);
 
   /* ---- the frame -------------------------------------------------------- */
 
@@ -812,26 +946,42 @@ function EyeScene({
 
     const now = performance.now() / 1000;
     const pointerIdle = now - pointer.current.seen > 2.8;
+    const W = warm.current;
+    const covered = coveredRef.current;
+    W.async = !W.done || covered;
     // The lab measures every frame; the loader may rest, but only while the
     // eye is holding still: never through a saccade, its wobble or a blink.
     // Skipped time is carried, so the eye's clock never slows.
     const h0 = health.current;
-    if (gazeRig.busy || blinkRig.active) h0.moved = now;
-    if (pointerIdle && !exiting && !profile && !pendingCapture.current && readySent.current && now - h0.moved > 0.25) {
+    if (gazeRig.busy || blinkRig.active || director.busy) h0.moved = now;
+    // lids moved from outside (the loader opening the eye) are motion too
+    const heldBlink = hold.current.blink ?? -1;
+    if (heldBlink !== h0.heldBlink) {
+      h0.moved = now;
+      h0.heldBlink = heldBlink;
+    }
+    // covered: nobody sees these frames, so only enough of them to keep the
+    // eye's clock, its fade and its warm-up going (the GPU is the opening's)
+    if (covered && !pendingCapture.current && now - h0.drawn < COVERED_EVERY) {
+      h0.owed += delta;
+      return;
+    }
+    if (!covered && pointerIdle && !exiting && !profile && !pendingCapture.current && readySent.current && now - h0.moved > 0.25) {
       h0.skip = (h0.skip + 1) % 3;
       if (h0.skip !== 0) {
         h0.owed += delta;
         return;
       }
     }
+    h0.drawn = now;
     const dt = Math.min(delta + h0.owed, 0.1);
     h0.owed = 0;
     if (!reduce) U.time.value += dt;
 
     // Framing is shared with the dial and the picker's hit-testing, so all
     // three agree about where the iris is on a phone.
-    frameCamera(camera, size.width, size.height, eyeHeight, frameBox);
-    const frame = tslFrame(size.width, size.height, eyeHeight, frameBox);
+    frameCamera(camera, size.width, size.height, frameBox);
+    const frame = eyeShot(size.width, size.height, frameBox);
     U.span.value = frame.span;
     U.offsetY.value = frame.offsetY;
     // The further back the shot stands, the fewer pixels a texel of the era's
@@ -840,18 +990,64 @@ function EyeScene({
     U.mip.value = Math.max(0, Math.log2(frame.span / REF_SPAN)) * 1.15;
 
     // gaze: a held target (lab), else the pointer, else the room
-    const fresh = interactive && !reduce && now - pointer.current.seen < POINTER_HOLD;
+    /** A pointer is here (even under reduced motion, for the era's sign). */
+    const seen = interactive && now - pointer.current.seen < POINTER_HOLD;
+    const fresh = seen && !reduce;
+
+    // ---- ten ways of seeing: the cut between eras is the person's blink -----
+    // (post/medium-director.ts). The era's light, lens and page follow the
+    // director's swap, made while the lids are shut.
+    if (media) {
+      const P = pointer.current;
+      const iris = irisOnScreen.current;
+      const overIris = Math.hypot(((P.x + 1) / 2) * size.width - iris.x, ((P.y + 1) / 2) * size.height - iris.y) < iris.r;
+      const held = mediumHold.current;
+      director.update({
+        want: held ?? mediumOf(era.id),
+        dt: dt * mediumRate.current,
+        reduce,
+        calm,
+        exiting,
+        lid: U.blink.value,
+        // (the cut waits a little, behind shut lids, for the new era's light and its page)
+        applied: held === null ? (pages.ready(view.id) ? applied.current : 0) : director.cur,
+        hover: seen && P.mouse && overIris,
+        // a finger's press shows after 100 ms, so the start of a swipe never flashes it
+        down: P.down && P.onIris && !P.dragged && (P.mouse || now - P.downAt > 0.1),
+        dragged: P.down && P.dragged,
+        near: seen && P.mouse && Math.hypot(((P.x + 1) / 2) * size.width - iris.x, ((P.y + 1) / 2) * size.height - iris.y) < iris.r * 2.5,
+        // (medium space is 1-based; the lab's held medium ignores the hand)
+        travel: held === null && travelPos.current !== null ? travelPos.current + 1 : null,
+      });
+      const next = held === null ? (ERA_MEDIA[director.cur - 1] ?? era.id) : era.id;
+      if ((director.swap || held !== null) && next !== shownId) setShownId(next);
+      if (!director.busy) glanceFrom.current = null;
+      else if (glanceFrom.current === null) glanceFrom.current = U.gaze.value.x;
+    }
+    // the new era's light and lens land at once, behind the shut lids
+    const snapLook = media && lastLook.current !== null && lastLook.current !== look;
+    lastLook.current = look;
+
     const target =
       hold.current.gaze ??
       (fresh
         ? {
-            x: THREE.MathUtils.clamp(pointer.current.x, -1, 1),
-            y: THREE.MathUtils.clamp(-pointer.current.y, -1, 1),
+            x: THREE.MathUtils.clamp(pointer.current.x, -1, 1) * (calm ? CALM.gaze : 1),
+            y: THREE.MathUtils.clamp(-pointer.current.y, -1, 1) * (calm ? CALM.gaze : 1),
           }
-        : null);
+        : media && director.look !== null
+          ? { x: THREE.MathUtils.clamp((glanceFrom.current ?? 0) + director.look, -0.85, 0.85), y: look.restGaze[1] }
+          : null);
     const g = gazeRig.update(dt, target, reduce);
     U.gaze.value.set(g.x, g.y);
-    U.blink.value = hold.current.blink ?? blinkRig.update(dt, reduce, exiting || hold.current.stare);
+    // The lids: the loader's hold (its opening) and the director's cut both
+    // own them at times; the more shut wins, so a cut never swaps eras with
+    // the eye open. The blink rig runs every frame, so a natural blink caught
+    // by a cut finishes unseen behind it instead of replaying after.
+    const heldLid = hold.current.blink;
+    const cutLid = media ? director.blink : null;
+    const natural = blinkRig.update(dt, reduce, exiting || hold.current.stare || heldLid !== null || (media && director.quiet));
+    U.blink.value = heldLid !== null && cutLid !== null ? Math.max(heldLid, cutLid) : (heldLid ?? cutLid ?? natural);
     // up is a negative pitch about x; under a closing lid the eye rolls up
     eyeball.group.rotation.set(-g.y * GAZE_PITCH - U.blink.value * BELL_PITCH, g.x * GAZE_YAW, 0);
 
@@ -922,7 +1118,7 @@ function EyeScene({
       const F = U.fill;
       const fill = look.light.fill;
       const goal = fill ? FILL_TMP.set(fill.color).multiplyScalar(fill.strength) : FILL_TMP.setRGB(0, 0, 0);
-      F.color.value.lerp(goal, reduce ? 1 : 1 - Math.exp(-3 * dt));
+      F.color.value.lerp(goal, reduce || snapLook ? 1 : 1 - Math.exp(-3 * dt));
       if (fill) {
         F.dir.value.set(...fill.dir).normalize();
         F.center.value.set(...fill.pos);
@@ -946,6 +1142,9 @@ function EyeScene({
       const upOpen = Math.max(fa.upper * (1 - 0.25 * sq) + (LU.pitch.value < 0 ? 0.7 : 0.85) * LU.pitch.value, loOpen + 0.004);
       const lo = loOpen + b * 0.12 * fa.lower;
       const up = Math.max(upOpen + (lo + 0.012 - upOpen) * b, lo + 0.004);
+      // where the margins' apexes stand above and below the globe's centre, mm (the media's masks)
+      lidReach.current.up = MARGIN_RADIUS * Math.sin(up);
+      lidReach.current.lo = -MARGIN_RADIUS * Math.sin(lo);
       const l = lashLag.current;
       if (reduce || Number.isNaN(l.up)) {
         l.xU = l.vU = l.xL = l.vL = 0;
@@ -977,12 +1176,13 @@ function EyeScene({
     // a big jump of the eyes often brings a blink with it, the bigger the likelier
     if (gazeRig.lastSaccade > 0) {
       const p = THREE.MathUtils.smoothstep(gazeRig.lastSaccade, 12, 35) * 0.7;
-      if (!reduce && !exiting && Math.random() < p) blinkRig.trigger();
+      if (!reduce && !exiting && !(media && director.quiet) && Math.random() < p) blinkRig.trigger();
       gazeRig.lastSaccade = 0;
     }
-    U.fade.value = damp(U.fade.value, 1, reduce ? 30 : 5, dt);
+    // (it fades in only once warm: until then parts of it may not be drawn yet)
+    U.fade.value = W.done ? damp(U.fade.value, 1, reduce ? 30 : 5, dt) : 0;
 
-    U.screenLum.value = damp(U.screenLum.value, lum, 3, dt);
+    U.screenLum.value = snapLook ? lum : damp(U.screenLum.value, lum, 3, dt);
 
     // ---- the era's screen, at its own frame rate --------------------------
     // It is a defocused reflection that rebuilds a mip chain every time it
@@ -993,9 +1193,11 @@ function EyeScene({
       pagesTurned.current = gazeRig.pagesTurned;
     }
     // the page in the reflection scrolls at half the era's rate: calmer to watch
-    driver.update(dt, visual, palCols, reduce, look.stepScroll, 0.5);
+    // behind shut lids on a cut, the new screen lands whole
+    const lidsShut = media && U.blink.value > 0.9;
+    driver.update(dt, visual, palCols, reduce, look.stepScroll, 0.5, lidsShut);
     writeScreenUniforms(U.screen, driver.state);
-    const pageFading = pages.update(era.id, hold.current.pagesOn, dt, reduce);
+    const pageFading = pages.update(view.id, hold.current.pagesOn, dt, reduce, lidsShut) || lidsShut;
     U.screen.pageOn.value = pages.on;
     U.screen.pageMix.value = pages.mix;
     U.screen.pageViewA.value = pages.viewA;
@@ -1062,56 +1264,86 @@ function EyeScene({
     const irisX = frame.cx + Math.sin(eyeball.group.rotation.y) * 10.4 * pxPerMm;
     const irisY = frame.cy + Math.sin(eyeball.group.rotation.x) * 10.4 * pxPerMm;
     irisOnScreen.current = { x: irisX, y: irisY, r: frame.irisPx };
-    // ---- ten ways of seeing: the era's medium, and, to travel, the next era
-    // sweeping in from its side behind a front drawn in that era's texture
+    // ---- ten ways of seeing: what the medium needs to know about the frame ---
     if (media) {
-      const ms = mediumState.current;
-      const want = mediumHold.current ?? mediumOf(era.id);
-      const sideOf = (c: number) => ({ prev: c > 1 ? c - 1 : 0, next: c > 0 && c < ERA_MEDIA.length ? c + 1 : 0 });
-      const settle = (c: number) => {
-        ms.cur = c;
-        ({ prev: ms.prev, next: ms.next } = sideOf(c));
-        ms.dir = 0;
-        ms.age = 0;
-        ms.reachL = 0;
-        ms.reachR = 0;
-      };
-      if (want !== ms.target) {
-        // a crossing still under way lands first
-        if (ms.dir !== 0) settle(ms.target);
-        ms.target = want;
-        if (ms.cur === 0 || want === 0 || reduce) settle(want);
-        else if (want !== ms.cur) {
-          ms.dir = want > ms.cur ? 1 : -1;
-          // the era you are going to comes in from its side, however far it is
-          if (ms.dir > 0) ms.next = want;
-          else ms.prev = want;
-          ms.t = 0;
-          ms.from = ms.dir > 0 ? ms.reachR : ms.reachL;
-        }
-      }
-      // at rest nothing shows at the edges: only the era on screen
-      if (ms.dir !== 0) {
-        ms.t = Math.min(1, ms.t + dt / 0.95);
-        const e = ms.t < 0.5 ? 4 * ms.t ** 3 : 1 - (-2 * ms.t + 2) ** 3 / 2;
-        const reach = ms.from + (1.2 - ms.from) * e;
-        if (ms.dir > 0) ms.reachR = reach;
-        else ms.reachL = reach;
-        if (ms.t >= 1) settle(ms.target);
-      } else {
-        ms.reachL = 0;
-        ms.reachR = 0;
-      }
-      ms.age += dt;
       const M = U.medium;
-      M.cur.value = ms.cur;
-      M.prev.value = ms.prev;
-      M.next.value = ms.next;
-      M.reachL.value = ms.reachL;
-      M.reachR.value = ms.reachR;
-      M.age.value = ms.age;
-      M.pupil.value.set(irisX / Math.max(size.width, 1), irisY / Math.max(size.height, 1));
-      M.pupilR.value = (frame.irisPx * U.pupil.value) / Math.max(size.height, 1);
+      const W = Math.max(size.width, 1);
+      const Hh = Math.max(size.height, 1);
+      const d = director;
+      M.cur.value = d.cur;
+      M.dep.value = d.dep;
+      M.arr.value = d.arr;
+      M.dir.value = d.dir;
+      M.clock.value = d.clock;
+      M.since.value = d.since;
+      M.steady.value = reduce ? 1 : 0;
+      M.signA.value = d.signA;
+      M.hover.value = d.hover;
+      M.press.value = d.press;
+      M.enter.value = d.enter;
+      M.seed.value = d.seed;
+      M.ripple.value = d.ripple;
+      // how much is moving (the pointer in screen heights a second, the eye
+      // in iris radii a second; eased: it rises quickly and settles slowly),
+      // which 2026's trackers lose certainty with
+      const ux = (pointer.current.x + 1) / 2;
+      const uy = (pointer.current.y + 1) / 2;
+      {
+        const lp = listenFrom.current;
+        const speed = Number.isNaN(lp.x) ? 0 : Math.hypot((ux - lp.x) * (W / Hh), uy - lp.y) / Math.max(dt, 1e-3);
+        const eyeSpeed = Number.isNaN(lp.ix) ? 0 : Math.hypot(irisX - lp.ix, irisY - lp.iy) / Math.max(frame.irisPx, 1) / Math.max(dt, 1e-3);
+        lp.x = ux;
+        lp.y = uy;
+        lp.ix = irisX;
+        lp.iy = irisY;
+        const goal = Math.max(fresh ? Math.min(1, speed * 0.6) : 0, reduce ? 0 : Math.min(1, eyeSpeed / 12));
+        M.listen.value = damp(M.listen.value, goal, goal > M.listen.value ? 6 : 1.2, dt);
+      }
+      // 2026 measures you: your pointer or finger (under reduced motion too),
+      // where it rests, and the eye's own turn
+      const tracked = interactive && now - pointer.current.seen < 20;
+      M.track.value = reduce ? (tracked ? 1 : 0) : damp(M.track.value, tracked ? 1 : 0, 6, dt);
+      if (seen && reduce) M.ptr.value.set(ux, uy);
+      attention.update(dt, ux, uy, W / Hh, tracked);
+      for (let i = 0; i < 6; i++) {
+        const f = attention.fixes[i];
+        const v = M.fix.array[i] as THREE.Vector4;
+        if (f) v.set(f.x, f.y, f.dwell, attention.alpha(f));
+        else v.w = 0;
+        M.fixN.array[i] = f ? f.n : 0;
+      }
+      M.gazeDeg.value.set(THREE.MathUtils.radToDeg(eyeball.group.rotation.y), -THREE.MathUtils.radToDeg(eyeball.group.rotation.x));
+      M.fixTotal.value = attention.total;
+      {
+        const bc = blinkCount.current;
+        if (U.blink.value > 0.85 && !bc.shut) bc.n += 1;
+        bc.shut = U.blink.value > 0.85 || (bc.shut && U.blink.value > 0.5);
+        M.blinks.value = bc.n;
+      }
+      // the gimbal scans about the gaze axis while the pointer is over the iris
+      if (!reduce) M.spin.value = (M.spin.value + dt * 0.7 * d.hover) % (Math.PI * 2);
+      {
+        const tr = trace.current.samples;
+        const hist = M.pupilHist.array as number[];
+        for (let i = 0; i < 32; i++) hist[i] = tr.length ? tr[Math.round((i / 31) * (tr.length - 1))] : 3.5;
+      }
+      M.idle.value = Math.min(now - pointer.current.seen, 1e3);
+      // (a finger is not a cursor: 1981's parked arrow stays for touch)
+      M.ptrOn.value = damp(M.ptrOn.value, fresh && pointer.current.mouse ? 1 : 0, 8, dt);
+      if (fresh) {
+        M.ptr.value.set(
+          damp(M.ptr.value.x, (pointer.current.x + 1) / 2, 8, dt),
+          damp(M.ptr.value.y, (pointer.current.y + 1) / 2, 8, dt),
+        );
+      }
+      M.eye.value.set(frame.cx / W, frame.cy / Hh);
+      M.irisR.value = frame.irisPx / Hh;
+      // the lid opening's reach from the globe's centre: its corners
+      // (margins.ts FISSURE_MM), and the margins' apexes as the lids stand
+      // this frame (gaze, squint, blink)
+      M.apX.value.set((FISSURE_MM.medial * pxPerMm) / Hh, (FISSURE_MM.lateral * pxPerMm) / Hh);
+      M.apY.value.set((lidReach.current.up * pxPerMm) / Hh, (lidReach.current.lo * pxPerMm) / Hh);
+      M.pupil.value.set(irisX / W, irisY / Hh);
     }
     eyeOnScreen.current = { x: frame.cx, y: frame.cy, r: frame.irisPx };
     const px = ((pointer.current.x + 1) / 2) * size.width;
@@ -1131,6 +1363,10 @@ function EyeScene({
       personScale: identity.pupil.rest / 0.34,
     });
     U.redReflex.value = hold.current.red ?? pupilRig.red;
+    if (media) {
+      U.medium.pupilR.value = (frame.irisPx * U.pupil.value) / Math.max(size.height, 1);
+      U.medium.pupilMm.value = pupilRig.d;
+    }
     const tr = trace.current;
     tr.due -= dt;
     if (tr.due <= 0) {
@@ -1161,9 +1397,15 @@ function EyeScene({
       const LS = U.lens;
       const goal = look.lens;
       const k = reduce ? 60 : 3;
-      for (const key of LENS_NUMBERS) LS[key].value = damp(LS[key].value, goal[key], k, dt);
+      for (const key of LENS_NUMBERS) {
+        const v = key === "grain" && calm ? goal.grain * CALM.grain : goal[key];
+        LS[key].value = snapLook ? v : damp(LS[key].value, v, k, dt);
+      }
       const want = LENS_ARTEFACTS.indexOf(goal.artefact);
-      if (LS.artefact.value !== want) {
+      if (snapLook) {
+        LS.artefact.value = want;
+        LS.amount.value = goal.amount;
+      } else if (LS.artefact.value !== want) {
         LS.amount.value = damp(LS.amount.value, 0, reduce ? 60 : 6, dt);
         if (LS.amount.value < 0.04) LS.artefact.value = want;
       } else {
@@ -1190,13 +1432,35 @@ function EyeScene({
       cs.irisY = irisY;
     }
 
+    // Warming, the first frames build the stage in steps, so that no one frame
+    // builds every node graph and shader at once (the GPU process parses a
+    // frame's new shaders in one go, and every frame on screen, the loader's
+    // opening included, waits for it): the bakes and the era's screen first
+    // (above), then the post chain over an empty room, then the eye a few
+    // parts at a time.
+    const warmStep = W.done ? -1 : W.step++;
+    if (warmStep >= 1 && warmStep <= WARM_PARTS.length) {
+      const shown = WARM_PARTS.slice(0, warmStep).flat();
+      for (const layer of Object.keys(layers.current) as EyeLayer[]) {
+        layerObject(layer).visible = layers.current[layer] && shown.includes(layer);
+      }
+    }
+
     const t0 = performance.now();
-    pipeline.render();
+    if (warmStep !== 0) pipeline.render();
     if (pendingCapture.current) {
       pendingCapture.current(gl.domElement.toDataURL("image/png"));
       pendingCapture.current = null;
     }
     const cpu = performance.now() - t0;
+
+    // warm: every step taken, then a moment of frames that asked for no new pipeline, and none still building
+    if (!W.done) {
+      if (W.made !== W.seen || W.pending > 0 || W.step <= WARM_PARTS.length) {
+        W.seen = W.made;
+        W.quietSince = now;
+      } else if (now - W.quietSince > WARM_QUIET) W.done = true;
+    }
 
     if (!readySent.current && U.fade.value > READY_AT) {
       readySent.current = true;
@@ -1233,9 +1497,19 @@ function EyeScene({
     }
 
     // ---- watchdog: give up pixels once rather than drop frames all visit --
+    // It reads the display's own frame interval, not the frames drawn: a
+    // resting or covered stage skips frames on purpose, and that is not
+    // slowness (read as slowness, a still pointer stepped the ratio down to
+    // its floor, with a stall at each step). The warm-up's builds and a
+    // covered stage's sharing of the GPU are not the eye's cost either.
     const h = health.current;
-    h.ema += (dt - h.ema) * 0.05;
-    h.cool -= dt;
+    if (!W.done || covered) {
+      h.ema = 1 / 60;
+      h.cool = Math.max(h.cool, 2);
+    } else {
+      h.ema += (Math.min(delta, 0.1) - h.ema) * 0.05;
+      h.cool -= dt;
+    }
     if (!profile && h.cool <= 0 && h.ema > 1 / 45 && dpr > DPR_MIN) {
       h.cool = 1.5;
       h.ema = 1 / 60;
@@ -1269,8 +1543,6 @@ class StageBoundary extends Component<
 
 export interface EyeStageProps {
   era: ThemeConfig;
-  /** Eye height as a fraction of viewport height (width usually caps it). */
-  eyeHeight?: number;
   exiting?: boolean;
   reduce?: boolean;
   interactive?: boolean;
@@ -1283,19 +1555,22 @@ export interface EyeStageProps {
   onReady?: (info: EyeStageInfo) => void;
   onFail?: (error: unknown) => void;
   control?: React.MutableRefObject<EyeStageControl | null>;
-  /** The shot on a wide screen (FrameBox); the loader makes room for its chrome with it. */
+  /** A shot of the caller's own (FrameBox); by default framing.ts picks a phone's or a wide screen's. */
   frameBox?: FrameBox;
   /** Ten ways of seeing (post/era-medium.ts): the frame through each era's own screen and image technology. The loader always asks for it. */
   media?: boolean;
+  /** Phones: fainter grain, a smaller gaze and a slower sweep (CALM). */
+  calm?: boolean;
   /** Lab: resolves with the next drawn frame as a PNG data URL (poster capture). */
   capture?: React.MutableRefObject<(() => Promise<string>) | null>;
+  /** Something opaque is over the stage (the loader's opening): it draws only now and then, keeping its clock, and leaves the GPU to what is on screen. */
+  covered?: boolean;
   className?: string;
   style?: React.CSSProperties;
 }
 
 export default function EyeStage({
   era,
-  eyeHeight = 1,
   exiting = false,
   reduce = false,
   interactive = true,
@@ -1308,6 +1583,8 @@ export default function EyeStage({
   capture,
   frameBox,
   media,
+  calm,
+  covered,
   className,
   style,
 }: EyeStageProps) {
@@ -1338,7 +1615,6 @@ export default function EyeStage({
       >
         <EyeScene
           era={era}
-          eyeHeight={eyeHeight}
           exiting={exiting}
           reduce={reduce}
           interactive={interactive}
@@ -1350,6 +1626,8 @@ export default function EyeStage({
           capture={capture}
           frameBox={frameBox}
           media={media}
+          calm={calm}
+          covered={covered}
         />
       </Canvas>
     </StageBoundary>

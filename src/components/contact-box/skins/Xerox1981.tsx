@@ -207,13 +207,14 @@ function Window({ title, status, commands, children, onClose }: { title: string;
 
 function Sheet({ rows }: { rows: [string, ReactNode][] }) {
   return (
-    <dl className="grid grid-cols-[96px_1fr] gap-x-3 gap-y-1.5 text-[14px]">
+    <dl className="grid grid-cols-[96px_minmax(0,1fr)] gap-x-3 gap-y-1.5 text-[14px]">
       {rows.map(([k, v]) => (
         <div key={k} className="contents">
           <dt className="pt-0.5 text-[11px] uppercase tracking-widest" style={{ fontFamily: LABEL }}>
             {k}
           </dt>
-          <dd style={{ fontFamily: DOC }}>{v}</dd>
+          {/* A long address breaks rather than pushing the sheet off a phone. */}
+          <dd className="[overflow-wrap:anywhere]" style={{ fontFamily: DOC }}>{v}</dd>
         </div>
       ))}
     </dl>

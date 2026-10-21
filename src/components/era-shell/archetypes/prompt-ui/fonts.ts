@@ -15,6 +15,8 @@ const geistMono = Geist_Mono({ subsets: ["latin"], display: "swap", variable: "-
 const doto = Doto({ subsets: ["latin"], weight: "variable", display: "swap", variable: "--font-2026-dots" });
 
 export const FONT_VARS_2026 = `${geist.variable} ${geistMono.variable} ${doto.variable}`;
+/** Geist Mono's own family name, for drawing it on a canvas (the loader eye's readouts). */
+export const MONO_FAMILY_2026 = geistMono.style.fontFamily;
 
 export const SANS_2026 = "var(--font-2026-sans, 'Helvetica Neue'), 'Helvetica Neue', Arial, sans-serif";
 export const MONO_2026 = "var(--font-2026-mono, ui-monospace), ui-monospace, 'SFMono-Regular', monospace";

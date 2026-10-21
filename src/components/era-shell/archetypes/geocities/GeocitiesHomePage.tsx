@@ -7,7 +7,7 @@
  * scrolling marquee, hit counter, MIDI badge, guestbook, sparkle cursor.
  *
  * Unique 1995 interactions:
- *   - sparkle cursor trail (✦) on mousemove
+ *   - sparkle cursor trail (✦) on mousemove (not on touch phones)
  *   - working guestbook: sign + view (entries persist in sessionStorage)
  *   - hit counter ticks once per visit, persists per session
  *   - MIDI player widget with mute/unmute toggle (purely visual; no audio
@@ -21,6 +21,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Comic_Neue } from "next/font/google";
 import { useLayoutMode } from "@/contexts/LayoutModeContext";
 import { useAnalytics } from "@/hooks/useAnalytics";
+import { useCalmMotion } from "@/hooks/useCalmMotion";
 import {
   WHY_KIRUK,
   PERSONA,
@@ -108,9 +109,11 @@ export function GeocitiesHomePage() {
     setLayoutMode("full-digital");
   }, [setLayoutMode]);
 
-  // Sparkle trail
+  // Sparkle trail — a mouse toy; a tap on a phone shouldn't throw glitter.
+  const calm = useCalmMotion();
   const trailRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
+    if (calm) return;
     let last = 0;
     const onMove = (e: MouseEvent) => {
       const now = performance.now();
@@ -136,7 +139,7 @@ export function GeocitiesHomePage() {
     };
     window.addEventListener("mousemove", onMove, { passive: true });
     return () => window.removeEventListener("mousemove", onMove);
-  }, []);
+  }, [calm]);
 
   // Real visitor counter — POST page_view to /api/analytics on mount,
   // then GET /api/visitors for the total. Falls back to "—" if backend
@@ -328,6 +331,9 @@ export function GeocitiesHomePage() {
         @keyframes kiruk-1995-glow-pulse {
           0%, 100% { box-shadow: 0 0 8px ${MAGENTA}, 0 0 18px ${MAGENTA}; }
           50%      { box-shadow: 0 0 14px ${CYAN}, 0 0 28px ${CYAN}; }
+        }
+        @media (max-width: 639px) {
+          .kiruk-1995-layout { --kiruk-1995-cols: minmax(0, 1fr); }
         }
       `}</style>
 
@@ -533,11 +539,12 @@ export function GeocitiesHomePage() {
           </button>
         </div>
 
-        {/* SIDEBAR + MAIN LAYOUT */}
+        {/* SIDEBAR + MAIN LAYOUT — phones stack the sidebar above the page */}
         <div
+          className="kiruk-1995-layout"
           style={{
             display: "grid",
-            gridTemplateColumns: sidebarOpen ? "180px 1fr" : "1fr",
+            gridTemplateColumns: sidebarOpen ? "var(--kiruk-1995-cols, 180px 1fr)" : "1fr",
             gap: 18,
             alignItems: "start",
           }}
@@ -884,21 +891,29 @@ export function GeocitiesHomePage() {
 function Marquee({ items }: { items: readonly string[] }) {
   const joined = items.join("   ✦   ");
   return (
-    <div
-      style={{
-        whiteSpace: "nowrap",
-        animation: "kiruk-1995-marquee 32s linear infinite",
-      }}
-    >
-      <span style={{ paddingRight: 32 }}>{joined}</span>
-      <span style={{ paddingRight: 32 }}>{joined}</span>
-    </div>
+    <>
+      <div
+        data-era-calm="hide"
+        style={{
+          whiteSpace: "nowrap",
+          animation: "kiruk-1995-marquee 32s linear infinite",
+        }}
+      >
+        <span style={{ paddingRight: 32 }}>{joined}</span>
+        <span style={{ paddingRight: 32 }}>{joined}</span>
+      </div>
+      {/* Phones: the welcome line, standing still */}
+      <div data-era-calm="only" style={{ padding: "0 8px", textAlign: "center" }}>
+        {items[0]}
+      </div>
+    </>
   );
 }
 
 function RainbowHeading({ children }: { children: React.ReactNode }) {
   return (
     <h1
+      data-era-calm
       style={{
         fontFamily: FONT_COMIC,
         fontSize: "clamp(36px, 7vw, 64px)",
@@ -956,6 +971,7 @@ function RainbowRule() {
   return (
     <div
       aria-hidden
+      data-era-calm
       style={{
         height: 4,
         margin: "16px 0",
@@ -1149,6 +1165,7 @@ function SpinningGlobe() {
     <div
       role="img"
       aria-label="rotating globe gif"
+      data-era-calm
       style={{
         width: 56,
         height: 56,
@@ -1321,11 +1338,13 @@ function FocusWidget() {
 // ─── Location widget — where to find me ──────────────────────────────
 
 function LocationWidget() {
+  // Phones read the minute; only the desktop clock ticks seconds.
+  const calm = useCalmMotion();
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
-    const id = window.setInterval(() => setNow(new Date()), 1000);
+    const id = window.setInterval(() => setNow(new Date()), calm ? 15_000 : 1000);
     return () => window.clearInterval(id);
-  }, []);
+  }, [calm]);
   const ist = useMemo(() => {
     // Convert to IST regardless of viewer's timezone
     const utc = now.getTime() + now.getTimezoneOffset() * 60000;
@@ -1333,9 +1352,9 @@ function LocationWidget() {
     return istDate.toLocaleTimeString("en-GB", {
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
+      second: calm ? undefined : "2-digit",
     });
-  }, [now]);
+  }, [now, calm]);
 
   return (
     <div
@@ -1513,6 +1532,7 @@ function FortuneWidget({
             {typed}
             <span
               aria-hidden
+              data-era-calm
               style={{
                 display: "inline-block",
                 width: 6,

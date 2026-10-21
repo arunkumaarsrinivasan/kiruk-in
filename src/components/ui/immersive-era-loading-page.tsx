@@ -15,6 +15,20 @@
  * 1-bit bitmap, a grey GIF still loading on a white page, and so on to the
  * halftone of 2026. Travelling sweeps the next era in over the last. For a
  * screen reader, the slider's value names the era.
+ *
+ * Before any of that, while the eye compiles behind it held shut, 1970's tube
+ * wires the eye and forms it pixel by pixel (loader/TubeOpening.tsx); the
+ * pixels then sharpen into the live eye and its lids open on 1970, so the
+ * wait is the story and never a still that looks stuck.
+ *
+ * A phone shows the whole eye, turned down (EyeStage `calm`). A visitor there
+ * has no cursor to discover the sweep with, so once the eye is open a ghost
+ * fingertip shows it (ui/ghost-finger.tsx): it drags the era along and back,
+ * then taps the iris. Any touch stops it; it comes back after a long idle.
+ *
+ * A drag, a swipe and the ghost fingertip all send the eye the unrounded era
+ * position (EyeStageControl.travel), so the hand works the eyelid: it closes
+ * toward each boundary, the era changes behind it, and it opens past it.
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -24,8 +38,13 @@ import { AVAILABLE_THEMES, type ThemeConfig } from "@/data/portfolio-data";
 import { useTheme } from "@/contexts/ThemeContext";
 import type { EyeStageControl } from "@/components/three/eye/EyeStage";
 import { eyeFrame } from "@/lib/era-eye-frame";
-import { cn } from "@/lib/utils";
+import { eyeShot } from "@/components/three/eye/framing";
+import { getEraMedium } from "@/components/three/eye/look";
 import EyePoster from "@/components/three/eye/EyePoster";
+import GhostFinger from "@/components/ui/ghost-finger";
+import TubeOpening from "@/components/ui/loader/TubeOpening";
+import { holdShut, openLids } from "@/components/ui/loader/open-eye";
+import { ANATOMY } from "@/components/three/eye/anatomy";
 
 /** The old GLSL eye: only if the live eye cannot start. */
 const EraEyeCanvas = dynamic(() => import("@/components/three/EraEyeCanvas"), {
@@ -38,8 +57,8 @@ const EyeStage = dynamic(() => import("@/components/three/eye/EyeStage"), {
 
 const EASE_OUT = [0.23, 1, 0.32, 1] as const;
 const ERA_PICKER_ATTR = "data-era-picker-active";
-/** Eye height as a share of viewport height; on any landscape screen the eye
- *  is fit by width instead, and spans the display. */
+/** The old GLSL eye's height as a share of viewport height; on any landscape
+ *  screen it is fit by width instead. The live eye frames itself (framing.ts). */
 const EYE_HEIGHT = 1;
 /** The room the eye sits in — dark in every era, whatever the era's page is. */
 const ROOM = "#040507";
@@ -52,10 +71,13 @@ const TAP_MS = 520;
  * A touch drag scrubs by distance, not by where it landed. Mapping ten
  * eras across 375 points of phone would put under forty points between years
  * and hide the one you wanted under your own thumb; a swipe that moves this
- * many points per year can be thrown, repeated and reversed.
+ * many points per year can be thrown, repeated and reversed. A swipe across
+ * a phone's width moves about seven years, so a casual flick lands near where
+ * it was aimed rather than at the far end.
  */
-const SWIPE_PITCH_MIN = 26;
+const SWIPE_PITCH_MIN = 44;
 const SWIPE_PITCH_MAX = 64;
+const SWIPES_PER_WIDTH = 7;
 /** Smallest the "go in" target is ever allowed to be, in points. */
 const IRIS_TAP_MIN = 56;
 /** A finger deserves a wider target than a cursor. */
@@ -69,6 +91,39 @@ const IRIS_TAP_COARSE = 1.3;
 const WHEEL_PITCH = 90;
 /** Wheel travel is forgotten if nothing arrives for this long. */
 const WHEEL_IDLE_MS = 320;
+/**
+ * The longest the opening waits for the live eye; after this it fades onto the
+ * poster. Generous: the formed tube keeps ticking (its cursor, its clock pulse)
+ * and answers the hand and keys, where the poster is a still; a slow GPU's
+ * first visit builds the eye's shaders for ~10 s.
+ */
+const EYE_WAIT_MS = 20000;
+/** The eye's held gaze settles this long before its pupil is read for the tube's cursor. */
+const PUPIL_SETTLE_MS = 350;
+/** The ghost fingertip (phones): this long after the eye opens, again after an idle, and only so often. */
+const DEMO_AFTER_MS = 900;
+const DEMO_IDLE_MS = 8000;
+const DEMO_PLAYS = 3;
+/** Going in: the era's own way in plays this long before the room fades, and the home arrives after. */
+const ENTER_FADE_DELAY = 0.42;
+const ENTER_DONE_MS = 950;
+
+/**
+ * The page keeps a scrollbar gutter (`scrollbar-gutter: stable`), and nothing
+ * fixed can paint into it, 100vw included: it showed as a dark strip down the
+ * right of the eye. While the picker is up the page under it neither scrolls
+ * nor needs the gutter, so both go. Returns the undo.
+ */
+function dropPageGutter() {
+  const st = document.documentElement.style;
+  const was = { gutter: st.scrollbarGutter, overflow: st.overflow };
+  st.scrollbarGutter = "auto";
+  st.overflow = "hidden";
+  return () => {
+    st.scrollbarGutter = was.gutter;
+    st.overflow = was.overflow;
+  };
+}
 
 function useCoarsePointer() {
   const [coarse, setCoarse] = useState(false);
@@ -137,6 +192,24 @@ export default function ImmersiveEraLoadingPage({
   /** Repeated input can outpace a render, so steps come off a ref. */
   const idxRef = useRef(0);
 
+  /** Waited long enough for the eye: the tube fades onto the poster instead. */
+  const [eyeLate, setEyeLate] = useState(false);
+  /** The eye has been opened (or the tube has gone without it); travel can begin. */
+  const [opened, setOpened] = useState(false);
+  /** The tube has gone and can unmount. */
+  const [introGone, setIntroGone] = useState(false);
+  const openedRef = useRef(false);
+  /** When the eye opened: Enter and Space wait a moment after, so typing at the tube never goes straight in. */
+  const openedAt = useRef(0);
+  /** When a letter was last typed (the tube's prompt invites it): Space and Enter wait while someone is mid-word. */
+  const typedAt = useRef(0);
+  /** The live pupil, once the eye is up and held still: the tube's cursor settles onto the eye's own there. */
+  const [pupil, setPupil] = useState<{ x: number; y: number; r: number } | null>(null);
+  /** A wheel during the opening moves it on to the formed eye. */
+  const [tubeSkip, setTubeSkip] = useState(false);
+  /** The tube has begun to hand over: until then it covers the live eye, which draws only now and then under it. */
+  const [tubeLanded, setTubeLanded] = useState(false);
+
   const focused = themes[index] ?? themes[0];
 
   useEffect(() => {
@@ -159,6 +232,69 @@ export default function ImmersiveEraLoadingPage({
     };
   }, []);
 
+  // The gutter comes back as the way in begins, while the room is still
+  // opaque, so the home's reflow happens out of sight; the strip it leaves
+  // is the home's own background, which the room is about to fade to.
+  useEffect(() => {
+    if (exiting) return;
+    return dropPageGutter();
+  }, [exiting]);
+
+  /* ---- the opening: the tube forms the eye while it compiles, then the eye opens ---- */
+
+  useEffect(() => {
+    const id = window.setTimeout(() => setEyeLate(true), EYE_WAIT_MS);
+    return () => window.clearTimeout(id);
+  }, []);
+
+  // The live eye is up under the tube: hold it shut, looking straight out, and
+  // read its pupil once the held gaze has settled. (The old GLSL eye has no
+  // control: the tube just fades onto it.)
+  useEffect(() => {
+    if (!eyeReady || openedRef.current) return;
+    const c = eyeControl.current;
+    if (!c) {
+      setPupil({ x: -1, y: -1, r: 0 });
+      return;
+    }
+    holdShut(c);
+    const id = window.setTimeout(() => {
+      const iris = c.irisAt();
+      setPupil({ x: iris.x, y: iris.y, r: (iris.r * c.pupilMm()) / 2 / ANATOMY.irisRadius });
+    }, PUPIL_SETTLE_MS);
+    return () => window.clearTimeout(id);
+  }, [eyeReady]);
+
+  const cancelLids = useRef<() => void>(() => {});
+  useEffect(() => () => cancelLids.current(), []);
+
+  const onTubeLanding = useCallback(() => setTubeLanded(true), []);
+
+  /** The tube's pixels are becoming the live eye: open the real lids, and travel can begin. */
+  const onTubeOpen = useCallback(() => {
+    if (openedRef.current) return;
+    openedRef.current = true;
+    openedAt.current = performance.now();
+    setOpened(true);
+    const c = eyeControl.current;
+    if (c) cancelLids.current = openLids(c, reduce);
+  }, [reduce]);
+
+  /** The tube has gone (handed over, faded on a late eye, or never started). */
+  const onTubeGone = useCallback(() => {
+    setIntroGone(true);
+    if (openedRef.current) return;
+    openedRef.current = true;
+    openedAt.current = performance.now();
+    setOpened(true);
+    // a late or failed hand-off: let the eye go, if it is up
+    const c = eyeControl.current;
+    if (c) {
+      c.holdBlink(null);
+      c.holdGaze(null);
+    }
+  }, []);
+
   const goTo = useCallback(
     (next: number) => {
       const clamped = Math.min(last, Math.max(0, next));
@@ -175,36 +311,50 @@ export default function ImmersiveEraLoadingPage({
     (theme: ThemeConfig) => {
       if (exiting) return;
       setExiting(true);
+      eyeControl.current?.travel(null);
       setTheme(theme.id);
       exitTimer.current = window.setTimeout(
         () => onComplete(),
-        reduce ? 200 : 760,
+        reduce ? 200 : ENTER_DONE_MS,
       );
     },
     [exiting, onComplete, reduce, setTheme],
   );
 
-  /** Sweep across the eye: the left edge is 1970, the right edge is 2026. */
-  const indexFromX = useCallback(
+  /** Sweep across the eye: the left edge is 1970, the right edge is 2026 (unrounded, for the eyelid). */
+  const posFromX = useCallback(
     (clientX: number) => {
       const w = Math.max(window.visualViewport?.width ?? window.innerWidth, 1);
       const t = (clientX / w - SWEEP_INSET) / (1 - SWEEP_INSET * 2);
-      return Math.round(Math.min(1, Math.max(0, t)) * last);
+      return Math.min(1, Math.max(0, t)) * last;
     },
     [last],
   );
+  const indexFromX = useCallback((clientX: number) => Math.round(posFromX(clientX)), [posFromX]);
+
+  /** The hand on the eyelid: the unrounded position goes to the eye, the era it rounds to to the picker. */
+  const travelTo = useCallback(
+    (pos: number) => {
+      const p = Math.min(last, Math.max(0, pos));
+      eyeControl.current?.travel(p);
+      goTo(Math.round(p));
+    },
+    [goTo, last],
+  );
+  const letGo = useCallback(() => eyeControl.current?.travel(null), []);
 
   /**
-   * The iris, in viewport points. Taken from the same framing the shader is
-   * drawing with, so the target is under the iris on a phone — where the shot
-   * has pushed in and lifted the eye — and not where a desktop's would be.
+   * The iris, in viewport points, from the same framing the eye is drawn with
+   * (the live eye's, or the old GLSL eye's), so the target is under the iris
+   * at any shape of screen. The live eye's own report is preferred.
    */
-  /** Where the shared framing puts the iris, CSS px (the GLSL eye's, and the fallback). */
   const irisFromFrame = useCallback(() => {
     const vv = window.visualViewport;
-    const f = eyeFrame(vv?.width ?? window.innerWidth, vv?.height ?? window.innerHeight, EYE_HEIGHT);
+    const w = vv?.width ?? window.innerWidth;
+    const h = vv?.height ?? window.innerHeight;
+    const f = stage === "tsl" ? eyeShot(w, h) : eyeFrame(w, h, EYE_HEIGHT);
     return { x: f.cx, y: f.cy, r: f.irisPx };
-  }, []);
+  }, [stage]);
 
   const overIrisAt = useCallback(
     (clientX: number, clientY: number) => {
@@ -219,12 +369,75 @@ export default function ImmersiveEraLoadingPage({
   /** Points of drag that move one year, on a touch screen. */
   const swipePitch = useCallback(() => {
     const w = Math.max(window.innerWidth, 1);
-    return Math.min(SWIPE_PITCH_MAX, Math.max(SWIPE_PITCH_MIN, w / (last + 2)));
-  }, [last]);
+    return Math.min(SWIPE_PITCH_MAX, Math.max(SWIPE_PITCH_MIN, w / SWIPES_PER_WIDTH));
+  }, []);
+
+  /* ---- the ghost fingertip (phones): how to travel and go in, shown ---- */
+
+  const demoOn = isCoarse && webgl === true && introGone && !exiting;
+  const [demo, setDemo] = useState({ run: false, play: 0, tapOnly: false });
+  /** Plays so far, whether the visitor has swiped yet, and the era a play's drag starts from. */
+  const demoState = useRef({ plays: 0, swiped: false, timer: 0, from: 0, scrubbing: false });
+
+  const queueDemo = useCallback(
+    (ms: number) => {
+      const d = demoState.current;
+      window.clearTimeout(d.timer);
+      if (!demoOn || d.plays >= DEMO_PLAYS) return;
+      d.timer = window.setTimeout(() => {
+        d.plays += 1;
+        d.from = idxRef.current;
+        // a visitor who has swiped already knows that part: show only the tap
+        setDemo({ run: true, play: d.plays, tapOnly: d.swiped });
+      }, ms);
+    },
+    [demoOn],
+  );
+
+  /** The visitor did something: the demo stops, and comes back only after a long idle. */
+  const stopDemo = useCallback(() => {
+    window.clearTimeout(demoState.current.timer);
+    // (a demo stopped mid-drag lets go of the eyelid; a visitor's own drag is left alone)
+    if (demoState.current.scrubbing) {
+      demoState.current.scrubbing = false;
+      eyeControl.current?.travel(null);
+    }
+    setDemo((d) => (d.run ? { ...d, run: false } : d));
+  }, []);
+
+  useEffect(() => {
+    const d = demoState.current;
+    if (!demoOn) {
+      stopDemo();
+      return;
+    }
+    if (d.plays === 0) queueDemo(DEMO_AFTER_MS);
+    return () => window.clearTimeout(d.timer);
+  }, [demoOn, queueDemo, stopDemo]);
+
+  const onDemoScrub = useCallback(
+    (eras: number | null) => {
+      const d = demoState.current;
+      if (eras === null) {
+        if (d.scrubbing) letGo();
+        d.scrubbing = false;
+        return;
+      }
+      d.scrubbing = true;
+      travelTo(d.from + eras);
+    },
+    [letGo, travelTo],
+  );
+  const onDemoDone = useCallback(() => {
+    setDemo((d) => ({ ...d, run: false }));
+    queueDemo(DEMO_IDLE_MS);
+  }, [queueDemo]);
+  const demoEye = useCallback(() => eyeControl.current?.eyeCentre() ?? irisFromFrame(), [irisFromFrame]);
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
       if (exiting) return;
+      stopDemo();
       // Capture is a nicety, not a requirement — never let it drop the sweep.
       try {
         e.currentTarget.setPointerCapture(e.pointerId);
@@ -242,7 +455,7 @@ export default function ImmersiveEraLoadingPage({
       };
       swipe.current = { x: e.clientX, from: idxRef.current };
     },
-    [exiting],
+    [exiting, stopDemo],
   );
 
   const handlePointerMove = useCallback(
@@ -258,6 +471,7 @@ export default function ImmersiveEraLoadingPage({
           TAP_SLOP;
         if (!far) return;
         dragging.current = true;
+        demoState.current.swiped = true;
         press.current.moved = true;
         swipe.current = { x: e.clientX, from: idxRef.current };
       }
@@ -265,13 +479,13 @@ export default function ImmersiveEraLoadingPage({
       // A finger scrubs: it starts where it starts and drags time with it,
       // because it cannot point at a year it is standing on.
       if (e.pointerType === "mouse") {
-        goTo(indexFromX(e.clientX));
+        travelTo(posFromX(e.clientX));
       } else {
         const moved = (e.clientX - swipe.current.x) / swipePitch();
-        goTo(swipe.current.from + Math.round(moved));
+        travelTo(swipe.current.from + moved);
       }
     },
-    [exiting, goTo, indexFromX, overIrisAt, swipePitch],
+    [exiting, overIrisAt, posFromX, swipePitch, travelTo],
   );
 
   const endDrag = useCallback(
@@ -286,8 +500,10 @@ export default function ImmersiveEraLoadingPage({
       const p = press.current;
       const wasTap =
         p.t > 0 && !p.moved && performance.now() - p.t < TAP_MS && !exiting;
+      if (dragging.current) letGo();
       dragging.current = false;
       press.current = { x: 0, y: 0, t: 0, moved: false };
+      queueDemo(DEMO_IDLE_MS);
       if (!wasTap) return;
       // Tap the eye to go in. A click off the eye lands on the year under the
       // cursor; a tap off it does nothing, because on a phone half the taps
@@ -296,7 +512,7 @@ export default function ImmersiveEraLoadingPage({
       if (overIrisAt(e.clientX, e.clientY)) confirmEra(themes[idxRef.current]);
       else if (e.pointerType === "mouse") goTo(indexFromX(e.clientX));
     },
-    [confirmEra, exiting, goTo, indexFromX, overIrisAt, themes],
+    [confirmEra, exiting, goTo, indexFromX, letGo, overIrisAt, queueDemo, themes],
   );
 
   const cancelDrag = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
@@ -307,9 +523,11 @@ export default function ImmersiveEraLoadingPage({
     } catch {
       /* already released */
     }
+    if (dragging.current) letGo();
     dragging.current = false;
     press.current = { x: 0, y: 0, t: 0, moved: false };
-  }, []);
+    queueDemo(DEMO_IDLE_MS);
+  }, [letGo, queueDemo]);
 
   /**
    * The picker owns the whole screen, so it owns the whole keyboard. Bound to
@@ -320,6 +538,11 @@ export default function ImmersiveEraLoadingPage({
     if (exiting) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
+      // until the eye is open, keys are the tube's (its prompt; Enter goes on)
+      if (!openedRef.current) return;
+      stopDemo();
+      queueDemo(DEMO_IDLE_MS);
+      if (e.key.length === 1 && e.key !== " ") typedAt.current = performance.now();
       const el = e.target as HTMLElement | null;
       // never eat a key someone is typing into something
       if (el?.isContentEditable) return;
@@ -356,6 +579,8 @@ export default function ImmersiveEraLoadingPage({
         case "Enter":
         case " ":
           e.preventDefault();
+          // not straight after the eye opens: a visitor typing at the tube may still be typing
+          if (performance.now() - openedAt.current < 900 || performance.now() - typedAt.current < 1500) break;
           confirmEra(themes[idxRef.current]);
           break;
         default:
@@ -364,7 +589,7 @@ export default function ImmersiveEraLoadingPage({
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [confirmEra, exiting, goTo, last, step, themes]);
+  }, [confirmEra, exiting, goTo, last, queueDemo, step, stopDemo, themes]);
 
   // Focus the control on mount, so a screen reader announces the year it is on
   // and the focus ring has somewhere to land.
@@ -384,6 +609,13 @@ export default function ImmersiveEraLoadingPage({
       const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
       if (Math.abs(d) < 0.5) return;
       e.preventDefault();
+      // during the opening a wheel moves it on to the formed eye
+      if (!openedRef.current) {
+        setTubeSkip(true);
+        return;
+      }
+      stopDemo();
+      queueDemo(DEMO_IDLE_MS);
       const now = performance.now();
       // a new gesture starts from zero, and so does a reversal
       if (now - wheel.current.at > WHEEL_IDLE_MS || wheel.current.acc * d < 0) {
@@ -398,7 +630,7 @@ export default function ImmersiveEraLoadingPage({
     };
     window.addEventListener("wheel", onWheel, { passive: false });
     return () => window.removeEventListener("wheel", onWheel);
-  }, [exiting, step]);
+  }, [exiting, queueDemo, step, stopDemo]);
 
   return (
     <motion.div
@@ -407,7 +639,7 @@ export default function ImmersiveEraLoadingPage({
       animate={{ opacity: exiting ? 0 : 1 }}
       transition={{
         duration: reduce ? 0.18 : 0.55,
-        delay: exiting && !reduce ? 0.22 : 0,
+        delay: exiting && !reduce ? ENTER_FADE_DELAY : 0,
         ease: EASE_OUT,
       }}
       style={{
@@ -419,29 +651,38 @@ export default function ImmersiveEraLoadingPage({
       role="dialog"
       aria-modal="true"
       aria-label="Choose a design era"
+      aria-describedby="era-intro-words"
     >
+      <p id="era-intro-words" className="sr-only">
+        An old green tube wires itself up and forms an eye, pixel by pixel; then the eye opens. Type at its
+        cursor if you like, or press Enter to go on.
+      </p>
+
       {/* --- the eye ------------------------------------------------------- */}
-      {/* A still of the eye paints first; the live eye compiles behind it and
-          fades in on top, so the loader is never an empty room. */}
+      {/* The tube covers the eye while it compiles; the still of the eye is only
+          the fallback when the eye is late or the tube has gone without it, so
+          it is not fetched on the first frame. */}
       <div className="pointer-events-none absolute inset-0">
-        <EyePoster eraId={focused.id} hidden={eyeReady} eyeHeight={EYE_HEIGHT} />
+        {(eyeLate || introGone) && <EyePoster eraId={focused.id} hidden={eyeReady} />}
         {webgl === true && (
           <div
             className="absolute inset-0"
             style={{
               opacity: eyeReady ? 1 : 0,
-              transition: reduce ? "none" : "opacity 450ms cubic-bezier(0.23, 1, 0.32, 1)",
+              // under the tube there is nothing to fade from
+              transition: reduce || !opened ? "none" : "opacity 450ms cubic-bezier(0.23, 1, 0.32, 1)",
             }}
           >
             {stage === "tsl" ? (
               <EyeStage
                 era={focused}
-                eyeHeight={EYE_HEIGHT}
                 exiting={exiting}
                 reduce={reduce}
                 interactive
                 control={eyeControl}
                 media={see}
+                calm={isCoarse}
+                covered={!introGone && !tubeLanded}
                 onReady={onEyeReady}
                 onFail={() => setStage("glsl")}
               />
@@ -468,16 +709,45 @@ export default function ImmersiveEraLoadingPage({
         aria-valuemax={last}
         aria-valuenow={index}
         aria-valuetext={focused.name}
-        className={cn(
-          "absolute inset-0 z-10 touch-none focus-visible:outline-none",
-          exiting ? "cursor-default" : overIris ? "cursor-pointer" : "cursor-ew-resize",
-        )}
+        className="absolute inset-0 z-10 touch-none focus-visible:outline-none"
+        // over the iris, the era's own "this opens" (a Star arrow, a hand, a
+        // text caret); inline, because the picker's global rule sets every
+        // other cursor to the plain arrow
+        style={{ cursor: !exiting && overIris ? getEraMedium(focused.id).cssCursor : "default" }}
         ref={surface}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={endDrag}
         onPointerCancel={cancelDrag}
       />
+
+      {/* --- the opening: the tube forms the eye while it gets ready ------- */}
+      {!introGone && (
+        <TubeOpening
+          ready={eyeReady && pupil !== null}
+          pupil={pupil && pupil.r > 0 ? pupil : null}
+          late={eyeLate && !eyeReady}
+          skip={tubeSkip}
+          reduce={reduce}
+          onLanding={onTubeLanding}
+          onOpen={onTubeOpen}
+          onGone={onTubeGone}
+        />
+      )}
+
+      {/* --- phones: a fingertip shows the sweep and the tap, then leaves ---- */}
+      {isCoarse && webgl === true && (
+        <GhostFinger
+          run={demo.run}
+          play={demo.play}
+          tapOnly={demo.tapOnly}
+          reduce={reduce}
+          eye={demoEye}
+          pitch={swipePitch()}
+          onScrub={onDemoScrub}
+          onDone={onDemoDone}
+        />
+      )}
 
       {webgl === false && (
         <div

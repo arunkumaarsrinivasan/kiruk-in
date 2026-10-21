@@ -3223,6 +3223,31 @@ html::-webkit-scrollbar-thumb {
   }
 }
 
+/* Calm on phones — touch screens and narrow windows get each era without its
+   purely decorative loops (twinkles, marquees, rainbow sweeps, blinking
+   lights). Mark the element `data-era-calm` to hold it still, or
+   `data-era-calm="hide"` to drop it; `data-era-calm="only"` is the still
+   stand-in phones see instead (a marquee's line, sitting still). Content and
+   controls never carry it. JS-driven loops read the same query through
+   useCalmMotion() in src/hooks. */
+[data-era-calm='only'] {
+  display: none !important;
+}
+
+@media (pointer: coarse), (max-width: 767px) {
+  [data-era-calm] {
+    animation: none !important;
+  }
+
+  [data-era-calm='hide'] {
+    display: none !important;
+  }
+
+  [data-era-calm='only'] {
+    display: revert !important;
+  }
+}
+
 a,
 button,
 input,
@@ -4583,7 +4608,7 @@ select {
   animation: footer-arcade-pulse 3.2s ease-in-out infinite;
 }
 
-@media (prefers-reduced-motion: reduce) {
+@media (pointer: coarse), (max-width: 767px), (prefers-reduced-motion: reduce) {
   .footer-game-pulse {
     animation: none;
   }

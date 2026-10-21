@@ -60,6 +60,16 @@ const BANNER = [
 const RULE_DOUBLE = "═".repeat(62);
 const RULE_SINGLE = "─".repeat(62);
 
+/**
+ * Teletype blocks are set for a 62-column desktop sheet. On a phone the rules
+ * stop at the page margin and a line that still won't fit wraps instead of
+ * running off the glass.
+ */
+const PHONE_PRE = "max-sm:overflow-hidden max-sm:whitespace-pre-wrap";
+/** Phone continuation lines, hung under the value after "SUBJECT: " / "NAVIGATE: ". */
+const HANG_SUBJECT = "\n" + " ".repeat(11);
+const HANG_NAVIGATE = "\n" + " ".repeat(12);
+
 function pad(n: number, width = 4) {
   return String(n).padStart(width, "0");
 }
@@ -169,14 +179,20 @@ export function TerminalHomePage() {
           className="mb-6"
         >
           <pre
-            className="whitespace-pre text-[14px] leading-[1.35]"
+            className={`whitespace-pre text-[14px] leading-[1.35] ${PHONE_PRE}`}
             style={{ color: PHOSPHOR_DIM }}
           >
             {RULE_DOUBLE}
             {"\n"}
-            {`  UX RESEARCH FILE / KIRUK.IN     OPENED ${openStamp} UTC\n`}
-            {`  SUBJECT: arun-ks · usability study of one\n`}
-            {`  CLASSIFICATION: PUBLIC          SEQUENCE 0001 / 0007\n`}
+            {"  UX RESEARCH FILE / KIRUK.IN"}
+            <Gap wide="     " />
+            {`OPENED ${openStamp} UTC\n`}
+            {"  SUBJECT: arun-ks ·"}
+            <Gap wide=" " narrow={HANG_SUBJECT} />
+            {"usability study of one\n"}
+            {"  CLASSIFICATION: PUBLIC"}
+            <Gap wide="          " />
+            {"SEQUENCE 0001 / 0007\n"}
             {RULE_DOUBLE}
           </pre>
         </motion.section>
@@ -293,7 +309,7 @@ export function TerminalHomePage() {
           className="mb-10"
         >
           <pre
-            className="whitespace-pre text-[14px] leading-[1.2] mb-2"
+            className={`whitespace-pre text-[14px] leading-[1.2] mb-2 ${PHONE_PRE}`}
             style={{ color: PHOSPHOR_FAINT }}
           >
             {"YEAR │ PHASE       │ ENTRY"}
@@ -384,10 +400,14 @@ export function TerminalHomePage() {
           className="mb-10"
         >
           <pre
-            className="whitespace-pre text-[14px] leading-[1.2] mb-2"
+            className={`whitespace-pre text-[14px] leading-[1.2] mb-2 ${PHONE_PRE}`}
             style={{ color: PHOSPHOR_FAINT }}
           >
-            {"METRIC                       VALUE     · CATEGORY"}
+            {"METRIC"}
+            <Gap wide={" ".repeat(23)} narrow=" " />
+            {"VALUE"}
+            <Gap wide="     " narrow=" " />
+            {"· CATEGORY"}
             {"\n"}
             {"─".repeat(62)}
           </pre>
@@ -602,13 +622,19 @@ export function TerminalHomePage() {
           style={{ color: PHOSPHOR_FAINT }}
         >
           <pre
-            className="whitespace-pre leading-[1.35]"
+            className={`whitespace-pre leading-[1.35] ${PHONE_PRE}`}
             style={{ color: PHOSPHOR_DIM }}
           >
             {RULE_DOUBLE}
             {"\n"}
-            {`  END OF FILE  ·  7 records printed  ·  closed ${openStamp} UTC\n`}
-            {`  NAVIGATE: ABOUT.walk ⊳  ·  WORK.scope 🔭  ·  links ▸ inline above\n`}
+            {"  END OF FILE  ·  7 records printed"}
+            <Gap wide="  ·  " />
+            {`closed ${openStamp} UTC\n`}
+            {"  NAVIGATE: ABOUT.walk ⊳"}
+            <Gap wide="  ·  " narrow={HANG_NAVIGATE} />
+            {"WORK.scope 🔭"}
+            <Gap wide="  ·  " narrow={HANG_NAVIGATE} />
+            {"links ▸ inline above\n"}
             {RULE_DOUBLE}
           </pre>
         </motion.div>
@@ -618,6 +644,19 @@ export function TerminalHomePage() {
 }
 
 // ─── Building blocks ──────────────────────────────────────────────────────
+
+/**
+ * Column padding inside a teletype line. Desktop keeps the wide gap; a phone
+ * gets `narrow` — by default the right-hand column drops to its own line.
+ */
+function Gap({ wide, narrow = "\n  " }: { wide: string; narrow?: string }) {
+  return (
+    <>
+      <span className="max-sm:hidden">{wide}</span>
+      <span className="sm:hidden">{narrow}</span>
+    </>
+  );
+}
 
 function LogStamp({
   seq,
@@ -652,7 +691,7 @@ function LogStamp({
         <span style={{ color: PHOSPHOR_FAINT }}>· {subtitle}</span>
       </div>
       <div
-        className="text-[14px] leading-[1.2] mt-1"
+        className="text-[14px] leading-[1.2] mt-1 max-sm:overflow-hidden"
         style={{ color: PHOSPHOR_GHOST }}
       >
         {RULE_SINGLE}

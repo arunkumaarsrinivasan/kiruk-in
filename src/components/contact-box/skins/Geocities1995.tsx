@@ -16,6 +16,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
 import { Comic_Neue } from "next/font/google";
 import { EMAIL, FACTS, INTENTS, WHO, type Channel, type ChannelId, type ContactWhoId, type IntentId } from "@/data/contact";
+import { useCalmMotion } from "@/hooks/useCalmMotion";
 import type { ContactSkinProps } from "../types";
 import { CalEmbed, external, statusLine } from "../contact-ui";
 
@@ -272,7 +273,9 @@ export function Geocities1995({ contact: c }: ContactSkinProps) {
   const [at, setAt] = useState<{ intent: IntentId; i: number }>({ intent: c.intent.id, i: 0 });
   const [calOpen, setCalOpen] = useState(false);
   const [listOpen, setListOpen] = useState(false);
-  const [paused, setPaused] = useState(false);
+  // null = the visitor hasn't chosen; phones then open with it all stopped.
+  const [paused, setPaused] = useState<boolean | null>(null);
+  const calm = useCalmMotion();
   const [stars, setStars] = useState(0);
   const [rateOn, setRateOn] = useState(false);
   const [queued, setQueued] = useState(false);
@@ -280,7 +283,8 @@ export function Geocities1995({ contact: c }: ContactSkinProps) {
   const bookRef = useRef<HTMLElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
 
-  const motion = !c.reduce && !paused;
+  const stopped = paused ?? calm;
+  const motion = !c.reduce && !stopped;
   const sent = c.sendState === "sent";
   const first = c.name.trim().split(" ")[0] ?? "";
 
@@ -391,12 +395,12 @@ export function Geocities1995({ contact: c }: ContactSkinProps) {
             {!c.reduce && (
               <button
                 type="button"
-                onClick={() => setPaused((p) => !p)}
-                aria-pressed={paused}
+                onClick={() => setPaused(!stopped)}
+                aria-pressed={stopped}
                 className="min-h-11 shrink-0 px-3 text-[13px] underline focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-4"
                 style={{ color: CYAN, borderLeft: `2px ridge ${MAGENTA}`, outlineColor: CYAN }}
               >
-                {paused ? "animate" : "stop"}
+                {stopped ? "animate" : "stop"}
                 <span className="sr-only"> the scrolling and blinking</span>
               </button>
             )}

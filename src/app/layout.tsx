@@ -13,6 +13,7 @@ import { ContextBarProvider } from "@/contexts/ContextBarContext";
 import { LayoutModeProvider } from "@/contexts/LayoutModeContext";
 import { ModuleProvider } from "@/contexts/ModuleContext";
 import { SITE_URL } from "@/lib/site";
+import { TUBE_BOOT_CSS, TUBE_BOOT_SCRIPT } from "@/components/ui/loader/tube/boot";
 
 const SITE_NAME = "Kiruk Studio — Arun Kumaar Sreenivasan";
 const TITLE = "Kiruk Studio — Design Engineer & AI UX Designer in India";
@@ -207,6 +208,13 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
         />
         <link rel="alternate" type="text/plain" href="/llms.txt" title="Plain-text summary of this site" />
+        {/* the first-visit opening's first frame, before the app has loaded (loader/tube/boot.ts) */}
+        {process.env.NEXT_PUBLIC_SPLASH_LOADER !== "false" && (
+          <>
+            <style dangerouslySetInnerHTML={{ __html: TUBE_BOOT_CSS }} />
+            <script dangerouslySetInnerHTML={{ __html: TUBE_BOOT_SCRIPT }} />
+          </>
+        )}
       </head>
       <body
         className="antialiased"

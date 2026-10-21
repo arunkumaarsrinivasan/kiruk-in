@@ -145,3 +145,6 @@ lerna-debug.log*
 .opencode/
 .windsurf/
 ONBOARDING.md
+
+# review screenshots (local only)
+docs/era-pov/

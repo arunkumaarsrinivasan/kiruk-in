@@ -236,6 +236,19 @@ export default function EyeLab() {
   const [panel, setPanel] = useState(true);
   const [failure, setFailure] = useState<string | null>(null);
 
+  // The page's stable scrollbar gutter cannot be painted over (not even at
+  // 100vw), so captures had a dark strip down the right; the lab drops it.
+  useEffect(() => {
+    const st = document.documentElement.style;
+    const was = { gutter: st.scrollbarGutter, overflow: st.overflow };
+    st.scrollbarGutter = "auto";
+    st.overflow = "hidden";
+    return () => {
+      st.scrollbarGutter = was.gutter;
+      st.overflow = was.overflow;
+    };
+  }, []);
+
   // ---- TSL stage control --------------------------------------------------
   const control = useRef<EyeStageControl | null>(null);
   const [layers, setLayers] = useState<Record<EyeLayer, boolean>>({
@@ -421,15 +434,15 @@ export default function EyeLab() {
   );
 
   /** Captures what the loader shows: the live eye through each era's own screen. */
-  const captureAll = useCallback(async (only?: string[]) => {
+  const captureAll = useCallback(async (only?: string[], variants?: PosterVariant[]) => {
     setCapLog([]);
     const log = (line: string) => setCapLog((l) => [...l, line]);
     const eras = only ? themes.filter((t) => only.includes(t.id)) : themes;
-    for (const variant of Object.keys(POSTER_VARIANTS) as PosterVariant[]) {
+    for (const variant of variants ?? (Object.keys(POSTER_VARIANTS) as PosterVariant[])) {
       setCapEra(eras[0]);
       setCapVariant(variant);
-      // the eye compiles behind its own poster first: give it the time
-      await sleep(SETTLE_MS * 2);
+      // the eye compiles behind its own poster first, then fades in: give it the time
+      await sleep(SETTLE_MS * 3);
       for (const t of eras) {
         setCapEra(t);
         await sleep(SETTLE_MS);
@@ -456,6 +469,15 @@ export default function EyeLab() {
     setCapVariant(null);
     setPosterRev((r) => r + 1);
   }, [themes]);
+
+  // Headless recaptures call this directly: __eyeCapture(["1970"], ["tall"]).
+  useEffect(() => {
+    const w = window as unknown as { __eyeCapture?: typeof captureAll };
+    w.__eyeCapture = captureAll;
+    return () => {
+      delete w.__eyeCapture;
+    };
+  }, [captureAll]);
 
   const capSize = capVariant ? POSTER_VARIANTS[capVariant] : null;
 
@@ -947,6 +969,14 @@ export default function EyeLab() {
                 className="self-start rounded bg-[#f4f3f0] px-2 py-1 text-[11px] text-[#0b0b0b] disabled:opacity-40"
               >
                 {capturing ? `Capturing ${capEra.id} ${capVariant}…` : "Capture all eras"}
+              </button>
+              <button
+                type="button"
+                disabled={capturing}
+                onClick={() => captureAll(undefined, ["tall"])}
+                className="self-start rounded border border-white/25 px-2 py-1 text-[11px] text-white/80 disabled:opacity-40"
+              >
+                Capture phone posters
               </button>
               {capPreview && (
                 // eslint-disable-next-line @next/next/no-img-element

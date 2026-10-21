@@ -494,7 +494,7 @@ export function Navbar() {
         </>
       ) : null}
 
-      <EraNavOverlay open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <EraNavOverlay open={menuOpen} onClose={() => setMenuOpen(false)} onPickEra={onPickEra} eraId={eraId} />
     </header>
   );
 }
