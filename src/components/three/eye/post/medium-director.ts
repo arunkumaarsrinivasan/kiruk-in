@@ -56,6 +56,11 @@ export interface DirectorInput {
   travel?: number | null;
   /** A pointer has come near the eye (within a few iris radii): 2026 answers with a ripple. */
   near?: boolean;
+  /**
+   * Whether medium n can be drawn yet (its shader built). A cut to an era not
+   * ready keeps the lids shut until it is: the medium never shows unbuilt.
+   */
+  ready?: (n: number) => boolean;
 }
 
 type Phase = "rest" | "cut" | "open" | "scrub";
@@ -70,6 +75,9 @@ const OPEN_MS = 240;
 const SWAP_GAP_MS = 400;
 /** How long a cut may wait for the stage to put the new era up. */
 const APPLY_WAIT_MS = 150;
+/** Shut that long waiting for an era still building, the old era comes back on behind the lids, over PARK_RETURN_MS. */
+const PARK_AFTER_MS = 250;
+const PARK_RETURN_MS = 300;
 const READY_MIN_MS = 420;
 const SIGN_FADE_MS = 150;
 /** How far the eye glances toward the next era (gaze units), and per extra era. */
@@ -150,6 +158,14 @@ export class MediumDirector {
   private skipped = 0;
   private waited = 0;
   private holdLeft = 0;
+  /**
+   * Shut and waiting for an era whose medium is still building (ms), and
+   * whether the outgoing era has come back on behind the lids meanwhile: a
+   * screen switched off for seconds reads as broken, so after a moment the
+   * shut eye shows in the old era again, and departs once more when ready.
+   */
+  private readyWait = 0;
+  private parked = false;
   private openT = 0;
   private lidAt = 0;
   private quietLeft = 0;
@@ -215,7 +231,7 @@ export class MediumDirector {
     // reduced motion: a plain cut, no blink, and no more than 2.5 a second
     // (a held arrow key would otherwise flip the whole frame every frame)
     if (i.reduce) {
-      if (i.want !== this.cur && (this.sinceSwap >= SWAP_GAP_MS || i.exiting)) {
+      if (i.want !== this.cur && (this.sinceSwap >= SWAP_GAP_MS || i.exiting) && (i.ready?.(i.want) ?? true)) {
         this.cur = this.target = i.want;
         this.swap = true;
         this.sinceSwap = 0;
@@ -295,6 +311,8 @@ export class MediumDirector {
     this.waited = 0;
     this.holdLeft = 0;
     this.dep = 0;
+    this.readyWait = 0;
+    this.parked = false;
   }
 
   private beginOpen(lid: number) {
@@ -306,8 +324,20 @@ export class MediumDirector {
 
   private stepCut(i: DirectorInput, ms: number, slow: number) {
     this.t += ms;
-    const t = this.t / slow;
     const outgoing = this.timing(this.cur);
+    // waiting, shut, for an era still building: the old one comes back on
+    // after a moment, and departs again (from where it is) once the new is ready
+    const waiting = this.target !== this.cur && !(i.ready?.(this.target) ?? true);
+    if (waiting) this.readyWait += ms;
+    else {
+      this.readyWait = 0;
+      if (this.parked) {
+        this.parked = false;
+        this.t = (CLOSE_AT + this.dep * outgoing.departMs) * slow;
+      }
+    }
+    if (this.readyWait > PARK_AFTER_MS && this.lidAt >= 0.999) this.parked = true;
+    const t = this.t / slow;
     // the glance toward the next era (LOOK): it starts the cut and is held
     // until the eye opens; the gaze rig turns it into a saccade
     this.look = this.dir * Math.min(LOOK_MAX, LOOK_AMP + LOOK_STEP * this.skipped);
@@ -318,7 +348,8 @@ export class MediumDirector {
     this.blink = this.lidAt;
 
     // the outgoing era departs as they close (from wherever a scrub left it)
-    if (this.target !== this.cur) this.dep = Math.max(this.dep, clamp01((t - CLOSE_AT) / outgoing.departMs));
+    if (this.parked) this.dep = Math.max(0, this.dep - ms / PARK_RETURN_MS);
+    else if (this.target !== this.cur) this.dep = Math.max(this.dep, clamp01((t - CLOSE_AT) / outgoing.departMs));
 
     // back where we started before anything changed: open again
     if (this.target === this.cur && this.holdLeft === 0) {
@@ -330,7 +361,7 @@ export class MediumDirector {
     const shut = this.lidAt >= 0.999;
     const departed = this.dep >= 1 || this.target === this.cur || this.rush;
     if (this.holdLeft === 0 && shut && departed && this.target !== this.cur) {
-      if (this.sinceSwap >= SWAP_GAP_MS || this.rush) {
+      if ((this.sinceSwap >= SWAP_GAP_MS || this.rush) && (i.ready?.(this.target) ?? true)) {
         this.cur = this.target;
         this.swap = true;
         this.sinceSwap = 0;
@@ -416,7 +447,7 @@ export class MediumDirector {
     this.blink = this.lidAt;
 
     // the cut, once the lids are nearly shut
-    if (near !== this.cur && this.lidAt >= SCRUB_CUT_LID && this.sinceSwap >= SWAP_GAP_MS) {
+    if (near !== this.cur && this.lidAt >= SCRUB_CUT_LID && this.sinceSwap >= SWAP_GAP_MS && (i.ready?.(near) ?? true)) {
       this.cur = near;
       this.swap = true;
       this.sinceSwap = 0;

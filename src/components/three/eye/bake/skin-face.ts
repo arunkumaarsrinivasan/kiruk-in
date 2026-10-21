@@ -58,6 +58,12 @@ export interface SkinFaceBake {
   map: RenderTarget;
   /** Renders once; later calls do nothing. */
   render: (renderer: WebGPURenderer) => boolean;
+  /**
+   * Bakes again on the next `render`. On WebGPU the stage's first frames
+   * build pipelines asynchronously and skip any draw not ready yet, which
+   * includes a bake's one draw; the stage redoes every bake once it is warm.
+   */
+  redo: () => void;
   dispose: () => void;
 }
 
@@ -123,6 +129,9 @@ export function createSkinFaceBake(tiltDeg: number, tileRes = 512, mapRes = 512)
   return {
     tile,
     map,
+    redo() {
+      done = false;
+    },
     render(renderer) {
       if (done) return false;
       done = true;

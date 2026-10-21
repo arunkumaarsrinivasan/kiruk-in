@@ -75,6 +75,8 @@ export interface IrisBake {
   request: (set: 0 | 1, identity: EyeIdentity, restPupil: number) => void;
   /** Renders an owed bake; returns the set it baked, or -1. */
   render: (renderer: WebGPURenderer) => number;
+  /** Bakes the last request again, into the same set, on the next `render` (see VesselBake.redo). */
+  redo: () => void;
   quads: QuadMesh[];
   dispose: () => void;
 }
@@ -220,12 +222,17 @@ export function createIrisBake(width: number): IrisBake {
   const masksQuad = new QuadMesh(masksMaterial);
 
   let owed: { set: 0 | 1; identity: EyeIdentity; rest: number } | null = null;
+  let last: { set: 0 | 1; identity: EyeIdentity; rest: number } | null = null;
 
   return {
     sets,
     quads: [albedoQuad, masksQuad],
     request(set, identity, restPupil) {
       owed = { set, identity, rest: restPupil };
+      last = owed;
+    },
+    redo() {
+      if (!owed && last) owed = last;
     },
     render(renderer) {
       if (!owed) return -1;

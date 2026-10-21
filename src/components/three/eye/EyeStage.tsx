@@ -69,6 +69,8 @@ import { createEraScreenTexture, type EraScreenTexture } from "@/components/thre
 
 /** How long the gaze keeps following a pointer that has stopped arriving. */
 const POINTER_HOLD = 2.2;
+/** CSS px at the frame's foot that the loader's corner plates take (32 tall, 16 up, plus clearance). */
+const FOOT_CSS_PX = 64;
 /** The stage counts as up once its intro fade has arrived this far. */
 const READY_AT = 0.97;
 /** A covered stage draws a frame this often, s: enough to keep its clock, its fade and its warm-up going. */
@@ -474,6 +476,10 @@ function EyeScene({
     [gl, scene, camera, U, screen, tierSpec, emissiveTarget, media],
   );
   useEffect(() => () => pipeline.dispose(), [pipeline]);
+  // a new pipeline (the media switched on, say) has its eras' media still to build
+  useEffect(() => {
+    allMedia.current = !pipeline.media || (gl.backend as { isWebGPUBackend?: boolean }).isWebGPUBackend !== true;
+  }, [pipeline, gl]);
 
   /* ---- warm up behind the poster -------------------------------------- */
 
@@ -489,6 +495,10 @@ function EyeScene({
   // only then does it fade in. While it is covered, new pipelines are still
   // built this way: something not drawn for a moment is out of sight there.
   const warm = useRef({ async: true, pending: 0, made: 0, seen: 0, quietSince: 0, step: 0, done: false });
+  /** Draw materials whose pipeline is built (WebGPU), so an era's medium is never cut to before it can draw. */
+  const builtMats = useRef(new WeakMap<object, boolean>());
+  /** Whether every era's medium has its pipeline built (until then, new pipelines keep building off the main thread). */
+  const allMedia = useRef(!media);
   useEffect(() => {
     const W = warm.current;
     const backend = gl.backend as unknown as {
@@ -501,14 +511,22 @@ function EyeScene({
       return;
     }
     const make = backend.createRenderPipeline;
+    const B = builtMats.current;
     backend.createRenderPipeline = function (renderObject, promises) {
-      if (promises || !W.async) return make.call(this, renderObject, promises);
+      const mat = (renderObject as { material?: object }).material;
+      if (promises || !W.async) {
+        make.call(this, renderObject, promises);
+        if (mat && !promises) B.set(mat, true);
+        return;
+      }
       const built: Promise<void>[] = [];
       make.call(this, renderObject, built);
       W.made += 1;
       W.pending += built.length;
+      if (mat) B.set(mat, built.length === 0);
       void Promise.all(built).finally(() => {
         W.pending -= built.length;
+        if (mat) B.set(mat, true);
       });
     };
     return () => {
@@ -948,7 +966,9 @@ function EyeScene({
     const pointerIdle = now - pointer.current.seen > 2.8;
     const W = warm.current;
     const covered = coveredRef.current;
-    W.async = !W.done || covered;
+    // (every era's medium builds off the main thread too, in the background,
+    // until all ten exist: built the plain way, each would freeze the browser)
+    W.async = !W.done || covered || !allMedia.current;
     // The lab measures every frame; the loader may rest, but only while the
     // eye is holding still: never through a saccade, its wobble or a blink.
     // Skipped time is carried, so the eye's clock never slows.
@@ -997,6 +1017,8 @@ function EyeScene({
     // ---- ten ways of seeing: the cut between eras is the person's blink -----
     // (post/medium-director.ts). The era's light, lens and page follow the
     // director's swap, made while the lids are shut.
+    /** Whether era n's medium can draw (its pipeline built); WebGL2 builds on first use, behind the shut lids. */
+    const mediaReady = (n: number) => info.backend !== "webgpu" || !pipeline.media || builtMats.current.get(pipeline.media.quad(n)) === true;
     if (media) {
       const P = pointer.current;
       const iris = irisOnScreen.current;
@@ -1018,6 +1040,7 @@ function EyeScene({
         near: seen && P.mouse && Math.hypot(((P.x + 1) / 2) * size.width - iris.x, ((P.y + 1) / 2) * size.height - iris.y) < iris.r * 2.5,
         // (medium space is 1-based; the lab's held medium ignores the hand)
         travel: held === null && travelPos.current !== null ? travelPos.current + 1 : null,
+        ready: mediaReady,
       });
       const next = held === null ? (ERA_MEDIA[director.cur - 1] ?? era.id) : era.id;
       if ((director.swap || held !== null) && next !== shownId) setShownId(next);
@@ -1322,6 +1345,8 @@ function EyeScene({
       }
       // the gimbal scans about the gaze axis while the pointer is over the iris
       if (!reduce) M.spin.value = (M.spin.value + dt * 0.7 * d.hover) % (Math.PI * 2);
+      // the loader's corner plates stand 64 CSS px tall from the foot, at any pixel ratio
+      M.foot.value = interactive ? FOOT_CSS_PX * gl.getPixelRatio() : 0;
       {
         const tr = trace.current.samples;
         const hist = M.pupilHist.array as number[];
@@ -1446,6 +1471,21 @@ function EyeScene({
       }
     }
 
+    // Once the era on screen is up, the other eras' media build one at a
+    // time in the background: the era asked for first, then the nearest. A
+    // cut to an era still building waits behind shut lids (the director).
+    if (pipeline.media && info.backend === "webgpu" && W.done && !allMedia.current) {
+      const want = mediumHold.current ?? mediumOf(era.id);
+      const cur = Math.max(1, director.cur);
+      let next: number | null = want >= 1 && !mediaReady(want) ? want : null;
+      for (let k = 1; next === null && k <= ERA_MEDIA.length; k++) {
+        for (const n of [cur + k, cur - k]) if (next === null && n >= 1 && n <= ERA_MEDIA.length && !mediaReady(n)) next = n;
+      }
+      if (next === null && !mediaReady(cur)) next = cur;
+      pipeline.media.warm(next);
+      if (next === null) allMedia.current = true;
+    }
+
     const t0 = performance.now();
     if (warmStep !== 0) pipeline.render();
     if (pendingCapture.current) {
@@ -1459,7 +1499,19 @@ function EyeScene({
       if (W.made !== W.seen || W.pending > 0 || W.step <= WARM_PARTS.length) {
         W.seen = W.made;
         W.quietSince = now;
-      } else if (now - W.quietSince > WARM_QUIET) W.done = true;
+      } else if (now - W.quietSince > WARM_QUIET) {
+        W.done = true;
+        // the bakes drew once, during the warm-up, when their pipelines were
+        // still building and so were skipped: the iris's fibres, the white's
+        // vessels and the skin's pores would stay blank until something asked
+        // again (an era change). Now every pipeline exists, so bake again,
+        // before the stage fades in.
+        vessels.redo();
+        skinBake.redo();
+        skinFace.redo();
+        irisBake.redo();
+        tear.reset();
+      }
     }
 
     if (!readySent.current && U.fade.value > READY_AT) {

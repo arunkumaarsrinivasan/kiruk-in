@@ -103,9 +103,12 @@ function sparkleAt(q: N, f: N): N {
 
 /**
  * @param tex the finished frame, display-encoded (≈ sRGB, 8 bits), as a texture
+ * @param only build just this era's branch (1..10; 0 none, the frame as it is),
+ *   a small shader that compiles fast (post/pipeline.ts keeps one per era);
+ *   without it every era is built, chosen by `M.cur`
  * @returns the frame in the era's medium, linear
  */
-export function eraMedium(Ux: EyeUniforms, tex: N): N {
+export function eraMedium(Ux: EyeUniforms, tex: N, only?: number): N {
   const U: N = Ux;
   const M = U.medium;
   return Fn(() => {
@@ -135,8 +138,15 @@ export function eraMedium(Ux: EyeUniforms, tex: N): N {
     const sign = M.signA.toVar();
     const out = lin(at(uv)).toVar();
 
+    // each era's branch, registered here and built below: just one, or all
+    // of them chained on the era number
+    const bodies: Record<number, () => void> = {};
+    const on = (n: number, body: () => void) => {
+      bodies[n] = body;
+    };
+
     // ---- 1970: a green phosphor terminal -----------------------------------
-    If(M.cur.equal(1), () => {
+    on(1, () => {
       // leaving: the raster collapses onto the eye's line (then a line, then a dot)
       const dq = clamp(M.dep.div(0.55), 0, 1);
       const squash = float(1).sub(easeInQuad(dq).mul(0.97));
@@ -184,7 +194,7 @@ export function eraMedium(Ux: EyeUniforms, tex: N): N {
       out.assign(lin(lit.add(vec3(0.5, 1, 0.42).mul(1.5).mul(line))));
     })
       // ---- 1981: a Xerox Star's 1-bit bitmap, as an etching ------------------
-      .ElseIf(M.cur.equal(2), () => {
+    on(2, () => {
         const cell = cellPx(F, 3.4);
         const ci = floor(p.div(cell));
         const cc = ci.add(0.5).mul(cell);
@@ -242,7 +252,7 @@ export function eraMedium(Ux: EyeUniforms, tex: N): N {
         out.assign(lin(mix(mix(hex("#101012"), hex("#f1efe8"), v), hex("#f1efe8"), flood)));
       })
       // ---- 1991: a NeXT's four greys -----------------------------------------
-      .ElseIf(M.cur.equal(3), () => {
+    on(3, () => {
         // arriving: the refresh sweeps down; below it, a coarse still still coming in
         const sweep = H.mul(easeInOutSine(M.arr));
         const cell = select(p.y.lessThan(sweep), cellPx(F, 2), cellPx(F, 8));
@@ -276,7 +286,7 @@ export function eraMedium(Ux: EyeUniforms, tex: N): N {
         out.assign(lin(vec3(v)));
       })
       // ---- 1995: 216 web-safe colours on a home CRT, at night -----------------
-      .ElseIf(M.cur.equal(4), () => {
+    on(4, () => {
         const cell = cellPx(F, 3);
         const ci0 = floor(p.div(cell));
         // arriving: the interlaced GIF's four passes, each row filled down from its pass's row
@@ -324,7 +334,7 @@ export function eraMedium(Ux: EyeUniforms, tex: N): N {
         out.assign(lin(qd));
       })
       // ---- 1997: 16-bit colour, JPEG blocks in the darks ---------------------
-      .ElseIf(M.cur.equal(5), () => {
+    on(5, () => {
         const pix = s.mul(2);
         const fine = at(floor(p.div(pix)).add(0.5).mul(pix).div(size));
         const block = at(floor(p.div(pix.mul(8))).add(0.5).mul(pix.mul(8)).div(size));
@@ -333,7 +343,7 @@ export function eraMedium(Ux: EyeUniforms, tex: N): N {
         out.assign(lin(c));
       })
       // ---- 2000: through a laptop panel; the search box's caret in the pupil --
-      .ElseIf(M.cur.equal(6), () => {
+    on(6, () => {
         const d = at(uv);
         // a TN panel's black is never black
         const floorC = hex("#15171c");
@@ -346,7 +356,7 @@ export function eraMedium(Ux: EyeUniforms, tex: N): N {
         out.assign(lin(c));
       })
       // ---- 2003: candy colour ------------------------------------------------
-      .ElseIf(M.cur.equal(7), () => {
+    on(7, () => {
         const d0 = at(uv);
         const c = mix(vec3(luma(d0)), d0, 1.3).sub(0.45).mul(1.12).add(0.45).toVar();
         c.addAssign(hex("#0a0500").mul(smoothstep(0.6, 1, luma(d0))));
@@ -354,7 +364,7 @@ export function eraMedium(Ux: EyeUniforms, tex: N): N {
         out.assign(lin(c));
       })
       // ---- 2009: a phone photo of its time: a warm faded filter --------------
-      .ElseIf(M.cur.equal(8), () => {
+    on(8, () => {
         const d0 = at(uv);
         const l = luma(d0);
         // faded blacks, warm highlights, teal shadows
@@ -371,13 +381,19 @@ export function eraMedium(Ux: EyeUniforms, tex: N): N {
         out.assign(lin(d));
       })
       // ---- 2013: the system: her face drawn by a UI kit (post/system.ts) -----
-      .ElseIf(M.cur.equal(9), () => {
+    on(9, () => {
         out.assign(lin(system({ F, M, tex, uv, sign })));
       })
       // ---- 2026: measured: the interface tracks everything (post/measured.ts)
-      .ElseIf(M.cur.equal(10), () => {
+    on(10, () => {
         out.assign(lin(measured({ F, M, at, uv, sign })));
       });
+
+    if (only !== undefined) bodies[only]?.();
+    else {
+      let chain: N = If(M.cur.equal(1), bodies[1]);
+      for (let n = 2; n <= ERA_MEDIA.length; n++) chain = chain.ElseIf(M.cur.equal(n), bodies[n]);
+    }
 
     return vec4(min(out, vec3(4)), 1);
   })();

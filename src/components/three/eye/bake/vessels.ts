@@ -64,6 +64,12 @@ export interface VesselBake {
   setSeed: (seed: number) => void;
   /** Renders if a bake is owed; returns whether it did. */
   render: (renderer: WebGPURenderer) => boolean;
+  /**
+   * Bakes again on the next `render`. On WebGPU the stage's first frames
+   * build pipelines asynchronously and skip any draw not ready yet, which
+   * includes a bake's one draw; the stage redoes every bake once it is warm.
+   */
+  redo: () => void;
   quad: QuadMesh;
   dispose: () => void;
 }
@@ -120,6 +126,9 @@ export function createVesselBake(): VesselBake {
       if (next === currentSeed) return;
       currentSeed = next;
       seedOffset(next, seed.value as Vector3);
+      owed = true;
+    },
+    redo() {
       owed = true;
     },
     render(renderer) {

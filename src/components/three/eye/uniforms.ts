@@ -253,6 +253,8 @@ export function createEyeUniforms() {
       spin: uniform(0).setGroup(renderGroup),
       /** Lab: which of 2026's layers draw, as bits (plate, registration, geometry, landmarks, you, sign); 63 all. */
       layers: uniform(63).setGroup(renderGroup),
+      /** Device pixels at the frame's foot kept clear for the loader's corner plates (LoaderHint). */
+      foot: uniform(0).setGroup(renderGroup),
     },
     /** The globe's radius, mm (anatomical 12). The stand-in iris is measured against it. */
     ballRadius: uniform(12).setGroup(renderGroup),

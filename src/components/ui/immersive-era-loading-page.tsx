@@ -83,14 +83,17 @@ const IRIS_TAP_MIN = 56;
 /** A finger deserves a wider target than a cursor. */
 const IRIS_TAP_COARSE = 1.3;
 /**
- * Wheel and trackpad travel that adds up to one year. Trackpads report a
- * stream of small deltas and mice report a few large ones; accumulating both
- * and spending the total means either device moves at the speed it is pushed
- * instead of at a fixed tick.
+ * Wheel and trackpad travel: one gesture is one year, however hard it is
+ * pushed. A gesture is a run of deltas with no gap longer than WHEEL_IDLE_MS
+ * (a trackpad's momentum included); it steps once its deltas add up to
+ * WHEEL_PITCH, then the rest of it is spent. A hard flick used to bank
+ * several years and land on the last era, which lost visitors.
  */
-const WHEEL_PITCH = 90;
-/** Wheel travel is forgotten if nothing arrives for this long. */
-const WHEEL_IDLE_MS = 320;
+const WHEEL_PITCH = 60;
+/** A gesture ends when nothing arrives for this long. */
+const WHEEL_IDLE_MS = 450;
+/** And steps are never closer than one blink between eras: anything inside this belongs to the gesture that stepped. */
+const WHEEL_STEP_GAP_MS = 900;
 /**
  * The longest the opening waits for the live eye; after this it fades onto the
  * poster. Generous: the formed tube keeps ticking (its cursor, its clock pulse)
@@ -123,6 +126,84 @@ function dropPageGutter() {
     st.scrollbarGutter = was.gutter;
     st.overflow = was.overflow;
   };
+}
+
+/**
+ * One corner instruction: a small glyph that acts out the gesture, the verb,
+ * then what it does. No box: a feathered pool of dark, frosted at its centre
+ * and fading to nothing, sits behind the words, so they read on every era
+ * (1970's black, 1991's dither, 2013's dense colour) without looking like a
+ * control. The words are the instruction; the eye itself is the button.
+ */
+function LoaderHint({
+  glyph,
+  verb,
+  action,
+  align,
+}: {
+  glyph: React.ReactNode;
+  verb: string;
+  action: string;
+  align: "start" | "end";
+}) {
+  const feather = "radial-gradient(closest-side, #000 55%, transparent)";
+  return (
+    <span className={`relative inline-flex shrink-0 items-center gap-2 ${align === "end" ? "flex-row-reverse" : ""}`}>
+      <span
+        aria-hidden
+        className="absolute -inset-x-8 -inset-y-6 backdrop-blur-[10px]"
+        style={{
+          background: "radial-gradient(closest-side, rgba(4,5,7,0.82), rgba(4,5,7,0.55) 65%, transparent)",
+          WebkitMaskImage: feather,
+          maskImage: feather,
+        }}
+      />
+      <span className="relative text-white/85">{glyph}</span>
+      <span
+        className="relative font-mono text-[11px] leading-none tracking-[0.03em] [text-shadow:0_0_6px_rgba(0,0,0,0.8)] sm:text-xs"
+        style={{ textAlign: align === "end" ? "right" : "left" }}
+      >
+        <span className="text-white/95">{verb}</span>
+        <span className="text-white/40"> · </span>
+        <span className="tabular-nums text-white/70">{action}</span>
+      </span>
+    </span>
+  );
+}
+
+/** An eye that blinks each time the era changes: the scroll's real effect. */
+function BlinkGlyph({ beat, reduce }: { beat: number; reduce: boolean }) {
+  return (
+    <svg width="18" height="12" viewBox="0 0 18 12" fill="none" className="block">
+      <motion.g
+        key={beat}
+        style={{ originY: "50%" }}
+        initial={false}
+        animate={reduce || beat === 0 ? { scaleY: 1 } : { scaleY: [1, 0.06, 1] }}
+        transition={{ duration: 0.42, times: [0, 0.3, 1], ease: "easeInOut" }}
+      >
+        <path d="M1 6 C4 1.4 14 1.4 17 6 C14 10.6 4 10.6 1 6 Z" stroke="currentColor" strokeWidth="1.1" />
+        <circle cx="9" cy="6" r="2.4" fill="currentColor" />
+      </motion.g>
+    </svg>
+  );
+}
+
+/** A pupil that widens while the pointer is on the iris: the way in, ready. */
+function PupilGlyph({ open, reduce }: { open: boolean; reduce: boolean }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="block">
+      <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.1" />
+      <motion.circle
+        cx="7"
+        cy="7"
+        fill="currentColor"
+        initial={false}
+        animate={{ r: open ? 3.6 : 1.9 }}
+        transition={reduce ? { duration: 0 } : { type: "spring", duration: 0.45, bounce: 0.2 }}
+      />
+    </svg>
+  );
 }
 
 function useCoarsePointer() {
@@ -183,7 +264,7 @@ export default function ImmersiveEraLoadingPage({
   /** The live eye: where its iris really is, for the tap that goes in. */
   const eyeControl = useRef<EyeStageControl | null>(null);
   const dragging = useRef(false);
-  const wheel = useRef({ acc: 0, at: 0 });
+  const wheel = useRef({ acc: 0, at: 0, spent: false, stepped: -1e9 });
   /** Where a touch drag started, and which era it started on. */
   const swipe = useRef({ x: 0, from: 0 });
   const surface = useRef<HTMLDivElement | null>(null);
@@ -598,10 +679,9 @@ export default function ImmersiveEraLoadingPage({
   }, []);
 
   /**
-   * Wheel and trackpad travel, as a non-passive native listener. Deltas are
-   * banked and spent a year at a time rather than throttled: a trackpad's
-   * hundred small deltas move as far as a mouse's three big ones, and a hard
-   * flick moves several years in one gesture instead of one per tick.
+   * Wheel and trackpad travel, as a non-passive native listener: one gesture,
+   * one year (see WHEEL_PITCH). A trackpad's hundred small deltas and a
+   * mouse's three big ones both add up to the one step.
    */
   useEffect(() => {
     if (exiting) return;
@@ -616,17 +696,24 @@ export default function ImmersiveEraLoadingPage({
       }
       stopDemo();
       queueDemo(DEMO_IDLE_MS);
-      const now = performance.now();
+      // (the event's own time, not when it is handled: a cut keeps the main
+      // thread busy, and late-handled deltas would look like a pause that ends
+      // the gesture, then step again)
+      const now = e.timeStamp;
+      const w = wheel.current;
       // a new gesture starts from zero, and so does a reversal
-      if (now - wheel.current.at > WHEEL_IDLE_MS || wheel.current.acc * d < 0) {
-        wheel.current.acc = 0;
+      if (now - w.at > WHEEL_IDLE_MS || w.acc * d < 0) {
+        w.acc = 0;
+        w.spent = false;
       }
-      wheel.current.at = now;
-      wheel.current.acc += d;
-      const years = Math.trunc(wheel.current.acc / WHEEL_PITCH);
-      if (years === 0) return;
-      wheel.current.acc -= years * WHEEL_PITCH;
-      step(years);
+      w.at = now;
+      if (now - w.stepped < WHEEL_STEP_GAP_MS) w.spent = true;
+      if (w.spent) return;
+      w.acc += d;
+      if (Math.abs(w.acc) < WHEEL_PITCH) return;
+      w.spent = true;
+      w.stepped = now;
+      step(Math.sign(w.acc));
     };
     window.addEventListener("wheel", onWheel, { passive: false });
     return () => window.removeEventListener("wheel", onWheel);
@@ -734,6 +821,37 @@ export default function ImmersiveEraLoadingPage({
           onGone={onTubeGone}
         />
       )}
+
+      {/* --- the only words on the loader: how to travel, and how to go in ---
+          One line in each bottom corner, once the eye has opened. Left: an
+          eye glyph that blinks with every era change, as the real eye does.
+          Right: a pupil that widens while the pointer is on the iris, and the
+          era a click would enter, so a scroll visibly changes something. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex items-end justify-between gap-3 px-4 sm:px-6"
+        style={{
+          paddingBottom: "max(1rem, env(safe-area-inset-bottom))",
+          opacity: opened && !exiting ? 1 : 0,
+          transform: opened && !exiting ? "none" : "translateY(4px)",
+          transition: reduce
+            ? "none"
+            : `opacity 500ms ease-out ${opened && !exiting ? 900 : 0}ms, transform 500ms cubic-bezier(0.23, 1, 0.32, 1) ${opened && !exiting ? 900 : 0}ms`,
+        }}
+      >
+        <LoaderHint
+          align="start"
+          glyph={<BlinkGlyph beat={index} reduce={reduce} />}
+          verb={isCoarse ? "Swipe" : "Scroll"}
+          action={isCoarse ? "blink" : "blink to the next era"}
+        />
+        <LoaderHint
+          align="end"
+          glyph={<PupilGlyph open={overIris} reduce={reduce} />}
+          verb={isCoarse ? "Tap the eye" : "Click the eye"}
+          action={`enter ${focused.id}`}
+        />
+      </div>
 
       {/* --- phones: a fingertip shows the sweep and the tap, then leaves ---- */}
       {isCoarse && webgl === true && (

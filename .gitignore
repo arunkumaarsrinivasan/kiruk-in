@@ -125,7 +125,11 @@ lerna-debug.log*
 /inbox/scans/
 
 # AI tooling / local agents
-.claude/
+.claude/*
+# the eye's design skills are part of the repo; everything else in .claude stays local
+!.claude/skills/
+.claude/skills/*
+!.claude/skills/eye-*/
 .cursor/*
 !.cursor/rules/
 .cursor/rules/*

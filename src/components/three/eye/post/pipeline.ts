@@ -53,7 +53,18 @@ export interface EyePipeline {
   pipeline: RenderPipeline;
   /** The bloom's strength; the stage writes it per frame (era × lens). */
   bloomStrength: { value: number };
+  /** Draws the frame: with the media, through the medium `U.medium.cur` names. */
   render: () => void;
+  /**
+   * With the media on, each era's medium is its own small pipeline, so the
+   * first frame compiles only the era on screen instead of all ten at once
+   * (one shader of ~470 KB took 16 s to build on an integrated GPU, and the
+   * loader's opening gave up waiting). `quad(n)` is era n's draw material,
+   * for telling when its pipeline is built; `warm(n)` also draws era n,
+   * first and under the era on screen, so its pipeline gets built (null
+   * stops). Null without the media.
+   */
+  media: { quad: (n: number) => object; warm: (n: number | null) => void } | null;
   dispose: () => void;
 }
 
@@ -141,22 +152,48 @@ export function createEyePipeline(
   // depth, ±20 mm about the focal plane (near is 1), which 2013's components
   // stand on.
   const relief = clamp(float(0.5).sub(viewZ.negate().sub(U.cam.focus).div(40)), 0, 1);
-  pipeline.outputNode = media
-    ? eraMedium(
-        Ux,
-        convertToTexture(vec4(pow(max(finished.rgb, 0), vec3(1 / 2.2)), relief), null, null, {
-          type: UnsignedByteType,
-          generateMipmaps: true,
-          minFilter: LinearMipmapLinearFilter,
-        }),
-      )
-    : finished;
+  pipeline.outputNode = finished;
+  const frameTex: N = media
+    ? convertToTexture(vec4(pow(max(finished.rgb, 0), vec3(1 / 2.2)), relief), null, null, {
+        type: UnsignedByteType,
+        generateMipmaps: true,
+        minFilter: LinearMipmapLinearFilter,
+      })
+    : null;
+  // one pipeline per era's medium (0: none, the frame as it is), made when first asked for
+  const stages = new Map<number, RenderPipeline>();
+  const stage = (n: number) => {
+    let st = stages.get(n);
+    if (!st) {
+      st = new RenderPipeline(renderer);
+      st.outputNode = eraMedium(Ux, frameTex, n);
+      stages.set(n, st);
+    }
+    return st;
+  };
+  const shown = () => Math.round(Math.min(10, Math.max(0, U.medium.cur.value)));
+  let warming: number | null = null;
 
   return {
     pipeline,
     bloomStrength: glowNode ? glowNode.strength : { value: 0 },
-    render: () => pipeline.render(),
+    render: () => {
+      if (!media) return pipeline.render();
+      const n = shown();
+      // (drawn first, so the era on screen overwrites it)
+      if (warming !== null && warming !== n) stage(warming).render();
+      stage(n).render();
+    },
+    media: media
+      ? {
+          quad: (n) => (stage(n) as unknown as { _quadMesh: { material: object } })._quadMesh.material,
+          warm: (n) => {
+            warming = n;
+          },
+        }
+      : null,
     dispose: () => {
+      for (const st of stages.values()) st.dispose();
       pipeline.dispose();
       focus?.dispose();
       glowNode?.dispose();

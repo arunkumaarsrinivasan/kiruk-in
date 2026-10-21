@@ -159,6 +159,8 @@ export function measured({ F, M, at, uv, sign }: MeasuredScene): N {
   // side's mark on the axis's rows (ref 2), and the frame's readouts.
   const cm = px(F, 22);
   const arm = px(F, 12);
+  // (the bottom corners sit higher: the loader's corner plates live below them)
+  const lift = max(max(px(F, 30), H.mul(0.045)), M.foot.sub(cm));
   const hud = after(t, 0.2, 0.3).mul(gone);
   {
     // pressed, the crop marks leave the frame's corners and close on the eye's
@@ -166,17 +168,18 @@ export function measured({ F, M, at, uv, sign }: MeasuredScene): N {
     const cap = easeOutCubic(M.press).mul(float(1).sub(M.enter));
     const bpad = R.mul(0.3);
     const lo = mix(vec2(cm), vec2(e.x.sub(awM).sub(bpad), e.y.sub(upY).sub(bpad)), cap);
-    const hi = mix(size.sub(cm), vec2(e.x.add(awL).add(bpad), e.y.add(loY).add(bpad)), cap);
+    const hi = mix(size.sub(vec2(cm, cm.add(lift))), vec2(e.x.add(awL).add(bpad), e.y.add(loY).add(bpad)), cap);
     const mid = lo.add(hi).mul(0.5);
     // folded onto the nearest corner of the box lo..hi
     const qc = vec2(select(p.x.lessThan(mid.x), p.x.sub(lo.x), hi.x.sub(p.x)), select(p.y.lessThan(mid.y), p.y.sub(lo.y), hi.y.sub(p.y)));
     const arm2 = arm.mul(float(1).add(cap.mul(1.5)));
     lay(max(stroke(qc.y, w.mul(float(1).add(cap))).mul(within(qc.x, 0, arm2)), stroke(qc.x, w.mul(float(1).add(cap))).mul(within(qc.y, 0, arm2))), hud.mul(mix(float(0.75), float(1), cap)));
     const rowY = pc.y.add(floor(d.y.div(R.mul(1.1)).add(0.5)).mul(R.mul(1.1)));
-    const inner = step(cm.add(arm).add(px(F, 30)), min(rowY, size.y.sub(rowY)));
+    const inner = step(cm.add(arm).add(px(F, 30)), min(rowY, size.y.sub(rowY).sub(lift)));
     lay(max(discAt(p, vec2(cm, rowY), px(F, 1.5)), discAt(p, vec2(size.x.sub(cm), rowY), px(F, 1.5))).mul(inner), hud.mul(0.7));
   }
   const top = cm.add(arm).add(px(F, 8));
+  const foot = top.add(lift);
   const lineH = th.mul(0.95);
   const adv = readoutW(th, 1);
   // top left: how long the eye has been measured, m:ss.t
@@ -215,7 +218,7 @@ export function measured({ F, M, at, uv, sign }: MeasuredScene): N {
   {
     const rowW = adv.mul(5);
     const x0 = size.x.sub(cm).sub(rowW);
-    const y1 = size.y.sub(top).sub(th);
+    const y1 = size.y.sub(foot).sub(th);
     const y0 = y1.sub(lineH);
     const hw = th.mul(0.18);
     lay(readout(p, vec2(x0.add(adv.mul(2)), y0), th, digits(min(M.fixTotal, 999), 3), glyphs), hud.mul(0.8));
@@ -232,7 +235,7 @@ export function measured({ F, M, at, uv, sign }: MeasuredScene): N {
   {
     const sbW = th.mul(7);
     const sbH = th.mul(1.3);
-    const so = vec2(cm, size.y.sub(top).sub(sbH));
+    const so = vec2(cm, size.y.sub(foot).sub(sbH));
     const sq = p.sub(so);
     const yAt = (j: N) => sbH.mul(float(1).sub(clamp(M.pupilHist.element(int(j)).sub(2).div(4), 0, 1)));
     const ptAt = (j: N) => vec2(j.mul(sbW.div(31)), yAt(j));
