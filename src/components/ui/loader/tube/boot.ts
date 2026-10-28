@@ -13,6 +13,14 @@
  */
 
 const ATTR = "data-tube-boot";
+/**
+ * A returning visitor's saved era is applied only once the app has hydrated,
+ * and the server paints the default era, so their content waits, unpainted,
+ * until then (app-loader.tsx clears this). A first visit's content is painted
+ * at once, under the boot frame: the site is there, and the browser counts it
+ * as painted, while the visitor sees only the tube.
+ */
+const WAIT = "data-content-wait";
 
 /**
  * Only where the loader will show (a first visit, not the paper desk): the
@@ -22,7 +30,7 @@ const ATTR = "data-tube-boot";
  * pupil sits 0.1 mm right of and 0.3 mm above the globe's centre.
  */
 export const TUBE_BOOT_SCRIPT = `(function(){try{
-if(localStorage.getItem('portfolio-theme-selected')==='true')return;
+if(localStorage.getItem('portfolio-theme-selected')==='true'){document.documentElement.setAttribute('${WAIT}','');return;}
 var p=location.pathname;
 if(/^\\/(desk|blogism|studio)(\\/|$)/.test(p)&&!/^\\/(desk|blogism|studio)\\/preview$/.test(p))return;
 var w=innerWidth,h=innerHeight,a=w/Math.max(h,1);
@@ -37,7 +45,12 @@ setTimeout(function(){d.removeAttribute('${ATTR}')},9000);
 
 // (the page's scrollbar goes too: nothing fixed can paint over it, and it showed as a white strip;
 // the loader takes the gutter away itself once it mounts, dropPageGutter)
-export const TUBE_BOOT_CSS = `html[${ATTR}]{overflow:hidden;scrollbar-gutter:auto;background:#040507}html[${ATTR}]::after{content:"";position:fixed;inset:0;z-index:2147483000;pointer-events:none;background:radial-gradient(circle at var(--tube-boot-x,50%) var(--tube-boot-y,50%),rgba(57,255,106,.08) 0,rgba(57,255,106,.02) 46px,rgba(4,5,7,0) 220px),#040507}`;
+export const TUBE_BOOT_CSS = `html[${WAIT}] [data-app-content]{visibility:hidden}html[${ATTR}]{overflow:hidden;scrollbar-gutter:auto;background:#040507}html[${ATTR}]::after{content:"";position:fixed;inset:0;z-index:2147483000;pointer-events:none;background:radial-gradient(circle at var(--tube-boot-x,50%) var(--tube-boot-y,50%),rgba(57,255,106,.08) 0,rgba(57,255,106,.02) 46px,rgba(4,5,7,0) 220px),#040507}`;
+
+/** The app has hydrated: a returning visitor's content can be painted. */
+export function clearContentWait() {
+  if (typeof document !== "undefined") document.documentElement.removeAttribute(WAIT);
+}
 
 /** The tube is painting: the boot frame can go. */
 export function clearTubeBoot() {

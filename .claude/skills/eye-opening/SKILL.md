@@ -19,7 +19,7 @@ The live eye takes seconds to compile on a weak GPU. The opening fills that wait
 ## Sequence (tube-scene.ts)
 | t (s) | What |
 |---|---|
-| 0 | The first paint is already dark (#040507) with a faint green glow at the pupil. An inline head script sets `data-tube-boot` before React, so there is no white flash and no hydration mismatch |
+| 0 | The first paint is already dark (#040507) with a faint green glow at the pupil. An inline head script sets `data-tube-boot` before React, so there is no white flash and no hydration mismatch. Under it, the server-rendered site is painted (not hidden), so the page's first and largest contentful paints land here (~0.3 s), not at the corner hint after the eye opens (11–19 s). The tube's OffscreenCanvas never counts as a contentful paint. A returning visitor's content is held unpainted by `data-content-wait` until hydration applies their era (boot.ts, app-loader.tsx) |
 | 0–0.6 | The tube warms; a beam spot at the pupil |
 | 0.15–0.45 | The chip appears (2.5 mm, 5 pins) |
 | 0.45–2.5 | Traces lay at 45° (900 px/s): iris fan, limbus rings, lid bundles, brow, lash pads, then a board of buses, chips and vias to the edges (fixed seed 1970), all aligned in mm to the real eye |

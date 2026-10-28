@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { NotebookEraRoot } from "@/components/notebook";
-import { SITE_URL } from "@/lib/site";
+import { SHARE_IMAGE, SITE_URL } from "@/lib/site";
 
 const TITLE = "Notebook — Kiruk Studio";
 const DESCRIPTION =
@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   description: DESCRIPTION,
   alternates: { canonical: "/notebook" },
   openGraph: {
+    images: [SHARE_IMAGE],
     type: "website",
     url: `${SITE_URL}/notebook`,
     title: TITLE,

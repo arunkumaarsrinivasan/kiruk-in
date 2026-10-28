@@ -15,6 +15,7 @@
     "start": "set NODE_OPTIONS=--no-deprecation && next start",
     "lint": "next lint",
     "eye:screens": "node scripts/eye-screens.mjs",
+    "og:card": "tsx scripts/og-card.tsx",
     "dev:trace": "set NODE_OPTIONS=--trace-deprecation && next dev --turbopack",
     "newpost": "node scripts/newpost.mjs",
     "pupil:eval": "node scripts/pupil-eval.mjs",

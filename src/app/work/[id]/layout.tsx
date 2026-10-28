@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { portfolioData } from "@/data/portfolio-data";
+import { SHARE_IMAGE } from "@/lib/site";
 
 export async function generateMetadata({
   params,
@@ -14,7 +15,7 @@ export async function generateMetadata({
     title: project.title,
     description: project.description,
     alternates: { canonical: `/work/${project.id}` },
-    openGraph: { title: project.title, description: project.description, url: `/work/${project.id}` },
+    openGraph: { images: [SHARE_IMAGE], title: project.title, description: project.description, url: `/work/${project.id}` },
   };
 }
 

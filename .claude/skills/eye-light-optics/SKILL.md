@@ -51,6 +51,7 @@ description: "How light reaches and leaves the loader eye: the era's screen as t
 - Removed 650 ms after the live eye is up, so the crossfade never dips through the room.
 - **Capture:** an offscreen stage at the exact CSS size, reduced motion, non-interactive, media on. Lab "Capture all eras", or `window.__eyeCapture(eras?, variants?)`. A dev-only route writes AVIF q52.
 - **Recapture after** any change to an era's look, its medium or its screen capture, and only once the user has signed the look off.
+- **The site's share card is cut from the wide posters** (ten vertical era bands of one eye, `scripts/og-card.tsx` → `public/og/share.jpg`). Run the eye-share-card loop after every recapture, or link previews keep the old eye.
 
 ## Realism pass (R1 cornea, R11, R12, R14): making an era's light real
 Phase specs and the per-era light table: `references/realism-light.md`. Shared cards: `../eye-loader-system/references/era-realism.md`.

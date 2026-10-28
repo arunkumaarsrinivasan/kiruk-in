@@ -29,6 +29,7 @@ What are you touching?
 ├── What plays before the eye opens ................................ eye-opening
 ├── TSL / WGSL / compile time / GPU cost / tiers ................... eye-tsl-craft
 ├── Proving any of it works, showing the user ...................... eye-verification
+├── Link previews: the share card cut from the era posters ......... eye-share-card (end of every era change)
 └── The realism pass (R0–R15), or "make era X more real" ........... references/era-realism.md first, then the phase's owner (below)
 ```
 
@@ -101,6 +102,7 @@ Every one of these is keyed per era. Miss one and that era silently falls back t
 5. Its home page captured for the cornea (`eye:screens`). With no page yet, the painted stand-in screen shows; say so, and capture the page once it exists.
 6. Loader input that assumes a count: sweep positions, touch pitch, Home/End, the ghost finger's range.
 7. Posters (wide and tall), the plan doc and the drift log (eye-verification).
+8. The share card: `npm run og:card -- --check`, then bake (eye-share-card).
 
 ## Drift log format
 One table per plan doc: `| What | Spec | Built | Why |`, one row per divergence, written in the same change as the code.

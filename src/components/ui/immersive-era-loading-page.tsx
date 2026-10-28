@@ -321,6 +321,16 @@ export default function ImmersiveEraLoadingPage({
 
   const focused = themes[index] ?? themes[0];
 
+  /**
+   * The poster stands in while the tube has gone (or given up) and the live
+   * eye is not up yet. Once shown it stays to be crossfaded away (EyePoster).
+   * When the eye is already up as the tube goes, it is never mounted: under
+   * the live eye it would be a full-screen image decoded and painted for
+   * nothing, and the browser would count it as the page's largest paint.
+   */
+  const [posterShown, setPosterShown] = useState(false);
+  if (!posterShown && (eyeLate || introGone) && !eyeReady) setPosterShown(true);
+
   useEffect(() => {
     idxRef.current = index;
   }, [index]);
@@ -803,7 +813,7 @@ export default function ImmersiveEraLoadingPage({
           the fallback when the eye is late or the tube has gone without it, so
           it is not fetched on the first frame. */}
       <div className="pointer-events-none absolute inset-0">
-        {(eyeLate || introGone) && <EyePoster eraId={focused.id} hidden={eyeReady} />}
+        {posterShown && <EyePoster eraId={focused.id} hidden={eyeReady} />}
         {webgl === true && (
           <div
             className="absolute inset-0"

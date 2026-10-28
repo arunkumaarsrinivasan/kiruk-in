@@ -21,3 +21,17 @@ function resolveSiteUrl(): string {
 export const SITE_URL = resolveSiteUrl();
 
 export const SITE_NAME = "Kiruk Studio";
+
+/**
+ * Share card for every page without its own (notebook posts bake theirs).
+ * Baked by scripts/og-card.tsx. Set it on each `openGraph` explicitly: a
+ * child segment's `openGraph` replaces the parent's, image included, and
+ * Next copies it into `twitter` when that has no images of its own.
+ */
+export const SHARE_IMAGE = {
+  url: "/og/share.jpg",
+  width: 1200,
+  height: 630,
+  type: "image/jpeg",
+  alt: "Arun Kumaar Sreenivasan, Design Engineer: one eye seen through ten eras of screens, 1970 to 2026",
+};

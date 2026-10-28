@@ -51,6 +51,10 @@ description: "Engineering rules for the loader eye in three.js TSL (WebGPU with 
 - **One-shot bakes must be redone once the stage is warm.** The async warm-up skips any draw whose pipeline isn't ready, including a bake's single draw. So the iris fibres, sclera vessels and skin pores stayed blank on the first 1970 open until an era change re-baked them. Every bake has `redo()`, and the stage calls all of them (plus `tear.reset()`) the moment warm-up completes. Any new render-once pass must do the same.
 - **A sync `createRenderPipeline` freezes the whole browser**: every tab and worker waits on the GPU process. Warm by wrapping the backend's pipeline creation to the async path for the first, staged frames, and skip draws whose pipeline isn't ready. `compileAsync` helps only if its target, MRT and QuadMesh vertex node match the real frame (they didn't).
 - While compiling, show a poster or the opening (eye-opening). Never a blank or a frozen frame.
+- **Node building is main-thread JS, one task per material** (three's NodeBuilder: `build`/`analyze`/`getDataFromNode` in a profile). Measured 2026-10-29: 100–400 ms a task on a laptop, 1.2–2.6 s at 4× CPU throttle on a phone viewport; ~11 s of the phone's opening is spent here. It cannot be split inside one material. A tap or key landing on one waits it out, and the browser counts that against the page (INP). So:
+  - the covered stage holds its frames (the ones that build) for 0.6 s after a key or press, at most 1.5 s between frames (`INPUT_QUIET`, `INPUT_HOLD`, `input-quiet.ts`; the tube calls `noteInput()`). *Why:* input comes in bursts; the next key in a burst finds the thread free.
+  - Keep builds before the eye opens. Once open, a phone's worst interaction measured 64 ms; a build after open would land on the swipes and taps the eye invites.
+  - The only full fix is the stage rendering from a worker (OffscreenCanvas + WebGPURenderer), so builds never share the input thread.
 
 ## Tiers and the watchdog
 - Pick the tier **before** the first compile (URL `?tier=`, signals); changing it later remounts and double-compiles, which ran DXC out of memory.

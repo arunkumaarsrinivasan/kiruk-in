@@ -76,6 +76,7 @@ import { ERA_MEDIA, mediumOf } from "./post/era-medium";
 import { MediumDirector } from "./post/medium-director";
 import { Attention } from "./post/attention";
 import { createEraScreenTexture, type EraScreenTexture } from "@/components/three/era-screen-texture";
+import { lastInputAt } from "./input-quiet";
 
 /** How long the gaze keeps following a pointer that has stopped arriving. */
 const POINTER_HOLD = 2.2;
@@ -85,6 +86,10 @@ const FOOT_CSS_PX = 64;
 const READY_AT = 0.97;
 /** A covered stage draws a frame this often, s: enough to keep its clock, its fade and its warm-up going. */
 const COVERED_EVERY = 0.1;
+/** A covered stage waits this long after a key or press before it draws (and builds) again, s (input-quiet.ts)... */
+const INPUT_QUIET = 0.6;
+/** ...but never more than this between drawn frames, s, so a visitor typing on and on still gets the eye. */
+const INPUT_HOLD = 1.5;
 /** The stage is warm once its frames have asked for no new GPU pipeline for this long, s. */
 const WARM_QUIET = 0.3;
 /** The eye's parts a warming stage adds, one group a frame, after the post chain (the biggest shaders kept apart). */
@@ -1128,7 +1133,11 @@ function EyeScene({
     }
     // covered: nobody sees these frames, so only enough of them to keep the
     // eye's clock, its fade and its warm-up going (the GPU is the opening's)
-    if (covered && !pendingCapture.current && now - h0.drawn < COVERED_EVERY) {
+    // While a burst of keys or taps is on, the covered frames (the ones that
+    // build) wait, up to INPUT_HOLD, so the next key finds the thread free.
+    const sinceDrawn = now - h0.drawn;
+    const typing = now - lastInputAt() < INPUT_QUIET && sinceDrawn < INPUT_HOLD;
+    if (covered && !pendingCapture.current && (sinceDrawn < COVERED_EVERY || typing)) {
       h0.owed += delta;
       return;
     }

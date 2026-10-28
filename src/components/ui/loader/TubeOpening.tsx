@@ -21,6 +21,7 @@ import { posterPlacement, posterVariantFor } from "@/components/three/eye/poster
 import type { TubeEvent, TubeFrame } from "./tube/eye-lines";
 import { createTubeScene } from "./tube/tube-scene";
 import { clearTubeBoot } from "./tube/boot";
+import { noteInput } from "@/components/three/eye/input-quiet";
 import type { PupilAt, TubeMessage, TubeStats } from "./tube/tube.worker";
 
 const ROOM = "#040507";
@@ -192,6 +193,7 @@ export default function TubeOpening({
       if (e.metaKey || e.ctrlKey || e.altKey || e.key === "Tab") return;
       e.preventDefault();
       e.stopImmediatePropagation();
+      noteInput();
       post.current({ type: "key", key: e.key });
     };
     // capture, so the loader's own keys (travel, go in) wait until the eye is open
@@ -203,7 +205,14 @@ export default function TubeOpening({
     <div
       className="absolute inset-0 z-20"
       style={{ pointerEvents: leaving ? "none" : "auto", touchAction: "none" }}
-      onPointerDown={leaving ? undefined : (e) => post.current({ type: "pointer", x: e.clientX, y: e.clientY, down: true })}
+      onPointerDown={
+        leaving
+          ? undefined
+          : (e) => {
+              noteInput();
+              post.current({ type: "pointer", x: e.clientX, y: e.clientY, down: true });
+            }
+      }
       onPointerMove={leaving ? undefined : (e) => post.current({ type: "pointer", x: e.clientX, y: e.clientY, down: false })}
       aria-hidden="true"
     >

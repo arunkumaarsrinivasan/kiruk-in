@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { startTransition, useCallback, useEffect, useState } from 'react';
 import InteractiveLoadingPage from '@/components/ui/interactive-loading-page';
 import ImmersiveEraLoadingPage from '@/components/ui/immersive-era-loading-page';
+import { clearContentWait } from '@/components/ui/loader/tube/boot';
 
 type LoaderMode = 'none' | 'splash' | 'era-picker';
 
@@ -51,20 +52,29 @@ const AppLoader: React.FC<AppLoaderProps> = ({
 
   const handleLoadingComplete = useCallback(() => {
     sessionStorage.setItem('kiruk-loading-seen', 'true');
-    setMode('none');
-    setTimeout(() => setShowContent(true), 80);
+    // The whole site mounts here. As a transition React builds it in slices,
+    // so a tap or key meanwhile is answered instead of waiting out the mount.
+    startTransition(() => setMode('none'));
   }, []);
 
-  if (!hydrated) {
-    return (
-      <div style={{ visibility: 'hidden' }} aria-hidden>
-        {children}
-      </div>
-    );
-  }
+  // Shown a beat after it has mounted, so its first layout is never seen.
+  useEffect(() => {
+    if (!hydrated || mode !== 'none' || showContent) return;
+    const id = setTimeout(() => setShowContent(true), 80);
+    return () => clearTimeout(id);
+  }, [hydrated, mode, showContent]);
+
+  // The boot script's hold on a returning visitor's content (loader/tube/boot.ts) ends here.
+  useEffect(() => {
+    if (hydrated) clearContentWait();
+  }, [hydrated]);
 
   const overlayOpen = enableLoader && mode !== 'none';
 
+  // One shape before and after hydration, so the site under it hydrates in
+  // place instead of mounting a second time. Before hydration the content is
+  // painted: on a first visit the tube's boot frame covers it, and a returning
+  // visitor's waits for their own era under `data-content-wait` (boot.ts).
   return (
     <>
       {enableLoader && mode === 'splash' && (
@@ -83,7 +93,10 @@ const AppLoader: React.FC<AppLoaderProps> = ({
           loops are not competing with the splash/picker. SSR still sent
           children on the pre-hydrate pass for crawlers. */}
       {overlayOpen ? null : (
-        <div style={{ visibility: showContent ? 'visible' : 'hidden' }}>
+        <div
+          data-app-content=""
+          style={hydrated ? { visibility: showContent ? 'visible' : 'hidden' } : undefined}
+        >
           {children}
         </div>
       )}

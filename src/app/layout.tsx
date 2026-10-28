@@ -12,7 +12,7 @@ import { GameModeProvider } from "@/contexts/GameModeContext";
 import { ContextBarProvider } from "@/contexts/ContextBarContext";
 import { LayoutModeProvider } from "@/contexts/LayoutModeContext";
 import { ModuleProvider } from "@/contexts/ModuleContext";
-import { SITE_URL } from "@/lib/site";
+import { SHARE_IMAGE, SITE_URL } from "@/lib/site";
 import { TUBE_BOOT_CSS, TUBE_BOOT_SCRIPT } from "@/components/ui/loader/tube/boot";
 
 const SITE_NAME = "Kiruk Studio — Arun Kumaar Sreenivasan";
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
     title: TITLE,
     description: DESCRIPTION,
     locale: "en_IN",
-    // Image auto-injected by src/app/opengraph-image.tsx (1200x630)
+    images: [SHARE_IMAGE],
   },
   twitter: {
     card: "summary_large_image",
@@ -78,7 +78,6 @@ export const metadata: Metadata = {
     description: DESCRIPTION,
     creator: "@s_arunkumaar",
     site: "@s_arunkumaar",
-    // Image auto-injected by src/app/twitter-image.tsx (falls back to opengraph-image)
   },
   robots: {
     index: true,

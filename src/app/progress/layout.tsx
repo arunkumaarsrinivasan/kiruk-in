@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SITE_URL } from "@/lib/site";
+import { SHARE_IMAGE, SITE_URL } from "@/lib/site";
 
 const TITLE = "Progress tracker — Skills & milestones by Kiruk";
 const DESCRIPTION =
@@ -10,6 +10,7 @@ export const metadata: Metadata = {
   description: DESCRIPTION,
   alternates: { canonical: "/progress" },
   openGraph: {
+    images: [SHARE_IMAGE],
     type: "website",
     url: `${SITE_URL}/progress`,
     title: TITLE,
