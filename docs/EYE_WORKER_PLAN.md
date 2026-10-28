@@ -1,6 +1,49 @@
 # The loader eye in a worker
 
-Status: plan, 2026-10-29. Nothing built yet.
+Status: P0 spike done 2026-10-29 (**go**). P1 done 2026-10-29 (gate passed). P2 next.
+
+## P1 results (2026-10-29)
+
+`src/components/three/eye/env.ts` is the one place the eye asks its host for anything:
+- `canvas(w, h)` for 2D drawing;
+- `loadTexture` for the eras' pages;
+- `loadFont` for 2026's readout;
+- `viewport()` and `coarse()` for the tier and the pixel budget.
+
+The page's host (the default) does exactly what the code did before: `<canvas>`, `TextureLoader`, `document.fonts`, `window`. `workerEnv(view)` gives OffscreenCanvases, `createImageBitmap` pages, fonts by URL into the worker's FontFaceSet (the page lists its @font-face files), and the view the page reports.
+
+The DOM calls in `bake/brow.ts`, `era-screen-texture.ts`, `post/readout.ts`, `screen-pages.ts` and `tiers.ts` now go through the adapter. Outside `EyeStage.tsx`, no eye module touches `document` or `window`. `bake/vessels.ts` already drew on an OffscreenCanvas and is unchanged.
+
+**Gate:** the lab's still shots before and after (`eye-realism-baseline.mjs poses,seeposes`, 80 shots: six poses and the medium at rest and half shut, in all ten eras, tier 3, reduced motion):
+- **73 shots are byte-identical.**
+- The other 7 (the 1981 and 1991 poses) differ by a mean of at most 0.030/255. That's the same 7 shots, and the same amount, as two runs of the untouched code differ from each other (0.035).
+- `tsc` is clean.
+
+The spike worker now runs on `workerEnv` alone: its `document` throws if asked for an element, and none was asked for. On desktop WebGPU it showed 0 main-thread long tasks while the eye built, and the same eye with the page in the cornea the right way round.
+
+Not yet checked: the worker's font path (2026's readout). The spike lab renders 1970 only; this belongs to P3.
+
+## P0 results (2026-10-29)
+
+`/lab/eye-worker?host=worker|main` renders the live eye (1970, media on), unchanged, either from a worker or from the main thread. It warms the way the loader does (covered, 10 Hz) and is uncovered once ready. The worker runs today's `EyeScene` through small shims (`src/lab/eye-worker/shim-*.ts`): 2D canvases become `OffscreenCanvas`, the eras' pages load through `createImageBitmap`, and pointer events are forwarded. Local production build, real GPU (Ryzen + 610M), Chrome. Key bursts were typed throughout the warm-up.
+
+| Case | Main-thread long tasks while the eye builds | Worst interaction while it builds | Eye ready |
+|---|---|---|---|
+| Desktop WebGPU, main thread | 6–7, 0.73–0.87 s total, max 210 ms | 224–248 ms | 5.6–5.8 s |
+| Desktop WebGPU, **worker** | **0** | **≤16 ms** | 5.4–5.8 s |
+| Phone 412×823, 4× CPU, main thread | 15, 4.97 s total, max 1.12 s | 1712 ms | 7.6 s |
+| Phone 412×823, 4× CPU, **worker** | 2 (page start-up, 264 ms) | **none over 16 ms** | 6.0 s |
+| Desktop WebGL2, main thread | 5, 7.17 s total, **max 6.84 s** | (keys could not be sent while blocked) | 15.1 s |
+| Desktop WebGL2, **worker** | **0** | 1544 ms (a GPU-process stall, see below) | 15.8 s |
+
+Notes:
+- **The look matches at a glance:** the same eye, the same 1970 page in the cornea, the sign showing. Strict parity is P1's gate.
+- **The harness flatters the main thread:** it can't send a key while the main thread is blocked, so those keys aren't counted.
+- **The phone's worker figures are optimistic:** CDP's CPU throttling probably doesn't slow worker threads. A real phone check is still needed (P5).
+- **WebGL2 still stalls the GPU process** for about 1.5 s while it links programs, worker or not. It's the remaining INP risk on browsers without WebGPU. Fix it separately: `KHR_parallel_shader_compile` polling, or fewer programs at once.
+- **Warming uncovered at full rate froze page frames for about 3.3 s on desktop in both hosts**, with no pipeline creation in that window: the iGPU's queue saturates. The loader warms covered and never hits this. Keep it that way, and never warm an uncovered stage at full rate.
+- **Turbopack dev can't start this worker** (`chunkPath.split is not a function` in its worker blob code). The production build (webpack) works. P3 needs a dev workaround, or a check on a newer Next.
+- **The worker stage reaches ready no later than the main-thread one.** Its builds no longer compete with React and the page's own work.
 
 ## Why
 
@@ -113,3 +156,8 @@ Each phase ends in a check the user signs off before the next one starts.
 
 | What | Spec | Built | Why |
 |---|---|---|---|
+| P0 spike lab | Throwaway `/lab/eye-worker` | Kept (`src/lab/eye-worker/`, dev only, `LAB_ROUTES=1` for a local prod build); shims instead of the adapter | It's the A/B harness for P1–P5; the shims are deleted when P1's adapter lands |
+| `EyeScene` export | Split into `EyeScene.tsx` in P1 | Exported from `EyeStage.tsx` for now | Smallest change that lets the spike import it; the split waits for P2, when the scene loses its own window listeners |
+| `tierSignals` in `init` | The page reads the tier signals and sends them | The worker reads `navigator` itself; only `coarse` and the viewport come from the page (`WorkerView`) | `deviceMemory`, `hardwareConcurrency` and `connection` exist on WorkerNavigator |
+| `bake/vessels.ts` | Through the adapter | Unchanged | It already chose OffscreenCanvas wherever one exists; routing it would change the page's upload path for nothing |
+| Shims | Deleted in P1 | `shim-three.ts` deleted; `shim-globals.ts` keeps `window` (pointer listeners, size), `document.hidden` and timers | These are EyeStage's own reads, which P2 moves to the input bus |

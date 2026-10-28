@@ -122,6 +122,7 @@ One table per plan doc: `| What | Spec | Built | Why |`, one row per divergence,
 |---|---|
 | Stage, frame loop, lab API | `src/components/three/eye/EyeStage.tsx` |
 | Uniform registry | `src/components/three/eye/uniforms.ts` |
+| Host adapter (page or worker) | `src/components/three/eye/env.ts`; the worker spike at `/lab/eye-worker` (`src/lab/eye-worker/`, docs/EYE_WORKER_PLAN.md) |
 | Per-era data (light, lens, gaze, medium timings) | `src/components/three/eye/look.ts` |
 | Anatomy, the person | `anatomy.ts`, `identity.ts`, `nodes/margins.ts`, `nodes/lid-mesh.ts`, `nodes/canthus.ts` (the inner corner), `nodes/lashes.ts`, `bake/*` (`bake/vessel-net.ts`: the white's grown vessels) |
 | Post chain | `post/pipeline.ts` |

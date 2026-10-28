@@ -14,6 +14,7 @@
 import { CanvasTexture, LinearFilter, LinearMipmapLinearFilter } from "three/webgpu";
 import { MONO_FAMILY_2026 } from "@/components/era-shell/archetypes/prompt-ui/fonts";
 import { T, type N } from "../nodes/tsl";
+import { eyeEnv } from "../env";
 
 const { If, abs, atan, clamp, dot, float, floor, fract, length, log2, max, min, mod, select, vec2 } = T;
 
@@ -34,17 +35,15 @@ let atlas: CanvasTexture | null = null;
  */
 export function glyphAtlas(): CanvasTexture {
   if (atlas) return atlas;
-  const canvas = document.createElement("canvas");
-  canvas.width = ATLAS_W;
-  canvas.height = CELL_H;
-  const tex = new CanvasTexture(canvas);
+  const canvas = eyeEnv().canvas(ATLAS_W, CELL_H);
+  const tex = new CanvasTexture(canvas as HTMLCanvasElement);
   tex.flipY = false;
   tex.generateMipmaps = true;
   tex.minFilter = LinearMipmapLinearFilter;
   tex.magFilter = LinearFilter;
   const fallback = "ui-monospace, 'SFMono-Regular', 'Cascadia Mono', Consolas, 'Roboto Mono', monospace";
   const draw = (family: string) => {
-    const g = canvas.getContext("2d");
+    const g = canvas.getContext("2d") as CanvasRenderingContext2D | null;
     if (!g) return;
     g.fillStyle = "#000";
     g.fillRect(0, 0, canvas.width, canvas.height);
@@ -57,8 +56,8 @@ export function glyphAtlas(): CanvasTexture {
     tex.needsUpdate = true;
   };
   draw(fallback);
-  document.fonts
-    ?.load(`80px ${MONO_FAMILY_2026}`)
+  eyeEnv()
+    .loadFont(`80px ${MONO_FAMILY_2026}`)
     .then(() => draw(`${MONO_FAMILY_2026}, ${fallback}`))
     .catch(() => {});
   atlas = tex;

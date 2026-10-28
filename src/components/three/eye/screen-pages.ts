@@ -17,7 +17,8 @@
  * read A), and each page carries a texture version of its own (below).
  */
 
-import { DataTexture, LinearFilter, TextureLoader, type Texture } from "three/webgpu";
+import { DataTexture, LinearFilter, type Texture } from "three/webgpu";
+import { eyeEnv } from "./env";
 import { UI_H, UI_W } from "./nodes/screen";
 import { T, type N } from "./nodes/tsl";
 import { damp } from "./rig/motion";
@@ -67,7 +68,6 @@ export class ScreenPages {
   private eraA: string | null = null;
   private eraB: string | null = null;
   private readonly pages = new Map<string, Page>();
-  private readonly loader = new TextureLoader();
   private readonly placeholders: DataTexture[];
 
   constructor() {
@@ -85,7 +85,7 @@ export class ScreenPages {
     if (known) return known;
     const page: Page = { tex: null, view: 1, failed: false };
     this.pages.set(era, page);
-    this.loader.load(
+    eyeEnv().loadTexture(
       pageSrc(era),
       (tex) => {
         tex.minFilter = LinearFilter;
@@ -101,7 +101,6 @@ export class ScreenPages {
         while (tex.version < want) tex.needsUpdate = true;
         page.tex = tex;
       },
-      undefined,
       () => {
         page.failed = true;
       },

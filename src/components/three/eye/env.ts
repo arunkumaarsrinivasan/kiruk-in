@@ -1,0 +1,123 @@
+/**
+ * What the eye needs from the place it runs, in one place.
+ *
+ * The stage runs on the page's main thread today and, by docs/EYE_WORKER_PLAN.md,
+ * from a worker too, where there is no `document` and no `window`: no <canvas>
+ * or <img> to make, no window to measure. Everything the eye's own code asks
+ * of its host goes through here, so the same code runs in both.
+ *
+ * The page's host is the default and does exactly what the eye did before
+ * this module existed (same elements, same loader), so nothing on the page
+ * changes. A worker installs its own with `setEyeEnv` before the stage mounts.
+ *
+ * (bake/vessels.ts already draws on an OffscreenCanvas wherever one exists,
+ * and stays as it is.)
+ */
+
+import { Texture, TextureLoader } from "three/webgpu";
+
+export type EyeCanvas = HTMLCanvasElement | OffscreenCanvas;
+
+export interface EyeEnv {
+  /** A 2D drawing surface this size, px. */
+  canvas(width: number, height: number): EyeCanvas;
+  /** Loads an image as a texture; the texture is handed to `onLoad` once it has its pixels. */
+  loadTexture(url: string, onLoad: (texture: Texture) => void, onError: (err: unknown) => void): void;
+  /** Resolves once text in this font can be drawn on this host's canvases (FontFaceSet.load). */
+  loadFont(font: string): Promise<unknown>;
+  /** The view the stage fills: CSS px, and device px per CSS px. */
+  viewport(): { width: number; height: number; dpr: number };
+  /** A finger, not a cursor. */
+  coarse(): boolean;
+}
+
+/** The page's main thread: the DOM, as the eye always used it. */
+const pageEnv: EyeEnv = {
+  canvas(width, height) {
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    return canvas;
+  },
+  loadTexture(url, onLoad, onError) {
+    new TextureLoader().load(url, onLoad, undefined, onError);
+  },
+  loadFont(font) {
+    return document.fonts?.load(font) ?? Promise.resolve([]);
+  },
+  viewport() {
+    if (typeof window === "undefined") return { width: 1, height: 1, dpr: 1 };
+    return { width: window.innerWidth, height: window.innerHeight, dpr: window.devicePixelRatio || 1 };
+  },
+  coarse() {
+    return globalThis.matchMedia?.("(pointer: coarse)").matches ?? false;
+  },
+};
+
+let env: EyeEnv = pageEnv;
+
+/** The host the eye is running on. */
+export function eyeEnv(): EyeEnv {
+  return env;
+}
+
+/** A worker installs its host before the stage mounts. */
+export function setEyeEnv(next: EyeEnv) {
+  env = next;
+}
+
+/** What a worker knows of the page it draws for: the page tells it (resize, pointer). */
+export interface WorkerView {
+  width: number;
+  height: number;
+  dpr: number;
+  coarse: boolean;
+  /** Same-origin base for the eye's assets (the worker's own URL is under /_next). */
+  origin: string;
+  /** Font files by CSS family, for 2026's readout: the worker has none of the page's fonts. */
+  fonts?: Record<string, string>;
+}
+
+/**
+ * A worker's host: OffscreenCanvases, images decoded with createImageBitmap,
+ * fonts added to the worker's own FontFaceSet, and the view as the page last
+ * reported it (`view` is read live, so the caller updates it on resize).
+ */
+export function workerEnv(view: WorkerView): EyeEnv {
+  const added = new Map<string, Promise<unknown>>();
+  const fontSet = (globalThis as unknown as { fonts?: FontFaceSet }).fonts;
+  return {
+    canvas: (width, height) => new OffscreenCanvas(width, height),
+    loadTexture(url, onLoad, onError) {
+      fetch(new URL(url, view.origin))
+        .then((r) => {
+          if (!r.ok) throw new Error(`${r.status} ${url}`);
+          return r.blob();
+        })
+        // as an <img> is uploaded: three flips it (flipY) and nothing else touches the pixels
+        .then((blob) => createImageBitmap(blob, { premultiplyAlpha: "none", colorSpaceConversion: "none" }))
+        .then((bitmap) => {
+          const texture = new Texture(bitmap);
+          texture.needsUpdate = true;
+          onLoad(texture);
+        })
+        .catch(onError);
+    },
+    loadFont(font) {
+      if (!fontSet) return Promise.reject(new Error("no FontFaceSet in this worker"));
+      // "80px Family, fallback": the first family is the one asked for
+      const family = font.replace(/^[^a-zA-Z_'"]*\d+px\s+/, "").split(",")[0].trim().replace(/^['"]|['"]$/g, "");
+      const url = view.fonts?.[family];
+      if (!url) return Promise.reject(new Error(`no file for ${family}`));
+      let ready = added.get(family);
+      if (!ready) {
+        const face = new FontFace(family, `url(${new URL(url, view.origin).href})`);
+        ready = face.load().then((f) => fontSet.add(f));
+        added.set(family, ready);
+      }
+      return ready.then(() => fontSet.load(font));
+    },
+    viewport: () => ({ width: view.width, height: view.height, dpr: view.dpr }),
+    coarse: () => view.coarse,
+  };
+}

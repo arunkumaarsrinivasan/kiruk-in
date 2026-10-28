@@ -13,6 +13,7 @@
 
 import * as THREE from "three";
 import { getEraPage, type PageBlock } from "@/lib/era-portfolio-page";
+import { eyeEnv } from "@/components/three/eye/env";
 
 export const CODE_W = 1024;
 export const CODE_H = 2048;
@@ -199,12 +200,10 @@ export interface EraScreenTexture {
 }
 
 export function createEraScreenTexture(): EraScreenTexture {
-  const canvas = document.createElement("canvas");
-  canvas.width = CODE_W;
-  canvas.height = CODE_H;
-  const ctx = canvas.getContext("2d", { alpha: false })!;
+  const canvas = eyeEnv().canvas(CODE_W, CODE_H);
+  const ctx = canvas.getContext("2d", { alpha: false }) as CanvasRenderingContext2D;
 
-  const texture = new THREE.CanvasTexture(canvas);
+  const texture = new THREE.CanvasTexture(canvas as HTMLCanvasElement);
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
   texture.minFilter = THREE.LinearMipmapLinearFilter;

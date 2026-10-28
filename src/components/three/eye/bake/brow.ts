@@ -27,6 +27,7 @@
 
 import { CanvasTexture, LinearFilter, LinearMipmapLinearFilter, RepeatWrapping } from "three/webgpu";
 import { browAt } from "../brow-shape";
+import { eyeEnv } from "../env";
 
 /** Where the brow's map sits on the face, mm (x lateral +, y up). */
 export const BROW_BOUNDS = { x0: -15.5, y0: 4.4, w: 38, h: 13.5 } as const;
@@ -148,10 +149,8 @@ export function bakeBrow(hairs: number, res: number, seed = 0xb20f): BrowBake {
   const W = res;
   const H = Math.round((res * B.h) / B.w);
   const pxPerMm = W / B.w;
-  const canvas = document.createElement("canvas");
-  canvas.width = W;
-  canvas.height = H;
-  const ctx = canvas.getContext("2d")!;
+  const canvas = eyeEnv().canvas(W, H);
+  const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
   ctx.clearRect(0, 0, W, H);
   // canvas y runs down; the texture is uploaded flipped, so draw y up
   const toPx = (x: number, y: number): [number, number] => [(x - B.x0) * pxPerMm, H - (y - B.y0) * pxPerMm];
@@ -202,7 +201,7 @@ export function bakeBrow(hairs: number, res: number, seed = 0xb20f): BrowBake {
     hair(ctx, toPx, x, y, angle, len, width * (0.75 + 0.25 * smooth(0, 0.25, edge)), bend, 0.75 + 0.25 * smooth(0, 0.3, edge), true, 0.9);
   }
 
-  const brow = new CanvasTexture(canvas);
+  const brow = new CanvasTexture(canvas as HTMLCanvasElement);
   brow.minFilter = LinearMipmapLinearFilter;
   brow.magFilter = LinearFilter;
   brow.generateMipmaps = true;
@@ -210,10 +209,8 @@ export function bakeBrow(hairs: number, res: number, seed = 0xb20f): BrowBake {
 
   // the fine hair: a small tile, faint, short, mostly down and out
   const V = 512;
-  const vc = document.createElement("canvas");
-  vc.width = V;
-  vc.height = V;
-  const vctx = vc.getContext("2d")!;
+  const vc = eyeEnv().canvas(V, V);
+  const vctx = vc.getContext("2d") as CanvasRenderingContext2D;
   const vPx = V / VELLUS_TILE_MM;
   for (let i = 0; i < 900; i++) {
     const x = rand() * VELLUS_TILE_MM;
@@ -232,7 +229,7 @@ export function bakeBrow(hairs: number, res: number, seed = 0xb20f): BrowBake {
       hair(vctx, (hx, hy) => [(hx + ox) * vPx, V - (hy + oy) * vPx], x, y, angle, len, 0.022, bend, alpha);
     }
   }
-  const vellus = new CanvasTexture(vc);
+  const vellus = new CanvasTexture(vc as HTMLCanvasElement);
   vellus.wrapS = RepeatWrapping;
   vellus.wrapT = RepeatWrapping;
   vellus.minFilter = LinearMipmapLinearFilter;

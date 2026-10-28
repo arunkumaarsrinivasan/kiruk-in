@@ -295,7 +295,7 @@ function frameCamera(camera: THREE.PerspectiveCamera, w: number, h: number, box?
   camera.updateProjectionMatrix();
 }
 
-interface SceneProps {
+export interface SceneProps {
   era: ThemeConfig;
   exiting: boolean;
   reduce: boolean;
@@ -318,7 +318,7 @@ interface SceneProps {
   tier?: EyeTier;
 }
 
-function EyeScene({
+export function EyeScene({
   era,
   exiting,
   reduce,

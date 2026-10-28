@@ -7,6 +7,8 @@
  * T0 is the poster: no shader at all.
  */
 
+import { eyeEnv } from "./env";
+
 export type EyeTier = 0 | 1 | 2 | 3;
 
 export interface TierSpec {
@@ -119,7 +121,7 @@ export function readTierSignals(webgpu: boolean): TierSignals {
     webgpu,
     deviceMemory: nav.deviceMemory,
     cores: nav.hardwareConcurrency,
-    coarse: globalThis.matchMedia?.("(pointer: coarse)").matches ?? false,
+    coarse: eyeEnv().coarse(),
     saveData: nav.connection?.saveData === true,
   };
 }
@@ -130,9 +132,9 @@ export const DPR_MIN = 0.7;
 
 /** Device pixel ratio that keeps the stage inside its fragment budget. */
 export function budgetDpr(cap: number): number {
-  if (typeof window === "undefined") return 1;
-  const css = Math.max(window.innerWidth * window.innerHeight, 1);
+  const view = eyeEnv().viewport();
+  const css = Math.max(view.width * view.height, 1);
   const fit = Math.sqrt(PIXEL_BUDGET / css);
-  const device = window.devicePixelRatio || 1;
+  const device = view.dpr;
   return Math.max(DPR_MIN, Math.min(cap, device, fit));
 }
