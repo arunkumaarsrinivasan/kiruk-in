@@ -48,6 +48,15 @@ function screenUniforms() {
     pageMix: f(1),
     pageViewA: f(1),
     pageViewB: f(1),
+    /**
+     * A framed page instead of a scrolled one (1): each slot shows one region
+     * of its page, (left, top, width, height) as shares of the page, cut at the
+     * device's own aspect so nothing is stretched, centred on the era's key
+     * interface (look.ts `reflect`).
+     */
+    pageFramed: f(0),
+    pageFrameA: uniform(new Vector4(0, 0, 1, 1)).setGroup(renderGroup),
+    pageFrameB: uniform(new Vector4(0, 0, 1, 1)).setGroup(renderGroup),
   };
 }
 
@@ -77,6 +86,12 @@ export function createEyeUniforms() {
     /** Lab only: which buffer to show. See DEBUG_VIEWS. */
     debugView: uniform(0).setGroup(renderGroup),
     /**
+     * Lab, bits: 1 the brow's move-net (vertex), 2 its expression folds
+     * (fragment); 0 leaves both out of the lid pass, to time them. Always 3
+     * in the loader.
+     */
+    browOn: uniform(3).setGroup(renderGroup),
+    /**
      * The lid margins, as angles around the globe's centre (nodes/margins.ts):
      * the medial and lateral corners' azimuth, the upper and lower margins'
      * elevation at their apex, the lateral canthus's tilt, and what moves them
@@ -87,6 +102,8 @@ export function createEyeUniforms() {
       phiM: uniform(-1.3).setGroup(renderGroup),
       phiL: uniform(1.06).setGroup(renderGroup),
       upper: uniform(0.34).setGroup(renderGroup),
+      /** The upper margin's rest opening, before any feeling's raise or droop: the skin past the crease stays there. */
+      upperRest: uniform(0.34).setGroup(renderGroup),
       lower: uniform(0.43).setGroup(renderGroup),
       tilt: uniform(0).setGroup(renderGroup),
       squint: uniform(0).setGroup(renderGroup),
@@ -94,10 +111,20 @@ export function createEyeUniforms() {
       peak: uniform(0).setGroup(renderGroup),
       /** An epicanthic fold's reach over the inner corner, 0..1. */
       epicanthus: uniform(0).setGroup(renderGroup),
-      /** Frontalis: how far it lifts the brow, mm (EyeStage: gaze, interest, a greeting flash). */
+      /** The medial and lateral canthi's elevation under the equator, rad (FISSURE_MM.canthus, canthusL). */
+      drop: uniform(0.23).setGroup(renderGroup),
+      dropL: uniform(0.145).setGroup(renderGroup),
+      /** The arch's mean lift, mm (rig/brow.ts `lift`): the brow's fat pad flattens with it. */
       brow: uniform(0).setGroup(renderGroup),
-      /** Corrugator: how hard it draws the brow's head down and in, 0..1 (glare, concentration). */
+      /** Corrugator (AU4): how hard it draws the brow's head down and in, 0..1. */
       frown: uniform(0).setGroup(renderGroup),
+      /**
+       * The brow's bone chain (rig/brow.ts `out`), five nodes head to tail:
+       * each node's (dx, dy, turn, bulge), mm and rad, then each node's
+       * tangent along the curve (d/du of the same). nodes/brow-net.ts lays a
+       * Hermite curve through them.
+       */
+      browNodes: uniformArray(Array.from({ length: 10 }, () => new Vector4()), "vec4").setGroup(renderGroup),
     },
     /**
      * The person's skin and lid shape (EyeIdentity.skin / .lids): Monk tone as
@@ -225,8 +252,18 @@ export function createEyeUniforms() {
       irisR: uniform(0.1).setGroup(renderGroup),
       apX: uniform(new Vector2(0.25, 0.22)).setGroup(renderGroup),
       apY: uniform(new Vector2(0.08, 0.1)).setGroup(renderGroup),
+      /** How far under the globe's centre the medial and the lateral canthus sit (shares of the height, down +): the almond meets the lids there. */
+      apC: uniform(new Vector2(0.02, 0.012)).setGroup(renderGroup),
       pupil: uniform(new Vector2(0.5, 0.5)).setGroup(renderGroup),
+      /** The pupil as it appears through the cornea (×1.13), a share of the height. */
       pupilR: uniform(0.02).setGroup(renderGroup),
+      /**
+       * The visible limbus's half-width and half-height, shares of the frame's
+       * height: an ellipse (11.7 × 10.6 mm), foreshortened as the eye turns.
+       * What the media draw at when they mean the iris's edge (`irisR` sizes
+       * everything else).
+       */
+      limbus: uniform(new Vector2(0.1, 0.09)).setGroup(renderGroup),
       seed: uniform(0).setGroup(renderGroup),
       /** Seconds since the eye noticed the pointer coming near (2026's ripple); large when not. */
       ripple: uniform(1e3).setGroup(renderGroup),
@@ -249,6 +286,8 @@ export function createEyeUniforms() {
       blinks: uniform(0).setGroup(renderGroup),
       /** The pupil's diameter over the last six seconds, mm, oldest first (32 samples). */
       pupilHist: uniformArray(Array.from({ length: 32 }, () => 3.5), "float").setGroup(renderGroup),
+      /** 2026's twelve landmarks, four vec4s each, worked out once a frame on the CPU (post/measured-marks.ts). */
+      marks: uniformArray(Array.from({ length: 48 }, () => new Vector4()), "vec4").setGroup(renderGroup),
       /** How far 2026's gimbal has turned about the gaze axis, rad (it scans while the pointer is over the iris). */
       spin: uniform(0).setGroup(renderGroup),
       /** Lab: which of 2026's layers draw, as bits (plate, registration, geometry, landmarks, you, sign); 63 all. */
@@ -273,6 +312,8 @@ export function createEyeUniforms() {
       right: uniform(new Vector3(-1, 0, 0)).setGroup(renderGroup),
       up: uniform(new Vector3(0, 1, 0)).setGroup(renderGroup),
       size: uniform(new Vector2(1914, 1164)).setGroup(renderGroup),
+      /** mm of soft shadow edge per mm of gap: the device's real height over its distance (R11). */
+      penumbra: uniform(0.5).setGroup(renderGroup),
     },
     /**
      * The era's second light (look.ts FillLight), if any: where its light
@@ -289,23 +330,32 @@ export function createEyeUniforms() {
       up: uniform(new Vector3(0, 0.6, -0.8)).setGroup(renderGroup),
       size: uniform(new Vector2(100, 100)).setGroup(renderGroup),
       round: uniform(0).setGroup(renderGroup),
+      /** Whether the fill shows in the cornea as its own reflection (1), or only lights the face (0). */
+      catchlight: uniform(1).setGroup(renderGroup),
     },
     /** The person's white of the eye (EyeIdentity.sclera). */
     sclera: {
       tint: uniform(new Color("#ebe8df")).setGroup(renderGroup),
       vessels: uniform(0.4).setGroup(renderGroup),
       age: uniform(0.3).setGroup(renderGroup),
+      /** Patchy brown melanosis near the limbus, 0..1 (EyeIdentity.sclera.pigment). */
+      pigment: uniform(0).setGroup(renderGroup),
     },
     /** The iris: two baked people (A, B) and how far the crossfade is toward B. */
     iris: {
       weightB: uniform(0).setGroup(renderGroup),
-      /** Each set's resting pupil, the one its features were laid out at. */
-      restA: uniform(0.34).setGroup(renderGroup),
-      restB: uniform(0.34).setGroup(renderGroup),
       /** Post-saccadic wobble: the membrane lags the turn, mm. */
       wobble: uniform(new Vector2()).setGroup(renderGroup),
       /** Relief depth, mm, for parallax under the cornea. */
       relief: uniform(0.22).setGroup(renderGroup),
+      /** Lab: what the iris shows (IRIS_VIEWS): the iris, clay, occlusion, march steps, layers. */
+      view: uniform(0).setGroup(renderGroup),
+      /**
+       * Where each set's layers were laid out: the resting pupil and the
+       * collarette at rest, shares of the iris radius.
+       */
+      layoutA: uniform(new Vector2(0.34, 0.5644)).setGroup(renderGroup),
+      layoutB: uniform(new Vector2(0.34, 0.5644)).setGroup(renderGroup),
     },
     /** The era's screen: what the screen pass draws, and what lights the room. */
     screen: screenUniforms(),
@@ -336,6 +386,10 @@ export function writeScreenUniforms(u: ScreenUniforms, s: ScreenState) {
   u.tech.value = s.tech;
   u.crt.value = s.crt;
 }
+
+/** Indexes match U.iris.view (nodes/iris.ts). Switching views never recompiles. */
+export const IRIS_VIEWS = ["iris", "clay", "occlusion", "steps", "layers"] as const;
+export type IrisView = (typeof IRIS_VIEWS)[number];
 
 /** Indexes match the debugView uniform. Switching views never recompiles. */
 export const DEBUG_VIEWS = ["final", "normal", "lit", "masks", "screen", "spec", "socket", "iris", "tear", "focus", "emissive"] as const;

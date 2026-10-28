@@ -1,6 +1,6 @@
 ---
 name: eye-loader-system
-description: "Hub for the realistic loader eye: a 3D human eye rendered in three.js TSL that is a site's front door, seen through each era's own screen technology, cut between eras by its own blink. Read first for any work on the eye, its eras, its interaction, its opening or its performance; it routes to the focused eye-* skills and holds the rules every one of them obeys. Triggers on: loader eye, eye loader, era eye, the eye, EyeStage, era-medium, ways of seeing, POV, blink cut, opening tube, kiruk loader, realistic eye, TSL eye, eye skill."
+description: "Hub for the realistic loader eye: a 3D human eye rendered in three.js TSL that is a site's front door, seen through each era's own screen technology, cut between eras by its own blink. Read first for any work on the eye, its eras, its interaction, its opening or its performance; it routes to the focused eye-* skills and holds the rules every one of them obeys. Triggers on: loader eye, eye loader, era eye, the eye, EyeStage, era-medium, ways of seeing, POV, blink cut, opening tube, kiruk loader, realistic eye, TSL eye, eye skill, realism pass, R0–R15, EYE_REALISM_PLAN, more realistic for an era, era realism, procedural-eye."
 ---
 
 # The loader eye: the system
@@ -28,7 +28,8 @@ What are you touching?
 ├── Hover / press / enter / touch / the sign / phones .............. eye-interaction
 ├── What plays before the eye opens ................................ eye-opening
 ├── TSL / WGSL / compile time / GPU cost / tiers ................... eye-tsl-craft
-└── Proving any of it works, showing the user ...................... eye-verification
+├── Proving any of it works, showing the user ...................... eye-verification
+└── The realism pass (R0–R15), or "make era X more real" ........... references/era-realism.md first, then the phase's owner (below)
 ```
 
 Load every skill whose branch you touch. A medium change touches eye-era-media, eye-tsl-craft and eye-verification at minimum.
@@ -55,6 +56,41 @@ Load every skill whose branch you touch. A medium change touches eye-era-media, 
 6. **Each era is its own mechanism.** A *structural idea* is two things: the specific technique that draws the face (UI laid over an unchanged photo, a halftone screen, a grid of components, a measurement layer, a scanline raster) and the sign. Eras may share a family (several display physics, two camera grades), but never the same technique or the same sign. *Why:* "this feels the same as 2026" killed a 2013 design. See eye-ideation.
 7. **Phones are first-class and nothing prompts.** Every sign is visible without hover. No permission dialog ever (no iOS motion prompt). *Why:* a dialog at the front door makes people leave.
 8. **Graphs never change at runtime.** Eras swap uniforms and textures only. *Why:* a new node graph recompiles a pipeline and hitches the cut (eye-tsl-craft).
+
+## The realism pass (R0–R15)
+
+The eye is being made as real as it can be, one part per phase (`docs/EYE_REALISM_PLAN.md`). Before tuning any part for any era, read `references/era-realism.md`. It holds:
+- the tuning procedure;
+- the contract C1–C12;
+- each medium's detail floor;
+- each era's physical light;
+- the ten era cards.
+
+| Phase | Part | Owner |
+|---|---|---|
+| R0 | baseline, lab solo × era views, TS twins, decisions | eye-verification, eye-tsl-craft |
+| R1 | cornea optics; limbus | eye-light-optics; eye-iris-pupil |
+| R2–R4 | iris relief, iris colour, pupil | eye-iris-pupil |
+| R5–R10 | sclera, margins and canthi, lid form, skin, lashes, brow | eye-anatomy |
+| R11, R12, R14 | shadows and near reflections, tears, lens and AA | eye-light-optics |
+| R13 | motion | eye-motion |
+| R15 | performance, the medium's detail floor | eye-tsl-craft |
+
+Every phase also loads eye-era-media (`references/realism-through-media.md` lists the branches it must re-check) and eye-verification.
+
+Three rules decide most cases:
+1. **"Most realistic in era X" means the same person under X's conditions:**
+   - its light (direction, real size, spectrum, fills);
+   - the physiology that light and task cause (pupil, posture, blink and tear state);
+   - its lens and its medium.
+
+   Never a per-era change to the person. *Why:* one person in every era (C1).
+2. **A realism change is judged in all ten eras, each in its own terms,** and in the shut frame of a cut:
+   - luminance for 1970, 1981, 1991 and 2026;
+   - hue too for the colour eras.
+
+   *Why:* the shut eye is on screen in every cut, and colour work is invisible in B&W eras.
+3. **Per-era realism is data in `look.ts`,** never a new graph branch (C11).
 
 ## Adding or removing an era (checklist)
 Every one of these is keyed per era. Miss one and that era silently falls back to a default.
@@ -85,12 +121,14 @@ One table per plan doc: `| What | Spec | Built | Why |`, one row per divergence,
 | Stage, frame loop, lab API | `src/components/three/eye/EyeStage.tsx` |
 | Uniform registry | `src/components/three/eye/uniforms.ts` |
 | Per-era data (light, lens, gaze, medium timings) | `src/components/three/eye/look.ts` |
-| Anatomy, the person | `anatomy.ts`, `identity.ts`, `nodes/margins.ts`, `nodes/lid-mesh.ts`, `nodes/lashes.ts`, `bake/*` |
+| Anatomy, the person | `anatomy.ts`, `identity.ts`, `nodes/margins.ts`, `nodes/lid-mesh.ts`, `nodes/canthus.ts` (the inner corner), `nodes/lashes.ts`, `bake/*` (`bake/vessel-net.ts`: the white's grown vessels) |
 | Post chain | `post/pipeline.ts` |
 | Era media | `post/era-medium.ts`, `post/medium-kit.ts`, `post/system.ts` (2013), `post/measured.ts` (2026) |
 | Blink cut | `post/medium-director.ts` |
 | Loader page and opening | `src/components/ui/immersive-era-loading-page.tsx`, `src/components/ui/loader/` |
-| Lab | `/lab/eye`, `src/lab/eye/EyeLab.tsx`; opening at `/lab/opening` |
-| Specs | `docs/EYE_TSL_PLAN.md`, `docs/ERA_POV_PLAN.md`, `docs/ERA_2013_SYSTEM_PLAN.md`, `docs/ERA_2026_MEASURED_PLAN.md`, `docs/LOADER_OPENING_PLAN.md` |
+| Lab | `/lab/eye`, `src/lab/eye/EyeLab.tsx` (URL setup `?tier=&gl=1&see=1&reduce=1`; solo layers; the R0 margin overlay `AlignmentOverlay.tsx`); opening at `/lab/opening` |
+| CPU twins and tests | `src/components/three/eye/twin/` (margins, optics, iris space); `npm run test:eye` |
+| Realism baseline | `scripts/eye-realism-baseline.mjs` → `docs/era-pov/r0-baseline/` (gitignored) |
+| Specs | `docs/EYE_REALISM_PLAN.md` (the realism pass), `docs/EYE_TSL_PLAN.md`, `docs/ERA_POV_PLAN.md`, `docs/ERA_2013_SYSTEM_PLAN.md`, `docs/ERA_2026_MEASURED_PLAN.md`, `docs/LOADER_OPENING_PLAN.md` |
 
 In another project: keep the same separation (data tables, one uniform registry, a director, one medium module per era, a lab with a scripted control API) even if every value changes.

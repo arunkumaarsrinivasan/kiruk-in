@@ -31,6 +31,21 @@ export function pageSrc(era: string) {
   return `/eye/screens/${era}.webp`;
 }
 
+/**
+ * One region of a page, cut at the device's own aspect (w/h of its screen)
+ * so it lands on the screen unstretched: centred at (cx, cy) px of the page
+ * at its 768 px width, `width` px wide, kept inside the page. Returns
+ * (left, top, width, height) as shares of the page (uniforms.ts `pageFrameA`).
+ */
+export function framePage(pageH: number, aspect: number, cx: number, cy: number, width: number): [number, number, number, number] {
+  const w = Math.min(width, UI_W);
+  const h = w / aspect;
+  const left = Math.min(Math.max(cx - w / 2, 0), UI_W - w);
+  // a region taller than the page is centred on it (the page's own ground shows above and below)
+  const top = h >= pageH ? (pageH - h) / 2 : Math.min(Math.max(cy - h / 2, 0), pageH - h);
+  return [left / UI_W, top / pageH, w / UI_W, h / pageH];
+}
+
 interface Page {
   tex: Texture | null;
   /** One viewport's share of the page's height. */
@@ -135,6 +150,12 @@ export class ScreenPages {
 
   info() {
     return { eraA: this.eraA, eraB: this.eraB, mix: this.mix, on: this.on };
+  }
+
+  /** A loaded page's height, px, at the screen's 768 px width (null until it arrives). */
+  height(era: string | null): number | null {
+    const page = era ? this.pages.get(era) : undefined;
+    return page?.tex ? UI_H / page.view : null;
   }
 
   dispose() {

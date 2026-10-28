@@ -150,15 +150,18 @@ export function screenNode(uniforms: ScreenUniforms, codeTexture: Texture, pages
    * back up again, easing at either end, rather than jumping from its foot to
    * its head; a page one viewport tall stands still.
    */
-  const pageAt = (node: N, view: N, q: N): N => {
+  const pageAt = (node: N, view: N, frame: N, q: N): N => {
     // (at half the stand-in's pace: a whole page moves more than a column)
     const t = fract(S.scroll.mul(0.5));
     const tri = float(1).sub(abs(t.mul(2).sub(1)));
     const ease = tri.mul(tri).mul(float(3).sub(tri.mul(2)));
     const top = max(float(1).sub(view), 0).mul(ease);
     // from the page's head, 0..1 (the image's top is at v = 1)
-    const y = top.add(float(1).sub(q.y).mul(view));
-    return node.sample(vec2(q.x, float(1).sub(y))).rgb;
+    const scrolled = vec2(q.x, top.add(float(1).sub(q.y).mul(view)));
+    // or one region of it, held still: the era's key interface (pageFramed)
+    const framed = vec2(frame.x.add(q.x.mul(frame.z)), frame.y.add(float(1).sub(q.y).mul(frame.w)));
+    const at = select(S.pageFramed.greaterThan(0.5), framed, scrolled);
+    return node.sample(vec2(at.x, float(1).sub(at.y))).rgb;
   };
   // three floats-of-four per layout: geometry, frame, finish
   const chromeA = uniformArray(
@@ -303,7 +306,7 @@ export function screenNode(uniforms: ScreenUniforms, codeTexture: Texture, pages
     // the era's real page over it, crossfading from the last one
     if (pages) {
       If(S.pageOn.greaterThan(0.001), () => {
-        const page = mix(pageAt(pages.a, S.pageViewA, q), pageAt(pages.b, S.pageViewB, q), S.pageMix);
+        const page = mix(pageAt(pages.a, S.pageViewA, S.pageFrameA, q), pageAt(pages.b, S.pageViewB, S.pageFrameB, q), S.pageMix);
         c.assign(mix(c, page, S.pageOn));
       });
     }

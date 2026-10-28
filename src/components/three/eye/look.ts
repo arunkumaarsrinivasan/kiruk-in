@@ -8,6 +8,7 @@
 import { Color } from "three/webgpu";
 import type { ThemeConfig } from "@/data/portfolio-data";
 import { type EraVisual, getEraVisual } from "@/lib/era-visuals";
+import type { BrowMood } from "./rig/brow";
 
 /* ---- the era's palette, as the screen and the room use it -------------- */
 
@@ -144,6 +145,48 @@ const ERA_CURSOR: Record<string, CorneaCursor> = {
  * view leaves a page in it that can still be read. These numbers are the
  * live eye's, measured off its shader (SCREEN_C / SCREEN_H / SCREEN_D).
  */
+/**
+ * How an era's page shows in the cornea: its size there (× the screen's
+ * stylised size; 1 as built) and, optionally, one region of it held still
+ * (centre x, centre y, width; px of the page at its 768 px width) instead of
+ * the whole page scrolling. Chosen per era by eye (docs/EYE_REALISM_PLAN.md,
+ * "Reflection per era").
+ */
+export interface EraReflect {
+  scale?: number;
+  frame?: [number, number, number];
+}
+
+/**
+ * Each era's key interface on its captured home page (public/eye/screens), as
+ * a frame for `EraReflect.frame`: the part of the page that says which era
+ * this is. Chosen 2026-10-28 by eye, per era (ERA_LIGHT `reflect`): 1970 and
+ * 1995 show the whole page larger (~60 % of the iris), 1981 and 2013 stay as
+ * built, the rest hold their key interface still.
+ */
+export const ERA_REFLECT_KEY: Record<string, [number, number, number]> = {
+  // the KIRUK banner and the first prompt lines
+  "1970": [290, 210, 540],
+  // the Star's icons and the open window
+  "1981": [400, 320, 600],
+  // the title and the first blue links
+  "1991": [290, 260, 560],
+  // WELCOME TO KIRUK, the globe and the hit counter
+  "1995": [384, 225, 600],
+  // the nav frame beside the content frame
+  "1997": [384, 240, 640],
+  // the search box and its two buttons
+  "2000": [384, 175, 440],
+  // the profile card under the glossy header
+  "2003": [384, 230, 640],
+  // the iPhone, upright, as the phone in the room is
+  "2009": [384, 255, 300],
+  // the flat header and the first cards
+  "2013": [384, 360, 420],
+  // the halftone pupil and the composer
+  "2026": [384, 216, 680],
+};
+
 export interface ScreenLight {
   device: "crt" | "crt-mono" | "lcd" | "phone" | "window" | "none";
   key: [number, number, number];
@@ -152,6 +195,15 @@ export interface ScreenLight {
   size: [number, number];
   /** A second light in the room, if the era has one. */
   fill?: FillLight;
+  /** How its page shows in the cornea (default: as built, the whole page scrolling). */
+  reflect?: EraReflect;
+  /**
+   * The device as it was (R11, docs/EYE_REALISM_PLAN.md §8.4): its real size
+   * and distance, mm. Not the stylised `size`, which is larger than life so the
+   * page reads in the cornea. Sets how soft its shadows are: mm of soft edge
+   * per mm between the lid and what it shades, `mm[1] / dist`.
+   */
+  real: { mm: [number, number]; dist: number };
 }
 
 /**
@@ -167,6 +219,12 @@ export interface FillLight {
   pos: [number, number, number];
   size: [number, number];
   round: number;
+  /**
+   * How strongly it shows in the cornea as its own reflection, 0..1 (default
+   * 1). Only the fills an era's card names reflect, kept under the page
+   * (docs/EYE_REALISM_PLAN.md §7.6): the screen stays the brightest thing there.
+   */
+  catchlight?: number;
 }
 
 const LIVE_SCREEN: ScreenLight = {
@@ -175,6 +233,7 @@ const LIVE_SCREEN: ScreenLight = {
   pos: [-84, 99, 300],
   normal: [0, 0, -1],
   size: [1914, 1164],
+  real: { mm: [531, 299], dist: 600 },
 };
 
 /**
@@ -184,7 +243,7 @@ const LIVE_SCREEN: ScreenLight = {
  */
 const ERA_LIGHT: Record<string, ScreenLight> = {
   // a P1 green-phosphor terminal, curved and 4:3, a little below the eyes; nothing else lit
-  "1970": { device: "crt-mono", key: [0.04, -0.24, 0.97], pos: [-10, -70, 300], normal: [0, 0, -1], size: [1520, 1140] },
+  "1970": { device: "crt-mono", key: [0.04, -0.24, 0.97], pos: [-10, -70, 300], normal: [0, 0, -1], size: [1520, 1140], reflect: { scale: 1.155 }, real: { mm: [244, 183], dist: 600 } },
   // a paper-white CRT up and to the left, office fluorescents overhead
   "1981": {
     device: "crt",
@@ -193,6 +252,7 @@ const ERA_LIGHT: Record<string, ScreenLight> = {
     normal: [0, 0, -1],
     size: [1700, 1280],
     fill: { dir: [0.05, 0.92, 0.38], color: "#e9f1ff", strength: 0.32, pos: [40, 560, 420], size: [1100, 70], round: 0.15 },
+    real: { mm: [345, 259], dist: 550 },
   },
   // a greyscale workstation in a black bezel, a warm desk lamp low to the left
   "1991": {
@@ -202,10 +262,51 @@ const ERA_LIGHT: Record<string, ScreenLight> = {
     normal: [0, 0, -1],
     size: [1560, 1170],
     fill: { dir: [-0.78, 0.12, 0.62], color: "#ffc985", strength: 0.38, pos: [-430, 40, 250], size: [150, 150], round: 1 },
+    reflect: { frame: ERA_REFLECT_KEY["1991"] },
+    real: { mm: [345, 259], dist: 600 },
   },
   // a beige 14" CRT at home at night, centred and a little low: the page's
   // navy and neon are the only light in the room
-  "1995": { device: "crt", key: [0.05, -0.12, 0.99], pos: [0, -40, 300], normal: [0, 0, -1], size: [1480, 1110] },
+  "1995": { device: "crt", key: [0.05, -0.12, 0.99], pos: [0, -40, 300], normal: [0, 0, -1], size: [1480, 1110], reflect: { scale: 1.107 }, real: { mm: [284, 213], dist: 550 } },
+  // an office Trinitron at 800×600, a little up and to the left, the cubicle's
+  // fluorescent bar overhead (it lights the face; the card keeps it out of the cornea)
+  "1997": {
+    device: "crt",
+    key: [-0.1, 0.2, 0.97],
+    pos: [-30, 40, 300],
+    normal: [0, 0, -1],
+    size: [1600, 1200],
+    fill: { dir: [0.1, 0.95, 0.3], color: "#e6efff", strength: 0.3, pos: [0, 600, 380], size: [1300, 60], round: 0.1, catchlight: 0 },
+    reflect: { frame: ERA_REFLECT_KEY["1997"] },
+    real: { mm: [345, 259], dist: 600 },
+  },
+  // a 14" TN laptop at night, below the eye line: she looks down into a cold
+  // panel, lit from beneath; nothing else in the room
+  "2000": { device: "lcd", key: [0, -0.4, 0.92], pos: [0, -140, 285], normal: [0, 0, -1], size: [1600, 1180], reflect: { frame: ERA_REFLECT_KEY["2000"] }, real: { mm: [284, 213], dist: 500 } },
+  // the iSight on top of a 17" LCD at eye level, window daylight from the
+  // right: the deck's first window catchlight
+  "2003": {
+    device: "lcd",
+    key: [0, 0.04, 1],
+    pos: [0, 10, 300],
+    normal: [0, 0, -1],
+    size: [1760, 1100],
+    fill: { dir: [0.82, 0.22, 0.52], color: "#fff4e2", strength: 0.42, pos: [520, 120, 300], size: [420, 620], round: 0.08, catchlight: 0.35 },
+    reflect: { frame: ERA_REFLECT_KEY["2003"] },
+    real: { mm: [337, 270], dist: 500 },
+  },
+  // an iPhone 3GS held low at 32 cm in a lamp-lit room: the cornea holds an
+  // upright phone and a round lamp
+  "2009": {
+    device: "phone",
+    key: [0, -0.55, 0.84],
+    pos: [0, -150, 250],
+    normal: [0, 0, -1],
+    size: [980, 1560],
+    fill: { dir: [-0.25, 0.85, 0.46], color: "#ffd9a8", strength: 0.3, pos: [-220, 520, 300], size: [170, 170], round: 1 },
+    reflect: { frame: ERA_REFLECT_KEY["2009"] },
+    real: { mm: [49, 74], dist: 320 },
+  },
   // a selfie: an iPhone 5s held a little high at arm's length, its bright
   // screen above the eyes and a white tabletop throwing light up from below
   "2013": {
@@ -215,6 +316,7 @@ const ERA_LIGHT: Record<string, ScreenLight> = {
     normal: [0, 0, -1],
     size: [1000, 1640],
     fill: { dir: [0, -0.7, 0.7], color: "#ffffff", strength: 0.35, pos: [0, -500, 320], size: [1600, 500], round: 0.3 },
+    real: { mm: [50, 89], dist: 500 },
   },
   // no screen: the interface is the eye, and it is daylight; a window to the
   // left, the page itself still in the cornea
@@ -225,6 +327,8 @@ const ERA_LIGHT: Record<string, ScreenLight> = {
     normal: [0, 0, -1],
     size: [2200, 1400],
     fill: { dir: [-0.7, 0.35, 0.6], color: "#f5f3ee", strength: 0.35, pos: [-600, 200, 300], size: [500, 700], round: 0.05 },
+    reflect: { frame: ERA_REFLECT_KEY["2026"] },
+    real: { mm: [900, 1200], dist: 1500 },
   },
 };
 
@@ -325,6 +429,8 @@ export interface EraLook extends EraVisual {
   stepScroll: boolean;
   lens: EraLens;
   cursor: CorneaCursor;
+  /** The expression the era's task brings, held under the visitor's (ERA_BROW). */
+  browMood: BrowMood;
   signature: string;
 }
 
@@ -361,11 +467,14 @@ const ERA_LENS: Record<string, Partial<EraLens>> = {
     grain: 0.075,
     grainSize: 1.9,
     halation: 0.65,
-    vignette: 0.5,
+    // (0.4, lift 0.03, gain 1.12, 2026-10-29: lit from below by a dim green
+    // page, the face sank into the dark and its detail didn't render)
+    vignette: 0.4,
+    gain: 1.12,
     sat: 0.04,
     isolate: 1,
     phosphor: 1,
-    lift: 0.015,
+    lift: 0.03,
     artefact: "film",
     amount: 1,
     bloom: 1.4,
@@ -385,8 +494,11 @@ const ERA_LENS: Record<string, Partial<EraLens>> = {
   // CCD's smear and shadow blocks went with the box that used to crop them:
   // full frame, they read as ghosts)
   "2000": { grain: 0.03, chroma: 0.35, wb: -0.3 },
-  // a compact with an on-camera flash: flat front light, a hard catchlight
-  "2003": { grain: 0.04, vignette: 0.15, lift: 0.02, artefact: "flash", amount: 1 },
+  // the iSight seeing you live in colour: a little punch and crispness, no
+  // flash (the window and the page are the light; ERA_POV_PLAN.md 2003)
+  // (clearer, 2026-10-29: the lift hazed it and the macro depth of field
+  // softened the lids; "the overall view is unclear")
+  "2003": { grain: 0.03, vignette: 0.15, lift: 0, sat: 1.1, sharpen: 0.3, aperture: 0.6 },
   // an early 3 MP phone: soft, warm, noisy shadows, lens flare
   // (the flare's ghosts at half: full frame, at full strength they read as rings on the brow)
   "2009": { grain: 0.07, grainSize: 1.4, wb: 0.45, sharpen: -0.35, artefact: "flare", amount: 0.45 },
@@ -402,7 +514,7 @@ export const GAZE_DEFAULTS: GazeParams = {
   spread: [0.45, 0.4],
   fixMs: 700,
   ampMean: 4,
-  microRate: 0.6,
+  microRate: 0.45,
   a: [0, 0],
   b: [0, 0],
   dwellA: 1,
@@ -420,24 +532,25 @@ export const GAZE_DEFAULTS: GazeParams = {
 /** Each era's way of looking (docs/EYE_TSL_PLAN.md §7, "Gaze"). */
 const ERA_GAZE: Record<string, { pattern: GazePattern; gaze: Partial<GazeParams> }> = {
   // slightly down at the terminal, reading along the lines
-  "1970": { pattern: "read", gaze: { rest: [0, -0.12], lines: 5, width: 0.65, lineStep: 0.12, fixMs: 420, blinkEvery: 5.5 } },
+  "1970": { pattern: "read", gaze: { rest: [0, -0.12], lines: 5, width: 0.65, lineStep: 0.12, fixMs: 750, blinkEvery: 5.5 } },
   // straight ahead, short hops between icons
   "1981": { pattern: "scatter", gaze: { spread: [0.35, 0.3], fixMs: 900, ampMean: 3.5, blinkEvery: 3.6 } },
   // reading the first web page, line by line
-  "1991": { pattern: "read", gaze: { rest: [0, 0.15], lines: 7, width: 0.8, lineStep: 0.11, fixMs: 400, blinkEvery: 6 } },
+  "1991": { pattern: "read", gaze: { rest: [0, 0.15], lines: 7, width: 0.8, lineStep: 0.11, fixMs: 750, blinkEvery: 6 } },
   // scattered: many short fixations, jumping between whatever blinks
-  "1995": { pattern: "scatter", gaze: { spread: [0.7, 0.55], fixMs: 450, ampMean: 7, blinkEvery: 3 } },
+  "1995": { pattern: "scatter", gaze: { spread: [0.7, 0.55], fixMs: 800, ampMean: 7, blinkEvery: 3 } },
   // the nav frame and the content frame, in turn
   "1997": {
     pattern: "two-target",
-    gaze: { a: [-0.62, 0.15], b: [0.22, 0], dwellA: 1.4, dwellB: 3.5, fixMs: 650, blinkEvery: 3.6 },
+    gaze: { a: [-0.62, 0.15], b: [0.22, 0], dwellA: 1.4, dwellB: 3.5, fixMs: 900, follow: 0.7, blinkEvery: 3.6 },
   },
-  // locked on the search box: drift and microsaccades only
-  "2000": { pattern: "lock", gaze: { rest: [0, 0.05], microRate: 0.7, follow: 0.6, blinkEvery: 6.5 } },
-  // the default: free viewing
-  "2003": { pattern: "idle", gaze: {} },
-  // ~15° down at the phone, riding the scroll and jumping back
-  "2009": { pattern: "scroll", gaze: { rest: [0, -1.5], fixMs: 700, scrollSpeed: 1.6, blinkEvery: 4.5 } },
+  // locked on the search box, looking down into the laptop: drift and
+  // microsaccades only, barely following the pointer
+  "2000": { pattern: "lock", gaze: { rest: [0, -0.4], microRate: 0.5, follow: 0.25, blinkEvery: 6.5 } },
+  // free viewing, a little down: watching the video just under the lens
+  "2003": { pattern: "idle", gaze: { rest: [0, -0.28], fixMs: 1100, follow: 0.6 } },
+  // down at the phone, riding the scroll and jumping back (−1.5 hid the iris)
+  "2009": { pattern: "scroll", gaze: { rest: [0, -0.7], fixMs: 950, scrollSpeed: 1.6, follow: 0.4, blinkEvery: 4.5 } },
   // a selfie: up into the front camera's lens, then down a little to the
   // screen to see how it looks, and back
   "2013": {
@@ -445,11 +558,81 @@ const ERA_GAZE: Record<string, { pattern: GazePattern; gaze: Partial<GazeParams>
     gaze: { rest: [0, 0.3], a: [0, 0.45], b: [0.04, 0.25], dwellA: 1.2, dwellB: 4, fixMs: 750, blinkEvery: 4 },
   },
   // eye contact: straight into the camera, following the pointer best of all
-  "2026": { pattern: "contact", gaze: { microRate: 0.6, pursuitGain: 0.97, catchUp: 1, blinkEvery: 4.2 } },
+  "2026": { pattern: "contact", gaze: { microRate: 0.45, pursuitGain: 0.97, catchUp: 1, blinkEvery: 4.2 } },
 };
 
+/**
+ * Each era's mood (docs/EYE_BROW_EMOTION_PLAN.md §7): the expression its task
+ * brings to the same face, as its gaze does, held under whatever the visitor
+ * makes it feel (rig/brow.ts). Subtle by rule: a mood moves the brow by a few
+ * tenths of a millimetre, never the person. An era without one rests neutral.
+ * Batches 1 and 2 (2026-10-28): 1970, 1981, 1991; 1995, 1997, 2000, signed
+ * off. Batch 3: 2003, 2009, 2013. Then 2026.
+ */
+const ERA_BROW: Record<string, BrowMood> = {
+  // the night operator: steady concentration on green text in a dark room
+  "1970": { hold: { focus: 0.35 } },
+  // the first mouse: a quiet curiosity at pointing at a picture of a thing
+  // (the outer brow up a little), over the era's squint at a bright bitmap
+  "1981": { hold: { curious: 0.3 } },
+  // the first web page: wonder lifting the brow while reading a white page,
+  // through the squint its glare brings
+  "1991": { hold: { interest: 0.3, focus: 0.15 } },
+  // Batch 2 (2026-10-28).
+  // everything blinks: an alert lift, and the brow flicks a little as the
+  // eyes jump to something blinking, at most every ~7 s
+  "1995": { hold: { interest: 0.3 }, flick: { every: 7, peak: 0.25 } },
+  // the dot-com office, weighing up portals frame by frame: an appraising
+  // look, the lids a hair lower, the outer brow up, the head level
+  "1997": { hold: { skeptical: 0.2, focus: 0.1 } },
+  // the locked stare at the search box: the eyes held a touch wide under a
+  // lowered brow (a stare, not 1970's narrowing), over its white page's squint
+  "2000": { hold: { focus: 0.25, intense: 0.2 } },
+  // Batch 3 (2026-10-28).
+  // a video call: warmth with attention, the tail softening into the start
+  // of a smile in the eyes; a face on a call, listening
+  "2003": { hold: { warm: 0.2, interest: 0.15 } },
+  // absorbed in the feed, the phone held low: no held expression (the
+  // posture is its own), but now and then the brow lifts a little as a new
+  // post catches the eye (on the feed's jump back), gentler than 1995's
+  "2009": { flick: { every: 10, peak: 0.2 } },
+  // the selfie: up at the lens the brows lift with a hint of a smile, the
+  // pose; back at the screen they relax
+  "2013": { atLens: { interest: 0.5, warm: 0.15 } },
+  // Eye contact (2026-10-28), over the gaze-led brow. Looking straight at the
+  // visitor the brow is up a little, attentive and open, and it relaxes as
+  // the eye follows the cursor away. Meeting their eyes again it flashes, as a
+  // person's does on catching someone's eye, now and then (a resting cursor
+  // brings the eye back to the visitor after 2.2 s: a flash every pause would
+  // be a tic). It mirrors the visitor best of all: what they make the face
+  // feel comes 1.2 × as strong.
+  "2026": { atContact: { interest: 0.3 }, meet: { every: 12, peak: 0.3 }, mirror: 1.2 },
+};
+
+/**
+ * The loader's eye looks straight at the visitor whatever the era (the user,
+ * 2026-10-29: "that eye should look at me … like a person in front of him
+ * will look into it"). Every era rests in eye contact, centred, and follows
+ * the pointer as its own data says; the eras' reading, scanning and phone
+ * gazes above are kept as data but not played at rest. (1970's reading drifted
+ * the eye ~2.2 mm down the frame once the downward range widened.)
+ */
+const EYE_CONTACT_AT_REST = true;
+
 export function getEraLook(eraId: string): EraLook {
-  const g = ERA_GAZE[eraId] ?? { pattern: "idle" as GazePattern, gaze: {} };
+  const g0 = ERA_GAZE[eraId] ?? { pattern: "idle" as GazePattern, gaze: {} };
+  const g = EYE_CONTACT_AT_REST && g0.pattern !== "contact"
+    ? {
+        pattern: "contact" as GazePattern,
+        gaze: {
+          microRate: 0.45,
+          catchUp: 1,
+          ...(g0.gaze.follow !== undefined ? { follow: g0.gaze.follow } : {}),
+          ...(g0.gaze.blinkEvery !== undefined ? { blinkEvery: g0.gaze.blinkEvery } : {}),
+          rest: [0, 0] as [number, number],
+        },
+      }
+    : g0;
   const gaze: GazeParams = { ...GAZE_DEFAULTS, ...g.gaze };
   return {
     ...getEraVisual(eraId),
@@ -462,6 +645,7 @@ export function getEraLook(eraId: string): EraLook {
     gaze,
     lens: { ...CLEAN_LENS, ...ERA_LENS[eraId] },
     cursor: ERA_CURSOR[eraId] ?? "arrow",
+    browMood: ERA_BROW[eraId] ?? {},
     signature: "",
   };
 }

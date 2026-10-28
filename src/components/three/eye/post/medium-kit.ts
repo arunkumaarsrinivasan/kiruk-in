@@ -51,7 +51,8 @@ export const easeInOutSine = (t: N) => float(0.5).sub(sin(t.mul(Math.PI).add(Mat
  * frame's `size` and height `H`, the scale `kc` (1 at the reference), the
  * globe's centre `e`, the iris's centre `pc` and radius `R`, the pupil's
  * radius `pupilR`, and the lid opening's reach from `e` (`apX`: medial,
- * lateral; `apY`: upper, lower; shares of the height).
+ * lateral; `apY`: upper, lower; `apC`: the corners' drop under `e`, medial,
+ * lateral; shares of the height).
  */
 export interface MediumFrame {
   p: N;
@@ -60,10 +61,16 @@ export interface MediumFrame {
   kc: N;
   e: N;
   pc: N;
+  /** The iris's radius as the eye's scale (6 mm): sizes, offsets, `kc`. */
   R: N;
+  /** The visible limbus's half-width and half-height, px: where the iris's edge is drawn (`limbus`). */
+  Rx: N;
+  Ry: N;
+  /** The pupil as it appears through the cornea, px. */
   pupilR: N;
   apX: N;
   apY: N;
+  apC: N;
 }
 
 /** n reference pixels, at least two device pixels (strokes and offsets). */
@@ -83,24 +90,43 @@ export const hair = (F: MediumFrame, n: number) => max(F.kc.mul(n), 1);
  * draws this eye. The margins are signed offsets from the globe's centre
  * (`apY.x` up, `apY.y` down, as the lids stand this frame), so when a blink
  * brings the upper margin down to the lower one the opening closes to
- * nothing.
+ * nothing. Both margins come down to their corner's canthus (`apC`), which
+ * sits under the globe's centre (R6: the user's eye, ~3 mm medially, ~1.5
+ * laterally), so the almond meets the lids where they meet.
  */
 export function almond(F: MediumFrame, p: N, k = 1): N {
   const d = p.sub(F.e);
-  const aw = select(d.x.lessThan(0), F.apX.x, F.apX.y).mul(F.H).mul(k);
+  const medial = d.x.lessThan(0);
+  const aw = select(medial, F.apX.x, F.apX.y).mul(F.H).mul(k);
   const sx = pow(max(float(1).sub(d.x.div(aw).mul(d.x.div(aw))), 0), 0.75);
-  const top = F.apY.x.mul(F.H).mul(k).mul(sx).negate();
-  const bot = F.apY.y.mul(F.H).mul(k).mul(sx);
+  const corner = select(medial, F.apC.x, F.apC.y).mul(F.H).mul(k).mul(float(1).sub(sx));
+  const top = F.apY.x.mul(F.H).mul(k).mul(sx).negate().add(corner);
+  const bot = F.apY.y.mul(F.H).mul(k).mul(sx).add(corner);
   const open = min(d.y.sub(top), bot.sub(d.y));
   const soft = max(F.apY.x.add(F.apY.y).mul(F.H).mul(k).mul(0.05), 1);
   // (past the corners both margins meet at zero: closed, not half open)
   return smoothstep(soft.negate(), soft, open).mul(smoothstep(0, 0.04, sx));
 }
 
-/** 1 over the cornea (the iris's disc, inside the opening). */
+/**
+ * How far p lies from the iris's centre in units of the visible limbus: 1 on
+ * it. An ellipse, as the eye shows it (the sclera overlaps the iris more above
+ * and below), so anything a medium draws at the iris's edge sits on the edge
+ * you see.
+ */
+export function limbus(F: MediumFrame, p: N): N {
+  const d = p.sub(F.pc);
+  return length(vec2(d.x.div(F.Rx), d.y.div(F.Ry)));
+}
+
+/** The visible limbus's radius along the line from the iris's centre through p, px. */
+export function limbusR(F: MediumFrame, p: N): N {
+  return length(p.sub(F.pc)).div(max(limbus(F, p), 1e-4));
+}
+
+/** 1 over the cornea (the visible iris, inside the opening). */
 export function cornea(F: MediumFrame, p: N): N {
-  const r = length(p.sub(F.pc));
-  return float(1).sub(smoothstep(F.R.mul(0.92), F.R.mul(1.04), r)).mul(almond(F, p));
+  return float(1).sub(smoothstep(0.92, 1.04, limbus(F, p))).mul(almond(F, p));
 }
 
 /** A soft shoulder, x(1 + x/4)/(1 + x): pushes a dark face up without clipping its highlights. */

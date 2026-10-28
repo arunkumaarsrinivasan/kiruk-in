@@ -48,6 +48,7 @@ description: "The loader eye's interaction grammar: the five moments (rest, hove
 - **Near the pointer, things react:** parts lift and switch on (2013), landmarks are inspected (2026). A reaction is always a state the era really had (focus, active, selected), never a glow invented for the effect.
 - `listen` (pointer and eye speed, up λ 6, down λ 1.2) drives certainty and ripples; it is 0 when still.
 - Gaze follows the pointer (eye-motion); while dragging, `follow ≥ 0.6`.
+- **The brow feels each moment** (`rig/brow.ts`, `docs/EYE_BROW_EMOTION_PLAN.md` §4): back after a while → the eyebrow flash; darting in → a startle; hovering → curious ("hm?"); resting still → warm; press → a wince; release to enter → delight; cancel → relief; scribbling → puzzled, and annoyed if it goes on; fast scrub → strain, then relief; leaving the window → a faint wistful; a third dart → wary, eyes wide; three pokes that never go in → annoyed (anger's V); slipping on and off the iris → sceptical, lids lowered; a press held → an intense stare back; 25 s of nothing → gently bored. It's the face's answer, never a sign: no words, no glow, and phones get the same grammar minus hover.
 
 ## Phones
 - The whole almond is in frame (brow and cheek included); there's no pushed-in iris crop.
@@ -72,6 +73,13 @@ description: "The loader eye's interaction grammar: the five moments (rest, hove
   - It steps once its deltas reach 60; the rest of the gesture is spent. Anything within 900 ms of a step belongs to it. A reversal starts a new gesture.
   - *Why:* a banked wheel let a hard flick run to the last era, and visitors got lost.
 - **Cursor over the iris** is the era's own (`cssCursor`): the Star arrow for 1981, `pointer` for 1995/2003/2009, `text` for 2000. It is set inline, because a global rule forces the arrow.
+
+## Realism pass: signs sit on the real eye (C4)
+- **Pupil signs** (1970's cursor, 2000's caret, 2013's keyboard, 2026's brackets and fit) centre on the apparent (refracted) pupil and size by its radius. After R1 or R4, re-shoot rest, hover and press for those four.
+- **Limbus signs** (1995's ring, 2013's segments, 2026's limbus fit) follow the elliptic limbus.
+- **1991's underline** reads the twin's lower-margin samples, never a guessed curve.
+- **Hit tests** use the apparent iris radius.
+- **Pupil reactions** (near reflex on approach, interest dilation) take R13's dynamics too (0.23 s latency, speed caps). Re-check the hover dilation's timing after R13.
 
 ## Never
 - Never sound, and never a microphone, even for a voice era.

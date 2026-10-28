@@ -20,6 +20,7 @@ description: "Engineering rules for the loader eye in three.js TSL (WebGPU with 
 |---|---|---|
 | A value first built inside one `If` branch and read by another | that branch reads it unset (black, missing lighting) | build it before the `If` and pin with `.toVar()` |
 | JS unary minus on a node: `vec2(0, -one)` | WGSL `NaN.0`, pipeline invalid, black frame | `one.negate()` |
+| JS maths on a TSL constant: `TWO_PI * RI` (`TWO_PI`, `PI` from tsl are nodes) | WGSL `NaN.0`, pipeline invalid | `Math.PI * 2 * RI` for numbers; `.mul()` for nodes |
 | `number + node` in JS (`j * 3.1 + s` with `s` a node) | string constant, "Type 'string' not found" | `float(s).add(j * 3.1)` |
 | `pow()` of a negative | NaN | multiply (`x.mul(x)`), or clamp first |
 | `smoothstep(a, b, x)` with a > b, both constants | WGSL rejects the shader | `smoothstepDown(from, to, x)` or `1 − smoothstep(b, a, x)` |
@@ -60,4 +61,50 @@ description: "Engineering rules for the loader eye in three.js TSL (WebGPU with 
 ## Measuring cost
 - Use an integrated GPU as the weak-GPU proxy (a Radeon 610M in kiruk-in). Its timings drift ±25% from run to run. A/B inside one page by toggling a uniform gate every few seconds, never across separate runs.
 - Find the expensive pass by switching layers off in the lab before optimising.
+- **Time each pass** (lab, profile mode): `__eyeLab.current.stats.passes`.
+  - It gives GPU ms per render pass, named "material → target", as a mean per frame over the last half second (WebGPU only).
+  - `stats.gpuMs` is the same mean for the whole frame.
+  - *Why:* switching layers off can't see fixed passes. Per-pass timing found 2026's medium at 31.6 ms when the whole frame read 57.
+- **Inside one big pass, gate its layers with uniform `If`s** (2026's `M.layers`) so a layer switched off costs nothing. Read the price of each that way before cutting.
+- **Gate per-pixel work on where it shows, not only on a uniform.** The brow's expression folds (lid-mesh.ts) ran on every lid pixel, nearly the whole frame, for 2.5 ms of the 610M's scene pass. Branching on the skin's tension (a varying: is this pixel squeezed at all?) and each fold's own mask brought the brow to ~0.1 ms at rest and ~0.8 ms while a feeling is held. The lab's `browOn` bits (1 move-net, 2 folds) A/B them in one page.
+- **Uniform-only maths is paid at every pixel.** Anything that depends on no pixel (an instrument's position, its timings, its fades) is worked out once a frame on the CPU and passed as a uniform array, with the CPU code mirroring the shader's sums.
+  - *Why:* 2026's twelve landmarks cost ~6 ms of a weak GPU's frame recomputing identical numbers at 1.3 M pixels.
+  - See `post/measured-marks.ts` → `medium.marks`.
+- **Draw each element only where it can land.** Put it in a per-pixel `If` on its box, ring band or curve band:
+  - a ring: `abs(d − r) < w + 1.5`;
+  - a callout: its leader's and label's box;
+  - an ellipse: its distance estimate, before the `atan`.
+
+  Pin with `.toVar()` everything two of these `If`s share (the trap above: a shared value left unpinned dropped a whole gimbal ring).
+  - 2026's pass went 31.6 → 9.6 ms; the image was unchanged but for its ticking readouts.
+  - Check it the same way: before/after shots under reduced motion, diffed against a noise floor taken from two shots of the same build.
+- **A ray march's cost is samples, then the maths per sample** (R2, the iris relief, +9.4 → ~+1.6 ms at iris-fill):
+  - **Linearise a short march:** under a millimetre the polar map is linear, so take its Jacobian at the hit once and make each step a multiply-add. *Why:* an `atan` and two `sqrt`s per step paid for a dozen steps at 1.3 M pixels.
+  - **March the top layer first; go deeper only where it opens** (an `If` on its coverage). *Why:* the brown iris's border layer covers ~85 %; marching the floor everywhere was the larger half of the cost.
+  - **Interpolate the crossing** from the two samples either side of it (secant), not a binary refine: one or two refine samples instead of four.
+  - Read the lab's step view (red = samples taken) before cutting step counts.
 - Frame budget about 15 ms at 1.47 MP on the weak GPU (WebGL2/T1 ~11 ms); the tube opening ~3 ms.
+- **R0 measured more (2026-10-28):** 1440×900 at DPR 1, headless, every frame drawn (`scripts/eye-realism-baseline.mjs`).
+  - the clean frame is 22–24 ms; with media, 24–33 ms;
+  - **2026's medium ≈ 35 ms (57 ms a frame);** 2013's ≈ 9 ms;
+  - the lids and skin are 5.2 ms; ~15 ms sits in fixed passes the layer switches can't see;
+  - T2 ≈ T3.
+
+  Time each pass before optimising: layer switches can't resolve the fixed passes.
+
+## Realism pass (R15) and the TS twins
+- **Targets:** T3 ≤ 12 ms on the 610M, T2 ≤ 8 ms, T1 ≤ 11 ms. Per-part budgets are in `docs/EYE_REALISM_PLAN.md` §6. The budget is set by the worst era (full detail plus the heaviest medium), measured per era.
+- **Medium-aware detail floor:**
+  - micro terms (pores, cushions, fine vessels, micro striations) widen their footprint by `ERA_MEDIUM.floorPx`;
+  - an `If` on a uniform skips them when fully faded;
+  - the graph never changes.
+- **Draw front to back:** lashes, lids, eyeball, room, with the depth test. *Why:* the cornea and iris optics then skip what the lids cover.
+- **TS twins:** every analytic curve the shaders use also exists in plain TS with unit tests (`src/components/three/eye/twin/`). Change both together. *Why:* this is how the reference keeps every part aligned, and how the media get exact feature points (C4).
+  - `margins.ts` mirrors `nodes/margins.ts` `marginsAt` line for line, and owns `FISSURE_MM`, `LID_THICKNESS` and `fissureAngles`, which the shader side re-exports.
+  - `optics.ts` holds today's cornea and the paraxial entrance pupil (one and two surfaces).
+  - `iris-space.ts` holds the area-preserving rest space and `shaderRestRho`, the map as `nodes/iris.ts restSpace` runs it (the collarette held short of the root past ~0.9 open).
+- **Run the tests:** `npm run test:eye` (`node:test` + `tsx`).
+  - A known gap is a `{ todo: "Rn: why" }` test that fails today. The phase that closes it removes the `todo`.
+  - Never weaken a test to pass. Fix the model, or keep the `todo` and log the drift.
+- **Offline bakes** (if chosen, plan §7.1): KTX2 with mips, loaded behind the poster, versioned with the person's data, never redone at runtime.
+- **Per-era realism values are uniforms fed from `look.ts`** (C11).

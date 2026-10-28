@@ -57,6 +57,8 @@ import {
   hash,
   hex,
   lc,
+  limbus,
+  limbusR,
   lin,
   luma,
   px,
@@ -128,9 +130,12 @@ export function eraMedium(Ux: EyeUniforms, tex: N, only?: number): N {
       e: M.eye.mul(size).toVar(),
       pc: M.pupil.mul(size).toVar(),
       R: M.irisR.mul(H).toVar(),
+      Rx: M.limbus.x.mul(H).toVar(),
+      Ry: M.limbus.y.mul(H).toVar(),
       pupilR: M.pupilR.mul(H).toVar(),
       apX: M.apX,
       apY: M.apY,
+      apC: M.apC,
     };
     const { e, pc, R, pupilR } = F;
     /** The finished frame at a UV, display-referred. */
@@ -229,9 +234,10 @@ export function eraMedium(Ux: EyeUniforms, tex: N, only?: number): N {
         paper.assign(mix(mix(paper, float(1), ring), float(0), inA));
         // a press selects the iris: the Star inverted what you selected; going in,
         // the selection opens out over everything, the icon becoming its window
-        const d = length(ci.add(0.5).mul(cell).sub(pc));
-        const pressed = step(d, R).mul(step(0.5, M.press)).mul(open);
-        const opened = step(d, mix(R, length(size), easeInCubic(M.enter))).mul(step(0.001, M.enter));
+        const qc = ci.add(0.5).mul(cell);
+        const d = length(qc.sub(pc));
+        const pressed = step(limbus(F, qc), 1).mul(step(0.5, M.press)).mul(open);
+        const opened = step(d, mix(limbusR(F, qc), length(size), easeInCubic(M.enter))).mul(step(0.001, M.enter));
         paper.assign(mix(paper, float(1).sub(paper), max(pressed, opened)));
         // arriving: two interlaced fields paint down onto ink; leaving, one
         // field clears it to ink, so the cut stays dark. The write head is a
@@ -278,7 +284,7 @@ export function eraMedium(Ux: EyeUniforms, tex: N, only?: number): N {
         v.assign(mix(v, float(1), under));
         // over it, NeXT's grey selection: the iris's blacks lift to dark grey
         // in a half pattern, the page in it untouched; pressed, it inverts
-        const inIris = step(length(p.sub(pc)), R).mul(step(0.5, almond(F, p)));
+        const inIris = step(limbus(F, p), 1).mul(step(0.5, almond(F, p)));
         v.assign(mix(v, max(v, float(1 / 3)), inIris.mul(dissolve(M.hover.mul(0.5), ci))));
         v.assign(mix(v, float(1).sub(v), inIris.mul(step(0.5, M.press))));
         // going in: a new window draws down, white
@@ -327,7 +333,8 @@ export function eraMedium(Ux: EyeUniforms, tex: N, only?: number): N {
         const spark = sparkleAt(floor(ci0.sub(sc).add(0.5).div(sbig)), fr).mul(dissolve(sign, ci0)).mul(step(0.5, almond(F, p)));
         qd.assign(mix(qd, vec3(1), spark));
         // the iris is a link: blue round it under the pointer, red pressed, visited going in
-        const ring = step(abs(length(ci0.add(0.5).mul(cell).sub(pc)).sub(R)), cell).mul(step(0.5, almond(F, p)));
+        const rc = ci0.add(0.5).mul(cell);
+        const ring = step(abs(length(rc.sub(pc)).sub(limbusR(F, rc))), cell).mul(step(0.5, almond(F, p)));
         const linkC = select(M.enter.greaterThan(0.001), hex("#663399"), select(M.press.greaterThan(0.5), hex("#ff0000"), hex("#0000ff")));
         qd.assign(mix(qd, linkC, ring.mul(max(step(0.5, M.hover), max(step(0.5, M.press), step(0.001, M.enter))))));
         qd.assign(mix(qd, hex("#000033"), smoothstep(0.7, 1, M.enter)));

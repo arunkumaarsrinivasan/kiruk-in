@@ -17,13 +17,21 @@
  *
  * The bead is wider at the inner corner (the lacrimal lake), swells and
  * brightens just after a blink, and more with reflex tears.
+ *
+ * R12: the lower bead is ~0.36 mm, the upper thinner (~0.2), and each tapers
+ * out where the margin leaves the globe at the outer corner. Its normal comes
+ * from the curve itself (the quadratic's tangent across, the margin's along),
+ * so the line sits where the fluid's surface truly faces the screen. That line
+ * is brightest when the screen is below (1970, 2000, 2009): the lower bead
+ * faces up into it. A few still glints ride the bead where the film is uneven,
+ * never moving (the calm rule).
  */
 
 import { AdditiveBlending, DoubleSide, MeshBasicNodeMaterial, PlaneGeometry, type RenderTarget } from "three/webgpu";
 import { ANATOMY } from "../anatomy";
 import type { EyeUniforms } from "../uniforms";
-import { inPanel, smoothstepDown, type N } from "./common";
-import { innerAt, lidColumn, outwardAt, sideFromAlpha, type LidColumn } from "./lid-mesh";
+import { hash21, inPanel, smoothstepDown, vnoise, type N } from "./common";
+import { corneaLift, innerAt, lidColumn, outwardAt, sideFromAlpha, type LidColumn } from "./lid-mesh";
 import { sampleScreen } from "./screen";
 import { T } from "./tsl";
 
@@ -60,23 +68,42 @@ export function meniscusGeometry() {
   return new PlaneGeometry(1, 1, 320, 6);
 }
 
-/** A point of the bead, face space (mm): column `c`, v across (globe → corner → lid). */
-function beadPoint(c: LidColumn, v: N, Ux: EyeUniforms): N {
+/** The bead's three control points, face space (mm): on the globe, in the corner, up the lid's inner face. */
+function beadFrame(c: LidColumn, Ux: EyeUniforms) {
   const U: N = Ux;
-  // wider by the inner corner, where tears pool in the lacrimal lake
+  // wider by the inner corner, where tears pool in the lacrimal lake; the
+  // lower bead fuller than the upper (R12: ~0.36 and ~0.2 mm, from the
+  // stage's 0.3 at rest); tapering out where the margin leaves the globe at
+  // the outer corner
   const lake = smoothstep(0.6, 1, c.s.negate()).mul(1.6).add(1);
-  const w = U.tear.meniscus.mul(lake).toVar();
+  const lid = select(c.upper, float(0.65), float(1.2));
+  const taper = mix(float(1), smoothstepDown(1, 0.78, c.s), step(0, c.s));
+  const w = U.tear.meniscus.mul(lake).mul(lid).mul(taper).toVar();
   // where the lid touches the globe, and a little way up its inner face
   const corner = innerAt(c, float(1), Ux).toVar();
   // (a short way up: the lower lid's inner face is wide now, and the bead is a thread)
   const onLid = innerAt(c, float(0.9), Ux);
   // on the globe, a bead's width into the aperture
   const gxy = corner.xy.sub(c.n2.mul(w));
-  const onGlobe = vec3(gxy, sqrt(max(float(R * R).sub(dot(gxy, gxy)), 0)).add(0.04));
+  // (on the cornea where it stands proud, as the lid's back edge is: innerAt)
+  const g0 = vec3(gxy, sqrt(max(float(R * R).sub(dot(gxy, gxy)), 0))).toVar();
+  const onGlobe = g0.add(normalize(g0).mul(corneaLift(normalize(g0), Ux).add(0.04)));
   // lift the corner off the surfaces a hair, so the fluid stands in front of both
   const k = corner.add(normalize(corner).mul(0.03));
+  return { g: onGlobe, k, l: onLid };
+}
+
+/** A point of the bead, face space (mm): column `c`, v across (globe → corner → lid). */
+function beadPoint(c: LidColumn, v: N, Ux: EyeUniforms): N {
+  const f = beadFrame(c, Ux);
   const a = float(1).sub(v);
-  return onGlobe.mul(a.mul(a)).add(k.mul(v.mul(a).mul(2))).add(onLid.mul(v.mul(v))).toVar();
+  return f.g.mul(a.mul(a)).add(f.k.mul(v.mul(a).mul(2))).add(f.l.mul(v.mul(v))).toVar();
+}
+
+/** The bead's tangent across, exactly: the quadratic's derivative. */
+function beadAcross(c: LidColumn, v: N, Ux: EyeUniforms): N {
+  const f = beadFrame(c, Ux);
+  return f.k.sub(f.g).mul(float(1).sub(v)).add(f.l.sub(f.k).mul(v)).mul(2);
 }
 
 export function meniscusMaterial(Ux: EyeUniforms, screen: RenderTarget, emissive: boolean) {
@@ -98,7 +125,7 @@ export function meniscusMaterial(Ux: EyeUniforms, screen: RenderTarget, emissive
     const colA = lidColumn(a.add(0.002), bisector, Ux);
     const P = beadPoint(col, v, Ux);
     const along = beadPoint(colA, v, Ux).sub(P);
-    const across = beadPoint(col, min(v.add(0.05), 1), Ux).sub(beadPoint(col, max(v.sub(0.05), 0), Ux));
+    const across = beadAcross(col, v, Ux);
     const n0 = normalize(cross(along, across)).toVar();
     // out of the fluid: away from the corner it fills
     const corner = innerAt(col, float(1), Ux);
@@ -125,14 +152,29 @@ export function meniscusMaterial(Ux: EyeUniforms, screen: RenderTarget, emissive
     // where across the bead the screen lands is the normal's business; only its edges feather
     const core = smoothstep(0, 0.12, vV).mul(smoothstepDown(1, 0.85, vV));
     // it runs out into the corners
-    const ends = smoothstepDown(1, 0.93, abs(vSide));
-    const strength = mix(0.5, 0.9, vLower).mul(U.tear.wet);
+    // (over the last quarter, and the film itself breaks along the lid: brighter
+    // where it pools, thin and dull between. Even end to end, it drew the rim
+    // as an eyeliner outline, the user 2026-10-29)
+    const ends = smoothstepDown(1, 0.72, abs(vSide));
+    const pools = vnoise(vec2(vSide.mul(5), vLower.mul(3.1))).mul(0.55).add(vnoise(vec2(vSide.mul(13), vLower.mul(5.7).add(2))).mul(0.3)).add(0.3);
+    // (the lower bead faces up into the light: in the user's photo it is the
+    // brightest line on the eye, ~20 L* over the rim under it; brighter again
+    // when the screen is below and looks straight into it, the upper one when
+    // it is above)
+    const slope = U.light.dir.y.div(max(U.light.dir.z, 0.25));
+    const facing = mix(max(slope, 0).mul(0.6), max(slope.negate(), 0).mul(0.8), vLower).add(1);
+    const strength = mix(0.5, 1.3, vLower).mul(U.tear.wet).mul(facing);
+    // still glints where the film is uneven along the bead (fixed in place:
+    // nothing at rest shimmers)
+    const glint = pow(hash21(vec2(vSide.mul(160).floor(), vLower.mul(7))), 6).mul(1.4).add(0.85);
     // the screen is far brighter than the eye it lights: weighted as the cornea's mirror is
     return mirror
       .mul(fres.mul(3.6).add(0.7).mul(0.5))
       .mul(core)
       .mul(ends)
+      .mul(pools)
       .mul(strength)
+      .mul(glint)
       .mul(U.reflect)
       .mul(U.fade);
   })();

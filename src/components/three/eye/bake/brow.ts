@@ -13,14 +13,23 @@
  * along a ridge (the herringbone), and the tail's run out and down. The edges
  * are feathered: hairs thin out toward them rather than stopping on a line.
  *
+ * R10, against the user's brow (docs/era-pov/r10): hairs lie almost flat
+ * and long (a brow hair grows ~0.15 mm a day for 1–2 months: 5–9 mm), in
+ * overlapping layers with skin showing between them, curving along the
+ * flow; the head stays short and only a few hairs stand up (a block of
+ * uprights reads as a square head). No strays, and the edge hairs are short
+ * and lie along the brow (the user, 2026-10-28: remove the extra hair). Each
+ * hair's blue channel runs root 0 → tip 1, so the shader can brown its tips.
+ *
  * The fine hair (vellus) is a small tile of faint, short hairs, mostly
  * running down and out, repeated across the face.
  */
 
 import { CanvasTexture, LinearFilter, LinearMipmapLinearFilter, RepeatWrapping } from "three/webgpu";
+import { browAt } from "../brow-shape";
 
 /** Where the brow's map sits on the face, mm (x lateral +, y up). */
-export const BROW_BOUNDS = { x0: -15.5, y0: 5.4, w: 38, h: 10.5 } as const;
+export const BROW_BOUNDS = { x0: -15.5, y0: 4.4, w: 38, h: 13.5 } as const;
 /** The fine hair's tile, mm on a side. */
 export const VELLUS_TILE_MM = 6;
 
@@ -42,27 +51,28 @@ const smooth = (a: number, b: number, x: number) => {
 };
 const mixN = (a: number, b: number, t: number) => a + (b - a) * t;
 
-/** The brow along u (0 head … 1 tail): x, its lower edge, and how deep it is, mm. */
-function browAt(u: number) {
-  const x = -13.6 + 31.4 * u;
-  const rise = 1.1 * Math.sin((Math.PI / 2) * Math.min(u / 0.66, 1));
-  const fall = u > 0.66 ? 2.6 * Math.pow((u - 0.66) / 0.34, 1.5) : 0;
-  const lower = 8.2 + rise - fall;
-  const depth = mixN(3.2, 2.7, smooth(0, 0.45, u)) * mixN(1, 0.32, smooth(0.6, 1, u));
-  return { x, lower, depth };
-}
+// The hairs are drawn on the brow's curve (brow-shape.ts); the move-net
+// moves the same curve, so the two cannot drift apart.
+export { BROW_SHAPE } from "../brow-shape";
 
 /** The flow: which way a hair at (u, v across, 0 lower edge … 1 upper) runs, radians from lateral. */
 function flowAt(u: number, v: number) {
   const head = mixN(1.35, 0.95, u / 0.16);
-  const lower = mixN(0.62, 0.3, u);
-  const upper = mixN(-0.02, -0.32, u);
-  const body = mixN(lower, upper, smooth(0.42, 0.68, v));
+  // (the two flows meet gently, over most of the brow's depth: turned 0.6 rad
+  // apart across a narrow band they caught the light apart and the brow read
+  // as two strips with a parting, the user 2026-10-29: "separated")
+  const lower = mixN(0.42, 0.18, u);
+  const upper = mixN(0.04, -0.24, u);
+  const body = mixN(lower, upper, smooth(0.2, 0.85, v));
   const tail = -0.32 - 0.35 * smooth(0.72, 1, u);
   return mixN(mixN(head, body, smooth(0.08, 0.2, u)), tail, smooth(0.66, 0.84, u));
 }
 
-/** One hair as a filled, tapered, bent stroke. */
+/**
+ * One hair as a filled, tapered, bent stroke. With `along`, each segment
+ * carries its own direction (red, green) and how far along the hair it is
+ * (blue, root 0 → tip 1); without, one fill and blue at 0.5.
+ */
 function hair(
   ctx: CanvasRenderingContext2D,
   toPx: (x: number, y: number) => [number, number],
@@ -73,28 +83,46 @@ function hair(
   width: number,
   bend: number,
   alpha: number,
+  along = false,
+  taper = 0.6,
 ) {
   const n = 8;
   const left: [number, number][] = [];
   const right: [number, number][] = [];
+  const dirs: number[] = [];
   let px = x;
   let py = y;
   let a = angle;
   const step = len / n;
   for (let i = 0; i <= n; i++) {
     const t = i / n;
-    const w = (width / 2) * Math.pow(1 - t, 0.6) + 0.004;
+    const w = (width / 2) * Math.pow(1 - t, taper) + 0.004;
     const nx = -Math.sin(a);
     const ny = Math.cos(a);
     left.push(toPx(px + nx * w, py + ny * w));
     right.push(toPx(px - nx * w, py - ny * w));
+    dirs.push(a);
     px += Math.cos(a) * step;
     py += Math.sin(a) * step;
     a += bend / n;
   }
+  const rg = (d: number) => [Math.round((Math.cos(d) * 0.5 + 0.5) * 255), Math.round((Math.sin(d) * 0.5 + 0.5) * 255)];
+  if (along) {
+    for (let i = 0; i < n; i++) {
+      const [r, g] = rg((dirs[i] + dirs[i + 1]) / 2);
+      ctx.fillStyle = `rgba(${r},${g},${Math.round(((i + 0.5) / n) * 255)},${alpha})`;
+      ctx.beginPath();
+      ctx.moveTo(...left[i]);
+      ctx.lineTo(...left[i + 1]);
+      ctx.lineTo(...right[i + 1]);
+      ctx.lineTo(...right[i]);
+      ctx.closePath();
+      ctx.fill();
+    }
+    return;
+  }
   // direction into red and green, coverage into alpha
-  const r = Math.round((Math.cos(angle + bend / 2) * 0.5 + 0.5) * 255);
-  const g = Math.round((Math.sin(angle + bend / 2) * 0.5 + 0.5) * 255);
+  const [r, g] = rg(angle + bend / 2);
   ctx.fillStyle = `rgba(${r},${g},128,${alpha})`;
   ctx.beginPath();
   ctx.moveTo(...left[0]);
@@ -128,30 +156,50 @@ export function bakeBrow(hairs: number, res: number, seed = 0xb20f): BrowBake {
   // canvas y runs down; the texture is uploaded flipped, so draw y up
   const toPx = (x: number, y: number): [number, number] => [(x - B.x0) * pxPerMm, H - (y - B.y0) * pxPerMm];
 
+  // (a little lighter, the user 2026-10-29: "too thick"; ×0.86 of the tier's budget)
+  const target = Math.round(hairs * 0.86);
   let placed = 0;
-  for (let tries = 0; placed < hairs && tries < hairs * 8; tries++) {
+  for (let tries = 0; placed < target && tries < hairs * 8; tries++) {
     // more hairs where the brow is deeper, and fewer at its feathered edges
     const u = rand();
     const v = rand();
     const at = browAt(u);
     const keep =
       (at.depth / 4.3) *
-      smooth(0, 0.07, u) *
+      smooth(0, 0.035, u) *
       (1 - smooth(0.93, 1, u)) *
-      (0.25 + 0.75 * smooth(0, 0.14, v)) *
-      (0.2 + 0.8 * (1 - smooth(0.8, 1, v)));
+      // a real brow (2026-10-29): the head sparse, skin showing between its
+      // hairs; the lower border defined, the densest line; the upper border
+      // feathering off over its top third
+      // (0.85 at the head, 2026-10-29: at 0.45 with short, thin hairs the
+      // brow's start read nearly bare, the user)
+      (0.85 + 0.15 * smooth(0.04, 0.2, u)) *
+      // (softer than a line: at 0.6 + 0.08 the lower hairs ended on a hard edge over lit skin)
+      (0.5 + 0.5 * smooth(0, 0.14, v)) *
+      (0.1 + 0.9 * (1 - smooth(0.6, 1, v)));
     if (rand() > keep) continue;
     placed++;
+    // (no strays: the user found the hairs wandering off the edges extra)
+    const vv = v;
+    // the edges: shorter hairs lying along the brow, so none pokes out of it
+    const rim = 1 - smooth(0, 0.18, Math.min(v, 1 - v));
     const x = at.x + (rand() - 0.5) * 0.5;
-    const y = at.lower + v * at.depth + (rand() - 0.5) * 0.3;
-    const angle = flowAt(u, v) + (rand() - 0.5) * 0.36;
-    const len = mixN(mixN(2.4, 4.6, smooth(0, 0.3, u)), 3.8, smooth(0.7, 1, u)) * (0.75 + rand() * 0.4);
-    // hairs bend toward the brow's middle line, a little
-    const bend = (v < 0.5 ? -1 : 1) * (0.1 + rand() * 0.2) * Math.sign(Math.cos(angle) + 0.01);
-    const width = 0.06 + rand() * 0.035;
+    const y = at.lower + vv * at.depth + (rand() - 0.5) * 0.3;
+    // (flatter in the body than before: the hairs lie almost along the skin)
+    const angle = (flowAt(u, vv) * mixN(1, 0.8, smooth(0.15, 0.3, u)) + (rand() - 0.5) * 0.3) * (1 - 0.35 * rim * smooth(0.15, 0.3, u));
+    // short at the head, long and lying flat in the body, a little shorter in the tail
+    // (the head's hairs shorter, 2.3 mm: at 2.6 they fanned up as long pen
+    // strokes; at 1.6 the start read bare, 2026-10-29)
+    const len = mixN(mixN(2.3, 6.2, smooth(0.04, 0.3, u)), 4.8, smooth(0.72, 1, u)) * (0.7 + rand() * 0.5) * (1 - 0.35 * rim);
+    // each hair curves along the flow, toward the brow's ridge
+    const bend = (vv < 0.5 ? -1 : 1) * (0.18 + rand() * 0.3) * Math.sign(Math.cos(angle) + 0.01);
+    // (~60–90 µm, tapering to a point; at 50–80 the brow averaged away to a
+    // haze at the loader's framing)
+    // (denser and thicker, as the user's brow: a thick, dark mass of hair)
+    const width = (0.07 + rand() * 0.035) * (0.88 + 0.12 * smooth(0.04, 0.22, u));
     // the feathered edges are the finest, palest hairs
-    const edge = Math.min(v, 1 - v, u * 3, (1 - u) * 4);
-    hair(ctx, toPx, x, y, angle, len, width * (0.7 + 0.3 * smooth(0, 0.25, edge)), bend, 0.55 + 0.45 * smooth(0, 0.3, edge));
+    const edge = Math.min(vv, 1 - vv, u * 3, (1 - u) * 4);
+    hair(ctx, toPx, x, y, angle, len, width * (0.75 + 0.25 * smooth(0, 0.25, edge)), bend, 0.75 + 0.25 * smooth(0, 0.3, edge), true, 0.9);
   }
 
   const brow = new CanvasTexture(canvas);

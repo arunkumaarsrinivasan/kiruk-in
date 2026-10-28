@@ -75,5 +75,14 @@ Rule: departures are fast (100–200 ms) and stay dark or neutral, so the shut l
 ## Reduced motion
 No saccade, no blink cut, no departure or arrival. A plain cut, rate-limited to 2.5 a second. Signs show steady (`steady = 1`), never vanish. Hover and press stay live. Enter is a 200 ms fade to the flood.
 
+## Realism pass: the shut eye is a scene (C8)
+Every cut shows the closed lids for ~100–250 ms, in both eras' media: the closed lid is on screen more than any single era.
+- **After any change to lid form, lashes or blinks (R7, R9, R13):** film one forward and one backward cut and inspect the shut frame. Check for:
+  - skin over the corneal bulge, with no light arc;
+  - the lash lines meeting;
+  - no crease drawn on a closed lid that isn't there.
+- **Partial blinks (R13) are natural blinks:** suppressed during the cut and for 600 ms after.
+- **New per-era light fields (R11: real size, spectrum, fills) switch with the rest at the swap.** They snap while `blink > 0.9`, never damping across open lids.
+
 ## Proof
 Every change to the cut ships a slowed filmstrip (`slowMedium(0.06–0.25)`, frames every ~400 ms) for at least two pairs of eras, forward and back (eye-verification).

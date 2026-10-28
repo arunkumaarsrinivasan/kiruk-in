@@ -77,7 +77,7 @@ export class GazeRig {
   private fixX = 0;
   private fixY = 0;
   private hold = 0.3;
-  private sacc: { fx: number; fy: number; tx: number; ty: number; t: number; d: number } | null = null;
+  private sacc: { fx: number; fy: number; tx: number; ty: number; t: number; d: number; micro: boolean } | null = null;
   private correct: { x: number; y: number; in: number } | null = null;
   private driftX = 0;
   private driftY = 0;
@@ -113,6 +113,11 @@ export class GazeRig {
 
   get busy() {
     return this.phase !== "fixate";
+  }
+
+  /** A saccade is in flight (not pursuit: following a pointer is `busy` the whole time). */
+  get saccading() {
+    return this.phase === "saccade";
   }
 
   /**
@@ -162,7 +167,11 @@ export class GazeRig {
         this.sacc = null;
         this.phase = this.ptr.has ? "pursuit" : "fixate";
         this.driftX = this.driftY = 0;
-        this.microIn = 0.3 + Math.random() * 0.5;
+        // the next microsaccade keeps the era's rate (set when the last one
+        // fired); a real saccade only pushes it 0.4–0.8 s clear of its landing.
+        // *Why:* resetting it on every landing, microsaccades included, ran
+        // them at ~1.7/s whatever the rate said.
+        if (!s.micro) this.microIn = Math.max(this.microIn, 0.4 + Math.random() * 0.4);
       }
       return this.out();
     }
@@ -278,7 +287,7 @@ export class GazeRig {
         } else {
           this.saccadeTo(this.X + 1.6 + Math.random() * 1.4, lineY + (Math.random() - 0.5) * 0.2, false);
         }
-        this.hold = gamma(P.fixMs / 1000, 5, 0.15, 1);
+        this.hold = gamma(P.fixMs / 1000, 5, 0.25, 1.6);
         return;
       }
       case "two-target": {
@@ -347,7 +356,7 @@ export class GazeRig {
       this.lastSaccade = Math.max(this.lastSaccade, amp);
     }
     const land = Math.hypot(lx - this.X, ly - this.Y);
-    this.sacc = { fx: this.X, fy: this.Y, tx: lx, ty: ly, t: 0, d: saccadeDuration(land) };
+    this.sacc = { fx: this.X, fy: this.Y, tx: lx, ty: ly, t: 0, d: saccadeDuration(land), micro };
     this.phase = "saccade";
     this.log.push({ t: this.clock, amp: land, d: this.sacc.d, micro });
     if (this.log.length > 200) this.log.shift();

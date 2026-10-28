@@ -17,7 +17,8 @@
     "eye:screens": "node scripts/eye-screens.mjs",
     "dev:trace": "set NODE_OPTIONS=--trace-deprecation && next dev --turbopack",
     "newpost": "node scripts/newpost.mjs",
-    "pupil:eval": "node scripts/pupil-eval.mjs"
+    "pupil:eval": "node scripts/pupil-eval.mjs",
+    "test:eye": "node --import tsx --test \"src/components/three/eye/twin/*.test.ts\""
   },
   "dependencies": {
     "@arcjet/next": "^1.0.0-beta.9",
@@ -75,6 +76,7 @@
     "eslint-config-next": "^15.5.7",
     "jiti": "^2.4.2",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }

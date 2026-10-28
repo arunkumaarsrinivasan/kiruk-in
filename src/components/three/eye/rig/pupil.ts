@@ -25,11 +25,14 @@
 const IRIS_DIAMETER = 12;
 const D_MIN = 1.6;
 const D_MAX = 8.2;
-/** How long the light takes to reach the muscle. */
-const LATENCY = 0.22;
+/** How long the light takes to reach the muscle (R13: 0.23 s). */
+const LATENCY = 0.23;
 /** Constriction and re-dilation rates, per second. */
 const CONSTRICT = 5.5;
 const DILATE = 1.1;
+/** The iris muscles' top speeds, mm/s (R13): the sphincter is fast, the dilator slow. */
+const CONSTRICT_MAX = 4.2;
+const DILATE_MAX = 1.1;
 /** How fast the escape transient fades, per second. */
 const ESCAPE = 0.6;
 
@@ -56,6 +59,8 @@ export interface PupilInput {
   near: number;
   /** The pointer is resting on the iris. */
   hover: boolean;
+  /** How aroused the face is, 0..1 (rig/brow.ts: a startle, delight, a stare): it opens the pupil as interest does. */
+  arousal?: number;
   exiting: boolean;
   reduce: boolean;
   /** Lab: hold the pupil at this share of the iris. */
@@ -119,7 +124,7 @@ export class PupilRig {
     this.nearSlow += (this.nearNow - this.nearSlow) * (1 - Math.exp(-0.7 * dt));
     const approach = Math.max(0, this.nearNow - this.nearSlow);
     this.hoverFor = inp.hover ? this.hoverFor + dt : 0;
-    const interested = this.hoverFor > 0.45 ? 1 : 0;
+    const interested = Math.max(this.hoverFor > 0.45 ? 1 : 0, inp.arousal ?? 0);
     this.arousal += (interested - this.arousal) * (1 - Math.exp(-1.2 * dt));
     target += -0.9 * approach + 0.9 * this.arousal;
 
@@ -130,14 +135,18 @@ export class PupilRig {
         0.16 * Math.sin(2 * Math.PI * 0.31 * t) +
         0.09 * Math.sin(2 * Math.PI * 0.83 * t + 1.3) +
         0.05 * Math.sin(2 * Math.PI * 1.7 * t + 0.4) +
-        0.06 * Math.sin(2 * Math.PI * 0.11 * t + 2.2);
+        0.06 * Math.sin(2 * Math.PI * 0.11 * t + 2.2) +
+        // (R13: a fifth, so the pattern never visibly repeats)
+        0.04 * Math.sin(2 * Math.PI * 0.53 * t + 3.1);
     }
     target = Math.min(D_MAX, Math.max(D_MIN, target));
 
     if (inp.reduce) this.d = target;
     else {
       const rate = target < this.d ? CONSTRICT : DILATE;
-      this.d += (target - this.d) * (1 - Math.exp(-rate * dt));
+      const step = (target - this.d) * (1 - Math.exp(-rate * dt));
+      // and never faster than the muscles can move it
+      this.d += Math.min(DILATE_MAX * dt, Math.max(-CONSTRICT_MAX * dt, step));
     }
 
     // the red reflex lasts as long as the flash

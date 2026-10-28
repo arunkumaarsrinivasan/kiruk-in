@@ -18,13 +18,14 @@
 
 import { spawn } from "node:child_process";
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 
 const [chrome, outDir, url, shotsFile, mode = "gpu", size = "1280x720"] = process.argv.slice(2);
 const [W, H] = size.split("x").map(Number);
 mkdirSync(outDir, { recursive: true });
 const shots = JSON.parse(readFileSync(shotsFile, "utf8"));
-const profile = mkdtempSync(join(outDir, "prof-"));
+// Chrome on Windows ignores a relative --user-data-dir and attaches to the running browser.
+const profile = mkdtempSync(join(resolve(outDir), "prof-"));
 const port = 9500 + Math.floor(Math.random() * 400);
 const proc = spawn(
   chrome,
@@ -42,7 +43,8 @@ const proc = spawn(
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 let target;
-for (let i = 0; i < 60 && !target; i++) {
+// a 12 s poll missed the page target on a busy machine; the debug port can take ~40 s
+for (let i = 0; i < 200 && !target; i++) {
   await sleep(200);
   try {
     target = (await (await fetch(`http://127.0.0.1:${port}/json`)).json()).find((t) => t.type === "page");

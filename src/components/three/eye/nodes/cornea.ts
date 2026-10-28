@@ -1,6 +1,11 @@
 /**
- * The cornea: the glass. A cap of a 7.8 mm sphere seated on the globe at the
- * limbus, standing ~1 mm proud of it, turning with the gaze.
+ * The cornea: the glass. A conic dome (7.8 mm at its apex, flattening toward
+ * its edge, Q −0.25) seated on the globe at the limbus, standing ~2.5 mm proud
+ * of it, turning with the gaze. The view refracts twice, into the cornea and
+ * out of its back surface into the aqueous, and finds the iris 3.6 mm behind
+ * the apex, where it appears 3.04 mm deep at ×1.13 (twin/optics.ts). The clear
+ * dome shows as an ellipse, 11.7 × 10.6 mm: the sclera overlaps it more above
+ * and below.
  *
  * It draws nothing of its own. It is a mirror and an emitter for the screen
  * in front of the face: the view ray is reflected off the dome (rippled by the
@@ -15,7 +20,10 @@
  *    survives it;
  *  · the limbus shades inward and catches a thin rim; one streak tells you
  *    it is glass;
- *  · a faint second image off the back of the cornea (Purkinje P2);
+ *  · a faint second image off the back of the cornea (Purkinje P2), and in
+ *    the pupil the lens's own two (P3 upright ×2 and deep, so soft; P4
+ *    inverted ×0.77, near the pupil's plane), traced off Navarro's lens
+ *    surfaces (twin/purkinje.ts) to the same screen, each 1/27 of P1;
  *  · a flash on the camera's axis (an era's lens) leaves a hard catchlight
  *    where the dome faces the lens;
  *  · the tear film (bake/tear.ts): its slope tilts the mirror, its dry spots
@@ -28,12 +36,13 @@
  */
 
 import { MeshBasicNodeMaterial, type RenderTarget, type Texture } from "three/webgpu";
-import { ANATOMY, CORNEA_CENTER_Z, IRIS_Z_PUPIL, IRIS_Z_ROOT, LIMBUS_RADIUS } from "../anatomy";
+import { ANATOMY, CORNEA_APEX_Z, CORNEA_CENTER_Z, IRIS_Z_PUPIL, IRIS_Z_ROOT, LIMBUS_RADIUS } from "../anatomy";
 import { DEBUG_VIEWS, type EyeUniforms } from "../uniforms";
 import type { IrisBake } from "../bake/iris";
 import { inPanel, lensScale, smoothstepDown, type N } from "./common";
 import { hitIris, irisShade } from "./iris";
-import { socketShade3d } from "./margins";
+import { CORNEA_BACK_CZ, CORNEA_BACK_R, LENS, LENS_BACK_CZ, LENS_FRONT_CZ, PURKINJE_VS_P1 } from "../twin/purkinje";
+import { faceAngles, marginsAt, MARGIN_RADIUS, sideOf, socketShade3d } from "./margins";
 import { tube, screenTint } from "./room";
 import { sampleScreen, screenLight } from "./screen";
 import { T } from "./tsl";
@@ -52,21 +61,46 @@ const {
   max,
   min,
   mix,
+  modelWorldMatrix,
   modelWorldMatrixInverse,
-  normalWorld,
+  normalize,
   positionLocal,
   positionWorld,
   pow,
   reflect,
   refract,
   select,
+  sin,
   smoothstep,
+  sqrt,
   step,
   texture,
   vec2,
   vec3,
   vec4,
 } = T;
+
+// The cornea's own frame is its mesh's: the cap of a sphere centred
+// CORNEA_CENTER_Z in front of the globe's centre. The vertex stage lays each
+// point onto the conic, apex APEX_L out along the axis; the back surface is a
+// sphere CORNEA_THICK behind the apex.
+const APEX_L = CORNEA_APEX_Z - CORNEA_CENTER_Z;
+const CONIC_K = 1 + ANATOMY.corneaAsphericity;
+const BACK_R = ANATOMY.corneaPosteriorRadius;
+const BACK_CZ = APEX_L - ANATOMY.corneaThickness - BACK_R;
+
+/** The conic's sag at r² from the axis (anatomy.ts `corneaSag`). */
+function conicSag(r2: N): N {
+  const R = ANATOMY.corneaRadius;
+  return r2.div(float(R).mul(float(1).add(sqrt(max(float(1).sub(r2.mul(CONIC_K / (R * R))), 0)))));
+}
+
+/** The conic's outward normal at (x, y), its own frame: −∇ of z = apex − sag(r). */
+function conicNormal(p: N): N {
+  const R = ANATOMY.corneaRadius;
+  const s = float(1).div(float(R).mul(sqrt(max(float(1).sub(dot(p.xy, p.xy).mul(CONIC_K / (R * R))), 1e-4))));
+  return normalize(vec3(p.x.mul(s), p.y.mul(s), 1));
+}
 
 const SPEC_VIEW = DEBUG_VIEWS.indexOf("spec");
 const IRIS_VIEW = DEBUG_VIEWS.indexOf("iris");
@@ -90,6 +124,8 @@ export function corneaMaterial(
 
   const material = new MeshBasicNodeMaterial();
   material.name = "Cornea";
+  // the mesh is a ball's cap: each point laid onto the conic along the axis
+  material.positionNode = vec3(positionLocal.x, positionLocal.y, float(APEX_L).sub(conicSag(dot(positionLocal.xy, positionLocal.xy))));
   // With the emissive target (WebGPU), the reflection also goes there: the
   // shader is the material's outputNode and its mrtNode carries the glow, so
   // three merges both into the pass's MRT. On WebGL2 that path fails inside
@@ -99,9 +135,17 @@ export function corneaMaterial(
     const t = S.time;
     const lum = U.screenLum;
     const local = positionLocal.toVar();
-    // 0 at the apex, 1 at the limbus
+    // 0 at the apex, 1 at the limbus (the dome's optics: round)
     const cd = clamp(length(local.xy).div(LIMBUS_RADIUS), 0, 1).toVar();
-    const mask = float(1).sub(smoothstep(0.965, 1, cd)).toVar();
+    // and 1 where the clear dome stops showing: an ellipse, the sclera
+    // overlapping it above and below (what the mask, the limbal shade and the
+    // rim follow)
+    const ce = length(vec2(local.x, local.y.div(ANATOMY.limbusAspect))).div(LIMBUS_RADIUS).toVar();
+    // (fading over the outer 7 %: the limbus is a ramp into the white, which
+    // the sclera continues, never a cut edge; R3)
+    const mask = float(1).sub(smoothstep(0.93, 1, ce)).toVar();
+    // the dome's own normal, analytic (the mesh is a ball laid onto the conic)
+    const Nc = conicNormal(local).toVar();
 
     // The tear film over the dome, from its map (film coordinates: ±1 at the
     // limbus, y up; the map's rows run top-down). Its slope tilts the mirror;
@@ -123,27 +167,45 @@ export function corneaMaterial(
       .mul(dry.mul(2.5).add(1))
       .sub(slope.mul(6))
       .toVar();
-    const N_ = normalWorld.add(vec3(tear_.mul(0.08), 0)).normalize().toVar();
+    const Nw = normalize(modelWorldMatrix.mul(vec4(Nc, 0)).xyz);
+    const N_ = Nw.add(vec3(tear_.mul(0.08), 0)).normalize().toVar();
     const V = cameraPosition.sub(positionWorld).normalize().toVar();
 
     // ---- through the glass: refract into the eye and find the iris --------------
     // All in the eye's own frame (the cornea's local space, shifted to the
-    // globe's centre), so the iris turns with the gaze.
+    // globe's centre), so the iris turns with the gaze. Into the cornea at the
+    // front, out into the aqueous at the back; where the back surface is
+    // missed or reflects the ray whole (near the rim), one refraction straight
+    // into the aqueous stands in.
     const camLocal = modelWorldMatrixInverse.mul(vec4(cameraPosition, 1)).xyz;
     const Vl = camLocal.sub(local).normalize();
-    const Nl = local.normalize().add(vec3(tear_.mul(0.08), 0)).normalize();
-    const ray = refract(Vl.negate(), Nl, 1 / ANATOMY.iorAqueous).toVar();
-    const origin = local.add(vec3(0, 0, CORNEA_CENTER_Z));
+    const Nl = Nc.add(vec3(tear_.mul(0.08), 0)).normalize();
+    const into = refract(Vl.negate(), Nl, 1 / ANATOMY.iorCornea).toVar();
+    const oc = local.sub(vec3(0, 0, BACK_CZ));
+    const b = dot(into, oc);
+    const disc = b.mul(b).sub(dot(oc, oc).sub(BACK_R * BACK_R));
+    const tb = b.negate().sub(sqrt(max(disc, 0)));
+    const back = local.add(into.mul(max(tb, 0))).toVar();
+    const out = refract(into, normalize(back.sub(vec3(0, 0, BACK_CZ))), ANATOMY.iorCornea / ANATOMY.iorAqueous).toVar();
+    const twice = disc.greaterThan(0).and(tb.greaterThan(0)).and(length(out).greaterThan(0.5));
+    const ray = select(twice, out, refract(Vl.negate(), Nl, 1 / ANATOMY.iorAqueous)).toVar();
+    const origin = select(twice, back, local).add(vec3(0, 0, CORNEA_CENTER_Z));
     const hit = hitIris(origin, ray, IRIS_Z_ROOT, IRIS_Z_PUPIL);
     const lightLocal = modelWorldMatrixInverse.mul(vec4(U.light.dir, 0)).xyz.normalize();
 
     // the same light as the white: the screen's own colour, kept under 1
     const avg = screenLight(screen).toVar();
     const hue = avg.div(max(max(avg.r, avg.g), max(avg.b, 0.001)));
-    const key = mix(vec3(1), hue, 0.3).mul(lum.mul(0.25).add(0.62));
+    // R3: the era's page is the light, not a lamp's even glow. As on the skin
+    // (lid-mesh.ts), the blurred picture in front of this point, mirrored,
+    // tints the key: a page bright on one side lights that side of the iris.
+    const avgLum = max(dot(avg, vec3(0.3, 0.55, 0.15)), 0.04);
+    const throwUv = vec2(float(0.5).sub(positionWorld.x.div(72)), positionWorld.y.div(44).add(0.5));
+    const thrown = clamp(sampleScreen(screen, clamp(throwUv, 0.02, 0.98), float(8).add(U.mip)).div(avgLum), 0.45, 2.2);
+    const key = mix(vec3(1), hue, 0.3).mul(lum.mul(0.25).add(0.62)).mul(mix(vec3(1), thrown, 0.3));
     const amb = mix(vec3(1), hue, 0.5).mul(lum.mul(0.1).add(0.07));
     const socket = socketShade3d(positionWorld, Ux).shade;
-    const iris = irisShade(Ux, irisBake, screen, { hit, ray, light: lightLocal, key, amb, socket });
+    const iris = irisShade(Ux, irisBake, screen, { hit, ray, light: lightLocal, key, amb, socket, avgLum });
 
     // ---- trace the reflected ray to the screen --------------------------------
     const R = reflect(V.negate(), N_);
@@ -204,7 +266,30 @@ export function corneaMaterial(
 
     // the monitor's body around the panel, then the dark room past it
     const body = inPanel(uvG.sub(0.5).mul(0.86).add(0.5), soft);
-    const mirrored = mix(mix(vec3(0.008, 0.009, 0.012), vec3(0.03, 0.031, 0.036), body), refl, onRefl);
+    // R11 near reflections: a mirror ray that doesn't reach the page may meet
+    // the lids first. Traced to a shell just off the lids' front (the margin's
+    // sphere + 0.4 mm), it lands above the upper margin or below the lower one:
+    // the lid's skin, lit by the same screen, with the lash line along the
+    // margin a darker comb. Dark, and never over the page: the page in the
+    // cornea is each era's concept (reflection per era), so the lids only
+    // replace the dark room around it.
+    const rLid = MARGIN_RADIUS + 0.4;
+    const pb = dot(R, positionWorld);
+    const pc = dot(positionWorld, positionWorld);
+    const lidT = pb.negate().add(sqrt(max(pb.mul(pb).sub(pc.sub(rLid * rLid)), 0)));
+    const lidHit = positionWorld.add(R.mul(lidT));
+    const lidAt = faceAngles(lidHit);
+    const lidM = marginsAt(sideOf(lidAt.phi, Ux), Ux);
+    const overUp = lidAt.theta.sub(lidM.up).mul(rLid); // mm past the upper margin
+    const underLo = lidM.lo.sub(lidAt.theta).mul(rLid); // mm past the lower one
+    const onLid = smoothstep(-0.1, 0.25, max(overUp, underLo));
+    // the lash line: 0–2.5 mm out from the margin, densest at the root, a comb of strands (~4.5/mm)
+    const lashOut = max(overUp, underLo);
+    const comb = smoothstep(0.3, 0.9, sin(lidAt.phi.mul(ANATOMY.eyeballRadius / 0.22)).mul(0.5).add(0.5));
+    const lashLine = smoothstepDown(2.5, 0.2, lashOut).mul(mix(float(0.55), float(1), comb));
+    const lidSkin = vec3(0.1, 0.062, 0.046).mul(key).mul(0.55).mul(float(1).sub(lashLine.mul(0.8)));
+    const room = mix(mix(vec3(0.008, 0.009, 0.012), vec3(0.03, 0.031, 0.036), body), lidSkin, onLid);
+    const mirrored = mix(room, refl, onRefl);
 
     // Schlick against the rippled dome; the screen is far brighter than the
     // eye it lights, so the source carries most of its own weight
@@ -236,7 +321,7 @@ export function corneaMaterial(
     const corner = mix(float(0.05), float(1), F.round);
     const fDist = length(max(abs(fUv).sub(float(1).sub(corner)), 0)).sub(corner);
     const fMask = smoothstepDown(cd.mul(0.25).add(0.06), 0, fDist).mul(step(fDen, -0.02)).mul(mask);
-    screened.addAssign(vec3(F.color).mul(fMask).mul(fres.mul(3).add(0.6)).mul(U.reflect).mul(2.6));
+    screened.addAssign(vec3(F.color).mul(fMask).mul(fres.mul(3).add(0.6)).mul(U.reflect).mul(2.6).mul(F.catchlight));
 
     // the panel as an emitter, and its blown-out middle
     // A white page reflected at a few percent is dimmer than the lit iris under
@@ -252,8 +337,9 @@ export function corneaMaterial(
     const p2 = sampleScreen(screen, uvP2, rough.add(1)).mul(inPanel(uvP2, 0.03)).mul(facing).mul(mask).mul(0.05);
 
     // the limbus: the rim of the lens catching light, the shade just inside it
-    const limbShade = smoothstep(0.68, 1, cd).mul(0.24).mul(mask);
-    const rim = vec3(1).mul(smoothstep(0.94, 1, cd)).mul(mask).mul(lum.mul(0.09).add(0.05));
+    // (gentle: at 0.24 it laid a ring darker than the iris inside the limbus)
+    const limbShade = smoothstep(0.75, 1, ce).mul(0.1).mul(mask);
+    const rim = vec3(1).mul(smoothstep(0.94, 1, ce)).mul(mask).mul(lum.mul(0.09).add(0.05));
     // one streak across the top-left of the dome: glass, not paint
     const across = dot(local.xy.div(ANATOMY.corneaRadius), vec2(0.722, 0.692)).add(0.42);
     const streak = vec3(1)
@@ -270,9 +356,59 @@ export function corneaMaterial(
       .mul(mask)
       .mul(2.2);
 
+    // ---- R4: the lens's own mirrors in the pupil, P3 and P4 --------------------
+    // The view ray goes on past the pupil to the lens, is mirrored by its front
+    // (P3) or, inside it, by its back (P4), and leaves through the cornea; it is
+    // traced to the screen like P1 (twin/purkinje.ts holds the same path to the
+    // published images: P3 upright, ×2, 10.8 mm deep; P4 inverted, ×0.77, 4.3).
+    const sphere = (o: N, d: N, cz: number, r: number, far: boolean) => {
+      const oc = o.sub(vec3(0, 0, cz));
+      const bb = dot(d, oc);
+      const dd = bb.mul(bb).sub(dot(oc, oc).sub(r * r));
+      const tt = far ? bb.negate().add(sqrt(max(dd, 0))) : bb.negate().sub(sqrt(max(dd, 0)));
+      return { p: o.add(d.mul(tt)), ok: dd.greaterThan(0).and(tt.greaterThan(0)) };
+    };
+    const away = (p: N, cz: number) => normalize(p.sub(vec3(0, 0, cz)));
+    const outOf = (o: N, d: N) => {
+      // out through the cornea's back, then its front (a sphere this near the axis)
+      const cb = sphere(o, d, CORNEA_BACK_CZ, CORNEA_BACK_R, true);
+      const d1 = refract(d, away(cb.p, CORNEA_BACK_CZ).negate(), ANATOMY.iorAqueous / ANATOMY.iorCornea);
+      const cf = sphere(cb.p, d1, CORNEA_CENTER_Z, ANATOMY.corneaRadius, true);
+      const d2 = refract(d1, away(cf.p, CORNEA_CENTER_Z).negate(), ANATOMY.iorCornea);
+      return { p: cf.p, d: d2, ok: cb.ok.and(cf.ok).and(length(d2).greaterThan(0.5)) };
+    };
+    const toScreen = (pG: N, dG: N, bias: N) => {
+      const pW = modelWorldMatrix.mul(vec4(pG.sub(vec3(0, 0, CORNEA_CENTER_Z)), 1)).xyz;
+      const dW = normalize(modelWorldMatrix.mul(vec4(dG, 0)).xyz);
+      const den = dot(dW, Nn);
+      const tS = dot(C.sub(pW), Nn).div(min(den, -0.02));
+      const hS = pW.add(dW.mul(tS)).sub(C);
+      const uv = vec2(dot(hS, U.light.right).div(U.light.size.x).add(0.5), dot(hS, U.light.up).div(U.light.size.y).add(0.5)).toVar();
+      const on = inPanel(uv, 0.04).mul(step(den, -0.02));
+      // the panel, else the monitor's body and the dark room
+      return mix(vec3(0.008, 0.009, 0.012), sampleScreen(screen, clamp(uv, 0.01, 0.99), bias), on);
+    };
+    const pupilP = hit.sub(ray.mul(0.6)); // just in front of the lens, on the view ray
+    const lf = sphere(pupilP, ray, LENS_FRONT_CZ, LENS.front, false);
+    const nLf = away(lf.p, LENS_FRONT_CZ);
+    // P3: off the lens's front; 7 mm behind the iris's focus, so soft
+    const e3 = outOf(lf.p, reflect(ray, nLf));
+    const p3 = toScreen(e3.p, e3.d, float(5.5).add(U.mip)).mul(select(lf.ok.and(e3.ok), float(1), float(0)));
+    // P4: into the lens, off its back, out again; near the pupil's plane, sharper
+    const inL = refract(ray, nLf, ANATOMY.iorAqueous / LENS.n);
+    const lb = sphere(lf.p, inL, LENS_BACK_CZ, LENS.back, true);
+    const backR = reflect(inL, away(lb.p, LENS_BACK_CZ));
+    const lf2 = sphere(lb.p, backR, LENS_FRONT_CZ, LENS.front, true);
+    const outL = refract(backR, away(lf2.p, LENS_FRONT_CZ).negate(), LENS.n / ANATOMY.iorAqueous);
+    const e4 = outOf(lf2.p, outL);
+    const p4 = toScreen(e4.p, e4.d, float(3.5).add(U.mip)).mul(select(lf.ok.and(lb.ok).and(lf2.ok).and(e4.ok), float(1), float(0)));
+    // as bright against P1 as Fresnel makes them (P1's weight at the dome's middle)
+    const kP = U.reflect.mul(source).mul(calm).mul(0.5 * (0.035 * 3.6 + 0.7) * PURKINJE_VS_P1);
+    const purkinje = p3.add(p4).mul(kP).mul(iris.throughPupil);
+
     // the mirror screens over the iris, the panel glows on top, the limbus shades
     // all of it, and the rim, the streak and P2 sit on the surface
-    const under = iris.color;
+    const under = iris.color.add(purkinje);
     const mirrored_ = under.add(screened.mul(float(1).sub(under)));
     const lit = mirrored_
       .add(emit)

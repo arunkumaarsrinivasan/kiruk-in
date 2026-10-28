@@ -23,19 +23,30 @@ export interface FrameBox {
 }
 
 /**
- * What a wide screen frames: the whole brow with a little forehead above it,
- * the lower lid's bulge and lashes below, and the corners with some face to
- * each side. The shot fits this box whatever the window's shape, so the brow
- * never leaves the frame.
+ * What a wide screen frames: the eye large, the brow along the top edge, the
+ * lower lid's bulge and lashes below, and the corners with some face to each
+ * side. The shot fits this box whatever the window's shape; on a wide screen
+ * its height sets the zoom. (The user, 2026-10-28: the eye looked too small,
+ * with too much skin round it, against the old full-frame eye: 21.5 mm tall,
+ * where 25 left the eye ~16 % smaller. Then centred (the user): the
+ * almond's middle (~0.5 mm under the globe's centre) on the frame's middle;
+ * at −8.5..13 it sat ~60 % down the screen. 22.5 mm tall, the eye still ~11 %
+ * larger than at 25; the brow's upper part runs off the frame's top. The top
+ * was 15 for a lifted brow's headroom, and 12 before that.)
  */
-export const FRAME_BOX: FrameBox = { halfW: 16, top: 12, bottom: -10 };
+// (2026-10-29, the user: too much room at the sides and below, the brow
+// cropped. With the brow 1 mm closer (brow-shape.ts) the box runs from the
+// brow's top to the lower lashes' tips: 21.3 mm, the eye ~6 % larger, the
+// whole brow in frame; the eye sits a little under the middle, under its brow.)
+// (top 13.5 with the brow back up 0.7 mm, so it stays whole in frame)
+export const FRAME_BOX: FrameBox = { halfW: 15, top: 13.5, bottom: -8.3 };
 
 /**
  * A phone: the same width, so the whole almond spans the screen with a little
  * skin past each corner. The box reaches further down, which lifts the eye a
  * little above the middle of a tall screen, where a portrait's eye rests.
  */
-const PHONE_BOX: FrameBox = { halfW: 16, top: 12, bottom: -16 };
+const PHONE_BOX: FrameBox = { halfW: 15.5, top: 13.5, bottom: -15 };
 
 /** Aspects over which the phone's box hands over to the wide screen's. */
 const PHONE_UNTIL = 0.75;

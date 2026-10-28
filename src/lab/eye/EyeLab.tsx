@@ -18,7 +18,7 @@ import dynamic from "next/dynamic";
 import { AVAILABLE_THEMES, type ThemeConfig } from "@/data/portfolio-data";
 import type { EyeLayer, EyeStageControl } from "@/components/three/eye/EyeStage";
 import { EYE_LAYERS } from "@/components/three/eye/EyeStage";
-import { DEBUG_VIEWS } from "@/components/three/eye/uniforms";
+import { DEBUG_VIEWS, IRIS_VIEWS, type IrisView } from "@/components/three/eye/uniforms";
 import {
   LID_SHAPES,
   MONK_TONES,
@@ -26,11 +26,14 @@ import {
   type LidType,
   type MonkTone,
 } from "@/components/three/eye/identity";
-import { TIERS } from "@/components/three/eye/tiers";
+import { TIERS, type EyeTier } from "@/components/three/eye/tiers";
 import type { GazeSample } from "@/components/three/eye/rig/gaze";
-import { GAZE_PATTERNS, type GazePattern } from "@/components/three/eye/look";
+import { ERA_REFLECT_KEY, GAZE_PATTERNS, type GazePattern } from "@/components/three/eye/look";
 import { POSTER_VARIANTS, posterSrc, type PosterVariant } from "@/components/three/eye/posters";
 import { ROOM_HEX } from "@/components/three/eye/nodes/room";
+import AlignmentOverlay from "./AlignmentOverlay";
+import BrowOverlay from "./BrowOverlay";
+import { BROW_EMOTIONS } from "@/components/three/eye/rig/brow";
 
 const EraEyeCanvas = dynamic(() => import("@/components/three/EraEyeCanvas"), { ssr: false });
 const EyeStage = dynamic(() => import("@/components/three/eye/EyeStage"), { ssr: false });
@@ -260,6 +263,23 @@ export default function EyeLab() {
     tears: true,
     socket: true,
   });
+  /** R0: the twin's lid margins over the media's almond (AlignmentOverlay). */
+  const [alignOn, setAlignOn] = useState(false);
+  /** The reflection's size and framing (holdReflection); 1 and off follow the era's own. */
+  const [reflectScale, setReflectScale] = useState(1);
+  const [reflectFrame, setReflectFrame] = useState(false);
+  useEffect(() => {
+    // (headless comparisons, scripts/eye-realism-baseline.mjs "reflect", read the frames here)
+    (window as unknown as { __eyeReflectKey?: typeof ERA_REFLECT_KEY }).__eyeReflectKey = ERA_REFLECT_KEY;
+    const c = control.current;
+    if (!c || kind !== "tsl") return;
+    const own = reflectScale === 1 && !reflectFrame;
+    c.holdReflection(own ? null : { scale: reflectScale, frame: reflectFrame ? ERA_REFLECT_KEY[era.id] : undefined });
+  }, [reflectScale, reflectFrame, era.id, kind]);
+  /** The brow's bone chain and muscles over the face (BrowOverlay). */
+  const [browOn, setBrowOn] = useState(false);
+  /** The brow feels only what its buttons play, nothing the pointer does (clean poses). */
+  const [browQuiet, setBrowQuiet] = useState(false);
   /** A stare: the eye stops blinking on its own, so the tear film breaks up. */
   const [stare, setStare] = useState(false);
   const [tearInfo, setTearInfo] = useState({ sinceBlink: 0, tearing: 0 });
@@ -270,6 +290,24 @@ export default function EyeLab() {
   /** Ten ways of seeing (post/era-medium.ts): on, and which medium ("era": the era's own; 0 none). */
   const [seeing, setSeeing] = useState(false);
   const [medium, setMedium] = useState<"era" | number>("era");
+  /**
+   * The URL's setup, read before the stage first compiles: ?tier=1|2|3,
+   * ?gl=1 (WebGL2), ?see=1 (ways of seeing), ?reduce=1. Changing a tier or
+   * backend after load remounts and compiles twice, which ran DXC out of
+   * memory on a weak GPU; headless runs (scripts/eye-realism-baseline.mjs)
+   * set them here instead.
+   */
+  const [boot, setBoot] = useState<{ tier: EyeTier | undefined; box?: { halfW: number; top: number; bottom: number } } | null>(null);
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    const t = Number(q.get("tier"));
+    if (q.get("gl") === "1") setForceWebGL(true);
+    if (q.get("see") === "1") setSeeing(true);
+    if (q.get("reduce") === "1") setReduce(true);
+    // ?box=iris: the iris fills the frame (R2's close-ups and its cost)
+    const box = q.get("box") === "iris" ? { halfW: 6.6, top: 6.2, bottom: -6.2 } : undefined;
+    setBoot({ tier: t === 1 || t === 2 || t === 3 ? t : undefined, box });
+  }, []);
   const [focusHold, setFocusHold] = useState<"auto" | "iris" | "lashes" | "skin">("auto");
   const [focusZ, setFocusZ] = useState(0);
   const [gazePattern, setGazePattern] = useState<GazePattern | null>(null);
@@ -283,6 +321,8 @@ export default function EyeLab() {
   const [monk, setMonk] = useState<MonkTone | null>(null);
   const [lidType, setLidType] = useState<LidType | null>(null);
   const [debugView, setDebugView] = useState<(typeof DEBUG_VIEWS)[number]>("final");
+  /** What the iris shows (U.iris.view): the iris, or a view of its relief. */
+  const [irisView, setIrisView] = useState<IrisView>("iris");
   const [holdGaze, setHoldGaze] = useState(false);
   const [gaze, setGaze] = useState({ x: 0, y: 0 });
   const [holdPupil, setHoldPupil] = useState(false);
@@ -323,6 +363,7 @@ export default function EyeLab() {
     if (!c) return;
     for (const l of EYE_LAYERS) c.setLayerVisible(l, layers[l]);
     c.uniforms.debugView.value = DEBUG_VIEWS.indexOf(debugView);
+    c.uniforms.iris.view.value = IRIS_VIEWS.indexOf(irisView);
     c.holdGaze(holdGaze ? gaze : null);
     c.holdPupil(holdPupil ? pupil : null);
     c.holdBlink(holdLid ? lid : null);
@@ -343,7 +384,7 @@ export default function EyeLab() {
     c.uniforms.skin.hood.value = shape.hood;
     c.uniforms.lids.epicanthus.value = shape.epicanthus;
     for (const k of LASH_KNOBS) c.uniforms.lashes[k].value = lashOverride[k] ?? id.lashes[k];
-  }, [lensOn, pagesOn, medium, focusHold, gazePattern, stare, lashOverride, layers, debugView, holdGaze, gaze, holdPupil, pupil, holdLid, lid, holdSquint, squint, vessels, age, monk, lidType, era.id]);
+  }, [lensOn, pagesOn, medium, focusHold, gazePattern, stare, lashOverride, layers, debugView, irisView, holdGaze, gaze, holdPupil, pupil, holdLid, lid, holdSquint, squint, vessels, age, monk, lidType, era.id]);
 
   useEffect(() => {
     applyControls();
@@ -494,18 +535,22 @@ export default function EyeLab() {
       {/* ---- the stage ------------------------------------------------------ */}
       <div className="absolute inset-0">
         {kind === "tsl" ? (
-          <EyeStage
-            key={stageKey}
-            era={era}
-            reduce={reduce}
-            forceWebGL={forceWebGL}
-            dprCap={dprCap === "1" ? 1 : 2}
-            profile
-            media={seeing}
-            control={control}
-            onReady={() => applyControls()}
-            onFail={(err) => setFailure(err instanceof Error ? err.message : String(err))}
-          />
+          boot && (
+            <EyeStage
+              key={stageKey}
+              era={era}
+              reduce={reduce}
+              forceWebGL={forceWebGL}
+              dprCap={dprCap === "1" ? 1 : 2}
+              profile
+              media={seeing}
+              tier={boot.tier}
+              frameBox={boot.box}
+              control={control}
+              onReady={() => applyControls()}
+              onFail={(err) => setFailure(err instanceof Error ? err.message : String(err))}
+            />
+          )
         ) : (
           <EraEyeCanvas key={stageKey} era={era} reduce={reduce} />
         )}
@@ -520,6 +565,9 @@ export default function EyeLab() {
           style={{ mixBlendMode: parity === "difference" ? "difference" : "normal" }}
         />
       )}
+
+      {kind === "tsl" && alignOn && <AlignmentOverlay control={control} />}
+      {kind === "tsl" && browOn && <BrowOverlay control={control} />}
 
       {ref && refShow && (
         // eslint-disable-next-line @next/next/no-img-element
@@ -752,8 +800,68 @@ export default function EyeLab() {
                   onChange={(v) => setLayers((s) => ({ ...s, [l]: v }))}
                 />
               ))}
+              <div className="flex flex-wrap gap-1 pt-1" role="group" aria-label="Solo a layer">
+                {(["all", ...EYE_LAYERS] as const).map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    disabled={kind !== "tsl"}
+                    onClick={() =>
+                      setLayers(
+                        Object.fromEntries(EYE_LAYERS.map((l) => [l, s === "all" || l === s])) as Record<EyeLayer, boolean>,
+                      )
+                    }
+                    className="rounded bg-white/10 px-1.5 py-0.5 text-[10px] disabled:opacity-35"
+                  >
+                    {s === "all" ? "all" : `solo ${s}`}
+                  </button>
+                ))}
+              </div>
               <p className="text-[10px] leading-relaxed text-white/35">
-                Each phase adds its layer here: cornea, iris, pupil, lids, lashes, tear film.
+                Each phase adds its layer here: cornea, iris, pupil, lids, lashes, tear film. Solo a layer, then turn
+                on Ways of seeing and pick an era: the part as that era shows it.
+              </p>
+            </div>
+          </Section>
+
+          <Section title="Alignment (R0)">
+            <div className="flex flex-col gap-1.5">
+              <Check label="Margin overlay" checked={alignOn} disabled={kind !== "tsl"} onChange={setAlignOn} />
+              <p className="text-[10px] leading-relaxed text-white/35">
+                Green: the lid margins from the CPU twin (twin/margins.ts), this frame. Magenta: the almond and iris
+                the era media assume (medium-kit.ts). Where they part, a sign or mask misses the lid.
+                window.__eyeAlign() gives the gaps in mm.
+              </p>
+            </div>
+          </Section>
+
+          <Section title="Reflection">
+            <div className="flex flex-col gap-1.5">
+              <Seg
+                value={reflectFrame ? "key" : "page"}
+                options={[
+                  { id: "page", label: "whole page" },
+                  { id: "key", label: "key interface" },
+                ]}
+                onChange={(v) => setReflectFrame(v === "key")}
+                disabled={kind !== "tsl"}
+              />
+              <Slider label="size" value={reflectScale} min={0.6} max={1.4} step={0.01} disabled={kind !== "tsl"} onChange={setReflectScale} />
+              <button
+                type="button"
+                disabled={kind !== "tsl"}
+                onClick={() => {
+                  setReflectFrame(false);
+                  setReflectScale(1);
+                }}
+                className="self-start rounded bg-white/10 px-2 py-1 text-[11px] disabled:opacity-35"
+              >
+                Era&apos;s own
+              </button>
+              <p className="text-[10px] leading-relaxed text-white/35">
+                How the era&apos;s page shows in the cornea: its size, and the whole page scrolling or its key
+                interface held still at the device&apos;s own aspect (look.ts ERA_REFLECT_KEY). Headless:
+                __eyeLab.current.holdReflection(&#123; scale, frame &#125;).
               </p>
             </div>
           </Section>
@@ -765,6 +873,15 @@ export default function EyeLab() {
               onChange={setDebugView}
               disabled={kind !== "tsl"}
             />
+          </Section>
+
+          <Section title="Iris relief">
+            <Seg value={irisView} options={IRIS_VIEWS.map((v) => ({ id: v, label: `iris·${v}` }))} onChange={setIrisView} disabled={kind !== "tsl"} />
+            <p className="text-[11px] leading-snug text-white/50">
+              Clay: the relief alone, in the era&apos;s light. Occlusion: grey AO, red where the key is blocked. Steps: samples taken (red),
+              marched on to the floor (green). Layers: fibre cover (red), the gap under it (green), the floor&apos;s darkness (blue). Add ?box=iris
+              to fill the frame with the iris.
+            </p>
           </Section>
 
           <Section title="Screen parity">
@@ -932,6 +1049,39 @@ export default function EyeLab() {
               >
                 Blink
               </button>
+            </div>
+          </Section>
+
+          <Section title="Brow">
+            <div className="flex flex-col gap-2">
+              <Check label="Show the bone chain" checked={browOn} disabled={kind !== "tsl"} onChange={setBrowOn} />
+              <Check
+                label="Feelings only from buttons"
+                checked={browQuiet}
+                disabled={kind !== "tsl"}
+                onChange={(v) => {
+                  setBrowQuiet(v);
+                  control.current?.browQuiet(v);
+                }}
+              />
+              <div className="flex flex-wrap gap-1">
+                {BROW_EMOTIONS.map((e) => (
+                  <button
+                    key={e}
+                    type="button"
+                    disabled={kind !== "tsl"}
+                    onClick={() => control.current?.browExpress(e)}
+                    className="rounded bg-white/10 px-2 py-1 text-[11px] disabled:opacity-35"
+                  >
+                    {e}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[10px] leading-relaxed text-white/35">
+                Plays a feeling on the brow (docs/EYE_BROW_EMOTION_PLAN.md); the pointer causes the same ones: come
+                back, dart in, hover, rest, press, enter, scribble, scrub, leave. window.__eyeBrow() gives the
+                muscles and nodes while the chain shows.
+              </p>
             </div>
           </Section>
 

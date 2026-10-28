@@ -45,6 +45,20 @@ export default function OpeningLab() {
   // read after mount, so the server's render and the first client render agree
   const [params, setParams] = useState<URLSearchParams | null>(null);
   useEffect(() => setParams(new URLSearchParams(window.location.search)), []);
+  // The loader drops the page's scrollbar gutter (immersive-era-loading-page.tsx
+  // dropPageGutter), so its eye and tube span the whole width. Without that
+  // here the eye's canvas was ~10 px narrower than the tube's frame, and the
+  // shut stills captured from it sat off from where the tube draws them.
+  useEffect(() => {
+    const st = document.documentElement.style;
+    const was = { gutter: st.scrollbarGutter, overflow: st.overflow };
+    st.scrollbarGutter = "auto";
+    st.overflow = "hidden";
+    return () => {
+      st.scrollbarGutter = was.gutter;
+      st.overflow = was.overflow;
+    };
+  }, []);
   const q = useMemo(() => params ?? new URLSearchParams(), [params]);
   const era = AVAILABLE_THEMES.find((t) => t.id === q.get("era")) ?? AVAILABLE_THEMES[0];
   const speed = Number(q.get("speed") ?? 1) || 1;

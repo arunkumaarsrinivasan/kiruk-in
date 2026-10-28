@@ -26,7 +26,8 @@ export interface EyeIdentity {
     limbal: number;
     arcus: number;
   };
-  sclera: { tint: string; vessels: number; age: number };
+  /** pigment: patchy brown melanosis on the white near the limbus, 0..1 (common with darker skin; R5) */
+  sclera: { tint: string; vessels: number; age: number; pigment: number };
   pupil: { rest: number; reactivity: number; decentre: [number, number] };
   lids: { type: LidType; tilt: number; aperture: number };
   /**
@@ -50,7 +51,7 @@ export interface EyeIdentity {
 
 /**
  * The person whose eye it is: the same in every era, as the old eye was. A
- * South Indian face: deep brown skin (Monk 9), a dark brown iris, black
+ * South Indian face: brown skin (Monk 8, golden undertone), a dark brown iris, black
  * lashes and brow, a white that is warm rather than white. What changes from
  * era to era is the screen they look at, its light and the camera
  * (look.ts), not who they are. The lab can still try other faces.
@@ -70,11 +71,13 @@ export const DEFAULT_IDENTITY: EyeIdentity = {
     limbal: 0.8,
     arcus: 0.3,
   },
-  sclera: { tint: "#e4dccb", vessels: 0.5, age: 0.4 },
+  sclera: { tint: "#e4dccb", vessels: 0.5, age: 0.4, pigment: 0.6 },
   pupil: { rest: 0.34, reactivity: 1, decentre: [-0.02, -0.01] },
   lids: { type: "hooded", tilt: 2, aperture: 1 },
   lashes: { upper: 1, lower: 1, length: 1, curl: 0.35, clump: 0.45, mascara: 0, root: "#0c0908", tip: "#16110d" },
-  skin: { monk: 9, undertone: 0.45, translucency: 0.45, pores: 0.6, lines: 0.4, freckles: 0 },
+  // (Monk 8 since batch B: the user's photos put their skin's albedo at L* ~35,
+  // between Monk 8 and 7; at Monk 9 the face rendered near-black beside the white)
+  skin: { monk: 8, undertone: 0.15, translucency: 0.45, pores: 0.6, lines: 0.4, freckles: 0 },
 };
 
 /**

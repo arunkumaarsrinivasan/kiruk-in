@@ -38,11 +38,13 @@ import {
   hash,
   hex,
   lc,
+  limbusR,
   luma,
   px,
   type MediumFrame,
 } from "./medium-kit";
 import { G, after, brackets, dashes, degrees, dialText, digits, discAt, glyphAtlas, glyphRow, readout, readoutW, ringAt, segment, stroke, within } from "./readout";
+import { MARK_COUNT } from "./measured-marks";
 
 const { If, abs, atan, clamp, cos, cross, dot, exp, float, floor, fract, int, length, max, min, mix, mod, normalize, pow, radians, select, sin, smoothstep, sqrt, step, texture, vec2, vec3 } = T;
 
@@ -64,7 +66,7 @@ export function measured({ F, M, at, uv, sign }: MeasuredScene): N {
   /** Lab: whether layer k draws (the exploded view); 1 normally. */
   const layer = (k: number) => mod(floor(M.layers.div(2 ** k)), 2);
   /** 1 when things may move, 0 under reduced motion. */
-  const live = float(1).sub(M.steady);
+  const live = float(1).sub(M.steady).toVar();
 
   // ---- L0 the plate ---------------------------------------------------------
   // the whole face, crisp (an unsharp mask a pixel out), the darks lifted so
@@ -87,12 +89,17 @@ export function measured({ F, M, at, uv, sign }: MeasuredScene): N {
   // ---- the instruments ------------------------------------------------------
   // They build themselves after the cut, as the lids open (all at once under
   // reduced motion), and fold away as the lids close.
-  const t = max(M.since, M.steady.mul(100));
-  const gone = float(1).sub(easeInQuad(M.dep)).mul(smoothstep(0.3, 0.9, M.arr));
-  const w = hair(F, 1);
-  const th = max(kc.mul(20), H.mul(0.0155));
+  //
+  // Each layer is one If on the lab's layer mask (uniform: free when on, and
+  // a layer switched off costs nothing, so its price can be read). Anything
+  // two layers share is pinned here first: a value first built inside one If
+  // would be undefined in the next (eye-tsl-craft).
+  const t = max(M.since, M.steady.mul(100)).toVar();
+  const gone = float(1).sub(easeInQuad(M.dep)).mul(smoothstep(0.3, 0.9, M.arr)).toVar();
+  const w = hair(F, 1).toVar();
+  const th = max(kc.mul(20), H.mul(0.0155)).toVar();
   /** Pixels a millimetre: the iris is 12 mm across. */
-  const mm = R.div(6);
+  const mm = R.div(6).toVar();
   const ov = float(0).toVar();
   const glow = float(0).toVar();
   let only: N = layer(1);
@@ -103,22 +110,27 @@ export function measured({ F, M, at, uv, sign }: MeasuredScene): N {
     lay(clamp(r.add(0.5).sub(dd), 0, 1), k);
     glow.assign(max(glow, exp(dd.mul(dd).div(r.mul(r).mul(-8))).mul(k).mul(only)));
   };
-  const d = p.sub(pc);
-  const r = length(d);
+  const d = p.sub(pc).toVar();
+  const r = length(d).toVar();
   // the angle from twelve o'clock, clockwise, 0..1 (rings sweep round it)
-  const turn = fract(atan(d.x, d.y.negate()).div(Math.PI * 2));
+  const turn = fract(atan(d.x, d.y.negate()).div(Math.PI * 2)).toVar();
   const sweep = (a0: number) => step(turn, easeInOutSine(after(t, a0, 0.75)));
-  const dash = px(F, 5);
-  const awM = M.apX.x.mul(H);
-  const awL = M.apX.y.mul(H);
-  const upY = M.apY.x.mul(H);
-  const loY = M.apY.y.mul(H);
+  const dash = px(F, 5).toVar();
+  const awM = M.apX.x.mul(H).toVar();
+  const awL = M.apX.y.mul(H).toVar();
+  const upY = M.apY.x.mul(H).toVar();
+  const loY = M.apY.y.mul(H).toVar();
   // (in a blink the tracker loses the eye: its fits and readings drop out)
-  const lock = smoothstep(R.mul(0.4), R.mul(1.1), upY.add(loY));
-  const k1080 = float(1080).div(H);
+  const lock = smoothstep(R.mul(0.4), R.mul(1.1), upY.add(loY)).toVar();
+  const k1080 = float(1080).div(H).toVar();
   const sgn = (x: N) => select(x.lessThan(0), float(-1), float(1));
+  // the frame's margin (the crop marks; callouts turn back inside it), and
+  // your pointer
+  const cm = px(F, 22).toVar();
+  const pp = M.ptr.mul(size).toVar();
 
   // ---- L1 registration --------------------------------------------------------
+  If(layer(1).greaterThan(0.5), () => {
   // Dashed axes through the pupil, edge to edge, leaving the iris clear. Each
   // is a millimetre ruler: a tick a millimetre, longer every five, numbered
   // every five from the pupil's centre.
@@ -157,11 +169,10 @@ export function measured({ F, M, at, uv, sign }: MeasuredScene): N {
   }
   // The frame itself: crop marks in the corners, a column of dots under each
   // side's mark on the axis's rows (ref 2), and the frame's readouts.
-  const cm = px(F, 22);
   const arm = px(F, 12);
   // (the bottom corners sit higher: the loader's corner plates live below them)
-  const lift = max(max(px(F, 30), H.mul(0.045)), M.foot.sub(cm));
-  const hud = after(t, 0.2, 0.3).mul(gone);
+  const lift = max(max(px(F, 30), H.mul(0.045)), M.foot.sub(cm)).toVar();
+  const hud = after(t, 0.2, 0.3).mul(gone).toVar();
   {
     // pressed, the crop marks leave the frame's corners and close on the eye's
     // opening, as a camera frames what it captures
@@ -178,20 +189,21 @@ export function measured({ F, M, at, uv, sign }: MeasuredScene): N {
     const inner = step(cm.add(arm).add(px(F, 30)), min(rowY, size.y.sub(rowY).sub(lift)));
     lay(max(discAt(p, vec2(cm, rowY), px(F, 1.5)), discAt(p, vec2(size.x.sub(cm), rowY), px(F, 1.5))).mul(inner), hud.mul(0.7));
   }
-  const top = cm.add(arm).add(px(F, 8));
-  const foot = top.add(lift);
-  const lineH = th.mul(0.95);
-  const adv = readoutW(th, 1);
+  const top = cm.add(arm).add(px(F, 8)).toVar();
+  const foot = top.add(lift).toVar();
+  const lineH = th.mul(0.95).toVar();
+  const adv = readoutW(th, 1).toVar();
+  // Each corner's readouts are drawn only in its own corner.
   // top left: how long the eye has been measured, m:ss.t
-  {
+  If(p.x.lessThan(cm.add(adv.mul(9)).add(px(F, 14))).and(p.y.lessThan(top.add(th).add(px(F, 14)))), () => {
     const ds = floor(M.since.mul(10));
     const secs = mod(floor(ds.div(10)), 60);
     const mins = mod(floor(ds.div(600)), 100);
     const tenth = mod(ds, 10).mul(live);
     lay(readout(p, vec2(cm, top), th, [...digits(mins, 2), G.colon, ...digits(secs, 2), G.dot, tenth], glyphs), hud.mul(0.8));
-  }
+  });
   // top right: the eye's turn (yaw, pitch) and its pupil, each with a mark
-  {
+  If(p.x.greaterThan(size.x.sub(cm).sub(adv.mul(8)).sub(px(F, 14))).and(p.y.lessThan(top.add(lineH.mul(3)).add(px(F, 14)))), () => {
     const rowW = adv.mul(7);
     const x0 = size.x.sub(cm).sub(rowW);
     const icon = x0.add(adv.mul(0.5));
@@ -213,9 +225,9 @@ export function measured({ F, M, at, uv, sign }: MeasuredScene): N {
             : max(ringAt(p, ic, hw, w), discAt(p, ic, hw.mul(0.35)));
       lay(mark, meas);
     });
-  }
+  });
   // bottom right: how many places you have rested, and how many blinks
-  {
+  If(p.x.greaterThan(size.x.sub(cm).sub(adv.mul(6)).sub(px(F, 14))).and(p.y.greaterThan(size.y.sub(foot).sub(th).sub(lineH).sub(px(F, 14)))), () => {
     const rowW = adv.mul(5);
     const x0 = size.x.sub(cm).sub(rowW);
     const y1 = size.y.sub(foot).sub(th);
@@ -230,9 +242,9 @@ export function measured({ F, M, at, uv, sign }: MeasuredScene): N {
     const q1 = p.sub(c1);
     const lashes = stroke(q1.x, w).mul(within(q1.y, hw.mul(1.05), hw.mul(1.5))).add(stroke(abs(q1.x).sub(hw.mul(0.75)), w).mul(within(q1.y, hw.mul(0.75), hw.mul(1.2))));
     lay(max(ringAt(p, c1, hw, w).mul(step(0, q1.y)), min(lashes, 1)), hud.mul(0.8));
-  }
+  });
   // bottom left: the pupil over the last six seconds, a tick a second, and its value now
-  {
+  If(p.x.lessThan(cm.add(th.mul(7)).add(adv.mul(5)).add(px(F, 10)).add(px(F, 14))).and(p.y.greaterThan(size.y.sub(foot).sub(th.mul(1.3)).sub(px(F, 14)))), () => {
     const sbW = th.mul(7);
     const sbH = th.mul(1.3);
     const so = vec2(cm, size.y.sub(foot).sub(sbH));
@@ -257,23 +269,31 @@ export function measured({ F, M, at, uv, sign }: MeasuredScene): N {
     const pmm = floor(M.pupilMm.mul(100).add(0.5));
     const [m2, m1, m0] = digits(min(pmm, 999), 3);
     lay(readout(p, vec2(so.x.add(sbW).add(px(F, 10)), so.y.add(sbH.mul(0.5)).sub(th.mul(0.5))), th, [m2, G.dot, m1, m0], glyphs), hud.mul(0.8));
-  }
+  });
+  });
 
   // ---- L2 geometry --------------------------------------------------------------
   only = layer(2);
+  If(only.greaterThan(0.5), () => {
   // the pupil's fit, and the limbus's (the primary instrument, heavier): a
   // double ring, a tick every 10°, longer every 90°; the pupil's centre a
   // bright node
   lay(ringAt(p, pc, pupilR, w), sweep(0.15).mul(0.75).mul(gone).mul(lock));
   const tickOut = (n: number, r0: N, len: N) => stroke(abs(fract(turn.mul(n).add(0.5)).sub(0.5)).mul((Math.PI * 2) / n).mul(r), w).mul(within(r, r0, r0.add(len)));
-  lay(max(max(ringAt(p, pc, R, w.mul(1.6)), tickOut(36, R, R.mul(0.05))), tickOut(4, R, R.mul(0.13))), sweep(0.2).mul(0.8).mul(gone).mul(lock));
-  lay(ringAt(p, pc, R.add(px(F, 3.5)), w), sweep(0.22).mul(0.28).mul(gone).mul(lock));
+  // (the limbus is fitted as an ellipse, as eye trackers fit it: wider than
+  // tall, the sclera overlapping the iris above and below)
+  const LR = limbusR(F, p).toVar();
+  lay(max(max(stroke(r.sub(LR), w.mul(1.6)), tickOut(36, LR, R.mul(0.05))), tickOut(4, LR, R.mul(0.13))), sweep(0.2).mul(0.8).mul(gone).mul(lock));
+  lay(stroke(r.sub(LR.add(px(F, 3.5))), w), sweep(0.22).mul(0.28).mul(gone).mul(lock));
   node(pc, px(F, 2), after(t, 0.3, 0.2).mul(gone).mul(lock));
   // a protractor at 1.45R: ticks inward every 5°, longer every 15°, the
   // angle set round it every 30°, read clockwise from twelve (ref 1)
-  const RP = R.mul(1.45);
+  const RP = R.mul(1.45).toVar();
   lay(max(max(ringAt(p, pc, RP, w), tickOut(72, RP.sub(R.mul(0.03)), R.mul(0.03))), tickOut(24, RP.sub(R.mul(0.07)), R.mul(0.07))), sweep(0.3).mul(0.45).mul(gone));
-  lay(dialText(p, pc, RP.add(px(F, 3)), th, 30, 3, glyphs), sweep(0.35).mul(0.6).mul(gone));
+  // (the numerals' band only: each needs an atan and a glyph lookup)
+  If(r.greaterThan(RP).and(r.lessThan(RP.add(th).add(px(F, 6)))), () => {
+    lay(dialText(p, pc, RP.add(px(F, 3)), th, 30, 3, glyphs), sweep(0.35).mul(0.6).mul(gone));
+  });
   node(pc.sub(vec2(0, RP)), px(F, 2.4), after(t, 0.6, 0.2).mul(gone));
   // The gimbal: the globe (24 mm across, round its centre) drawn as three
   // great circles that turn with the gaze in three dimensions: the equator
@@ -282,34 +302,37 @@ export function measured({ F, M, at, uv, sign }: MeasuredScene): N {
   // Front halves solid, back halves dashed. Arriving they swing into place;
   // over the iris they turn about the gaze axis, scanning it.
   {
-    const RG = R.mul(2);
+    const RG = R.mul(2).toVar();
     const yaw = radians(M.gazeDeg.x);
     const pitch = radians(M.gazeDeg.y);
     // (screen space: x right, y down, z toward the viewer)
-    const g = vec3(sin(yaw).mul(cos(pitch)), sin(pitch).negate(), cos(yaw).mul(cos(pitch)));
+    const g = vec3(sin(yaw).mul(cos(pitch)), sin(pitch).negate(), cos(yaw).mul(cos(pitch))).toVar();
     const b0 = vec3(cos(yaw), 0, sin(yaw).negate());
     const c0 = normalize(cross(g, b0));
     const a = M.spin.add(float(1).sub(easeOutCubic(after(t, 0.45, 1.5))).mul(2.4));
     const tip = (v: N) => normalize(v.mul(Math.cos(0.49)).add(g.mul(Math.sin(0.49))));
-    const nB = tip(b0.mul(cos(a)).add(c0.mul(sin(a))));
-    const nC = tip(c0.mul(cos(a)).sub(b0.mul(sin(a))));
+    const nB = tip(b0.mul(cos(a)).add(c0.mul(sin(a)))).toVar();
+    const nC = tip(c0.mul(cos(a)).sub(b0.mul(sin(a)))).toVar();
     const great = (n: N, k: N) => {
       const kk = length(n.xy);
       const mdir = select(kk.greaterThan(1e-4), n.xy.div(max(kk, 1e-4)), vec2(0, 1));
       const q = p.sub(e);
-      const fx = dot(q, vec2(mdir.y.negate(), mdir.x)).div(RG);
+      const fx = dot(q, vec2(mdir.y.negate(), mdir.x)).div(RG).toVar();
       const bb = max(RG.mul(abs(n.z)), 0.75);
-      const fy = dot(q, mdir).div(bb);
+      const fy = dot(q, mdir).div(bb).toVar();
       const f = fx.mul(fx).add(fy.mul(fy)).sub(1);
       const gr = length(vec2(fx.div(RG), fy.div(bb))).mul(2);
-      const dist = f.div(max(gr, 1e-5));
-      // the point's depth, a share of the radius: which half faces us
-      const z = fy.mul(kk).mul(sgn(n.z).negate());
-      const front = smoothstep(-0.05, 0.05, z);
-      const solid = mix(dashes(atan(fy, fx).mul(RG), dash.mul(1.2)).mul(0.45), float(1), front);
-      lay(stroke(dist, w).mul(solid), k);
+      const dist = f.div(max(gr, 1e-5)).toVar();
+      // only along the ellipse itself (its depth and dashes need an atan)
+      If(abs(dist).lessThan(w.add(1.5)), () => {
+        // the point's depth, a share of the radius: which half faces us
+        const z = fy.mul(kk).mul(sgn(n.z).negate());
+        const front = smoothstep(-0.05, 0.05, z);
+        const solid = mix(dashes(atan(fy, fx).mul(RG), dash.mul(1.2)).mul(0.45), float(1), front);
+        lay(stroke(dist, w).mul(solid), k);
+      });
     };
-    const on = after(t, 0.4, 0.4).mul(gone);
+    const on = after(t, 0.4, 0.4).mul(gone).toVar();
     great(g, on.mul(0.42));
     great(nB, on.mul(0.36));
     great(nC, on.mul(0.36));
@@ -318,82 +341,74 @@ export function measured({ F, M, at, uv, sign }: MeasuredScene): N {
     lay(stroke(segment(p, e, pole).d, w), on.mul(0.55).mul(lock));
     node(pole, px(F, 2.6), on.mul(lock));
   }
+  });
 
   // ---- L3 landmarks ---------------------------------------------------------------
   only = layer(3);
+  If(only.greaterThan(0.5), () => {
   // the re-measure: still for 1.5 s, one dashed line sweeps down the frame,
   // then again every 6 s; what it passes is measured again
   const ph = mod(max(M.idle.sub(1.5), 0), 6);
-  const sy = ph.div(1.6).mul(H);
-  const sweeping = step(1.5, M.idle).mul(step(ph, 1.6)).mul(live).mul(gone);
+  const sy = ph.div(1.6).mul(H).toVar();
+  const sweeping = step(1.5, M.idle).mul(step(ph, 1.6)).mul(live).mul(gone).toVar();
   lay(stroke(p.y.sub(sy), w).mul(dashes(p.x, dash.mul(2))), sweeping.mul(0.5));
-  // the trackers are sure when nothing moves, and less sure the more it does
-  const doubt = float(1).add(M.listen.mul(1.6)).mul(mix(float(1), float(0.75), smoothstep(1.5, 3, M.idle)));
   // the scan that acquires them: a ring running out from the pupil after the cut
   const scanR = after(t, 0.35, 1).mul(R.mul(3.4));
   lay(ringAt(p, pc, scanR, w.mul(1.5)), step(0.001, scanR).mul(float(1).sub(after(t, 1.05, 0.3))).mul(0.85).mul(gone));
   // Twelve points, each built from the lid opening as the lids stand this
   // frame, so they ride every blink and saccade. Each is acquired as the scan
-  // passes it (a square closes on it), keeps a faint circle of confidence,
-  // and is called out on an elbow leader: n + x - y, in pixels of a
-  // 1080-high frame, its digits running until they lock.
-  const lid = (fx: number, upper: boolean) => {
-    const sx = Math.pow(Math.max(1 - fx * fx, 0), 0.75);
-    const x = e.x.add((fx < 0 ? awM : awL).mul(fx));
-    return vec2(x, upper ? e.y.sub(upY.mul(sx)) : e.y.add(loY.mul(sx)));
-  };
-  const fixed = (x: number, y: number) => e.add(vec2(R.mul(x), R.mul(y)));
-  // (position, confidence radius in R, a minor point whose callout shows only
-  // where the eye is big enough for callouts not to collide, its leader's way)
-  const marks: [N, number, boolean, number, number][] = [
-    [lid(-1, true), 0.5, false, -1, -1],
-    [lid(1, true), 0.42, false, 1, -1],
-    [lid(-0.5, true), 0.3, true, -1, -1],
-    [lid(0, true), 0.36, false, 1, -1],
-    [lid(0.5, true), 0.28, true, 1, -1],
-    [lid(-0.4, false), 0.34, true, -1, 1],
-    [lid(0.45, false), 0.4, true, 1, 1],
-    [fixed(0.1, -1.05), 0.55, true, -1, -1],
-    [fixed(-1.3, -1.72), 0.62, true, -1, 1],
-    [fixed(0.3, -1.86), 0.7, false, 1, 1],
-    [fixed(1.9, -1.64), 0.58, true, 1, 1],
-    [fixed(-0.2, 1.3), 0.66, false, 1, 1],
-  ];
-  const roomy = smoothstep(5.5, 7, R.div(th));
-  const L1 = max(R.mul(0.24), px(F, 12));
-  const lw = readoutW(th, 16);
-  const tick24 = floor(t.mul(24));
-  const pp = M.ptr.mul(size);
-  marks.forEach(([q, rc, minor, sx, sy2], i) => {
-    const ti = float(0.35).add(length(q.sub(pc)).div(R.mul(3.4)));
-    const on = after(t, ti, 0.12).mul(gone);
+  // passes it (a square closes on it), keeps a faint circle of confidence
+  // (wider the more things move: the trackers are less sure), and is called
+  // out on an elbow leader: n + x - y, in pixels of a 1080-high frame, its
+  // digits running until they lock.
+  //
+  // Where each point is and how far it has got are the same at every pixel,
+  // so the CPU works them out once a frame (measured-marks.ts: four vec4s a
+  // point). A pixel then draws only what can land on it: near the point or on
+  // its ring, and inside the box round its leader and label. Worked out at
+  // every pixel, the twelve cost a weak GPU ~18 ms a frame.
+  const lw = readoutW(th, 16).toVar();
+  const tick24 = floor(t.mul(24)).toVar();
+  for (let i = 0; i < MARK_COUNT; i++) {
+    const m0 = M.marks.element(i * 4).toVar();
+    const m1 = M.marks.element(i * 4 + 1).toVar();
+    const m2 = M.marks.element(i * 4 + 2).toVar();
+    const m3 = M.marks.element(i * 4 + 3).toVar();
+    const q = m0.xy;
+    const ringR = m0.z;
+    const sq = m0.w;
+    const e1 = m1.xy;
+    const e2 = m1.zw;
+    const o = m2.xy;
+    const on = m2.z;
     // pointed at, a point is inspected: acquired again, its circle tight,
     // its callout shown and bright
-    const near = float(1).sub(smoothstep(R.mul(0.12), R.mul(0.4), length(pp.sub(q)))).mul(M.track).mul(float(1).sub(M.hover));
-    const sq = mix(mix(px(F, 14), px(F, 4), easeOutCubic(after(t, ti, 0.3))), px(F, 6), near);
-    lay(brackets(p, q, sq, sq.mul(0.5), w), max(after(t, ti, 0.05).mul(float(1).sub(after(t, ti.add(0.45), 0.3))), near).mul(0.9).mul(gone));
-    const flash = float(1).sub(smoothstep(0, R.mul(0.25), abs(q.y.sub(sy)))).mul(sweeping);
-    lay(ringAt(p, q, R.mul(rc).mul(easeOutCubic(after(t, ti, 0.4))).mul(doubt).mul(float(1).sub(flash.mul(0.3)).sub(near.mul(0.55))), w), on.mul(float(0.16).add(flash.mul(0.5)).add(near.mul(0.6))));
-    lay(discAt(p, q, px(F, 1.8)), on);
-    const vis = max(minor ? roomy : float(1), near);
-    // (a callout that would leave the frame turns back in)
-    const run0 = L1.mul(0.7071).add(lw).add(px(F, 12));
-    const hx = select(q.x.add(run0.mul(sx)).lessThan(cm).or(q.x.add(run0.mul(sx)).greaterThan(size.x.sub(cm))), float(-sx), float(sx));
-    const reachY = q.y.add(L1.mul(0.7071).add(th).mul(sy2));
-    const vy = select(reachY.lessThan(cm).or(reachY.greaterThan(size.y.sub(cm))), float(-sy2), float(sy2));
-    const e1 = q.add(vec2(hx, vy).mul(L1.mul(0.7071)));
-    const e2 = e1.add(vec2(lw.add(px(F, 8)).mul(hx), 0));
-    const drawn = easeOutCubic(after(t, ti.add(0.08), 0.3)).mul(2);
-    const s1 = segment(p, q, e1);
-    const s2 = segment(p, e1, e2);
-    const bright = float(0.5).add(near.mul(0.5));
-    lay(stroke(s1.d, w).mul(step(s1.t, drawn)), on.mul(bright).mul(vis));
-    lay(stroke(s2.d, w).mul(step(s2.t, drawn.sub(1))), on.mul(bright).mul(vis));
-    const o = vec2(min(e1.x, e2.x).add(px(F, 4)), e1.y.sub(th.mul(0.8)));
-    const running = live.mul(step(t, ti.add(0.6)));
-    const run = (v: N, n: number, salt: number) => digits(v, n).map((dg, j) => select(running.greaterThan(0.5), floor(hash(vec2(i * 13 + salt + j, tick24)).mul(10)), dg));
-    const lbl = [...digits(float(i + 1), 2), G.blank, G.plus, G.blank, ...run(floor(q.x.mul(k1080)), 4, 0), G.blank, G.minus, G.blank, ...run(floor(q.y.mul(k1080)), 4, 5)];
-    lay(readout(p, o, th, lbl, glyphs), after(t, ti.add(0.2), 0.12).mul(float(0.85).add(near.mul(0.15))).mul(gone).mul(vis));
+    const near = m2.w;
+    const vis = m3.x;
+    const flash = m3.y;
+    const ti = m3.z;
+    const dq = length(p.sub(q)).toVar();
+    If(dq.lessThan(sq.mul(1.5).add(px(F, 4))).or(abs(dq.sub(ringR)).lessThan(w.add(1.5))), () => {
+      lay(brackets(p, q, sq, sq.mul(0.5), w), max(after(t, ti, 0.05).mul(float(1).sub(after(t, ti.add(0.45), 0.3))), near).mul(0.9).mul(gone));
+      lay(ringAt(p, q, ringR, w), on.mul(float(0.16).add(flash.mul(0.5)).add(near.mul(0.6))));
+      lay(discAt(p, q, px(F, 1.8)), on);
+    });
+    const pad = px(F, 3);
+    const lo = min(min(q, e1), min(e2, o)).sub(pad);
+    const hi = max(max(q, e1), max(e2, o.add(vec2(lw, th)))).add(pad);
+    If(p.x.greaterThan(lo.x).and(p.y.greaterThan(lo.y)).and(p.x.lessThan(hi.x)).and(p.y.lessThan(hi.y)), () => {
+      const drawn = easeOutCubic(after(t, ti.add(0.08), 0.3)).mul(2);
+      const s1 = segment(p, q, e1);
+      const s2 = segment(p, e1, e2);
+      const bright = float(0.5).add(near.mul(0.5));
+      lay(stroke(s1.d, w).mul(step(s1.t, drawn)), on.mul(bright).mul(vis));
+      lay(stroke(s2.d, w).mul(step(s2.t, drawn.sub(1))), on.mul(bright).mul(vis));
+      const running = live.mul(step(t, ti.add(0.6)));
+      const run = (v: N, n: number, salt: number) => digits(v, n).map((dg, j) => select(running.greaterThan(0.5), floor(hash(vec2(i * 13 + salt + j, tick24)).mul(10)), dg));
+      const lbl = [...digits(float(i + 1), 2), G.blank, G.plus, G.blank, ...run(floor(q.x.mul(k1080)), 4, 0), G.blank, G.minus, G.blank, ...run(floor(q.y.mul(k1080)), 4, 5)];
+      lay(readout(p, o, th, lbl, glyphs), after(t, ti.add(0.2), 0.12).mul(float(0.85).add(near.mul(0.15))).mul(gone).mul(vis));
+    });
+  }
   });
 
   // ---- L4 you ----------------------------------------------------------------------
@@ -403,9 +418,11 @@ export function measured({ F, M, at, uv, sign }: MeasuredScene): N {
   // (eye tracking's own notation, turned on you), over your attention drawn
   // as a contour map.
   only = layer(4);
-  const you = M.track.mul(after(t, 0.6, 0.3)).mul(gone);
-  const free = float(1).sub(M.hover);
-  {
+  const you = M.track.mul(after(t, 0.6, 0.3)).mul(gone).toVar();
+  const free = float(1).sub(M.hover).toVar();
+  // (all of it is you: with no visitor's pointer there is nothing to draw)
+  If(only.greaterThan(0.5).and(you.greaterThan(0)), () => {
+  If(free.greaterThan(0), () => {
     const rr0 = px(F, 10);
     const rd = p.sub(pp);
     const cross4 = max(stroke(rd.x, w).mul(within(abs(rd.y), rr0.mul(1.4), rr0.mul(2.1))), stroke(rd.y, w).mul(within(abs(rd.x), rr0.mul(1.4), rr0.mul(2.1))));
@@ -430,28 +447,33 @@ export function measured({ F, M, at, uv, sign }: MeasuredScene): N {
     const o = midp.sub(dir.mul(tw.mul(0.5))).add(nrm.mul(th.mul(0.85)));
     const lq = vec2(dot(p.sub(o), dir), dot(p.sub(o), nrm.negate()));
     lay(glyphRow(lq, th, chars, glyphs), you.mul(free).mul(step(R.mul(2.4).add(tw), gl)).mul(0.8));
-  }
+  });
   {
     const heat = float(0).toVar();
     const hg = vec2(0).toVar();
     for (let i = 0; i < 6; i++) {
       const f = M.fix.element(i);
-      const fp = f.xy.mul(size);
-      const fa = f.w.mul(you);
-      const s2 = R.mul(float(0.32).add(min(f.z, 4).mul(0.22)));
-      const dq = p.sub(fp);
-      const gi = exp(dot(dq, dq).div(s2.mul(s2)).negate()).mul(fa).mul(float(0.5).add(min(f.z.mul(0.5), 1).mul(0.5)));
-      heat.addAssign(gi);
-      hg.addAssign(dq.mul(gi).mul(float(-2).div(s2.mul(s2))));
-      lay(ringAt(p, fp, px(F, 5), w), fa.mul(0.8));
-      lay(discAt(p, fp, px(F, 1.6)), fa);
-      const ds = floor(min(f.z, 9.99).mul(100));
-      const [d2, d1, d0] = digits(ds, 3);
-      lay(readout(p, fp.add(vec2(px(F, 9), th.mul(-1.05))), th, [...digits(M.fixN.element(i), 2), G.blank, d2, G.dot, d1, d0], glyphs), fa.mul(0.85));
-      if (i > 0) {
-        const gp = M.fix.element(i - 1);
-        lay(stroke(segment(p, gp.xy.mul(size), fp).d, w), min(fa, gp.w.mul(you)).mul(0.45));
-      }
+      const fa = f.w.mul(you).toVar();
+      // a fixation not made yet draws nothing; its attention reaches ~3σ
+      If(fa.greaterThan(0), () => {
+        const fp = f.xy.mul(size).toVar();
+        const s2 = R.mul(float(0.32).add(min(f.z, 4).mul(0.22))).toVar();
+        const dq = p.sub(fp).toVar();
+        If(dot(dq, dq).lessThan(s2.mul(s2).mul(9)), () => {
+          const gi = exp(dot(dq, dq).div(s2.mul(s2)).negate()).mul(fa).mul(float(0.5).add(min(f.z.mul(0.5), 1).mul(0.5)));
+          heat.addAssign(gi);
+          hg.addAssign(dq.mul(gi).mul(float(-2).div(s2.mul(s2))));
+        });
+        lay(ringAt(p, fp, px(F, 5), w), fa.mul(0.8));
+        lay(discAt(p, fp, px(F, 1.6)), fa);
+        const ds = floor(min(f.z, 9.99).mul(100));
+        const [d2, d1, d0] = digits(ds, 3);
+        lay(readout(p, fp.add(vec2(px(F, 9), th.mul(-1.05))), th, [...digits(M.fixN.element(i), 2), G.blank, d2, G.dot, d1, d0], glyphs), fa.mul(0.85));
+        if (i > 0) {
+          const gp = M.fix.element(i - 1);
+          lay(stroke(segment(p, gp.xy.mul(size), fp).d, w), min(fa, gp.w.mul(you)).mul(0.45));
+        }
+      });
     }
     // contours every 0.22 of attention, a pixel wide wherever the slope is,
     // dotted (a map's texture, so your attention never reads as an instrument)
@@ -460,13 +482,14 @@ export function measured({ F, M, at, uv, sign }: MeasuredScene): N {
     const dots = step(fract(p.x.add(p.y).div(px(F, 4))), 0.5);
     lay(stroke(dl, w).mul(dots), smoothstep(0.11, 0.2, heat).mul(0.4));
   }
+  });
 
   // ---- L5 the sign ------------------------------------------------------------------
   // Four corner brackets frame the iris, breathing slowly. Over it they lock
   // on, in to the limbus, and the pupil's reading appears at their corner;
   // pressed, they close on the pupil.
   only = layer(5);
-  {
+  If(only.greaterThan(0.5), () => {
     const breath = sin(M.clock.mul(1.3)).mul(0.02).mul(live);
     const ba = R.mul(mix(mix(float(1.2).add(breath), float(1.06), M.hover), float(0.9), M.press));
     lay(brackets(p, pc, ba, R.mul(0.2), w.mul(mix(float(1.2), float(2), M.hover))).mul(almond(F, p, 2.2)), sign.mul(0.95).mul(gone));
@@ -474,7 +497,7 @@ export function measured({ F, M, at, uv, sign }: MeasuredScene): N {
     const pmm = floor(M.pupilMm.mul(100).add(0.5));
     const [m2, m1, m0] = digits(min(pmm, 999), 3);
     lay(readout(p, pc.add(vec2(ba.add(px(F, 6)), ba.negate().sub(big.mul(0.75)))), big, [m2, G.dot, m1, m0], glyphs), M.hover.mul(sign).mul(lock).mul(gone));
-  }
+  });
 
   // the instruments in white, turning near-black where they cross the white
   // of the eye or the reflected page, so they read everywhere; the bright

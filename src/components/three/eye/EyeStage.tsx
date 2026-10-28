@@ -29,37 +29,47 @@ import {
   ANATOMY,
   BELL_PITCH,
   CAMERA_FOV,
+  CORNEA_APEX_Z,
   CORNEA_CAP,
   CORNEA_CENTER_Z,
   FRAME_PLANE_Z,
   GAZE_PITCH,
+  gazePitchUnits,
   GAZE_YAW,
+  LIMBUS_RADIUS,
   MM_PER_UNIT,
 } from "./anatomy";
+import { currentEntrancePupil } from "./twin/optics";
 import { eyeShot, type FrameBox } from "./framing";
 import { DPR_MIN, TIERS, budgetDpr, pickTier, readTierSignals, type EyeTier } from "./tiers";
 import { createEyeUniforms, writeScreenUniforms, type EyeUniforms } from "./uniforms";
-import { ScreenPages } from "./screen-pages";
+import { ScreenPages, framePage } from "./screen-pages";
 import { BlinkRig, damp } from "./rig/motion";
 import { GazeRig, type GazeSample } from "./rig/gaze";
 import { ScreenDriver, type ScreenState } from "./rig/screen";
-import { PupilRig, restingPupil } from "./rig/pupil";
+import { PupilRig } from "./rig/pupil";
+import { BrowRig, browSkinZ, type BrowEmotion, type BrowInfo } from "./rig/brow";
 import { eraPalette, paletteColors, screenLuminance } from "./look";
 import { roomMesh } from "./nodes/room";
 import { scleraMaterial } from "./nodes/sclera";
 import { corneaMaterial } from "./nodes/cornea";
-import { caruncleGeometry, caruncleMaterial, lidGeometry, lidMaterial, socketMaterial } from "./nodes/lid-mesh";
+import { lidGeometry, lidMaterial, socketMaterial } from "./nodes/lid-mesh";
 import { bakeBrow } from "./bake/brow";
 import { createSkinFaceBake } from "./bake/skin-face";
 import { createLashes } from "./nodes/lashes";
 import { meniscusGeometry, meniscusMaterial } from "./nodes/meniscus";
 import { createTearFilm } from "./bake/tear";
 import { FISSURE_MM, MARGIN_RADIUS, fissureAngles } from "./nodes/margins";
+import { LID_GAZE, canthi, upperRide } from "./twin/margins";
+import type { LidState } from "./twin/margins";
+import { BROW_MARK_X, measuredMarks } from "./post/measured-marks";
+import { BROW_SHAPE, browAt } from "./brow-shape";
+import { browMoveAt } from "./twin/brow-net";
 import { createSkinBake } from "./bake/skin";
 import { createVesselBake } from "./bake/vessels";
 import { createIrisBake } from "./bake/iris";
 import { DEFAULT_IDENTITY, LID_SHAPES, MONK_TONES, getEyeIdentity } from "./identity";
-import { CURSOR_KIND, LENS_ARTEFACTS, getEraLook, getEraMedium, type EraLens, type GazePattern } from "./look";
+import { CURSOR_KIND, LENS_ARTEFACTS, getEraLook, getEraMedium, type EraLens, type EraReflect, type GazePattern } from "./look";
 import { UI_FPS, createScreenPass } from "./nodes/screen";
 import { createEyePipeline } from "./post/pipeline";
 import { ERA_MEDIA, mediumOf } from "./post/era-medium";
@@ -103,8 +113,13 @@ export interface EyeStageStats {
   fps: number;
   /** CPU time spent issuing the frame, ms. */
   cpuMs: number;
-  /** GPU time for the frame, ms, when the backend can measure it. */
+  /** GPU time for the frame, ms, when the backend can measure it: the mean over the frames since the last reading. */
   gpuMs: number | null;
+  /**
+   * Lab (profile): GPU ms per render pass, a mean per frame over the same
+   * frames, largest first, each named "material → target". WebGPU only.
+   */
+  passes: { label: string; ms: number }[];
   drawCalls: number;
   triangles: number;
   geometries: number;
@@ -142,6 +157,16 @@ export interface EyeStageControl {
   holdBlink(value: number | null): void;
   /** Hold the squint (0 none, 1 full); null lets the screen's glare drive it. */
   holdSquint(value: number | null): void;
+  /** Lab: the brow plays this feeling now (an impulse, or a tonic one as a short swell), at this strength. */
+  browExpress(emotion: BrowEmotion, strength?: number): void;
+  /** Lab: hold a feeling at this strength on top of what the visitor causes; null lets it go. */
+  browHold(emotion: BrowEmotion, strength: number | null): void;
+  /** Lab: the face feels only what the buttons play (clean poses), or everything again. */
+  browQuiet(on: boolean): void;
+  /** Lab: the eras' moods (look.ts ERA_BROW) on, or off for a before and after. */
+  browMoods(on: boolean): void;
+  /** Lab: the brow this frame: muscles, feelings, the bone chain's nodes, what it senses. */
+  browInfo(): BrowInfo;
   /** Stop the eye blinking on its own (a stare), so the tear film breaks up. */
   stare(on: boolean): void;
   /** Reflex tears, as a fast sweep brings on. */
@@ -174,6 +199,8 @@ export interface EyeStageControl {
   pagesOn(on: boolean): void;
   /** Which era's page each screen slot holds, and how far the fades are. */
   pagesInfo(): { eraA: string | null; eraB: string | null; mix: number; on: number };
+  /** Lab: how the page shows in the cornea, instead of the era's own (look.ts EraReflect); null returns to it. */
+  holdReflection(r: EraReflect | null): void;
   /** Hold the focus at this depth (mm toward the camera from the globe's centre); null racks to the pointer. */
   holdFocus(z: number | null): void;
   /** Where the camera is focused now, mm from the globe's centre toward it. */
@@ -184,7 +211,26 @@ export interface EyeStageControl {
   irisAt(): { x: number; y: number; r: number };
   /** Where the eye sits in the shot (its centre at rest, whatever the gaze), CSS px, and the iris's radius. */
   eyeCentre(): { x: number; y: number; r: number };
+  /** Lab: a face-space point (mm, the globe's centre at the origin) on screen, CSS px from the canvas's top left. */
+  project(p: [number, number, number]): { x: number; y: number };
+  /** Lab: the lids' uniforms and the blink as the shader reads them this frame (twin/margins.ts `LidState`). */
+  lidUniforms(): LidState & { blink: number };
+  /**
+   * Lab: the eye as the media read it this frame (post/medium-kit.ts), CSS px:
+   * the globe's centre `e`, the corners' reach `apX` (medial, lateral), the
+   * apexes' reach `apY` (upper, lower), the iris's centre `pc` and radius `R`.
+   */
+  mediumGeometry(): { e: { x: number; y: number }; apX: [number, number]; apY: [number, number]; apC: [number, number]; pc: { x: number; y: number }; R: number };
 }
+
+/** The pupil as the cornea shows it (twin/optics.ts): how far in front of the globe's centre, and how magnified. */
+const ENTRANCE_PUPIL = currentEntrancePupil();
+const PUPIL_LEVER = CORNEA_APEX_Z - ENTRANCE_PUPIL.depth;
+
+const PROJ_TMP = new THREE.Vector3();
+/** 2026's brow landmarks this frame, device px (post/measured-marks.ts `brow`). */
+const browMarks = BROW_MARK_X.map(() => ({ x: 0, y: 0 }));
+const MARKS_TMP = new THREE.Vector2();
 
 const FILL_TMP = new THREE.Color();
 const UP_TMP = new THREE.Vector3(0, 1, 0);
@@ -264,6 +310,7 @@ interface SceneProps {
   media?: boolean;
   calm?: boolean;
   covered?: boolean;
+  tier?: EyeTier;
 }
 
 function EyeScene({
@@ -281,6 +328,7 @@ function EyeScene({
   media = false,
   calm = false,
   covered = false,
+  tier,
 }: SceneProps) {
   const gl = useThree((s) => s.gl) as unknown as THREE.WebGPURenderer;
   const scene = useThree((s) => s.scene) as unknown as THREE.Scene;
@@ -292,8 +340,8 @@ function EyeScene({
 
   const info = useMemo<EyeStageInfo>(() => {
     const webgpu = (gl.backend as { isWebGPUBackend?: boolean }).isWebGPUBackend === true;
-    return { backend: webgpu ? "webgpu" : "webgl2", tier: pickTier(readTierSignals(webgpu)) };
-  }, [gl]);
+    return { backend: webgpu ? "webgpu" : "webgl2", tier: tier ?? pickTier(readTierSignals(webgpu)) };
+  }, [gl, tier]);
 
   // The pixel ratio the tier allows, once the tier is known.
   useEffect(() => {
@@ -316,11 +364,11 @@ function EyeScene({
   /* ---- the layers ------------------------------------------------------ */
 
   /** The white of the eye, baked once per person. */
-  const vessels = useMemo(() => createVesselBake(), []);
+  const vessels = useMemo(() => createVesselBake(info.tier === 1 ? 1024 : 2048), [info.tier]);
 
   /** The iris, baked per person at the tier's resolution, in two sets for crossfades. */
   const irisBake = useMemo(
-    () => createIrisBake(info.tier > 0 ? TIERS[info.tier as 1 | 2 | 3].irisBake : 512),
+    () => createIrisBake(info.tier > 0 ? TIERS[info.tier as 1 | 2 | 3].irisBake : 512, (info.tier > 0 ? TIERS[info.tier as 1 | 2 | 3] : TIERS[1]).irisMarch),
     [info.tier],
   );
   useEffect(() => () => irisBake.dispose(), [irisBake]);
@@ -343,7 +391,7 @@ function EyeScene({
     group.rotation.order = "YXZ";
     const ball = new THREE.Mesh(
       new THREE.SphereGeometry(1, 128, 96),
-      scleraMaterial(U, screen.target, vessels.target),
+      scleraMaterial(U, screen.target, vessels),
     );
     ball.name = "globe";
     ball.scale.setScalar(ANATOMY.eyeballRadius);
@@ -411,17 +459,12 @@ function EyeScene({
 
   /**
    * The socket behind the globe: what shows in the corners of the aperture.
-   * The caruncle rides on it (shaped in its vertex stage, so never culled).
+   * At the inner corner it shows the caruncle (nodes/canthus.ts, the same
+   * field the white shows there: there is no caruncle mesh).
    */
   const socket = useMemo(() => {
     const mesh = new THREE.Mesh(new THREE.SphereGeometry(14, 64, 40), socketMaterial(U, screen.target));
     mesh.name = "socket";
-    const caruncle = new THREE.Mesh(caruncleGeometry(), caruncleMaterial(U, screen.target));
-    caruncle.name = "caruncle";
-    caruncle.frustumCulled = false;
-    // (it blends at its edges: drawn over the globe, before the cornea)
-    caruncle.renderOrder = 4;
-    mesh.add(caruncle);
     return mesh;
   }, [U, screen]);
   const room = useMemo(() => roomMesh(U, screen.target), [U, screen]);
@@ -619,24 +662,30 @@ function EyeScene({
     // arrival already is a blink: the director's)
     if (!media && irisState.current.baked > 0 && !reduce && Math.random() < 0.6) blinkRig.trigger();
     vessels.setSeed(identity.seed);
-    // The iris is baked into whichever set is not on screen, then crossfaded
-    // in. A fast sweep coalesces to the era it lands on: a bake is a few
-    // milliseconds of MaterialX noise, not something to do per tick.
-    const rest = restingPupil(lum, identity.pupil.rest / 0.34);
+    U.sclera.tint.value.set(identity.sclera.tint);
+    U.sclera.vessels.value = identity.sclera.vessels;
+    U.sclera.age.value = identity.sclera.age;
+    U.sclera.pigment.value = identity.sclera.pigment;
+    // The iris is laid out once, at the person's own resting pupil, and read
+    // at any pupil (nodes/iris.ts), so only another person bakes it: into the
+    // set not on screen, then crossfaded in. *Why:* every era is the same
+    // person, and a bake at 2048 × 512 is ~60–95 ms of GPU in one frame; baked
+    // per era, it landed in every cut.
+    const key = JSON.stringify([identity.seed, identity.iris, identity.pupil.rest]);
+    if (key === irisKey.current) return;
     const bake = () => {
+      irisKey.current = key;
       const first = irisState.current.baked === 0;
       const set: 0 | 1 = first ? 0 : irisState.current.active === 0 ? 1 : 0;
-      irisBake.request(set, identity, rest);
-      (set === 0 ? U.iris.restA : U.iris.restB).value = rest;
+      irisBake.request(set, identity);
+      const r0 = identity.pupil.rest;
+      (set === 0 ? U.iris.layoutA : U.iris.layoutB).value.set(r0, r0 + identity.iris.collaretteR * (1 - r0));
     };
     if (irisState.current.baked === 0) bake();
     else {
       const id = window.setTimeout(bake, 120);
       return () => window.clearTimeout(id);
     }
-    U.sclera.tint.value.set(identity.sclera.tint);
-    U.sclera.vessels.value = identity.sclera.vessels;
-    U.sclera.age.value = identity.sclera.age;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [identity, vessels, irisBake, U]);
 
@@ -657,6 +706,7 @@ function EyeScene({
   useEffect(() => {
     const L = U.light;
     L.dir.value.set(...look.light.key).normalize();
+    L.penumbra.value = look.light.real.mm[1] / look.light.real.dist;
     L.center.value.set(...look.light.pos);
     L.normal.value.set(...look.light.normal).normalize();
     // the screen's own right and up, as the person facing it sees them
@@ -699,7 +749,7 @@ function EyeScene({
 
   const gazeRig = useMemo(() => new GazeRig(), []);
   const blinkRig = useMemo(() => new BlinkRig(), []);
-  const pointer = useRef({ x: 0, y: 0, seen: -1e3, mouse: true, down: false, downAt: 0, onIris: false, dragged: false, sx: 0, sy: 0 });
+  const pointer = useRef({ x: 0, y: 0, seen: -1e3, mouse: true, down: false, downAt: 0, onIris: false, dragged: false, sx: 0, sy: 0, out: false });
   /** Where the gaze was when the cut began: the glance toward the next era is taken from there. */
   const glanceFrom = useRef<number | null>(null);
   /** Where the pointer and the iris were last frame (top-left UV; CSS px), for how much is moving. */
@@ -708,15 +758,14 @@ function EyeScene({
   const attention = useMemo(() => new Attention(), []);
   /** The eye's blinks, counted as the lids shut (2026 reads them out). */
   const blinkCount = useRef({ n: 0, shut: false });
-  /** How much the pointer resting on the eye interests it, 0..1, eased: the brow lifts with it. */
-  const browInterest = useRef(0);
+  /** The brow: what the visitor does, felt, and worn by its muscles on a bone chain (rig/brow.ts). */
+  const browRig = useMemo(() => new BrowRig(), []);
+  /** The squint the screen's glare brings on, eased; the lid muscles' squint goes on top of it. */
+  const squintBase = useRef(0);
   /** Where the iris was drawn last frame, CSS px, for the loader's tap target. */
   const irisOnScreen = useRef({ x: 0, y: 0, r: 1 });
   /** Where the eye sits in the shot, CSS px (the frame's centre), for the loader's chrome. */
   const eyeOnScreen = useRef({ x: 0, y: 0, r: 1 });
-  /** The brow's lift before any flash, eased; and when the last greeting flash began (s, performance clock). */
-  const browBase = useRef(0);
-  const browFlash = useRef(-1e3);
   const pupilRig = useMemo(() => new PupilRig(), []);
   const trace = useRef<{ samples: number[]; due: number }>({ samples: [], due: 0 });
   /** Ten ways of seeing: the cut between eras (a blink), and the lab's choice of medium (null: the era's own). */
@@ -766,12 +815,16 @@ function EyeScene({
   const tears = useRef({ sinceBlink: 0, shut: false, opened: -1e3, seed: 0, tearing: 0, eras: [] as number[] });
   const lashLag = useRef({ up: NaN, lo: NaN, xU: 0, vU: 0, xL: 0, vL: 0 });
   const lidReach = useRef<{ up: number; lo: number }>({ up: FISSURE_MM.upper, lo: FISSURE_MM.lower });
+  /** Lab: the reflection held (holdReflection), over the era's own. */
+  const reflectHold = useRef<EraReflect | null>(null);
   const hidden = useRef(false);
   const readySent = useRef(false);
   /** Seconds owed to the screen pass; starts due, so the first frame has a screen. */
   const uiDue = useRef(1);
   /** Which iris set is on screen, how many bakes have landed, the crossfade's goal. */
   const irisState = useRef({ active: 0 as 0 | 1, baked: 0, goal: 0 });
+  /** Who the iris sets hold (seed, iris, resting pupil): a new era is no reason to bake. */
+  const irisKey = useRef("");
   /** The membrane's lag after a turn: offset and velocity (mm), last turn rate. */
   const wobble = useRef({ x: 0, y: 0, vx: 0, vy: 0, yaw: 0, pitch: 0, wYaw: 0, wPitch: 0 });
   const health = useRef({ ema: 1 / 60, cool: 2, skip: 0, owed: 0, moved: 0, heldBlink: -1, drawn: -1 });
@@ -794,12 +847,33 @@ function EyeScene({
     fps: 0,
     cpuMs: 0,
     gpuMs: null,
+    passes: [],
     drawCalls: 0,
     triangles: 0,
     geometries: 0,
     textures: 0,
     dpr,
   });
+
+  // Lab (profile): name every render pass as the renderer begins it, so the
+  // GPU timer's per-pass readings (keyed by render context) can be told apart.
+  const passNames = useRef(new Map<string, string>());
+  useEffect(() => {
+    if (!profile) return;
+    type Insp = { beginRender: (uid: string, scene: THREE.Object3D, camera: THREE.Camera, target: THREE.RenderTarget | null) => void };
+    const insp = gl.inspector as unknown as Insp;
+    const begin = insp.beginRender;
+    insp.beginRender = function (uid, scene, camera, target) {
+      const mat = (scene as { material?: { name?: string } }).material;
+      const what = mat?.name || scene.name || scene.type;
+      const where = target ? target.texture?.name || `${target.width}×${target.height}` : "canvas";
+      passNames.current.set(uid, `${what} → ${where}`);
+      begin.call(this, uid, scene, camera, target);
+    };
+    return () => {
+      insp.beginRender = begin;
+    };
+  }, [gl, profile]);
 
   useEffect(() => {
     const sync = () => {
@@ -819,9 +893,9 @@ function EyeScene({
       P.x = (e.clientX / Math.max(window.innerWidth, 1)) * 2 - 1;
       P.y = (e.clientY / Math.max(window.innerHeight, 1)) * 2 - 1;
       P.mouse = e.pointerType === "mouse";
-      const t = performance.now() / 1000;
-      if (!reduce && t - P.seen > 2.5 && t - browFlash.current > 4) browFlash.current = t + 0.08;
-      P.seen = t;
+      // (the brow hears the gap before this move: rig/brow.ts greets a visitor back)
+      P.seen = performance.now() / 1000;
+      P.out = false;
       if (P.down && Math.hypot(e.clientX - P.sx, e.clientY - P.sy) > PRESS_SLOP) P.dragged = true;
     };
     // a press on the iris, for the era's press feedback (the loader decides what a tap does)
@@ -840,15 +914,26 @@ function EyeScene({
       P.down = false;
       P.dragged = false;
     };
+    // the pointer leaving the window (the brow's "oh, leaving?")
+    const onOut = (e: PointerEvent) => {
+      if (!e.relatedTarget && e.pointerType === "mouse") P.out = true;
+    };
+    const onBlur = () => {
+      P.out = true;
+    };
     window.addEventListener("pointermove", onMove, { passive: true });
     window.addEventListener("pointerdown", onDown, { passive: true });
     window.addEventListener("pointerup", onUp, { passive: true });
     window.addEventListener("pointercancel", onUp, { passive: true });
+    window.addEventListener("pointerout", onOut, { passive: true });
+    window.addEventListener("blur", onBlur);
     return () => {
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerdown", onDown);
       window.removeEventListener("pointerup", onUp);
       window.removeEventListener("pointercancel", onUp);
+      window.removeEventListener("pointerout", onOut);
+      window.removeEventListener("blur", onBlur);
     };
   }, [interactive, reduce]);
 
@@ -895,6 +980,19 @@ function EyeScene({
       holdSquint(value) {
         hold.current.squint = value;
       },
+      browExpress(emotion, strength = 1) {
+        browRig.express(emotion, strength, performance.now() / 1000);
+      },
+      browHold(emotion, strength) {
+        browRig.hold(emotion, strength);
+      },
+      browQuiet(on) {
+        browRig.quiet = on;
+      },
+      browMoods(on) {
+        browRig.moods = on;
+      },
+      browInfo: () => browRig.info(),
       stare(on) {
         hold.current.stare = on;
       },
@@ -943,6 +1041,9 @@ function EyeScene({
         hold.current.pagesOn = on;
       },
       pagesInfo: () => pages.info(),
+      holdReflection(r) {
+        reflectHold.current = r;
+      },
       holdFocus(z) {
         hold.current.focus = z;
       },
@@ -950,14 +1051,53 @@ function EyeScene({
       gazeLog: () => ({ now: gazeRig.trace.at(-1)?.t ?? 0, saccades: gazeRig.log.slice() }),
       irisAt: () => ({ ...irisOnScreen.current }),
       eyeCentre: () => ({ ...eyeOnScreen.current }),
+      project(p) {
+        const v = PROJ_TMP.set(p[0], p[1], p[2]).project(camera);
+        const el = gl.domElement as HTMLCanvasElement;
+        return { x: ((v.x + 1) / 2) * el.clientWidth, y: ((1 - v.y) / 2) * el.clientHeight };
+      },
+      lidUniforms() {
+        const L = U.lids;
+        return {
+          phiM: L.phiM.value,
+          phiL: L.phiL.value,
+          upper: L.upper.value,
+          lower: L.lower.value,
+          tilt: L.tilt.value,
+          squint: L.squint.value,
+          pitch: L.pitch.value,
+          peak: L.peak.value,
+          epicanthus: L.epicanthus.value,
+          drop: L.drop.value,
+          dropL: L.dropL.value,
+          blink: U.blink.value,
+        };
+      },
+      mediumGeometry() {
+        // the same sums EyeStage feeds U.medium (apX, apY, eye, pupil, irisR)
+        const iris = irisOnScreen.current;
+        const pxPerMm = iris.r / ANATOMY.irisRadius;
+        const ca = canthi(identity.lids.tilt, identity.lids.aperture);
+        return {
+          e: { x: eyeOnScreen.current.x, y: eyeOnScreen.current.y },
+          apX: [-ca.medial.x * pxPerMm, ca.lateral.x * pxPerMm],
+          apY: [lidReach.current.up * pxPerMm, lidReach.current.lo * pxPerMm],
+          apC: [-ca.medial.y * pxPerMm, -ca.lateral.y * pxPerMm],
+          pc: { x: iris.x, y: iris.y },
+          R: iris.r,
+        };
+      },
       gazeInfo: () => ({ pattern: patternOverride.current ?? look.gazePattern, blinkEvery: blinkRig.every }),
     };
     return () => {
       control.current = null;
     };
-  }, [control, U, info, eyeball, lids, lashes, meniscus, socket, room, scene, blinkRig, gazeRig, driver, pupilRig, look, pages, director]);
+  }, [control, U, info, eyeball, lids, lashes, meniscus, socket, room, scene, camera, gl, blinkRig, gazeRig, driver, pupilRig, browRig, look, pages, director, identity.lids.tilt, identity.lids.aperture]);
 
   /* ---- the frame -------------------------------------------------------- */
+
+  /** The era the frame last woke for, so a scroll with a still pointer still cuts. */
+  const wokeFor = useRef(era.id);
 
   useFrame((_state, delta) => {
     if (hidden.current || !compiled.current) return;
@@ -979,6 +1119,12 @@ function EyeScene({
     if (heldBlink !== h0.heldBlink) {
       h0.moved = now;
       h0.heldBlink = heldBlink;
+    }
+    // a new year is motion, even when the pointer has been still long enough
+    // that the eye is drawing every third frame
+    if (wokeFor.current !== era.id) {
+      wokeFor.current = era.id;
+      h0.moved = now;
     }
     // covered: nobody sees these frames, so only enough of them to keep the
     // eye's clock, its fade and its warm-up going (the GPU is the opening's)
@@ -1062,17 +1208,20 @@ function EyeScene({
           ? { x: THREE.MathUtils.clamp((glanceFrom.current ?? 0) + director.look, -0.85, 0.85), y: look.restGaze[1] }
           : null);
     const g = gazeRig.update(dt, target, reduce);
-    U.gaze.value.set(g.x, g.y);
+    // (the eye's real vertical range: a soft stop up, room down: anatomy.ts)
+    const gy = gazePitchUnits(g.y);
+    U.gaze.value.set(g.x, gy);
     // The lids: the loader's hold (its opening) and the director's cut both
     // own them at times; the more shut wins, so a cut never swaps eras with
     // the eye open. The blink rig runs every frame, so a natural blink caught
     // by a cut finishes unseen behind it instead of replaying after.
     const heldLid = hold.current.blink;
     const cutLid = media ? director.blink : null;
-    const natural = blinkRig.update(dt, reduce, exiting || hold.current.stare || heldLid !== null || (media && director.quiet));
+    // (a startle, a stare or a glare holds the eyes open: rig/brow.ts holdBlinks, from last frame)
+    const natural = blinkRig.update(dt, reduce, exiting || hold.current.stare || heldLid !== null || (media && director.quiet) || browRig.holdBlinks);
     U.blink.value = heldLid !== null && cutLid !== null ? Math.max(heldLid, cutLid) : (heldLid ?? cutLid ?? natural);
     // up is a negative pitch about x; under a closing lid the eye rolls up
-    eyeball.group.rotation.set(-g.y * GAZE_PITCH - U.blink.value * BELL_PITCH, g.x * GAZE_YAW, 0);
+    eyeball.group.rotation.set(-gy * GAZE_PITCH - U.blink.value * BELL_PITCH, g.x * GAZE_YAW, 0);
 
     // ---- post-saccadic wobble: the iris lags the turn, then rings down ------
     {
@@ -1081,8 +1230,8 @@ function EyeScene({
       const pitch = eyeball.group.rotation.x;
       const wYaw = (yaw - w.yaw) / Math.max(dt, 1e-3);
       const wPitch = (pitch - w.pitch) / Math.max(dt, 1e-3);
-      const aYaw = (wYaw - w.wYaw) / Math.max(dt, 1e-3);
-      const aPitch = (wPitch - w.wPitch) / Math.max(dt, 1e-3);
+      const kickYaw = wYaw - w.wYaw;
+      const kickPitch = wPitch - w.wPitch;
       w.yaw = yaw;
       w.pitch = pitch;
       w.wYaw = wYaw;
@@ -1090,15 +1239,26 @@ function EyeScene({
       if (reduce) {
         w.x = w.y = w.vx = w.vy = 0;
       } else {
+        // A turn's change of speed kicks the membrane, which then rings down
+        // on its own spring, stepped at 240 Hz whatever the frame rate. *Why:*
+        // stepped once a frame, a 9 Hz spring is unstable under ~35 fps (the
+        // weak GPU runs 13–30): it sat at its clamp flipping sign every frame,
+        // a constant shake.
         const omega = 2 * Math.PI * 9; // slower than life, or a 60 Hz frame cannot show it
-        const zeta = 0.32;
+        const zeta = 0.45;
         const gain = 0.6;
-        const ax = -omega * omega * w.x - 2 * zeta * omega * w.vx - aYaw * gain;
-        const ay = -omega * omega * w.y - 2 * zeta * omega * w.vy + aPitch * gain;
-        w.vx += ax * dt;
-        w.vy += ay * dt;
-        w.x = THREE.MathUtils.clamp(w.x + w.vx * dt, -0.25, 0.25);
-        w.y = THREE.MathUtils.clamp(w.y + w.vy * dt, -0.25, 0.25);
+        w.vx -= kickYaw * gain;
+        w.vy += kickPitch * gain;
+        const n = Math.min(48, Math.ceil(dt * 240));
+        const h = dt / n;
+        for (let i = 0; i < n; i++) {
+          w.vx += (-omega * omega * w.x - 2 * zeta * omega * w.vx) * h;
+          w.vy += (-omega * omega * w.y - 2 * zeta * omega * w.vy) * h;
+          w.x += w.vx * h;
+          w.y += w.vy * h;
+        }
+        w.x = THREE.MathUtils.clamp(w.x, -0.15, 0.15);
+        w.y = THREE.MathUtils.clamp(w.y, -0.15, 0.15);
       }
       U.iris.wobble.value.set(w.x, w.y);
     }
@@ -1110,30 +1270,84 @@ function EyeScene({
     LU.phiM.value = fa.phiM;
     LU.phiL.value = fa.phiL;
     LU.upper.value = fa.upper;
+    LU.upperRest.value = fa.upper;
     LU.lower.value = fa.lower;
+    LU.drop.value = fa.drop;
+    LU.dropL.value = fa.dropL;
     LU.tilt.value = THREE.MathUtils.degToRad(identity.lids.tilt);
     // the upper lid follows the eye's pitch (not Bell's roll under a blink)
-    LU.pitch.value = g.y * GAZE_PITCH;
+    LU.pitch.value = U.gaze.value.y * GAZE_PITCH;
     // the apex sits a little toward the nose, and drifts after the cornea
     LU.peak.value = -0.04 + 0.25 * g.x * GAZE_YAW;
     const glare = THREE.MathUtils.smoothstep(U.screenLum.value, 0.55, 0.95);
     // (a white page narrows the eye a little, not to sleepiness: the lid already covers the iris's top)
-    const squintGoal = Math.max(glare * 0.6, look.squintRest);
-    LU.squint.value = hold.current.squint ?? damp(LU.squint.value, reduce ? look.squintRest : squintGoal, 1.5, dt);
-    // The brow, by its muscles (lid-mesh.ts browDisplace). Frontalis lifts it
-    // as the eye looks up and with interest (the pointer resting on the eye),
-    // a little behind the eye; a greeting flash (a quick lift, held a moment)
-    // when a visitor's pointer arrives after a while away, or when the eye
-    // first opens on them. Corrugator frowns into glare, and into a page being
-    // read. Orbicularis (squint, blink) is read from the lids directly.
+    // (0.35, 2026-10-29: at 0.6 the white pages (2003 on) narrowed the eye
+    // until it read shrunk beside 1970's)
+    const squintGoal = Math.max(glare * 0.35, look.squintRest);
+    // (the glare's squint, before any feeling's: the brow block adds the lid muscles' on top)
+    squintBase.current = damp(squintBase.current, reduce ? look.squintRest : squintGoal, 1.5, dt);
+    // The brow and the lids (rig/brow.ts, docs/EYE_BROW_EMOTION_PLAN.md):
+    // what the visitor does is felt (a greeting when they come back,
+    // curiosity on the iris, a wince at a press, delight going in, confusion
+    // at a scribble, strain in a fast scrub, wariness at a repeated startle,
+    // annoyance at pokes that never go in), worn by seven muscles: four carry
+    // a bone chain of five nodes that the move-net (nodes/brow-net.ts) lays on
+    // the skin, three move the lids (AU5 lifts the upper lid, AU43 lets it
+    // droop, AU7 tightens both). The gaze recruits the frontalis once a
+    // saccade lands; glare and reading knit the head; squint and blink drop
+    // the tail.
     {
-      const lift = 0.6 * THREE.MathUtils.clamp(g.y, -0.6, 1) + 0.3 * browInterest.current;
-      browBase.current = damp(browBase.current, lift, 6, dt);
-      const t = now - browFlash.current;
-      const flash = t < 0 ? 0 : t < 0.14 ? t / 0.14 : t < 0.36 ? 1 : Math.max(0, 1 - (t - 0.36) / 0.45);
-      LU.brow.value = reduce ? 0 : browBase.current + 1.5 * flash * flash * (3 - 2 * flash);
-      const reading = (patternOverride.current ?? look.gazePattern) === "read";
-      LU.frown.value = reduce ? 0 : damp(LU.frown.value, 0.55 * glare + (reading ? 0.22 : 0), 2, dt);
+      const P = pointer.current;
+      const nodes = browRig.update({
+        dt,
+        now,
+        reduce,
+        calm,
+        // (not behind the opening: idle time starts when the eye can be reached)
+        interactive: interactive && readySent.current,
+        // a mouse resting in the window, or a finger down
+        present: interactive && (P.mouse ? !P.out && P.seen > -1e2 : P.down),
+        mouse: P.mouse,
+        moveAt: interactive ? P.seen : -1e3,
+        out: P.out,
+        px: ((P.x + 1) / 2) * size.width,
+        py: ((P.y + 1) / 2) * size.height,
+        iris: irisOnScreen.current,
+        down: P.down,
+        onIris: P.onIris,
+        dragged: P.dragged,
+        travel: travelPos.current,
+        cut: media && director.busy,
+        era: media ? director.cur : Number(era.id),
+        exiting,
+        gaze: g,
+        // (a jump in flight only: `busy` is also true all through pursuit,
+        // which kept the brow waiting for a landing that never came, deaf
+        // to the gaze whenever a cursor was there)
+        saccading: gazeRig.saccading,
+        glare,
+        // (the look in force: it swaps behind the cut's shut lids, and so does the mood)
+        mood: look.browMood,
+        squint: hold.current.squint ?? squintBase.current,
+        blink: U.blink.value,
+      });
+      const chain = LU.browNodes.array as THREE.Vector4[];
+      for (let i = 0; i < chain.length; i++) chain[i].fromArray(nodes, i * 4);
+      LU.brow.value = browRig.lift;
+      LU.frown.value = browRig.au[2];
+      // the lids' share: the margins (margins.ts, twin/margins.ts) read these
+      // uniforms, so the media's masks and the twin follow them too
+      // (a feeling's lid-raise is mostly spent while the eye already looks up: the
+      // two stacked, and hovering over the top of the screen opened the eye past
+      // any real eye's opening; the user, 2026-10-28)
+      const raise = browRig.lids.raise > 0 ? browRig.lids.raise * (1 - Math.max(0, Math.min(1, LU.pitch.value / (0.5 * GAZE_PITCH)))) : browRig.lids.raise;
+      LU.upper.value = Math.max(fa.upper * 0.35, fa.upper + raise);
+      LU.lower.value = fa.lower * browRig.lids.lower;
+      LU.squint.value = hold.current.squint ?? Math.min(1, squintBase.current + browRig.lids.tight);
+      // a startle that lets go is followed by a blink
+      if (browRig.blinkNow && !exiting && heldLid === null) blinkRig.trigger();
+      // (a feeling playing out is motion: the idle stage would draw it at a third of the rate)
+      if (browRig.moving) health.current.moved = now;
     }
 
     // ---- the era's second light: its colour crossfades, its shape is the era's
@@ -1142,6 +1356,9 @@ function EyeScene({
       const fill = look.light.fill;
       const goal = fill ? FILL_TMP.set(fill.color).multiplyScalar(fill.strength) : FILL_TMP.setRGB(0, 0, 0);
       F.color.value.lerp(goal, reduce || snapLook ? 1 : 1 - Math.exp(-3 * dt));
+      // (in the cornea only as strongly as the era's card says: 1997's office bar lights the face unseen, 2003's window stays under the page)
+      const shows = fill ? (fill.catchlight ?? 1) : 0;
+      F.catchlight.value = reduce || snapLook ? shows : F.catchlight.value + (shows - F.catchlight.value) * (1 - Math.exp(-3 * dt));
       if (fill) {
         F.dir.value.set(...fill.dir).normalize();
         F.center.value.set(...fill.pos);
@@ -1161,9 +1378,10 @@ function EyeScene({
     {
       const sq = LU.squint.value;
       const b = U.blink.value;
-      const loOpen = -fa.lower * (1 - 0.2 * sq) + 0.35 * LU.pitch.value;
-      const upOpen = Math.max(fa.upper * (1 - 0.25 * sq) + (LU.pitch.value < 0 ? 0.7 : 0.85) * LU.pitch.value, loOpen + 0.004);
-      const lo = loOpen + b * 0.12 * fa.lower;
+      const pt = LU.pitch.value;
+      const loOpen = -LU.lower.value * (1 - 0.2 * sq) + (pt < 0 ? LID_GAZE.lowerDown : LID_GAZE.lowerUp) * pt;
+      const upOpen = Math.max(LU.upper.value * (1 - 0.25 * sq) + upperRide(pt), loOpen + 0.004);
+      const lo = loOpen + b * 0.12 * LU.lower.value;
       const up = Math.max(upOpen + (lo + 0.012 - upOpen) * b, lo + 0.004);
       // where the margins' apexes stand above and below the globe's centre, mm (the media's masks)
       lidReach.current.up = MARGIN_RADIUS * Math.sin(up);
@@ -1225,6 +1443,27 @@ function EyeScene({
     U.screen.pageMix.value = pages.mix;
     U.screen.pageViewA.value = pages.viewA;
     U.screen.pageViewB.value = pages.viewB;
+    // How the page shows in the cornea (look.ts `reflect`, or the lab's
+    // hold): its size there, and whether one region of it is held still,
+    // cut at the device's own aspect so it lands unstretched.
+    {
+      const r = reflectHold.current ?? look.light.reflect ?? {};
+      const s = SCREEN_SCALE * (r.scale ?? 1);
+      U.light.size.value.set(look.light.size[0] * s, look.light.size[1] * s);
+      const pi = pages.info();
+      const frameOf = (eraId: string | null, out: THREE.Vector4) => {
+        if (!eraId) return;
+        const l = getEraLook(eraId).light;
+        const f = eraId === view.id && reflectHold.current ? reflectHold.current.frame : l.reflect?.frame;
+        const pageH = pages.height(eraId);
+        if (f && pageH) out.set(...framePage(pageH, l.size[0] / l.size[1], f[0], f[1], f[2]));
+        // (an era of its own not framed, beside one that is: its page's head)
+        else out.set(0, 0, 1, pageH ? Math.min(1, 432 / pageH) : 1);
+      };
+      frameOf(pi.eraA, U.screen.pageFrameA.value);
+      frameOf(pi.eraB, U.screen.pageFrameB.value);
+      U.screen.pageFramed.value = r.frame ? 1 : 0;
+    }
     // the visitor's pointer, on the screen the eye is looking at
     if (fresh) {
       U.screen.cursorPos.value.set((pointer.current.x + 1) / 2, 1 - (pointer.current.y + 1) / 2);
@@ -1257,7 +1496,8 @@ function EyeScene({
       // the bead swells and brightens just after a blink, and with reflex tears
       const fresh = Math.exp(-Math.max(sinceOpen, 0) / 1.5);
       U.tear.tearing.value = tr.tearing;
-      U.tear.meniscus.value = 0.22 * (1 + tr.tearing * 1.2) * (1 + 0.25 * fresh);
+      // (R12: 0.3 mm at rest, the bead's own shader making the lower ~0.36 and the upper ~0.2)
+      U.tear.meniscus.value = 0.3 * (1 + tr.tearing * 1.2) * (1 + 0.25 * fresh);
       U.tear.wet.value = 1 + 0.6 * fresh + 1.5 * tr.tearing;
     }
 
@@ -1284,8 +1524,10 @@ function EyeScene({
     // Where the iris is on screen right now: the frame's centre, moved by the
     // globe's turn (its front sits ~10.4 mm from the centre of rotation).
     const pxPerMm = frame.irisPx / ANATOMY.irisRadius;
-    const irisX = frame.cx + Math.sin(eyeball.group.rotation.y) * 10.4 * pxPerMm;
-    const irisY = frame.cy + Math.sin(eyeball.group.rotation.x) * 10.4 * pxPerMm;
+    // (the pupil as seen sits where the cornea images it: the entrance pupil,
+    // PUPIL_LEVER mm in front of the globe's centre, which the gaze turns about)
+    const irisX = frame.cx + Math.sin(eyeball.group.rotation.y) * PUPIL_LEVER * pxPerMm;
+    const irisY = frame.cy + Math.sin(eyeball.group.rotation.x) * PUPIL_LEVER * pxPerMm;
     irisOnScreen.current = { x: irisX, y: irisY, r: frame.irisPx };
     // ---- ten ways of seeing: what the medium needs to know about the frame ---
     if (media) {
@@ -1363,23 +1605,66 @@ function EyeScene({
       }
       M.eye.value.set(frame.cx / W, frame.cy / Hh);
       M.irisR.value = frame.irisPx / Hh;
-      // the lid opening's reach from the globe's centre: its corners
-      // (margins.ts FISSURE_MM), and the margins' apexes as the lids stand
-      // this frame (gaze, squint, blink)
-      M.apX.value.set((FISSURE_MM.medial * pxPerMm) / Hh, (FISSURE_MM.lateral * pxPerMm) / Hh);
+      // the lid opening's reach from the globe's centre: its corners, where
+      // the lids really meet (twin/margins.ts canthi: both under the centre),
+      // and the margins' apexes as the lids stand this frame (gaze, squint, blink)
+      const ca = canthi(identity.lids.tilt, identity.lids.aperture);
+      M.apX.value.set((-ca.medial.x * pxPerMm) / Hh, (ca.lateral.x * pxPerMm) / Hh);
       M.apY.value.set((lidReach.current.up * pxPerMm) / Hh, (lidReach.current.lo * pxPerMm) / Hh);
+      M.apC.value.set((-ca.medial.y * pxPerMm) / Hh, (-ca.lateral.y * pxPerMm) / Hh);
+      // the visible limbus, an ellipse, foreshortened as the eye turns
+      M.limbus.value.set(
+        (LIMBUS_RADIUS * Math.cos(eyeball.group.rotation.y) * pxPerMm) / Hh,
+        (LIMBUS_RADIUS * ANATOMY.limbusAspect * Math.cos(eyeball.group.rotation.x) * pxPerMm) / Hh,
+      );
       M.pupil.value.set(irisX / W, irisY / Hh);
+      // 2026's landmarks: the same at every pixel, so worked out here once
+      gl.getDrawingBufferSize(MARKS_TMP);
+      // The brow's three landmarks where the brow is now (C4): its midline at
+      // each mark's x, moved by this frame's bone chain through the move-net's
+      // CPU twin (the shader's own sums), then through the camera.
+      for (let k = 0; k < BROW_MARK_X.length; k++) {
+        const x = BROW_MARK_X[k] * ANATOMY.irisRadius;
+        const b = browAt(THREE.MathUtils.clamp((x - BROW_SHAPE.x0) / BROW_SHAPE.span, 0, 1));
+        const y = b.lower + b.depth / 2;
+        const mv = browMoveAt(x, y, browRig.out);
+        PROJ_TMP.set(x + mv[0], y + mv[1], browSkinZ(x + mv[0], y + mv[1]) + mv[2]).project(camera);
+        browMarks[k].x = ((PROJ_TMP.x + 1) / 2) * MARKS_TMP.x;
+        browMarks[k].y = ((1 - PROJ_TMP.y) / 2) * MARKS_TMP.y;
+      }
+      measuredMarks(
+        {
+          w: MARKS_TMP.x,
+          h: MARKS_TMP.y,
+          eye: M.eye.value,
+          pupil: M.pupil.value,
+          irisR: M.irisR.value,
+          apX: M.apX.value,
+          apY: M.apY.value,
+          since: M.since.value,
+          steady: M.steady.value,
+          dep: M.dep.value,
+          arr: M.arr.value,
+          idle: M.idle.value,
+          listen: M.listen.value,
+          track: M.track.value,
+          hover: M.hover.value,
+          ptr: M.ptr.value,
+          brow: browMarks,
+        },
+        M.marks.array as THREE.Vector4[],
+      );
     }
     eyeOnScreen.current = { x: frame.cx, y: frame.cy, r: frame.irisPx };
     const px = ((pointer.current.x + 1) / 2) * size.width;
     const py = ((pointer.current.y + 1) / 2) * size.height;
     const toIris = Math.hypot(px - irisX, py - irisY) / Math.max(frame.irisPx, 1);
-    browInterest.current = damp(browInterest.current, fresh && toIris < 1 ? 1 : 0, 1.5, dt);
     const nearT = THREE.MathUtils.clamp((toIris - 0.6) / 2.4, 0, 1);
     U.pupil.value = pupilRig.update(dt, {
       lum: U.screenLum.value,
       near: fresh ? 1 - nearT * nearT * (3 - 2 * nearT) : 0,
       hover: fresh && toIris < 1,
+      arousal: browRig.arousal,
       exiting,
       reduce,
       hold: hold.current.pupil,
@@ -1389,7 +1674,9 @@ function EyeScene({
     });
     U.redReflex.value = hold.current.red ?? pupilRig.red;
     if (media) {
-      U.medium.pupilR.value = (frame.irisPx * U.pupil.value) / Math.max(size.height, 1);
+      // as it appears through the cornea, magnified (twin/optics.ts), so a
+      // sign drawn in the pupil fills the pupil you see
+      U.medium.pupilR.value = (frame.irisPx * U.pupil.value * ENTRANCE_PUPIL.m) / Math.max(size.height, 1);
       U.medium.pupilMm.value = pupilRig.d;
     }
     const tr = trace.current;
@@ -1516,7 +1803,8 @@ function EyeScene({
 
     if (!readySent.current && U.fade.value > READY_AT) {
       readySent.current = true;
-      browFlash.current = performance.now() / 1000 + 1.2;
+      // (the eye opens on the visitor with a greeting)
+      browRig.express("greet", 1, performance.now() / 1000 + 1.2);
       onReady?.(info);
     }
 
@@ -1541,6 +1829,26 @@ function EyeScene({
         gl.resolveTimestampsAsync(THREE.TimestampQuery.RENDER)
           .then((ms) => {
             s.gpuMs = typeof ms === "number" ? ms : null;
+            // every pass of every frame since the last reading (WebGPU): a
+            // mean per frame, by pass; one frame alone swings by a third
+            const pool = (gl.backend as { timestampQueryPool?: Record<string, { timestamps?: Map<string, number> }> })
+              .timestampQueryPool?.[THREE.TimestampQuery.RENDER];
+            if (!pool?.timestamps?.size) return;
+            const names = passNames.current;
+            const per = new Map<string, number>();
+            const frames = new Set<string>();
+            let total = 0;
+            for (const [uid, t] of pool.timestamps) {
+              frames.add(uid.slice(uid.lastIndexOf(":f") + 2));
+              const label = names.get(uid) ?? uid.replace(/^r:\d+:/, "").replace(/:f\d+$/, "");
+              per.set(label, (per.get(label) ?? 0) + t);
+              total += t;
+              names.delete(uid);
+            }
+            const n = Math.max(frames.size, 1);
+            s.gpuMs = total / n;
+            s.passes = [...per].map(([label, t]) => ({ label, ms: t / n })).sort((a, b) => b.ms - a.ms);
+            if (names.size > 4096) names.clear();
           })
           .catch(() => {
             s.gpuMs = null;
@@ -1617,6 +1925,8 @@ export interface EyeStageProps {
   capture?: React.MutableRefObject<(() => Promise<string>) | null>;
   /** Something opaque is over the stage (the loader's opening): it draws only now and then, keeping its clock, and leaves the GPU to what is on screen. */
   covered?: boolean;
+  /** Lab: this tier instead of the one the device's signals pick. Fixed for the stage's life (a change remounts). */
+  tier?: EyeTier;
   className?: string;
   style?: React.CSSProperties;
 }
@@ -1637,6 +1947,7 @@ export default function EyeStage({
   media,
   calm,
   covered,
+  tier,
   className,
   style,
 }: EyeStageProps) {
@@ -1680,6 +1991,7 @@ export default function EyeStage({
           media={media}
           calm={calm}
           covered={covered}
+          tier={tier}
         />
       </Canvas>
     </StageBoundary>

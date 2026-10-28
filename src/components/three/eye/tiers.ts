@@ -12,7 +12,11 @@ export type EyeTier = 0 | 1 | 2 | 3;
 export interface TierSpec {
   label: string;
   irisBake: number;
-  parallaxSteps: number;
+  /**
+   * The iris's relief march (bake/iris.ts IrisMarch): linear steps, a secant
+   * refine of each layer's crossing, steps toward the light. T1 keeps a single parallax step.
+   */
+  irisMarch: { linear: number; refine: number; shadow: number };
   lashesUpper: number;
   lashesLower: number;
   /** Brow hairs drawn into the brow's map, and the map's width (bake/brow.ts). */
@@ -23,6 +27,9 @@ export interface TierSpec {
   bloomMips: number;
   purkinje: "off" | "p4" | "all";
   msaa: boolean;
+  /** FXAA on the tonemapped frame, before the grain (R14). Off on every tier: it softened the
+   * lashes and the iris's fibres, and the user saw the eye go blurry (2026-10-28). */
+  fxaa: boolean;
   dprCap: number;
 }
 
@@ -30,46 +37,49 @@ export const TIERS: Record<Exclude<EyeTier, 0>, TierSpec> = {
   1: {
     label: "T1 low",
     irisBake: 512,
-    parallaxSteps: 1,
-    lashesUpper: 80,
-    lashesLower: 24,
-    browHairs: 260,
+    irisMarch: { linear: 0, refine: 0, shadow: 0 },
+    lashesUpper: 120,
+    lashesLower: 50,
+    browHairs: 440,
     browRes: 1024,
     tearFilm: "static",
     dof: "off",
     bloomMips: 3,
     purkinje: "off",
     msaa: false,
+    fxaa: false,
     dprCap: 1,
   },
   2: {
     label: "T2 standard",
     irisBake: 1024,
-    parallaxSteps: 2,
-    lashesUpper: 130,
-    lashesLower: 70,
-    browHairs: 540,
+    irisMarch: { linear: 6, refine: 1, shadow: 2 },
+    lashesUpper: 190,
+    lashesLower: 110,
+    browHairs: 920,
     browRes: 1536,
     tearFilm: "sim128",
     dof: "half",
     bloomMips: 5,
     purkinje: "p4",
     msaa: false,
+    fxaa: false,
     dprCap: 1.5,
   },
   3: {
     label: "T3 high",
     irisBake: 2048,
-    parallaxSteps: 4,
-    lashesUpper: 180,
-    lashesLower: 100,
-    browHairs: 720,
+    irisMarch: { linear: 10, refine: 2, shadow: 3 },
+    lashesUpper: 250,
+    lashesLower: 150,
+    browHairs: 1240,
     browRes: 2048,
     tearFilm: "sim256",
     dof: "full",
     bloomMips: 5,
     purkinje: "all",
     msaa: true,
+    fxaa: false,
     dprCap: 2,
   },
 };

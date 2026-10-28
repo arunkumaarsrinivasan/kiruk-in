@@ -45,7 +45,7 @@
  */
 
 import { T, type N } from "../nodes/tsl";
-import { almond, easeInQuad, easeOutCubic, hair, hash, hex, luma, type MediumFrame } from "./medium-kit";
+import { almond, easeInQuad, easeOutCubic, hair, hash, hex, limbus, limbusR, luma, type MediumFrame } from "./medium-kit";
 import { after, stroke } from "./readout";
 
 const { Fn, If, abs, atan, clamp, cos, float, floor, fract, length, log2, max, min, mix, pow, select, sin, smoothstep, step, vec2, vec3, vec4 } = T;
@@ -276,7 +276,8 @@ export function system({ F, M, tex, uv, sign }: SystemScene): N {
   const irisCell = pc.add(er.mul(rmid));
   // (cut by the lids as the lids stand, pixel by pixel, as every era's eye is,
   // never cell by cell: the dial sits in the eye, not on it)
-  const inIris = step(r0, r).mul(step(r, R.mul(0.985))).mul(step(0.5, almond(F, p))).toVar();
+  // (and by the limbus as the eye shows it: the sclera overlaps the dial above and below)
+  const inIris = step(r0, r).mul(step(limbus(F, p), 0.985)).mul(step(0.5, almond(F, p))).toVar();
   // the pupil's keyboard
   const ks = max(r0.mul(0.36), u.mul(1.1)).toVar();
   const kcell = floor(d.div(ks));
@@ -691,7 +692,7 @@ export function system({ F, M, tex, uv, sign }: SystemScene): N {
     c.assign(mix(c, hex(BLUE), stroke(sdBox(q, vec2(hw.add(fo), hh.add(fo)), rad.add(fo)), w.mul(1.5)).mul(near).mul(0.9)));
   }
   // over the iris, its focus glows round the limbus (hover)
-  c.assign(mix(c, hex(GLOW), float(1).sub(smoothstep(0, R.mul(0.06), abs(r.sub(R.mul(1.01))))).mul(M.hover).mul(sign).mul(step(0.5, almond(F, p))).mul(0.8)));
+  c.assign(mix(c, hex(GLOW), float(1).sub(smoothstep(0, R.mul(0.06), abs(r.sub(limbusR(F, p).mul(1.01))))).mul(M.hover).mul(sign).mul(step(0.5, almond(F, p))).mul(0.8)));
   // arriving, a part is first only its dot
   const dot = mix(hex("#f2f2f7"), ramp(0.6), inside(length(p.sub(uc)).sub(max(u.mul(0.12), 0.8))).mul(after(ta, -0.1, 0.15)));
   c.assign(mix(dot, c, grow));

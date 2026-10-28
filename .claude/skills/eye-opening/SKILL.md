@@ -40,7 +40,22 @@ The live eye takes seconds to compile on a weak GPU. The opening fills that wait
 
 ## The shut-1970 stills
 - `public/eye/posters/1970-shut-{wide,tall}.webp`, about 2 KB each, read as luma (`.r`, lifted ×3.2); mip 3 is the bloom.
-- **Recapture whenever 1970's look changes:** `/lab/opening?shut=1&clean=1&ink=0`, then `window.__opening.capture()`, then downscale, greyscale and WebP by hand at poster sizes.
+- **Recapture whenever 1970's look or the framing changes:**
+  1. Open `/lab/opening?shut=1&clean=1` at exactly the poster's CSS size: 1600×900 for wide, 780×1688 for tall.
+  2. Wait ~7 s after `[data-ready]`: past the opening greeting, well before boredom.
+  3. Run `window.__opening.capture()`.
+  4. Resize to exactly 400×225 or 200×433 (`fit: fill`), greyscale, WebP quality 75 (~2.2 and ~1.4 KB).
+  5. **Check the capture's aspect is the poster's before resizing.**
+- **Traps (2026-10-28):**
+  - The page keeps `scrollbar-gutter: stable`. The loader drops it, and so does the opening lab now. Without that the lab's canvas was ~10 px narrower than the tube's frame, and the stills sat off at hand-off.
+  - A fresh browser gets the site's first-visit loader over every route, and the lab under it never mounts. Set `localStorage portfolio-theme-selected=true` and `sessionStorage kiruk-loading-seen=true` before the page loads.
+  - **The first capture can be black** (the eye not yet drawn at that size: the tall one came back 228 bytes). Before capturing, poll `capture()` until the frame has light in it, measured on the brightest channel: 1970 is green phosphor, so the red channel reads 0 even when lit.
+- **Proof of no jump:** draw the still where the tube draws it (`posterPlacement`), and fit it against the live shut eye's frame (best scale and shift on edge maps). Compare at the still's own resolution (the live frame downscaled and blurred a pixel); at full resolution the skin's texture dominates the edges and the search runs off to its bounds. After the 15 mm box (2026-10-28): wide and tall both fit as placed (×1.00, 0, 0 px). The old stills needed ×0.87 and 44 px. After R6 round 2 (the canthi moved, the skin's sparkle): again ×1.00, 0, 0 (wide 1440×900 correlation 0.90, tall 390×844 0.86; the previous stills scored 0.75 and 0.74 against the new eye). The stills are now ~3.1 and ~2.2 KB.
+
+## Realism pass: keep the hand-off seamless (C12)
+- **Re-capture the shut-1970 stills after sign-off** whenever a phase changes 1970 at rest (R2, R6, R7, R8, R9, R10, R11). A change to the lids' shape (the canthi, R6) always does.
+- **The tube's wiring is laid in mm onto the real eye** (iris fan, limbus rings, lid bundles, brow, lash pads). After R1 (the elliptic limbus), R7 (lid form) or R10 (the brow), re-check it with `?grid=1` and the hand-off frames.
+- **Compare the last tube frame with the first live shut frame.** They must not jump. *Why:* a mismatch reads as the eye being swapped at the moment it should come alive.
 
 ## Lab
 - `/lab/opening` params: `?speed` time scale; `?eye=0` tube alone; `?main=1` main thread; `?reduce=1`; `?debug=1|2` arrival map / levels; `?shut=1`; `?grid=1` mm grid; `?media=0`; `?era=`; `?clean=1`.

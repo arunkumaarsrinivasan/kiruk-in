@@ -66,4 +66,13 @@ v1 of the instruments was "good but no wow". v2 added the signature and the draw
 - `gazeDeg` from the eyeball's rotation; `pupilMm` from the pupil rig.
 - `track` (the pointer present within 20 s, touch included) and `listen` (pointer and eye speed, eased up at λ 6 and down at λ 1.2).
 - `fix[6]` / `fixN[6]` from `post/attention.ts`; `fixTotal`, `blinks`, `pupilHist[32]` and `spin`.
-- `layers` is a lab bitmask for the exploded view.
+- `layers` is a lab bitmask for the exploded view. Each layer is a uniform `If`, so a layer switched off costs nothing (that is how its price is read).
+- `marks[48]`: the twelve landmarks (position, ring, bracket, leader, label, fades), worked out once a frame on the CPU (`post/measured-marks.ts`, mirroring the shader's sums).
+  - The brow's three (8, 9, 10) sit where the brow really is (C4): each is the brow's midline at its mark's x, moved by the frame's bone chain through `twin/brow-net.ts`, projected through the camera (`MarksInput.brow`). They rise in surprise and fall in a frown, readouts and all. The crease and under-eye marks are still fixed offsets.
+
+## Cost (2026-10-28, Radeon 610M, 1440×900)
+- The final pass costs 9.6 ms idle and 11.2 ms with a visitor's pointer. 1970's is 2.6 ms.
+- It was 31.6 ms (57 ms a frame) when every pixel evaluated all twelve landmarks, the three gimbal ellipses with their `atan`, the dial numerals and the corner readouts.
+- Now each is drawn only where it can land (ring bands, callout boxes, ellipse bands, corner boxes), and "you" is skipped without a visitor.
+- Per layer: plate 2, registration 2, geometry 3.4, landmarks 2, you 0 to 1.6, sign 0.6.
+- Next if needed: the gimbal's per-pixel trig (its ring normals depend on no pixel) can move to the CPU the same way.

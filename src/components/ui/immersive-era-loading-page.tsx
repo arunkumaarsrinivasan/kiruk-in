@@ -83,17 +83,36 @@ const IRIS_TAP_MIN = 56;
 /** A finger deserves a wider target than a cursor. */
 const IRIS_TAP_COARSE = 1.3;
 /**
- * Wheel and trackpad travel: one gesture is one year, however hard it is
- * pushed. A gesture is a run of deltas with no gap longer than WHEEL_IDLE_MS
- * (a trackpad's momentum included); it steps once its deltas add up to
- * WHEEL_PITCH, then the rest of it is spent. A hard flick used to bank
- * several years and land on the last era, which lost visitors.
+ * Wheel and trackpad travel. The first real delta of a scroll is one year.
+ *
+ * Chrome stops delivering wheel events when nothing under the pointer can
+ * pan, and only resumes after the pointer moves or the gesture times out.
+ * Waiting for later deltas, or holding a lock across the smooth-scroll tail,
+ * made a year arrive only after that move or that pause. The first delta
+ * steps. A second report of the same detent, a frame later, does not. The
+ * next detent does, even while a fading tail is still arriving. A trackpad
+ * flick still spends itself on one year; a new shove after it has faded
+ * spends the next.
  */
-const WHEEL_PITCH = 60;
-/** A gesture ends when nothing arrives for this long. */
-const WHEEL_IDLE_MS = 450;
-/** And steps are never closer than one blink between eras: anything inside this belongs to the gesture that stepped. */
-const WHEEL_STEP_GAP_MS = 900;
+/** One event at least this big is a mouse detent, not a trackpad frame. */
+const WHEEL_NOTCH = 50;
+/** Anything smaller than this is noise, not a scroll. */
+const WHEEL_NOISE = 1;
+/** The second report of one detent arrives inside this. */
+const WHEEL_ECHO_MS = 80;
+/** Events closer than this are one coast. A gap ends it. */
+const WHEEL_COAST_MS = 200;
+
+/** The axis the visitor actually moved, and whether this event is a detent. */
+function readWheel(e: WheelEvent): { d: number; notch: boolean } {
+  const raw = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+  // A line or a page is already one detent. Pixel mode has to earn it.
+  if (e.deltaMode === 1 || e.deltaMode === 2) {
+    return { d: Math.sign(raw), notch: raw !== 0 };
+  }
+  return { d: raw, notch: Math.abs(raw) >= WHEEL_NOTCH };
+}
+
 /**
  * The longest the opening waits for the live eye; after this it fades onto the
  * poster. Generous: the formed tube keeps ticking (its cursor, its clock pulse)
@@ -264,7 +283,16 @@ export default function ImmersiveEraLoadingPage({
   /** The live eye: where its iris really is, for the tap that goes in. */
   const eyeControl = useRef<EyeStageControl | null>(null);
   const dragging = useRef(false);
-  const wheel = useRef({ acc: 0, at: 0, spent: false, stepped: -1e9 });
+  const wheel = useRef({
+    at: 0,
+    stepped: -1e9,
+    dir: 0,
+    /** Abs of the latest delta, so a new shove can stand out from a fading tail. */
+    tail: 0,
+    /** Largest delta since the last step. */
+    peak: 0,
+    spent: false,
+  });
   /** Where a touch drag started, and which era it started on. */
   const swipe = useRef({ x: 0, from: 0 });
   const surface = useRef<HTMLDivElement | null>(null);
@@ -679,16 +707,18 @@ export default function ImmersiveEraLoadingPage({
   }, []);
 
   /**
-   * Wheel and trackpad travel, as a non-passive native listener: one gesture,
-   * one year (see WHEEL_PITCH). A trackpad's hundred small deltas and a
-   * mouse's three big ones both add up to the one step.
+   * Wheel and trackpad travel. Capture, and not passive: Chrome only keeps
+   * sending a stationary wheel when the first event is cancelled on the way
+   * down. One scroll is one year.
    */
   useEffect(() => {
     if (exiting) return;
     const onWheel = (e: WheelEvent) => {
-      const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-      if (Math.abs(d) < 0.5) return;
+      const { d, notch } = readWheel(e);
+      if (Math.abs(d) < WHEEL_NOISE) return;
       e.preventDefault();
+      // the pixel of range that keeps Chrome's wheel alive never actually moves
+      if (surface.current) surface.current.scrollTop = 0;
       // during the opening a wheel moves it on to the formed eye
       if (!openedRef.current) {
         setTubeSkip(true);
@@ -701,22 +731,45 @@ export default function ImmersiveEraLoadingPage({
       // the gesture, then step again)
       const now = e.timeStamp;
       const w = wheel.current;
-      // a new gesture starts from zero, and so does a reversal
-      if (now - w.at > WHEEL_IDLE_MS || w.acc * d < 0) {
-        w.acc = 0;
+      const gap = now - w.at;
+      const mag = Math.abs(d);
+      const reversed = w.dir !== 0 && w.dir * d < 0;
+      if (reversed || gap > WHEEL_COAST_MS) {
         w.spent = false;
+        w.tail = 0;
+        w.peak = 0;
       }
+
+      const echo = w.spent && !reversed && now - w.stepped < WHEEL_ECHO_MS;
+      // the tail had faded, and this delta is a new shove rather than more coast
+      const faded = w.peak > 0 && w.tail < w.peak * 0.65;
+      const shove =
+        w.spent &&
+        !echo &&
+        !reversed &&
+        faded &&
+        mag >= 8 &&
+        mag >= w.tail * 1.5 &&
+        mag >= w.peak * 0.5;
+
       w.at = now;
-      if (now - w.stepped < WHEEL_STEP_GAP_MS) w.spent = true;
-      if (w.spent) return;
-      w.acc += d;
-      if (Math.abs(w.acc) < WHEEL_PITCH) return;
-      w.spent = true;
-      w.stepped = now;
-      step(Math.sign(w.acc));
+      w.dir = Math.sign(d);
+      w.tail = mag;
+      if (mag > w.peak) w.peak = mag;
+      if (echo && !shove) return;
+
+      // Frames still arriving every few milliseconds are the flick already
+      // taken. A detent has a gap in front of it, so it counts on its own.
+      const streaming = w.spent && !reversed && gap > 0 && gap < 48;
+      if (!w.spent || shove || (notch && !streaming)) {
+        w.spent = true;
+        w.peak = mag;
+        w.stepped = now;
+        step(Math.sign(d));
+      }
     };
-    window.addEventListener("wheel", onWheel, { passive: false });
-    return () => window.removeEventListener("wheel", onWheel);
+    document.addEventListener("wheel", onWheel, { passive: false, capture: true });
+    return () => document.removeEventListener("wheel", onWheel, { capture: true });
   }, [exiting, queueDemo, step, stopDemo]);
 
   return (
@@ -731,7 +784,7 @@ export default function ImmersiveEraLoadingPage({
       }}
       style={{
         background: ROOM,
-        touchAction: "none",
+        touchAction: isCoarse ? "none" : "pan-y",
         overscrollBehavior: "none",
         WebkitTapHighlightColor: "transparent",
       }}
@@ -796,17 +849,29 @@ export default function ImmersiveEraLoadingPage({
         aria-valuemax={last}
         aria-valuenow={index}
         aria-valuetext={focused.name}
-        className="absolute inset-0 z-10 touch-none focus-visible:outline-none"
+        className="absolute inset-0 z-10 focus-visible:outline-none [&::-webkit-scrollbar]:hidden"
         // over the iris, the era's own "this opens" (a Star arrow, a hand, a
         // text caret); inline, because the picker's global rule sets every
-        // other cursor to the plain arrow
-        style={{ cursor: !exiting && overIris ? getEraMedium(focused.id).cssCursor : "default" }}
+        // other cursor to the plain arrow.
+        // A finger still can't pan the page. A mouse wheel can: Chrome drops
+        // a stationary wheel when the target has touch-action none and nothing
+        // to scroll, and only sends it again after the pointer moves or a pause.
+        // The extra pixel is never shown; the handler takes the wheel for the year.
+        style={{
+          cursor: !exiting && overIris ? getEraMedium(focused.id).cssCursor : "default",
+          touchAction: isCoarse ? "none" : "pan-y",
+          overflowY: isCoarse ? "hidden" : "scroll",
+          scrollbarWidth: "none",
+          overscrollBehavior: "none",
+        }}
         ref={surface}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={endDrag}
         onPointerCancel={cancelDrag}
-      />
+      >
+        {isCoarse ? null : <div aria-hidden className="h-[calc(100%+1px)] w-px" />}
+      </div>
 
       {/* --- the opening: the tube forms the eye while it gets ready ------- */}
       {!introGone && (

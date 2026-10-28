@@ -23,6 +23,7 @@
 
 import { LinearMipmapLinearFilter, RenderPipeline, UnsignedByteType, type Camera, type RenderTarget, type Scene, type WebGPURenderer } from "three/webgpu";
 import { bloom } from "three/addons/tsl/display/BloomNode.js";
+import { fxaa } from "three/addons/tsl/display/FXAANode.js";
 import { T } from "../nodes/tsl";
 import type { EyeUniforms } from "../uniforms";
 import { smoothstepDown, type N } from "../nodes/common";
@@ -111,7 +112,10 @@ export function createEyePipeline(
   const screenLum: N = U.screenLum;
   const debugView: N = U.debugView;
 
-  const finished = Fn(() => {
+  // The lens's linear stage and the tonemap, as one frame (R14: FXAA reads it
+  // here, after the tonemap and before the display stage's grain, so the grain
+  // and the media's dither stay fixed in screen space)
+  const toned = Fn(() => {
     const c = eraLensLinear(Ux, image, glow, light, (uv: N) => color.sample(uv).rgb, emissiveTarget).toVar();
     // A phosphor terminal is printed as it is; a white page is stopped down,
     // which is the only way its layout survives its own light.
@@ -123,7 +127,13 @@ export function createEyePipeline(
     const lensVig = mix(float(1), smoothstepDown(0.95, 0.25, vr), U.lens.vignette.sub(0.3).max(0).mul(U.lens.on).mul(1.4));
     c.mulAssign(room);
     c.mulAssign(lensVig);
-    const graded = eraLensDisplay(Ux, filmic(c));
+    return vec4(filmic(c), 1);
+  })();
+  // (lash and iris edges speckle at the loader's framing; T1 leaves it out)
+  const smoothed: N = tier.fxaa ? fxaa(toned) : toned;
+
+  const finished = Fn(() => {
+    const graded = eraLensDisplay(Ux, smoothed.rgb);
 
     // the screen pass as stored; EOTF here so the output transform hands it back untouched
     const raw = sRGBTransferEOTF(sampleScreen(screen, vec2(screenUV.x, float(1).sub(screenUV.y)), 0));

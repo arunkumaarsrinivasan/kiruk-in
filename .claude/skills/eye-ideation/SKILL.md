@@ -50,6 +50,16 @@ A concept is not done until it has all of these. Each was missing once, and each
 - **A dark era is lit, not black**: when the era's screen is dark (night, dark mode), its fill light and the room light the face, and shadows stay capped (eye-anatomy rule 1). The darkness is the ground, never the face.
 - **The eye sits in the face**: anything drawn on the eye is clipped by the lids pixel by pixel and lies under the cornea's reflection; a disc pasted on top reads as "separate", "creepy".
 
+## Realism is not a concept
+- **"Make era X more realistic" is never a redesign.** Never change an era's mechanism or sign for realism. Use X's card in `eye-loader-system/references/era-realism.md` and the phase's owning skill.
+- **If realism makes two eras read alike, their light or lens converged,** not their concepts. Check C1 and the two cards before touching a medium.
+- **Every new era concept declares, from day one:**
+  - its physical light: device, distance, real size, spectrum, fills;
+  - its task posture;
+  - its medium's detail floor.
+
+  *Why:* realism then has a brief, and the era is real before it is styled.
+
 ## Rejected directions (never pitch these again)
 
 | Rejected | Why |

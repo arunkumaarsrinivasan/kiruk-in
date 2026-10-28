@@ -12,7 +12,8 @@
  *      field does), while the sharp iris never smears into the soft face;
  *      alpha carries how blurred each pixel ends up;
  *   3. the lens pass mixes the sharp frame and this by that amount
- *      (`focusedAt`), full resolution.
+ *      (`focusedAt`), full resolution. (R14's fine full-res near blur for
+ *      lashes and margins was taken out again: the user saw the eye go blurry.)
  *
  * Focus distance and how fast things go soft are uniforms (U.cam), so the
  * rack focus and the era's aperture never recompile anything.

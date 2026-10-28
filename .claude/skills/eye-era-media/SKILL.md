@@ -29,7 +29,7 @@ The scene renders one realistic eye. The medium is a final full-screen pass that
 | Helper | What it gives |
 |---|---|
 | `F` (MediumFrame) | pixel `p`, `size`, `H`, `kc`, globe centre `e`, iris centre `pc`, iris radius `R`, `pupilR`, lid reach `apX` (medial, lateral) and `apY` (upper, lower; signed, from the real lid angles this frame) |
-| `almond(F, p, k)` | 1 inside the lid opening (scaled by k), soft edge, **0 past the corners** (`× smoothstep(0, 0.04, sx)`; without it a full-width line appears at eye level), closes fully in a blink |
+| `almond(F, p, k)` | 1 inside the lid opening (scaled by k), soft edge, **0 past the corners** (`× smoothstep(0, 0.04, sx)`; without it a full-width line appears at eye level), closes fully in a blink. Both margins come down to their canthus (`F.apC`, from the twin's `canthi()`: both corners sit under the globe's centre since R6), and `apX` is where the lids really meet, not FISSURE_MM |
 | `cornea(F, p)` | the iris disc inside the opening |
 | `develop`, `lc`, `luma`, `lin`, `disp`, `hex` | tone and colour |
 | `bayer2/4/8`, `hash` (Hoskins, no sin), `dissolve` | dither, noise, dithered fades |
@@ -61,6 +61,20 @@ Does a pattern sit on skin mid-tones near 50%?
 - **Eye reads as an eye:** the iris stays darker than the skin round it; the reflected page never fills the iris.
 - **The surround is the device's physics,** never a shape: no frame, ring, card, inset or vignette that reads as a border. (2013's lens vignette was set to 0 because it read as a frame.)
 - **Compile cost:** a new branch adds less than ~150 KB of WGSL; components and helpers are `Fn().setLayout` functions (eye-tsl-craft).
+
+## Realism pass: what the media read, and what to re-check
+Reference: `references/realism-through-media.md` (per-phase re-check list, per-medium floor, kit changes).
+
+1. **When a realism phase lands, re-check the branches that file lists for it,** at rest and mid-cut.
+2. **The kit reads the eye you see:**
+   - the apparent iris (`F.R`, `pupilR`);
+   - the elliptic limbus (`F.Rx`, `F.Ry`, `limbus()`);
+   - the twin's margin samples;
+   - the real crease and brow points.
+
+   Never re-derive a feature's position from a formula inside a medium. *Why:* the guessed `almond()` and 2026's fixed landmark offsets drift as the eye gets more real.
+3. **Every era's medium declares `floorPx`** (about two cells). The scene fades micro-detail to it, so nothing speckles the ink or crawls in the rows.
+4. **Never retune a medium to hide a realism regression.** Fix the eye, or log the conflict in the plan's drift log.
 
 ## Per-era recipes
 
