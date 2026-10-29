@@ -1,5 +1,5 @@
 /**
- * P0 spike: times every synchronous WebGPU pipeline and shader-module creation
+ * Diagnostics (lab, ?trace): times every synchronous WebGPU pipeline and shader-module creation
  * on this thread (main or worker). A sync pipeline compiles on the GPU
  * process's main thread, and every frame in the browser waits for it.
  */

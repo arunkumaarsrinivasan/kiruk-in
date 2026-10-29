@@ -4,7 +4,7 @@
  * its lab (/lab/opening).
  */
 
-import type { EyeStageControl } from "@/components/three/eye/EyeStage";
+import type { EyeLoaderControl } from "@/components/three/eye/EyeStage";
 
 const LIDS_MS = 1300;
 
@@ -20,19 +20,19 @@ export function lidsAt(t: number) {
 }
 
 /** Hold the eye shut and looking straight out, until it is opened. */
-export function holdShut(c: EyeStageControl) {
+export function holdShut(c: EyeLoaderControl) {
   c.holdBlink(1);
   c.holdGaze({ x: 0, y: 0 });
 }
 
 /** Hold the eye open and looking straight out (the circuit draws an open eye; a blink would break the match). */
-export function holdLook(c: EyeStageControl) {
+export function holdLook(c: EyeLoaderControl) {
   c.holdBlink(0);
   c.holdGaze({ x: 0, y: 0 });
 }
 
 /** Open the lids and hand the eye back to itself. Returns a cancel. */
-export function openLids(c: EyeStageControl, reduce: boolean, onDone?: () => void): () => void {
+export function openLids(c: EyeLoaderControl, reduce: boolean, onDone?: () => void): () => void {
   const release = () => {
     c.holdBlink(null);
     c.holdGaze(null);

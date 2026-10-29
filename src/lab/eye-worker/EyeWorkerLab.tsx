@@ -1,143 +1,91 @@
 "use client";
 
 /**
- * P0 spike (docs/EYE_WORKER_PLAN.md): the same live eye, era 1970 with the
- * media on, drawn either on the main thread (?host=main, today's EyeStage) or
- * from a worker (?host=worker), so the two can be measured against each other.
- * `?gl=1` forces WebGL2. `window.__eyeSpike` reports when the eye is up.
+ * The worker eye's A/B harness (docs/EYE_WORKER_PLAN.md): the same live eye
+ * with the media on, drawn on the main thread (?host=main, today's EyeStage)
+ * or from a worker (?host=worker, EyeStageWorker, the loader's host), so the
+ * two can be measured against each other.
+ *
+ * `?era=<id>` picks the era (default 1970), `?gl=1` forces WebGL2, `?covered=0`
+ * warms uncovered, `?fail=1` makes the worker host fall back to the page.
+ * `window.__eyeSpike` reports which thread draws and when the eye is up;
+ * `__eyeProbe()` and `__eyeGpuLog()` read the worker's stage; `__eyeCtl.current`
+ * is the loader's six controls (EyeLoaderControl) on either host.
  */
 
 import React, { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { AVAILABLE_THEMES } from "@/data/portfolio-data";
-import type { EyeWorkerIn, EyeWorkerOut, Probe } from "./eye.worker";
-import { gpuLog, traceGpu, type GpuCall } from "./gpu-trace";
-import { forwardInput } from "@/components/three/eye/env";
+import { gpuLog, traceGpu, type GpuCall } from "@/components/three/eye/worker/gpu-trace";
+import type { EyeWorkerLab as WorkerLab } from "@/components/three/eye/EyeStageWorker";
+import type { EyeLoaderControl, EyeStageControl, EyeStageInfo } from "@/components/three/eye/EyeStage";
 
 const EyeStage = dynamic(() => import("@/components/three/eye/EyeStage"), { ssr: false });
+const EyeStageWorker = dynamic(() => import("@/components/three/eye/EyeStageWorker"), { ssr: false });
 
-type Spike = { host: string; ready?: number; backend?: string; tier?: number; fail?: string; gpu?: GpuCall[] };
+type Spike = { host: string; drawn?: string; why?: string; ready?: number; backend?: string; tier?: number; fail?: string; gpu?: GpuCall[] };
 
 function report(s: Partial<Spike>) {
   const w = window as unknown as { __eyeSpike?: Spike };
   w.__eyeSpike = { ...(w.__eyeSpike ?? { host: "?" }), ...s };
 }
 
-/** Font files by family, read from the page's @font-face rules: the worker draws 2026's readout with the same face. */
-function fontFiles(): Record<string, string> {
-  const out: Record<string, string> = {};
-  for (const sheet of Array.from(document.styleSheets)) {
-    let rules: CSSRuleList;
-    try {
-      rules = sheet.cssRules;
-    } catch {
-      continue;
-    }
-    for (const rule of Array.from(rules)) {
-      if (!(rule instanceof CSSFontFaceRule)) continue;
-      const family = rule.style.getPropertyValue("font-family").trim().replace(/^['"]|['"]$/g, "");
-      const url = /url\(["']?([^"')]+)["']?\)/.exec(rule.style.getPropertyValue("src"))?.[1];
-      if (family && url && !out[family]) out[family] = url;
-    }
-  }
-  return out;
-}
-
-function WorkerHost({ era, forceWebGL, covered }: { era: string; forceWebGL: boolean; covered: boolean }) {
-  const box = useRef<HTMLDivElement | null>(null);
-  const coveredSend = useRef<(c: boolean) => void>(() => {});
-  useEffect(() => coveredSend.current(covered), [covered]);
-  useEffect(() => {
-    const host = box.current;
-    if (!host) return;
-    const canvas = document.createElement("canvas");
-    canvas.style.cssText = "position:absolute;inset:0;width:100%;height:100%;touch-action:none";
-    host.appendChild(canvas);
-    const worker = new Worker(new URL("./eye.worker.ts", import.meta.url), { type: "module" });
-    const send = (m: EyeWorkerIn, t?: Transferable[]) => worker.postMessage(m, t ?? []);
-    worker.onmessage = (e: MessageEvent<EyeWorkerOut>) => {
-      const m = e.data;
-      if (m.type === "ready") report({ ready: m.at - performance.timeOrigin, backend: m.backend, tier: m.tier });
-      else if (m.type === "probe") probeWait.splice(0).forEach((r) => r(m.state));
-      else if (m.type === "gpulog") report({ gpu: m.calls.map((c) => ({ ...c, at: c.at - performance.timeOrigin })) });
-      else report({ fail: m.message });
-    };
-    (window as unknown as { __eyeGpuLog?: () => void }).__eyeGpuLog = () => send({ type: "gpulog" });
-    const probeWait: ((s: Probe | null) => void)[] = [];
-    (window as unknown as { __eyeProbe?: () => Promise<Probe | null> }).__eyeProbe = () =>
-      new Promise((resolve) => {
-        probeWait.push(resolve);
-        send({ type: "probe" });
-      });
-    coveredSend.current = (c) => send({ type: "covered", covered: c });
-    const off = canvas.transferControlToOffscreen();
-    send(
-      {
-        type: "init",
-        canvas: off,
-        w: window.innerWidth,
-        h: window.innerHeight,
-        dpr: window.devicePixelRatio || 1,
-        coarse: matchMedia("(pointer: coarse)").matches,
-        forceWebGL,
-        era,
-        covered,
-        fonts: fontFiles(),
-      },
-      [off],
-    );
-    // what the stage would hear on the page, as messages (env.ts)
-    const stopInput = forwardInput((event) => send({ type: "input", event }));
-    const onResize = () => send({ type: "resize", w: window.innerWidth, h: window.innerHeight, dpr: window.devicePixelRatio || 1 });
-    window.addEventListener("resize", onResize);
-    return () => {
-      stopInput();
-      window.removeEventListener("resize", onResize);
-      worker.terminate();
-      canvas.remove();
-    };
-    // (covered is sent as it changes, above; the worker starts with the first value)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [era, forceWebGL]);
-  return <div ref={box} className="absolute inset-0" />;
-}
+type Setup = { host: "main" | "worker"; era: string; gl: boolean; covered: boolean; fail: boolean };
 
 export default function EyeWorkerLab() {
-  const [setup, setSetup] = useState<{ host: "main" | "worker"; gl: boolean; covered: boolean } | null>(null);
+  const [setup, setSetup] = useState<Setup | null>(null);
   /** As in the loader: the stage warms covered (drawing at 10 Hz) and is uncovered once it is up. */
   const [ready, setReady] = useState(false);
-  useEffect(() => {
-    const id = window.setInterval(() => {
-      if ((window as unknown as { __eyeSpike?: Spike }).__eyeSpike?.ready) setReady(true);
-    }, 100);
-    return () => window.clearInterval(id);
-  }, []);
+  const lab = useRef<WorkerLab | null>(null);
+  const control = useRef<EyeLoaderControl | null>(null);
+
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
     const host = q.get("host") === "main" ? "main" : "worker";
     report({ host });
+    (window as unknown as { __eyeCtl?: typeof control }).__eyeCtl = control;
+    const w = window as unknown as { __eyeGpuLog?: () => void; __eyeProbe?: () => Promise<unknown> };
     if (host === "main") {
       traceGpu();
-      (window as unknown as { __eyeGpuLog?: () => void }).__eyeGpuLog = () =>
-        report({ gpu: gpuLog.map((c) => ({ ...c, at: c.at - performance.timeOrigin })) });
+      w.__eyeGpuLog = () => report({ gpu: gpuLog.map((c) => ({ ...c, at: c.at - performance.timeOrigin })) });
+    } else {
+      w.__eyeGpuLog = () => void lab.current?.gpuLog().then((gpu) => report({ gpu }));
+      w.__eyeProbe = () => lab.current?.probe() ?? Promise.resolve(null);
     }
-    setSetup({ host, gl: q.get("gl") === "1", covered: q.get("covered") !== "0" });
+    setSetup({ host, era: q.get("era") ?? AVAILABLE_THEMES[0].id, gl: q.get("gl") === "1", covered: q.get("covered") !== "0", fail: q.get("fail") === "1" });
   }, []);
-  const era = AVAILABLE_THEMES[0];
+
+  const onReady = (info: EyeStageInfo) => {
+    report({ ready: performance.now(), backend: info.backend, tier: info.tier });
+    setReady(true);
+  };
+  const onFail = (err: unknown) => report({ fail: err instanceof Error ? err.message : String(err) });
+
+  if (!setup) return null;
+  const era = AVAILABLE_THEMES.find((t) => t.id === setup.era) ?? AVAILABLE_THEMES[0];
+  const common = {
+    era,
+    media: true,
+    covered: setup.covered && !ready,
+    forceWebGL: setup.gl,
+    calm: matchMedia("(pointer: coarse)").matches,
+    onReady,
+    onFail,
+  };
   return (
     <div className="fixed inset-0" style={{ background: "#040507" }}>
-      {setup?.host === "main" && (
-        <EyeStage
-          era={era}
-          media
-          covered={setup.covered && !ready}
-          forceWebGL={setup.gl}
-          calm={typeof window !== "undefined" && matchMedia("(pointer: coarse)").matches}
-          onReady={(info) => report({ ready: performance.now(), backend: info.backend, tier: info.tier })}
-          onFail={(err) => report({ fail: err instanceof Error ? err.message : String(err) })}
+      {setup.host === "main" ? (
+        <EyeStage {...common} control={control as React.MutableRefObject<EyeStageControl | null>} />
+      ) : (
+        <EyeStageWorker
+          {...common}
+          lab={lab}
+          control={control}
+          trace
+          rendererMs={setup.fail ? 0 : undefined}
+          onHost={(drawn, why) => report({ drawn, why })}
         />
       )}
-      {setup?.host === "worker" && <WorkerHost era={era.id} forceWebGL={setup.gl} covered={setup.covered && !ready} />}
     </div>
   );
 }

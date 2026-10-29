@@ -1,6 +1,39 @@
 # The loader eye in a worker
 
-Status: P0 spike done 2026-10-29 (**go**). P1 and P2 done 2026-10-29 (gates passed). P3 next.
+Status: P0 spike done 2026-10-29 (**go**). P1 and P2 done 2026-10-29 (gates passed). P3 done 2026-10-29. P4 next.
+
+## P3 results (2026-10-29)
+
+The worker host is real code now, not a lab spike:
+- `eye/EyeStageWorker.tsx`: EyeStage's props (less the lab's `profile` and `capture`) plus `onHost`. It imports no three. It makes the canvas, hands it to the worker, forwards input (`eye/input.ts`), and reports resizes (ResizeObserver on the canvas, plus the window for the pointer's view).
+- `eye/worker/eye.worker.ts`: the same `EyeScene` inside `StageBoundary`, rendered by `createRoot(offscreen)`. Props arrive by message and wait until the renderer is configured.
+- `eye/worker/protocol.ts`: the messages, as types only.
+- `EyeLoaderControl` (in `EyeStage.tsx`): the loader's six controls. Commands are posted. The getters (`irisAt`, `eyeCentre`, `pupilMm`) read the worker's last frame, which the worker sends after each frame (r3f `addAfterEffect`) only when it changed. `open-eye.ts` takes this narrow type.
+- **Falling back to today's `EyeStage`, with the same props:**
+  - no `OffscreenCanvas`;
+  - the worker fails to load (Turbopack dev, `chunkPath.split`);
+  - no renderer 8 s after the worker's code runs;
+  - no `requestAnimationFrame` in the worker;
+  - any error in the worker, including render errors caught by `StageBoundary`.
+
+  `onHost("page", reason)` says why.
+- 2026's readout: the page sends the worker the Geist Mono file that covers the digits. next/font splits the family into subsets, so it picks the face whose `unicode-range` has "0". Importing the family into `EyeStageWorker` puts its `@font-face` on the page.
+- `/lab/eye-worker?host=worker` now runs this host (`?era=`, `?fail=1`, `window.__eyeCtl`). The spike worker is deleted, and `gpu-trace.ts` moved to `eye/worker/`.
+
+**Gate:** a scripted check on a local production build (desktop, 1440×900, WebGPU). It drives both hosts the way the loader does: hold shut and read the pupil, open, release, point left, `travel(0.45)`, resize to 600×900.
+
+| | Page (`EyeStage`) | Worker (`EyeStageWorker`) |
+|---|---|---|
+| Main-thread long tasks while the eye builds | 4–5 over 100 ms (worst 223–239 ms) | **0** |
+| Held shut: iris / pupil | (720, 415) r 208 / 4.5 mm | (720, 415) r 208 / 4.5 mm |
+| Open, gaze held ahead | (720, 469) | (715–720, 469) |
+| Pointer left | (604, 487) | (604, 487) |
+| Resized to 600×900: iris / centre | (295, 436) r 114 | (295, 436) r 114 |
+| Picture held open | same frame (lab shots compared side by side) | |
+| `?fail=1` | — | falls back: page draws, `why: "no renderer in 0 ms"`, same numbers |
+| 2026 font in the worker | — | `"Geist Mono": loaded` (before the fix: none, because the lab page never had its `@font-face`) |
+
+The harness's window sits off screen, so a frame can lag until a screenshot forces one, on either host. One run of each host read a held-shut value just after opening for that reason. Re-reading after the next frame gives the values above. `tsc` is clean.
 
 ## P2 results (2026-10-29)
 
@@ -187,3 +220,8 @@ Each phase ends in a check the user signs off before the next one starts.
 | Input bus | Its own module | Part of the host (`EyeEnv.listen` / `hidden`, `forwardInput`, `workerEnv().emit`) | One object a worker installs; the page's version is the old listeners verbatim |
 | `capture` (lab poster) | `convertToBlob` in a worker | Still `toDataURL` | Lab only, and the lab stays on the page; revisit if a worker capture is ever needed |
 | Spike probe | — | `probe` message: iris, feelings, clock read back from the worker | The P2 gate needs to see the worker's stage hear input; P3's frame snapshot replaces it |
+| Input bus home | `env.ts` | `eye/input.ts` (types, `listenPage`, `dispatchInput`, `forwardInput`); env.ts re-exports | env.ts imports three; the page side of a worker stage must not |
+| Snapshot | `{ iris, eyeCentre, pupilMm, fade }` each drawn frame | `{ iris, centre, pupilMm }`, after each frame, only when it changed | The loader reads no fade; unchanged frames needn't cross threads |
+| Init timeout | From mount | 8 s from the worker's `boot` to its `renderer` | A slow download of the worker chunk isn't a reason to load three again on the page; the loader's own late-eye poster covers it |
+| Lab default | Main-thread host | `?host=worker` is the default in `/lab/eye-worker` (as in P0); `/lab/eye` stays on the page | That lab exists to A/B the hosts |
+| Renderer `trackTimestamp` | — | Not passed in the worker | Lab profiling stays on the page host |

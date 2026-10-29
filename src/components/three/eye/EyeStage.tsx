@@ -229,6 +229,9 @@ export interface EyeStageControl {
   mediumGeometry(): { e: { x: number; y: number }; apX: [number, number]; apY: [number, number]; apC: [number, number]; pc: { x: number; y: number }; R: number };
 }
 
+/** What the loader uses of the control: all a worker stage (EyeStageWorker) offers. */
+export type EyeLoaderControl = Pick<EyeStageControl, "irisAt" | "eyeCentre" | "pupilMm" | "holdBlink" | "holdGaze" | "travel">;
+
 /** The pupil as the cornea shows it (twin/optics.ts): how far in front of the globe's centre, and how magnified. */
 const ENTRANCE_PUPIL = currentEntrancePupil();
 const PUPIL_LEVER = CORNEA_APEX_Z - ENTRANCE_PUPIL.depth;
@@ -1885,8 +1888,8 @@ export function EyeScene({
 
 /** Anything that fails on the way up — no WebGPU and no WebGL2, a compile
  *  error — leaves the poster where it is instead of a broken canvas. */
-class StageBoundary extends Component<
-  { onFail?: (error: unknown) => void; children: React.ReactNode },
+export class StageBoundary extends Component<
+  { onFail?: (error: unknown) => void; children?: React.ReactNode },
   { failed: boolean }
 > {
   state = { failed: false };
