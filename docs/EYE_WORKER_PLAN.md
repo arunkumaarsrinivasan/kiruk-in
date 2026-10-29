@@ -1,6 +1,32 @@
 # The loader eye in a worker
 
-Status: P0 spike done 2026-10-29 (**go**). P1 and P2 done 2026-10-29 (gates passed). P3 done 2026-10-29. P4 next.
+Status: P0–P5 done 2026-10-29. The loader draws the eye from the worker by default. P6: deploy, then watch Speed Insights for about a week.
+
+## P4–P6 (2026-10-29, lean: typecheck, then one proof run)
+
+**P4.** `immersive-era-loading-page.tsx` mounts `EyeStageWorker`. The page's `EyeStage` stays behind two switches:
+- `NEXT_PUBLIC_EYE_WORKER=0` at build time;
+- `?eyeWorker=0` per visit (`=1` forces the worker on).
+
+The choice is made in an effect before the eye mounts, so hydration is unchanged. `eyeControl` is now an `EyeLoaderControl`. The worker host's box carries `data-eye-host="worker"`.
+
+**P5.** One local production build, `/` with typing and taps from 1.5 s on (scratchpad `vitals.mjs`):
+
+| | Worker (default) | Page (`?eyeWorker=0`) |
+|---|---|---|
+| Desktop: FCP / LCP | 0.50 / 0.50 s | 0.51 / 0.51 s |
+| Desktop: worst interaction | 264 ms | 360 ms |
+| Desktop: main-thread long tasks (longest) | 4 (213 ms) | 13 (420 ms) |
+| Phone 4× CPU: FCP / LCP | 0.54 / 0.54 s | 0.66 / 0.66 s |
+| Phone 4×: worst interaction | **0.73–1.15 s** (two runs) | **4.1 s** |
+| Phone 4×: main-thread long tasks (longest) | 5–6 (0.6–1.07 s) | 29 (3.4 s) |
+
+CLS is 0 in all runs. One phone worker run recorded no LCP entry; the rerun had LCP at 0.54 s.
+- **Target missed:** P5's target was under 200 ms on the throttled phone. The eye no longer causes the remaining long tasks. They come from the page itself: hydration at about 0.6 s, and two more at about 2.7 s and 4.3 s (the site mounting under the loader, the era chunks). Those are the next INP work, not the eye's.
+- **Opening:** the loader opened onto the worker-drawn eye in the browser pane, centred, with the corner lines, and stayed centred after a resize to 800×640.
+- **Not reproduced:** one capture taken during the pane's first open showed the eye zoomed to its top-left quarter. The next load and the resize test were correct. Watch for it.
+
+**P6.** Ship is a deploy of this branch. Turn the worker off without a code change by setting `NEXT_PUBLIC_EYE_WORKER=0` and redeploying. Watch mobile INP and RES for about a week. If they hold, drop the switch and the input-quiet gate's fallback role stays as it is.
 
 ## P3 results (2026-10-29)
 
@@ -225,3 +251,5 @@ Each phase ends in a check the user signs off before the next one starts.
 | Init timeout | From mount | 8 s from the worker's `boot` to its `renderer` | A slow download of the worker chunk isn't a reason to load three again on the page; the loader's own late-eye poster covers it |
 | Lab default | Main-thread host | `?host=worker` is the default in `/lab/eye-worker` (as in P0); `/lab/eye` stays on the page | That lab exists to A/B the hosts |
 | Renderer `trackTimestamp` | — | Not passed in the worker | Lab profiling stays on the page host |
+| Flag default | Off; turned on after deploy | On by default; `NEXT_PUBLIC_EYE_WORKER=0` / `?eyeWorker=0` switch it off | The fallback covers every browser the worker can't serve, and the user asked to finish the rollout in one go |
+| Proof (P5) | Ten eras × rest/hover/press/enter, filmstrip, phone shot | One vitals run (desktop, 4× phone, both hosts) and the opening in the pane | Lean mode, at the user's request; the scene code is the same, and P1–P3 compared pixels and controls |

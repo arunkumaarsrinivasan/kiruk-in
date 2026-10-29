@@ -36,7 +36,7 @@ import dynamic from "next/dynamic";
 import { motion, useReducedMotion } from "framer-motion";
 import { AVAILABLE_THEMES, type ThemeConfig } from "@/data/portfolio-data";
 import { useTheme } from "@/contexts/ThemeContext";
-import type { EyeStageControl } from "@/components/three/eye/EyeStage";
+import type { EyeLoaderControl, EyeStageControl } from "@/components/three/eye/EyeStage";
 import { eyeFrame } from "@/lib/era-eye-frame";
 import { eyeShot } from "@/components/three/eye/framing";
 import { getEraMedium } from "@/components/three/eye/look";
@@ -54,6 +54,21 @@ const EraEyeCanvas = dynamic(() => import("@/components/three/EraEyeCanvas"), {
 const EyeStage = dynamic(() => import("@/components/three/eye/EyeStage"), {
   ssr: false,
 });
+/**
+ * The same eye drawn from a worker (docs/EYE_WORKER_PLAN.md), so its shader
+ * builds never hold up a tap or key during the opening. It falls back to
+ * EyeStage by itself wherever a worker can't draw it.
+ */
+const EyeStageWorker = dynamic(() => import("@/components/three/eye/EyeStageWorker"), {
+  ssr: false,
+});
+
+/** Worker host unless switched off: NEXT_PUBLIC_EYE_WORKER=0, or ?eyeWorker=0 (and =1 to force it on). */
+function eyeInWorker() {
+  const q = new URLSearchParams(window.location.search).get("eyeWorker");
+  if (q === "0" || q === "1") return q === "1";
+  return process.env.NEXT_PUBLIC_EYE_WORKER !== "0";
+}
 
 const EASE_OUT = [0.23, 1, 0.32, 1] as const;
 const ERA_PICKER_ATTR = "data-era-picker-active";
@@ -281,7 +296,10 @@ export default function ImmersiveEraLoadingPage({
   const [overIris, setOverIris] = useState(false);
   const exitTimer = useRef(0);
   /** The live eye: where its iris really is, for the tap that goes in. */
-  const eyeControl = useRef<EyeStageControl | null>(null);
+  const eyeControl = useRef<EyeLoaderControl | null>(null);
+  /** Which host draws the live eye; decided on the client, before the eye mounts. */
+  const [eyeWorker, setEyeWorker] = useState<boolean | null>(null);
+  useEffect(() => setEyeWorker(eyeInWorker()), []);
   const dragging = useRef(false);
   const wheel = useRef({
     at: 0,
@@ -824,18 +842,33 @@ export default function ImmersiveEraLoadingPage({
             }}
           >
             {stage === "tsl" ? (
-              <EyeStage
-                era={focused}
-                exiting={exiting}
-                reduce={reduce}
-                interactive
-                control={eyeControl}
-                media={see}
-                calm={isCoarse}
-                covered={!introGone && !tubeLanded}
-                onReady={onEyeReady}
-                onFail={() => setStage("glsl")}
-              />
+              eyeWorker === null ? null : eyeWorker ? (
+                <EyeStageWorker
+                  era={focused}
+                  exiting={exiting}
+                  reduce={reduce}
+                  interactive
+                  control={eyeControl}
+                  media={see}
+                  calm={isCoarse}
+                  covered={!introGone && !tubeLanded}
+                  onReady={onEyeReady}
+                  onFail={() => setStage("glsl")}
+                />
+              ) : (
+                <EyeStage
+                  era={focused}
+                  exiting={exiting}
+                  reduce={reduce}
+                  interactive
+                  control={eyeControl as React.MutableRefObject<EyeStageControl | null>}
+                  media={see}
+                  calm={isCoarse}
+                  covered={!introGone && !tubeLanded}
+                  onReady={onEyeReady}
+                  onFail={() => setStage("glsl")}
+                />
+              )
             ) : (
               <EraEyeCanvas
                 era={focused}

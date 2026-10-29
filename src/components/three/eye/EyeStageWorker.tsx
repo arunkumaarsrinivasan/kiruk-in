@@ -267,5 +267,6 @@ export default function EyeStageWorker(props: EyeStageWorkerProps) {
       />
     );
   }
-  return <div ref={box} style={{ position: "absolute", inset: 0 }} />;
+  // data-eye-host: which thread draws the eye (the page's fallback has no box)
+  return <div ref={box} data-eye-host="worker" style={{ position: "absolute", inset: 0 }} />;
 }

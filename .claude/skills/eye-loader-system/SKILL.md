@@ -120,7 +120,7 @@ One table per plan doc: `| What | Spec | Built | Why |`, one row per divergence,
 
 | Part | Where |
 |---|---|
-| Stage, frame loop, lab API | `src/components/three/eye/EyeStage.tsx` |
+| Stage, frame loop, lab API | `src/components/three/eye/EyeStage.tsx`; the loader draws it from a worker: `EyeStageWorker.tsx`, `worker/` (docs/EYE_WORKER_PLAN.md; `?eyeWorker=0` for the page host) |
 | Uniform registry | `src/components/three/eye/uniforms.ts` |
 | Host adapter (page or worker) | `src/components/three/eye/env.ts`; the worker spike at `/lab/eye-worker` (`src/lab/eye-worker/`, docs/EYE_WORKER_PLAN.md) |
 | Per-era data (light, lens, gaze, medium timings) | `src/components/three/eye/look.ts` |
