@@ -77,6 +77,7 @@ import { MediumDirector } from "./post/medium-director";
 import { Attention } from "./post/attention";
 import { createEraScreenTexture, type EraScreenTexture } from "@/components/three/era-screen-texture";
 import { lastInputAt } from "./input-quiet";
+import { eyeEnv, type EyePointer } from "./env";
 
 /** How long the gaze keeps following a pointer that has stopped arriving. */
 const POINTER_HOLD = 2.2;
@@ -688,8 +689,8 @@ export function EyeScene({
     };
     if (irisState.current.baked === 0) bake();
     else {
-      const id = window.setTimeout(bake, 120);
-      return () => window.clearTimeout(id);
+      const id = setTimeout(bake, 120);
+      return () => clearTimeout(id);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [identity, vessels, irisBake, U]);
@@ -741,8 +742,8 @@ export function EyeScene({
       paint();
       return;
     }
-    const id = window.setTimeout(paint, 64);
-    return () => window.clearTimeout(id);
+    const id = setTimeout(paint, 64);
+    return () => clearTimeout(id);
   }, [code, view.id, pal]);
   // the page of the era being travelled to starts loading at once, so it is
   // there by the time the lids are shut
@@ -880,13 +881,15 @@ export function EyeScene({
     };
   }, [gl, profile]);
 
+  // (the host's: the page's document, or the page's messages in a worker, env.ts)
   useEffect(() => {
-    const sync = () => {
-      hidden.current = document.hidden;
-    };
-    sync();
-    document.addEventListener("visibilitychange", sync);
-    return () => document.removeEventListener("visibilitychange", sync);
+    const env = eyeEnv();
+    hidden.current = env.hidden();
+    return env.listen({
+      visibility: (h) => {
+        hidden.current = h;
+      },
+    });
   }, []);
 
   // (also under reduced motion: the gaze then ignores the pointer, but the
@@ -894,9 +897,10 @@ export function EyeScene({
   useEffect(() => {
     if (!interactive) return;
     const P = pointer.current;
-    const onMove = (e: PointerEvent) => {
-      P.x = (e.clientX / Math.max(window.innerWidth, 1)) * 2 - 1;
-      P.y = (e.clientY / Math.max(window.innerHeight, 1)) * 2 - 1;
+    const onMove = (e: EyePointer) => {
+      const view = eyeEnv().viewport();
+      P.x = (e.clientX / Math.max(view.width, 1)) * 2 - 1;
+      P.y = (e.clientY / Math.max(view.height, 1)) * 2 - 1;
       P.mouse = e.pointerType === "mouse";
       // (the brow hears the gap before this move: rig/brow.ts greets a visitor back)
       P.seen = performance.now() / 1000;
@@ -904,7 +908,7 @@ export function EyeScene({
       if (P.down && Math.hypot(e.clientX - P.sx, e.clientY - P.sy) > PRESS_SLOP) P.dragged = true;
     };
     // a press on the iris, for the era's press feedback (the loader decides what a tap does)
-    const onDown = (e: PointerEvent) => {
+    const onDown = (e: EyePointer) => {
       onMove(e);
       const iris = irisOnScreen.current;
       P.down = true;
@@ -920,26 +924,13 @@ export function EyeScene({
       P.dragged = false;
     };
     // the pointer leaving the window (the brow's "oh, leaving?")
-    const onOut = (e: PointerEvent) => {
-      if (!e.relatedTarget && e.pointerType === "mouse") P.out = true;
+    const onOut = (e: { pointerType: string; left: boolean }) => {
+      if (e.left && e.pointerType === "mouse") P.out = true;
     };
     const onBlur = () => {
       P.out = true;
     };
-    window.addEventListener("pointermove", onMove, { passive: true });
-    window.addEventListener("pointerdown", onDown, { passive: true });
-    window.addEventListener("pointerup", onUp, { passive: true });
-    window.addEventListener("pointercancel", onUp, { passive: true });
-    window.addEventListener("pointerout", onOut, { passive: true });
-    window.addEventListener("blur", onBlur);
-    return () => {
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerdown", onDown);
-      window.removeEventListener("pointerup", onUp);
-      window.removeEventListener("pointercancel", onUp);
-      window.removeEventListener("pointerout", onOut);
-      window.removeEventListener("blur", onBlur);
-    };
+    return eyeEnv().listen({ move: onMove, down: onDown, up: onUp, out: onOut, blur: onBlur });
   }, [interactive, reduce]);
 
   useEffect(() => {
@@ -1058,8 +1049,11 @@ export function EyeScene({
       eyeCentre: () => ({ ...eyeOnScreen.current }),
       project(p) {
         const v = PROJ_TMP.set(p[0], p[1], p[2]).project(camera);
-        const el = gl.domElement as HTMLCanvasElement;
-        return { x: ((v.x + 1) / 2) * el.clientWidth, y: ((1 - v.y) / 2) * el.clientHeight };
+        // (a worker's OffscreenCanvas has no CSS box: its pixels over the ratio)
+        const el = gl.domElement as HTMLCanvasElement | OffscreenCanvas;
+        const w = "clientWidth" in el ? el.clientWidth : el.width / gl.getPixelRatio();
+        const h = "clientHeight" in el ? el.clientHeight : el.height / gl.getPixelRatio();
+        return { x: ((v.x + 1) / 2) * w, y: ((1 - v.y) / 2) * h };
       },
       lidUniforms() {
         const L = U.lids;

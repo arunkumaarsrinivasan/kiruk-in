@@ -1,6 +1,29 @@
 # The loader eye in a worker
 
-Status: P0 spike done 2026-10-29 (**go**). P1 done 2026-10-29 (gate passed). P2 next.
+Status: P0 spike done 2026-10-29 (**go**). P1 and P2 done 2026-10-29 (gates passed). P3 next.
+
+## P2 results (2026-10-29)
+
+The stage's own reads of the page now go through the host too (`eye/env.ts`):
+- `hidden()`;
+- `listen({ move, down, up, out, blur, visibility })`.
+
+The page's host sets exactly the listeners `EyeStage` set before: pointer events on `window` (passive), blur, and `visibilitychange` on `document`. The pointer's position is scaled by `viewport()`, not `window.inner*`. The two timers use plain `setTimeout`, and the lab's `project()` also works on an OffscreenCanvas.
+
+A worker host gets the same events as messages: the page calls `forwardInput(send)`, and the worker calls `workerEnv(...).emit(event)`. The spike worker no longer fakes `window` or `document` at all (`shim-globals.ts` is deleted). React, r3f and three run there without them.
+
+**Gate:** a scripted check (real mouse input through CDP, plus synthetic `pointerout`, `blur` and `visibilitychange`), run before and after on the page and after in the worker:
+
+| | Page before | Page after | Worker after |
+|---|---|---|---|
+| Pointer left / right: iris x | 609 / 834 | 609 / 834 | 609 / 834 |
+| Pointer on the iris | 744 | 744 | 744 |
+| Press on the iris | flinch 0.35, then relief 0.81 | flinch 0.36, then relief 0.84 | flinch 0.30, then relief 0.74 |
+| Pointer leaves the page | wistful 0.44 | wistful 0.46 | wistful 0.41 |
+| Page hidden: the eye's clock over 1 s | 0 | 0 | 0 |
+| Visible again | 0.97 | 1.04 | 1.00 |
+
+Feelings differ by a few hundredths with frame timing, as they do between runs. The worker still shows 0 main-thread long tasks while the eye builds. `tsc` is clean. The ghost finger drives the eye through `travel()` (a control call), not pointer events, so P2 doesn't touch it; it's checked with the loader in P4/P5.
 
 ## P1 results (2026-10-29)
 
@@ -160,4 +183,7 @@ Each phase ends in a check the user signs off before the next one starts.
 | `EyeScene` export | Split into `EyeScene.tsx` in P1 | Exported from `EyeStage.tsx` for now | Smallest change that lets the spike import it; the split waits for P2, when the scene loses its own window listeners |
 | `tierSignals` in `init` | The page reads the tier signals and sends them | The worker reads `navigator` itself; only `coarse` and the viewport come from the page (`WorkerView`) | `deviceMemory`, `hardwareConcurrency` and `connection` exist on WorkerNavigator |
 | `bake/vessels.ts` | Through the adapter | Unchanged | It already chose OffscreenCanvas wherever one exists; routing it would change the page's upload path for nothing |
-| Shims | Deleted in P1 | `shim-three.ts` deleted; `shim-globals.ts` keeps `window` (pointer listeners, size), `document.hidden` and timers | These are EyeStage's own reads, which P2 moves to the input bus |
+| Shims | Deleted in P1 | `shim-three.ts` deleted in P1; `shim-globals.ts` deleted in P2 | EyeStage's own reads waited for the input bus |
+| Input bus | Its own module | Part of the host (`EyeEnv.listen` / `hidden`, `forwardInput`, `workerEnv().emit`) | One object a worker installs; the page's version is the old listeners verbatim |
+| `capture` (lab poster) | `convertToBlob` in a worker | Still `toDataURL` | Lab only, and the lab stays on the page; revisit if a worker capture is ever needed |
+| Spike probe | — | `probe` message: iris, feelings, clock read back from the worker | The P2 gate needs to see the worker's stage hear input; P3's frame snapshot replaces it |

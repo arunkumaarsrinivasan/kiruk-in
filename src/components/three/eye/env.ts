@@ -29,10 +29,42 @@ export interface EyeEnv {
   viewport(): { width: number; height: number; dpr: number };
   /** A finger, not a cursor. */
   coarse(): boolean;
+  /** Whether the page is in the background (nothing should render). */
+  hidden(): boolean;
+  /** The visitor's pointer, focus and the page's visibility, as the stage hears them. Returns the unsubscribe. */
+  listen(on: EyeListeners): () => void;
 }
 
+/** Where the pointer is: CSS px from the view's top left, and what it is (mouse, touch, pen). */
+export interface EyePointer {
+  clientX: number;
+  clientY: number;
+  pointerType: string;
+}
+
+/** What the stage hears. Each is optional; only those given are listened for. */
+export interface EyeListeners {
+  move?: (p: EyePointer) => void;
+  down?: (p: EyePointer) => void;
+  /** Lifted or cancelled. */
+  up?: () => void;
+  /** The pointer left an element; `left` when it left the page altogether (no element it went to). */
+  out?: (p: { pointerType: string; left: boolean }) => void;
+  /** The window lost focus. */
+  blur?: () => void;
+  visibility?: (hidden: boolean) => void;
+}
+
+/** One of those, as a message: how a page forwards them to a worker. */
+export type EyeInputEvent =
+  | ({ type: "move" | "down" } & EyePointer)
+  | { type: "up" }
+  | { type: "out"; pointerType: string; left: boolean }
+  | { type: "blur" }
+  | { type: "visibility"; hidden: boolean };
+
 /** The page's main thread: the DOM, as the eye always used it. */
-const pageEnv: EyeEnv = {
+export const pageEnv: EyeEnv = {
   canvas(width, height) {
     const canvas = document.createElement("canvas");
     canvas.width = width;
@@ -51,6 +83,42 @@ const pageEnv: EyeEnv = {
   },
   coarse() {
     return globalThis.matchMedia?.("(pointer: coarse)").matches ?? false;
+  },
+  hidden() {
+    return typeof document !== "undefined" && document.hidden;
+  },
+  // the same listeners the stage always set: pointer and focus on the window
+  // (passive), visibility on the document
+  listen(on) {
+    const offs: (() => void)[] = [];
+    const add = <K extends keyof WindowEventMap>(type: K, fn: (e: WindowEventMap[K]) => void, passive = true) => {
+      window.addEventListener(type, fn, passive ? { passive: true } : undefined);
+      offs.push(() => window.removeEventListener(type, fn));
+    };
+    if (on.move) add("pointermove", on.move);
+    if (on.down) add("pointerdown", on.down);
+    if (on.up) {
+      const up = on.up;
+      add("pointerup", () => up());
+      add("pointercancel", () => up());
+    }
+    if (on.out) {
+      const out = on.out;
+      add("pointerout", (e) => out({ pointerType: e.pointerType, left: !e.relatedTarget }));
+    }
+    if (on.blur) {
+      const blur = on.blur;
+      add("blur", () => blur(), false);
+    }
+    if (on.visibility) {
+      const vis = on.visibility;
+      const sync = () => vis(document.hidden);
+      document.addEventListener("visibilitychange", sync);
+      offs.push(() => document.removeEventListener("visibilitychange", sync));
+    }
+    return () => {
+      for (const off of offs) off();
+    };
   },
 };
 
@@ -81,11 +149,15 @@ export interface WorkerView {
 /**
  * A worker's host: OffscreenCanvases, images decoded with createImageBitmap,
  * fonts added to the worker's own FontFaceSet, and the view as the page last
- * reported it (`view` is read live, so the caller updates it on resize).
+ * reported it (`view` is read live, so the caller updates it on resize). The
+ * pointer, focus and visibility arrive as the page's messages, through `emit`.
  */
-export function workerEnv(view: WorkerView): EyeEnv {
+export function workerEnv(view: WorkerView): EyeEnv & { emit(e: EyeInputEvent): void } {
   const added = new Map<string, Promise<unknown>>();
   const fontSet = (globalThis as unknown as { fonts?: FontFaceSet }).fonts;
+  /** The stage's listeners, fed by `emit` from the page's messages (forwardInput). */
+  const listeners = new Set<EyeListeners>();
+  let hidden = false;
   return {
     canvas: (width, height) => new OffscreenCanvas(width, height),
     loadTexture(url, onLoad, onError) {
@@ -119,5 +191,36 @@ export function workerEnv(view: WorkerView): EyeEnv {
     },
     viewport: () => ({ width: view.width, height: view.height, dpr: view.dpr }),
     coarse: () => view.coarse,
+    hidden: () => hidden,
+    listen(on) {
+      listeners.add(on);
+      return () => listeners.delete(on);
+    },
+    emit(e) {
+      if (e.type === "visibility") hidden = e.hidden;
+      for (const on of listeners) {
+        if (e.type === "move") on.move?.(e);
+        else if (e.type === "down") on.down?.(e);
+        else if (e.type === "up") on.up?.();
+        else if (e.type === "out") on.out?.(e);
+        else if (e.type === "blur") on.blur?.();
+        else if (e.type === "visibility") on.visibility?.(e.hidden);
+      }
+    },
   };
+}
+
+/**
+ * The page's side of a worker stage: forwards what the stage would hear on
+ * the page (the same listeners, pageEnv.listen) as messages. Returns the unsubscribe.
+ */
+export function forwardInput(send: (e: EyeInputEvent) => void): () => void {
+  return pageEnv.listen({
+    move: (p) => send({ type: "move", clientX: p.clientX, clientY: p.clientY, pointerType: p.pointerType }),
+    down: (p) => send({ type: "down", clientX: p.clientX, clientY: p.clientY, pointerType: p.pointerType }),
+    up: () => send({ type: "up" }),
+    out: (p) => send({ type: "out", ...p }),
+    blur: () => send({ type: "blur" }),
+    visibility: (hidden) => send({ type: "visibility", hidden }),
+  });
 }

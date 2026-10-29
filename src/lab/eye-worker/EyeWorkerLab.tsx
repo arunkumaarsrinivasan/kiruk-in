@@ -10,8 +10,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { AVAILABLE_THEMES } from "@/data/portfolio-data";
-import type { EyeWorkerIn, EyeWorkerOut } from "./eye.worker";
+import type { EyeWorkerIn, EyeWorkerOut, Probe } from "./eye.worker";
 import { gpuLog, traceGpu, type GpuCall } from "./gpu-trace";
+import { forwardInput } from "@/components/three/eye/env";
 
 const EyeStage = dynamic(() => import("@/components/three/eye/EyeStage"), { ssr: false });
 
@@ -57,10 +58,17 @@ function WorkerHost({ era, forceWebGL, covered }: { era: string; forceWebGL: boo
     worker.onmessage = (e: MessageEvent<EyeWorkerOut>) => {
       const m = e.data;
       if (m.type === "ready") report({ ready: m.at - performance.timeOrigin, backend: m.backend, tier: m.tier });
+      else if (m.type === "probe") probeWait.splice(0).forEach((r) => r(m.state));
       else if (m.type === "gpulog") report({ gpu: m.calls.map((c) => ({ ...c, at: c.at - performance.timeOrigin })) });
       else report({ fail: m.message });
     };
     (window as unknown as { __eyeGpuLog?: () => void }).__eyeGpuLog = () => send({ type: "gpulog" });
+    const probeWait: ((s: Probe | null) => void)[] = [];
+    (window as unknown as { __eyeProbe?: () => Promise<Probe | null> }).__eyeProbe = () =>
+      new Promise((resolve) => {
+        probeWait.push(resolve);
+        send({ type: "probe" });
+      });
     coveredSend.current = (c) => send({ type: "covered", covered: c });
     const off = canvas.transferControlToOffscreen();
     send(
@@ -78,21 +86,13 @@ function WorkerHost({ era, forceWebGL, covered }: { era: string; forceWebGL: boo
       },
       [off],
     );
-    const onPointer = (e: PointerEvent) =>
-      send({ type: "event", name: e.type, clientX: e.clientX, clientY: e.clientY, pointerType: e.pointerType, left: !e.relatedTarget });
-    const onBlur = () => send({ type: "event", name: "blur", clientX: 0, clientY: 0, pointerType: "mouse", left: true });
+    // what the stage would hear on the page, as messages (env.ts)
+    const stopInput = forwardInput((event) => send({ type: "input", event }));
     const onResize = () => send({ type: "resize", w: window.innerWidth, h: window.innerHeight, dpr: window.devicePixelRatio || 1 });
-    const onVis = () => send({ type: "hidden", hidden: document.hidden });
-    const kinds = ["pointermove", "pointerdown", "pointerup", "pointercancel", "pointerout"] as const;
-    for (const k of kinds) window.addEventListener(k, onPointer, { passive: true });
-    window.addEventListener("blur", onBlur);
     window.addEventListener("resize", onResize);
-    document.addEventListener("visibilitychange", onVis);
     return () => {
-      for (const k of kinds) window.removeEventListener(k, onPointer);
-      window.removeEventListener("blur", onBlur);
+      stopInput();
       window.removeEventListener("resize", onResize);
-      document.removeEventListener("visibilitychange", onVis);
       worker.terminate();
       canvas.remove();
     };
