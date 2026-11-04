@@ -2,6 +2,7 @@ import Link from "next/link";
 import { FigmaEmbed } from "@/app/portfolio/FigmaEmbed";
 import { EraHandoff } from "@/components/era-shell/EraHandoff";
 import { SITE_URL } from "@/lib/site";
+import { IdentityFacts } from "@/components/seo/IdentityFacts";
 import { WorkDesktop } from "./components/WorkDesktop";
 
 const DESCRIPTION =
@@ -22,6 +23,7 @@ export default function WorkPage() {
   return (
     <>
       <p className="sr-only">{DESCRIPTION}</p>
+      <IdentityFacts heading="Arun Kumaar Sreenivasan's roles" />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(workJsonLd) }}
@@ -84,6 +86,18 @@ export default function WorkPage() {
             className="site-crumb-link underline decoration-dotted underline-offset-4"
           >
             Home
+          </Link>
+          <Link
+            href="/arun-kumaar-sreenivasan"
+            className="site-crumb-link underline decoration-dotted underline-offset-4"
+          >
+            About Arun
+          </Link>
+          <Link
+            href="/hire"
+            className="site-crumb-link underline decoration-dotted underline-offset-4"
+          >
+            Hire
           </Link>
           <Link
             href="/work/observatory"

@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { SHARE_IMAGE, SITE_URL } from "@/lib/site";
 
-const TITLE = "Work — selected projects by Kiruk Studio";
+const TITLE = "Design engineering work — Arun Kumaar Sreenivasan";
 const DESCRIPTION =
-  "Selected design engineering work from Kiruk Studio — Spera.bot, HP Print AI, Mudra Stack, Square Bridge, PeopleGamez, and experimental web work from Bengaluru.";
+  "Design engineering by Arun Kumaar Sreenivasan (Kiruk), Bengaluru: Spera.bot, HP Print AI, the Mudra design system, Square Bridge and Three.js work.";
 
 export const metadata: Metadata = {
-  title: "Work",
+  title: "Design engineering work",
   description: DESCRIPTION,
   alternates: { canonical: "/work" },
   openGraph: {

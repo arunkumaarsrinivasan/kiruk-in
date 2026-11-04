@@ -9,9 +9,33 @@
 import dynamic from "next/dynamic";
 import type { StorySkin, StorySkinProps } from "./types";
 import { DefaultSkin } from "./skins/DefaultSkin";
+import { BEATS } from "@/data/about-story";
+import { IDENTITY } from "@/lib/identity";
 
+/**
+ * Skins are client-only, so this is what the server HTML holds. The story
+ * is written out in full under sr-only: readers without JavaScript (AI
+ * crawlers) and screen readers get the words; everyone else sees the skin.
+ */
 function Loading() {
-  return <div className="min-h-[420px]" aria-hidden />;
+  return (
+    <div className="min-h-[420px]">
+      <div className="sr-only">
+        <h2>About {IDENTITY.name}</h2>
+        <p>{IDENTITY.oneLiner}</p>
+        <ol>
+          {BEATS.map((b) => (
+            <li key={b.id}>
+              <h3>
+                {b.title} ({b.period}, {b.place})
+              </h3>
+              <p>{b.read}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+  );
 }
 
 const load = (fn: () => Promise<StorySkin>) =>

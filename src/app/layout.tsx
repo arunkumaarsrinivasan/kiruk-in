@@ -13,21 +13,22 @@ import { ContextBarProvider } from "@/contexts/ContextBarContext";
 import { LayoutModeProvider } from "@/contexts/LayoutModeContext";
 import { ModuleProvider } from "@/contexts/ModuleContext";
 import { SHARE_IMAGE, SITE_URL } from "@/lib/site";
+import { PROFILES, personJsonLd as buildPersonJsonLd } from "@/lib/identity";
 import { TUBE_BOOT_CSS, TUBE_BOOT_SCRIPT } from "@/components/ui/loader/tube/boot";
 
 const SITE_NAME = "Kiruk Studio — Arun Kumaar Sreenivasan";
-const TITLE = "Kiruk Studio — Design Engineer & AI UX Designer in India";
+const TITLE = "Arun Kumaar Sreenivasan — Design Engineer & Creative Developer";
 const DESCRIPTION =
-  "Kiruk Studio is the practice of Arun Kumaar Sreenivasan — Co-founder at Spera.bot. Former UX Design Engineer on HP Innovation for India. Experimental websites, design tools, and human-centered UX from Bengaluru.";
+  "Arun Kumaar Sreenivasan (Kiruk) is a design engineer in Bengaluru, India: co-founder of Spera.bot, ex-HP Inc. AI UX, design systems, React, Three.js and WebGPU.";
 const OG_IMAGE = `${SITE_URL}/images/dp.jpeg`;
 
-const LAST_MODIFIED = "2026-10-14";
+const LAST_MODIFIED = "2026-11-04";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default: TITLE,
-    template: "%s — Kiruk Studio",
+    template: "%s — Arun Kumaar Sreenivasan",
   },
   description: DESCRIPTION,
   applicationName: "Kiruk",
@@ -42,6 +43,15 @@ export const metadata: Metadata = {
     "product designer Bengaluru",
     "Figma React engineer",
     "Arun Kumaar Sreenivasan",
+    "Arun Kumaar",
+    "Three.js developer India",
+    "freelance design engineer India",
+    "design technologist India",
+    "creative developer India",
+    "product designer who codes",
+    "freelance design consultant Bengaluru",
+    "WebGPU developer",
+    "creative developer Bengaluru",
     "Kiruk",
     "Kiruk Studio",
     "Kirukism",
@@ -107,49 +117,7 @@ export const viewport: Viewport = {
   interactiveWidget: "resizes-content",
 };
 
-const personJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Person",
-  "@id": `${SITE_URL}/#person`,
-  name: "Arun Kumaar Sreenivasan",
-  alternateName: ["Kiruk", "Arun Kumaar"],
-  url: SITE_URL,
-  image: OG_IMAGE,
-  jobTitle: "Design Engineer & AI UX Designer",
-  description: DESCRIPTION,
-  worksFor: {
-    "@type": "Organization",
-    name: "Spera.bot",
-    url: "https://www.spera.bot",
-  },
-  address: {
-    "@type": "PostalAddress",
-    addressLocality: "Bengaluru",
-    addressRegion: "Karnataka",
-    addressCountry: "IN",
-  },
-  nationality: { "@type": "Country", name: "India" },
-  knowsAbout: [
-    "UX Design",
-    "AI Product Design",
-    "Design Systems",
-    "Interaction Design",
-    "Front-end Engineering",
-    "Figma",
-    "React",
-    "Next.js",
-    "Flutter",
-    "Motion Design",
-  ],
-  knowsLanguage: ["English", "Tamil"],
-  sameAs: [
-    "https://www.linkedin.com/in/arunkumaarsreenivasan/",
-    "https://github.com/arunkumaarsrinivasan",
-    "https://www.behance.net/arunkusriniva",
-    "https://www.instagram.com/arunum.avan.seyalum/",
-    "https://x.com/s_arunkumaar",
-  ],
-};
+const personJsonLd = buildPersonJsonLd(OG_IMAGE, DESCRIPTION);
 
 const websiteJsonLd = {
   "@context": "https://schema.org",
@@ -179,11 +147,7 @@ const organizationJsonLd = {
   url: SITE_URL,
   logo: OG_IMAGE,
   founder: { "@id": `${SITE_URL}/#person` },
-  sameAs: [
-    "https://www.linkedin.com/in/arunkumaarsreenivasan/",
-    "https://www.instagram.com/arunum.avan.seyalum/",
-    "https://x.com/s_arunkumaar",
-  ],
+  sameAs: PROFILES.map((p) => p.url),
 };
 
 export default function RootLayout({

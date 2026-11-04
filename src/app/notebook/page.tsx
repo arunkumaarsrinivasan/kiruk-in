@@ -6,7 +6,7 @@ import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Notebook",
-  description: "Kiruk Studio notebook. Warp to a year you lived in, then read from that machine.",
+  description: "Essays by Arun Kumaar Sreenivasan (Kiruk), a design engineer in Bengaluru, on design, code and a life of variation. Pick a year, then read from that machine.",
   alternates: { canonical: "/notebook" },
 };
 

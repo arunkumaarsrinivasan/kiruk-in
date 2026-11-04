@@ -10,6 +10,9 @@ type Route = {
 
 const STATIC_ROUTES: Route[] = [
   { path: "/", priority: 1.0, changeFrequency: "weekly" },
+  { path: "/arun-kumaar-sreenivasan", priority: 0.95, changeFrequency: "monthly" },
+  { path: "/hire", priority: 0.9, changeFrequency: "monthly" },
+  { path: "/about.md", priority: 0.8, changeFrequency: "monthly" },
   { path: "/work", priority: 0.9, changeFrequency: "monthly" },
   { path: "/notebook", priority: 0.8, changeFrequency: "weekly" },
   { path: "/contact", priority: 0.7, changeFrequency: "yearly" },
@@ -18,7 +21,7 @@ const STATIC_ROUTES: Route[] = [
 ];
 
 /** Content date for routes that are not a single dated essay. */
-const STATIC_UPDATED = new Date("2026-10-14T00:00:00.000Z");
+const STATIC_UPDATED = new Date("2026-11-04T00:00:00.000Z");
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticEntries: MetadataRoute.Sitemap = STATIC_ROUTES.map((r) => ({

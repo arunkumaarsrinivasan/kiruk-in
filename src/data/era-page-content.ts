@@ -64,7 +64,7 @@ export const ERA_NARRATIVE = {
       "Curious about AI, fintech, and new mediums",
     ],
     /** Skill names appended to portfolio “does” list in empathy map. */
-    extraDoesSkills: ["Howler.js", "GSAP", "Prompt Engineering"],
+    extraDoesSkills: ["Three.js", "WebGPU", "Howler.js", "GSAP", "Prompt Engineering"],
   },
   /** Career journey map nodes (years/phases); “Now” merges current experience. */
   careerJourney: [

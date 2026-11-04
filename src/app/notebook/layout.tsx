@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { NotebookEraRoot } from "@/components/notebook";
 import { SHARE_IMAGE, SITE_URL } from "@/lib/site";
 
-const TITLE = "Notebook — Kiruk Studio";
+const TITLE = "Notebook — Arun Kumaar Sreenivasan";
 const DESCRIPTION =
-  "Kiruk Studio notebook. Warp to a year you lived in, then read from that machine.";
+  "Essays by Arun Kumaar Sreenivasan (Kiruk), a design engineer in Bengaluru, on design, code and a life of variation. Pick a year, then read from that machine.";
 
 export const metadata: Metadata = {
   title: "Notebook",

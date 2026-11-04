@@ -1,47 +1,12 @@
 import { EraPageArchetype } from '@/components/era-shell/EraPageArchetype';
 import { SITE_URL } from '@/lib/site';
+import { IdentityFacts } from '@/components/seo/IdentityFacts';
+import { PERSON_ID } from '@/lib/identity';
 
-const LAST_MODIFIED = '2026-10-14';
+const LAST_MODIFIED = '2026-11-04';
 
-const faqJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  '@id': `${SITE_URL}/#faq`,
-  mainEntity: [
-    {
-      '@type': 'Question',
-      name: 'Who is Kiruk?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Kiruk Studio is the practice of Arun Kumaar Sreenivasan, a design engineer based in Bengaluru, India. The studio ships experimental websites, design tools, and human-centered product experiences — and keeps a handwritten notebook of the thinking.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: 'What is a design engineer?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'A design engineer is a hybrid professional who designs interfaces and builds them in code. Kiruk pairs Figma-led UX design with production React, Next.js, and Flutter engineering so prototypes ship as real products.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: 'Is Kiruk available for freelance design work in India?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Yes. Kiruk takes on selective freelance and consulting engagements for AI UX, design systems, and front-end engineering, working remotely from Bengaluru with clients across India and abroad.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: 'What work does Kiruk Studio publish?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Work covers Spera.bot, HP Print AI and Mudra Stack, Square Bridge at SNS Square, PeopleGamez gamified HR, and experiments — PRAGS scroll-to-play sites, Foodies Buddies, Desirable, and this era-themed site. The notebook is where process thinking lives.',
-      },
-    },
-  ],
-};
+// The FAQ lives, visible, on the entity home (/arun-kumaar-sreenivasan):
+// Google asks that structured data match text a visitor can see.
 
 const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
@@ -62,17 +27,13 @@ const profileJsonLd = {
   '@id': `${SITE_URL}/#profilepage`,
   url: SITE_URL,
   dateModified: LAST_MODIFIED,
-  about: { '@id': `${SITE_URL}/#person` },
-  mainEntity: { '@id': `${SITE_URL}/#person` },
+  about: { '@id': PERSON_ID },
+  mainEntity: { '@id': PERSON_ID },
 };
 
 export default function Home() {
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
-      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
@@ -82,6 +43,7 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(profileJsonLd) }}
       />
       <EraPageArchetype pageKey="home" />
+      <IdentityFacts />
     </>
   );
 }
