@@ -1,0 +1,590 @@
+/* The case presentations. One layout for every era: colour and type come
+   from the site's own variables, so each era tints it. The era-specific
+   rules are the mark colour for charts (--wp-mark) and the shaders over
+   the pictures, at the foot of this file. */
+
+.ws {
+  --ws-gap: clamp(16px, 4vw, 32px);
+  position: relative;
+  z-index: 10;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--ws-gap) clamp(48px, 8vw, 96px);
+  color: var(--text-main);
+}
+
+.ws-eyebrow {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* ── a case: its header ─────────────────────────────────── */
+
+.ws-case {
+  --wp-mark: var(--text-main);
+  --wp-mark-soft: color-mix(in srgb, var(--text-main) 26%, transparent);
+  --wp-track: color-mix(in srgb, var(--text-main) 12%, transparent);
+  padding-top: clamp(40px, 6vw, 80px);
+  border-top: 1px solid var(--border-color);
+  margin-top: clamp(40px, 6vw, 80px);
+  scroll-margin-top: calc(var(--simple-game-nav-bottom, 4.5rem) - 24px);
+}
+.ws-case__head {
+  max-width: 760px;
+}
+.ws-case__title {
+  margin: 10px 0 0;
+  font-family: var(--font-heading);
+  font-size: clamp(34px, 5.4vw, 64px);
+  font-weight: 600;
+  line-height: 1.02;
+  letter-spacing: -0.025em;
+}
+.ws-case__pitch {
+  max-width: 46ch;
+  margin: 14px 0 0;
+  font-size: clamp(17px, 2vw, 21px);
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+.ws-case__links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 24px;
+  margin-top: 24px;
+}
+.ws-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: 999px;
+  background: var(--text-main);
+  color: var(--bg-main);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform 0.16s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.16s ease;
+}
+.ws-button:active {
+  transform: scale(0.97);
+}
+@media (hover: hover) {
+  .ws-button:hover {
+    opacity: 0.86;
+  }
+}
+.ws-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  color: var(--text-main);
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: var(--border-color);
+  text-underline-offset: 4px;
+  transition: text-decoration-color 0.15s ease;
+}
+@media (hover: hover) {
+  .ws-link:hover {
+    text-decoration-color: currentColor;
+  }
+}
+.ws-button:focus-visible,
+.ws-link:focus-visible,
+.wp-hit:focus-visible,
+.wp-spans__bar:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+.ws-nda {
+  margin: 14px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* ── the body: hero, metrics, iterations, facts ─────────── */
+
+.ws-case:first-child {
+  margin-top: 0;
+}
+.wp-body {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(32px, 5vw, 56px);
+  margin-top: clamp(28px, 4vw, 44px);
+}
+
+/* The picture slot, with the era's shader over it */
+.ws-ch__pic {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  isolation: isolate;
+}
+
+.wp-hero {
+  display: grid;
+  gap: clamp(16px, 2.4vw, 28px);
+}
+.wp-hero[data-layout="pair"] {
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  align-items: start;
+}
+.wp-hero[data-layout="bento"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.wp-shot {
+  margin: 0;
+}
+.wp-shot__cap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin-top: 12px;
+}
+.wp-shot__title {
+  font-size: 16px;
+  font-weight: 600;
+}
+.wp-shot__note {
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+.wp-shot__link {
+  min-height: 32px;
+  font-size: 14px;
+}
+.wp-hero[data-layout="single"] .wp-shot__cap {
+  max-width: 720px;
+}
+
+/* Metrics: one lead figure, a chart, then the tiles */
+/* Hairlines between tiles come from each tile's top and left edge, so a
+   row that doesn't fill leaves page, never a grey block */
+.wp-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+}
+.wp-metrics > * {
+  min-width: 0;
+  margin: 0;
+  padding: clamp(16px, 2.2vw, 24px);
+  box-shadow: -1px -1px 0 var(--border-color);
+}
+.wp-lead {
+  grid-column: span 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.wp-lead__value {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: clamp(56px, 8vw, 96px);
+  font-weight: 600;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+}
+.wp-lead__label {
+  max-width: 30ch;
+  margin: 12px 0 0;
+  color: var(--text-muted);
+  font-size: 15px;
+  line-height: 1.45;
+}
+.wp-stat__value {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: clamp(28px, 3.2vw, 36px);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+.wp-stat__label {
+  margin: 8px 0 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.4;
+}
+.wp-stat__delta {
+  display: inline-flex;
+  gap: 4px;
+  margin: 10px 0 0;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--wp-track);
+  font-size: 12px;
+  font-weight: 600;
+}
+.wp-meter {
+  grid-column: span 2;
+}
+.wp-meter__track {
+  position: relative;
+  display: block;
+  height: 8px;
+  margin-top: 16px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--wp-track);
+}
+.wp-meter__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  background: var(--wp-mark);
+}
+
+/* Charts */
+.wp-chart {
+  grid-column: span 2;
+}
+.wp-chart__label {
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+.wp-chart__note {
+  margin: 8px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.wp-chart__plot {
+  position: relative;
+  margin-top: 12px;
+}
+.wp-chart__plot svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.wp-grid {
+  stroke: var(--border-color);
+  stroke-width: 1;
+}
+.wp-tick {
+  fill: var(--text-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.wp-col {
+  fill: var(--wp-mark-soft);
+  transition: fill 0.15s ease;
+}
+.wp-col[data-on] {
+  fill: var(--wp-mark);
+}
+.wp-hit {
+  fill: transparent;
+  cursor: default;
+}
+.wp-tip {
+  position: absolute;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--text-main);
+  color: var(--bg-main);
+  font-size: 12px;
+  line-height: 1.3;
+  white-space: nowrap;
+  pointer-events: none;
+  translate: -50% calc(-100% - 8px);
+}
+.wp-tip b {
+  font-weight: 700;
+}
+.wp-spans {
+  /* The names' column and its gap: the year ticks start after it */
+  --wp-name-w: 144px;
+}
+.wp-spans__plot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 28px;
+}
+.wp-spans__year {
+  position: absolute;
+  top: -22px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  translate: -50% 0;
+}
+.wp-spans__row {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+.wp-spans__name {
+  font-size: 13px;
+  white-space: nowrap;
+}
+.wp-spans__track {
+  position: relative;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--wp-track);
+}
+.wp-spans__bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+  background: var(--wp-mark-soft);
+  transition: background-color 0.15s ease;
+}
+.wp-spans__bar[data-on] {
+  background: var(--wp-mark);
+}
+.wp-tip--row {
+  top: 0;
+}
+
+/* Iterations: a strip of the best versions, the shipped one marked */
+.wp-iter__strip {
+  display: grid;
+  grid-auto-columns: minmax(280px, 1fr);
+  grid-auto-flow: column;
+  gap: clamp(16px, 2vw, 24px);
+  margin: 14px calc(var(--ws-gap) * -1) 0;
+  padding: 0 var(--ws-gap) 8px;
+  overflow-x: auto;
+  list-style: none;
+  scroll-padding: 0 var(--ws-gap);
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+}
+.wp-iter__item {
+  min-width: 0;
+  scroll-snap-align: start;
+}
+.wp-iter__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.wp-iter__tag {
+  padding: 2px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  color: var(--text-main);
+  font-size: 11px;
+  font-weight: 600;
+}
+.wp-iter__item[data-best] .wp-iter__tag {
+  border-color: var(--text-main);
+  background: var(--text-main);
+  color: var(--bg-main);
+}
+.wp-iter__title {
+  margin: 6px 0 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+.wp-iter__note {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+/* Facts */
+.wp-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px 32px;
+  margin: 0;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color);
+}
+.wp-facts dt {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.wp-facts dd {
+  margin: 6px 0 0;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+@media (max-width: 900px) {
+  .wp-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .wp-hero[data-layout="pair"],
+  .wp-hero[data-layout="bento"] {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 560px) {
+  .wp-metrics {
+    grid-template-columns: 1fr;
+  }
+  .wp-lead,
+  .wp-chart,
+  .wp-meter {
+    grid-column: auto;
+  }
+  .wp-spans {
+    --wp-name-w: 116px;
+  }
+  .wp-spans__row {
+    grid-template-columns: 104px minmax(0, 1fr);
+  }
+}
+
+/* Replay sits on the picture's corner, above the shader */
+.ws-replay {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  backdrop-filter: blur(6px);
+  opacity: 0.7;
+  transition: opacity 0.15s ease, transform 0.16s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.ws-replay::before {
+  position: absolute;
+  inset: -6px;
+  content: "";
+}
+.ws-ch__pic:hover .ws-replay,
+.ws-replay:focus-visible {
+  opacity: 1;
+}
+.ws-replay:active {
+  transform: scale(0.96);
+}
+.ws-replay:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+@media (hover: none) {
+  .ws-replay {
+    opacity: 1;
+  }
+}
+
+/* ── era viewing styles: marks and shaders ──────────────── */
+
+/* 2013: each case keeps its place's colour on the map */
+body[data-era="2013"] .ws-case[data-sector="spera"] {
+  --wp-mark: #ff9500;
+}
+body[data-era="2013"] .ws-case[data-sector="hp"] {
+  --wp-mark: #007aff;
+}
+body[data-era="2013"] .ws-case[data-sector="sns"] {
+  --wp-mark: #ff2d55;
+}
+body[data-era="2013"] .ws-case {
+  --wp-mark-soft: color-mix(in srgb, var(--wp-mark) 32%, transparent);
+  --wp-track: color-mix(in srgb, var(--wp-mark) 12%, transparent);
+}
+body[data-era="2013"] .wp-lead__value,
+body[data-era="2013"] .ws-case__title {
+  font-weight: 300;
+}
+
+.ws-ch__pic::after {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  content: "";
+  pointer-events: none;
+}
+
+/* 1970: a CRT. Scanlines and the glass's fall-off */
+body[data-era="1970"] .ws-ch__pic::after {
+  background:
+    radial-gradient(120% 90% at 50% 40%, transparent 60%, rgba(0, 0, 0, 0.55)),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.32) 0 1px, transparent 1px 3px);
+  box-shadow: inset 0 0 0 1px rgba(51, 255, 102, 0.35), inset 0 0 40px rgba(51, 255, 102, 0.08);
+}
+body[data-era="1970"] .wp-metrics > * {
+  text-shadow: 0 0 6px rgba(51, 255, 102, 0.35);
+}
+
+/* 1981: a bevelled gray frame, finer scanlines */
+body[data-era="1981"] .ws-ch__pic {
+  padding: 4px;
+  border-radius: 0;
+  background: #c0c0c0;
+  box-shadow: inset 2px 2px 0 #fff, inset -2px -2px 0 #808080;
+}
+body[data-era="1981"] .ws-ch__pic::after {
+  inset: 4px;
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.12) 0 1px, transparent 1px 2px);
+}
+
+/* 1991 and 1995: a coarse monitor, a faint dot pitch */
+body[data-era="1991"] .ws-ch__pic::after,
+body[data-era="1995"] .ws-ch__pic::after {
+  background: radial-gradient(circle, transparent 55%, rgba(0, 0, 0, 0.14) 56%) 0 0 / 3px 3px;
+}
+
+/* 1997 to 2003: a glossy plastic bezel catching the light */
+body[data-era="1997"] .ws-ch__pic::after,
+body[data-era="2000"] .ws-ch__pic::after,
+body[data-era="2003"] .ws-ch__pic::after {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent 38%);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
+}
+
+/* 2009: Aero glass, a sheen across the top */
+body[data-era="2009"] .ws-ch__pic::after {
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 30%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25), 0 10px 30px -12px rgba(0, 40, 90, 0.5);
+}
+
+/* 2013: flat. Nothing over the picture */
+
+/* 2026: the pupil's halftone, barely there */
+body[data-era="2026"] .ws-ch__pic::after {
+  background: radial-gradient(circle, rgba(0, 0, 0, 0.07) 30%, transparent 32%) 0 0 / 6px 6px;
+  mix-blend-mode: multiply;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ws-button,
+  .ws-replay {
+    transition: none;
+  }
+}

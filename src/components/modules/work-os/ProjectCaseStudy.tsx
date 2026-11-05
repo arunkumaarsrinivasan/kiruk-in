@@ -1,6 +1,7 @@
 "use client";
 
 import { isProjectNda } from "@/data/project-media";
+import { caseSlugForProject } from "@/data/work-cases";
 import type { DesktopEra, Project } from "./types";
 
 interface ProjectCaseStudyProps {
@@ -70,6 +71,7 @@ function FileIcon({
 export function ProjectCaseStudy({ project, era }: ProjectCaseStudyProps) {
   const t = era.tokens;
   const nda = isProjectNda(project.id);
+  const caseSlug = caseSlugForProject(project.id);
   const links = Object.entries(project.links ?? {}).filter(
     ([, v]) => typeof v === "string" && v.length > 0,
   ) as [string, string][];
@@ -103,6 +105,17 @@ export function ProjectCaseStudy({ project, era }: ProjectCaseStudyProps) {
           </span>
         ) : null}
       </div>
+
+      {caseSlug ? (
+        <a
+          href={`/work#${caseSlug}`}
+          className="flex min-h-11 items-center justify-between gap-3 px-3 py-2 font-semibold"
+          style={{ background: t.accent, color: t.accentText, borderRadius: 4 }}
+        >
+          <span>Read the full case, idea to product</span>
+          <span aria-hidden>↑</span>
+        </a>
+      ) : null}
 
       <p style={{ color: t.text }}>{project.longDescription ?? project.description}</p>
 

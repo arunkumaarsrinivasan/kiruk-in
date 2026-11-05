@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { FigmaEmbed } from "@/app/portfolio/FigmaEmbed";
-import { EraHandoff } from "@/components/era-shell/EraHandoff";
+import { Showcase } from "@/components/work-showcase/Showcase";
 import { SITE_URL } from "@/lib/site";
 import { IdentityFacts } from "@/components/seo/IdentityFacts";
 import { WorkDesktop } from "./components/WorkDesktop";
@@ -28,7 +28,6 @@ export default function WorkPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(workJsonLd) }}
       />
-    <EraHandoff ask="work">
       <div
         className="relative z-10 min-h-dvh overflow-y-auto"
         style={{
@@ -37,7 +36,12 @@ export default function WorkPage() {
           paddingTop: "var(--simple-game-nav-bottom, 4.5rem)",
         }}
       >
-        <WorkDesktop title="Work" />
+        <h1 className="sr-only">Design engineering work by Arun Kumaar Sreenivasan</h1>
+        {/* The era's desktop leads: every project as an eye disc, opened in the era's own window */}
+        <WorkDesktop title="Work" titled={false} />
+
+        {/* Then the three cases in full */}
+        <Showcase />
 
         <section
           id="deck"
@@ -113,7 +117,6 @@ export default function WorkPage() {
           </Link>
         </nav>
       </div>
-    </EraHandoff>
     </>
   );
 }

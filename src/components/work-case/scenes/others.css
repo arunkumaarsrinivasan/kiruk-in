@@ -1,0 +1,443 @@
+/* HP and Square Bridge stills. Neutral roles from --sp-*, one accent each. */
+
+.ot-scene .ss-stage {
+  overflow: hidden;
+  background: var(--sp-bg);
+  border-radius: 10px;
+  color: var(--sp-fg);
+  font-size: 13px;
+}
+.ot-scene[data-look="phosphor"] {
+  text-shadow: 0 0 6px rgba(51, 255, 102, 0.45);
+}
+
+.ot-win {
+  position: absolute;
+  top: 28px;
+  left: 40px;
+  width: 560px;
+  height: 340px;
+  box-shadow: var(--ss-shadow-hero);
+}
+.ot-scene .ss-stage[data-layout="compact"] .ot-win {
+  left: 16px;
+  width: 380px;
+}
+
+.ot-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--sp-border);
+  border-radius: 10px;
+  background: var(--sp-card);
+}
+.ot-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 14px;
+  border-radius: 8px;
+  background: var(--ot-accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.ot-scene[data-look="phosphor"] .ot-btn {
+  border: 1px solid var(--sp-fg);
+  background: transparent;
+  color: var(--sp-fg);
+}
+.ot-btn--wide {
+  width: 100%;
+  height: 40px;
+  margin-top: auto;
+  font-size: 14px;
+}
+.ot-field {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--sp-border);
+  border-radius: 8px;
+}
+.ot-toggle {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--ot-accent);
+}
+.ot-toggle::after {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  content: "";
+}
+.ot-dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--ot-accent);
+}
+.ot-avatar {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--ot-accent) 30%, var(--sp-muted));
+}
+.ot-avatar--sm {
+  width: 20px;
+  height: 20px;
+}
+.ot-avatar--lg {
+  width: 48px;
+  height: 48px;
+}
+.ot-verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  color: var(--ot-accent);
+  font-size: 11px;
+  font-weight: 600;
+}
+.ot-nda {
+  position: absolute;
+  right: 16px;
+  bottom: 14px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--sp-card);
+  box-shadow: var(--ss-shadow-satellite);
+  color: var(--sp-fg-3);
+  font-family: var(--ss-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* trust */
+.ot-trust__body {
+  display: grid;
+  grid-template-columns: 230px 1fr;
+  gap: 20px;
+  padding: 20px;
+}
+.ot-trust__page {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 260px;
+  padding: 20px;
+  border-radius: 6px;
+  background: var(--sp-card);
+  box-shadow: var(--ss-shadow-card);
+}
+.ot-trust__img {
+  height: 70px;
+  border-radius: 4px;
+  background: color-mix(in oklab, var(--ot-accent) 18%, var(--sp-muted));
+}
+.ot-trust__side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ot-trust__note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 8px;
+  background: color-mix(in oklab, var(--ot-accent) 12%, transparent);
+}
+.ot-trust__side .ot-btn {
+  align-self: flex-start;
+  margin-top: 8px;
+}
+
+/* mudra */
+.ot-mudra__body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+}
+.ot-mudra__swatches {
+  display: flex;
+  gap: 8px;
+}
+.ot-mudra__swatches span {
+  width: 52px;
+  height: 52px;
+  border: 1px solid var(--sp-border);
+  border-radius: 10px;
+}
+.ot-mudra__parts {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.ot-mudra__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 120px);
+  gap: 10px;
+}
+.ot-tile {
+  height: 70px;
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--ot-accent) 14%, var(--sp-muted));
+}
+
+/* phones */
+.ot-phone {
+  position: absolute;
+  top: 28px;
+  left: 50%;
+  translate: -50% 0;
+}
+.ot-phone__screen {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 520px;
+  padding: 8px 16px 20px;
+  color: var(--sp-fg);
+}
+.ot-prints__title,
+.ot-plc__head {
+  margin-bottom: 4px;
+  font-size: 20px;
+  font-weight: 700;
+}
+.ot-card:has(> .ss-bar + .ss-bar) {
+  flex-direction: column;
+  align-items: flex-start;
+}
+.ot-prints__file {
+  border-style: dashed;
+  color: var(--ot-accent);
+}
+.ot-scene[data-kind="prints"] .ot-btn--wide {
+  margin-top: 40px;
+}
+.ot-plc__thread {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ot-bubble {
+  align-self: flex-start;
+  max-width: 80%;
+  padding: 9px 12px;
+  border-radius: 16px 16px 16px 4px;
+  background: var(--sp-card);
+  border: 1px solid var(--sp-border);
+  font-size: 14px;
+}
+.ot-bubble--me {
+  align-self: flex-end;
+  border-radius: 16px 16px 4px 16px;
+  background: color-mix(in oklab, var(--ot-accent) 22%, var(--sp-card));
+}
+.ot-plc__pdf {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ot-accent);
+}
+
+/* personas */
+.ot-personas {
+  position: absolute;
+  inset: 0;
+}
+.ot-persona {
+  position: absolute;
+  left: 32px;
+  width: 158px;
+  font-weight: 600;
+}
+.ot-persona:nth-child(1) {
+  top: 52px;
+}
+.ot-persona:nth-child(2) {
+  top: 144px;
+}
+.ot-persona:nth-child(3) {
+  top: 236px;
+}
+.ot-personas__lines {
+  position: absolute;
+  inset: 0;
+  width: 560px;
+  height: 340px;
+}
+.ot-personas__lines path {
+  fill: none;
+  stroke: color-mix(in oklab, var(--ot-accent) 70%, transparent);
+  stroke-width: 1.5;
+}
+.ot-bridge {
+  position: absolute;
+  top: 146px;
+  left: 300px;
+  padding: 14px 18px;
+  background: var(--ot-accent);
+  border-color: transparent;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  box-shadow: var(--ss-shadow-satellite);
+}
+.ot-scene[data-look="phosphor"] .ot-bridge {
+  border-color: var(--sp-fg);
+  background: transparent;
+  color: var(--sp-fg);
+}
+.ot-scene .ss-stage[data-layout="compact"] .ot-persona {
+  left: 16px;
+  width: 140px;
+}
+.ot-scene .ss-stage[data-layout="compact"] .ot-bridge {
+  left: 196px;
+}
+
+/* research / system: many of one */
+.ot-research,
+.ot-system {
+  position: absolute;
+  inset: -20px;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+  padding: 0;
+}
+.ot-session {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 64px;
+  padding: 0 12px;
+  border: 1px solid var(--sp-border);
+  border-radius: 10px;
+  background: var(--sp-card);
+  opacity: 0.55;
+}
+.ot-session[data-focus] {
+  z-index: 1;
+  opacity: 1;
+  box-shadow: var(--ss-shadow-lift);
+}
+.ot-research__big {
+  position: absolute;
+  bottom: 44px;
+  left: 44px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  background: var(--sp-card);
+  box-shadow: var(--ss-shadow-satellite);
+}
+.ot-research__big b {
+  color: var(--ot-accent);
+  font-size: 34px;
+  line-height: 1.1;
+}
+.ot-research__big span {
+  color: var(--sp-fg-3);
+  font-size: 12px;
+}
+.ot-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: 104px;
+  padding: 12px;
+  border: 1px solid var(--sp-border);
+  border-radius: 10px;
+  background: var(--sp-card);
+}
+.ot-screen__block {
+  flex: 1;
+  margin-top: 4px;
+  border-radius: 6px;
+  background: color-mix(in oklab, var(--ot-accent) 14%, var(--sp-muted));
+}
+.ot-system__big {
+  right: 44px;
+  left: auto;
+}
+
+/* portfolio */
+.ot-portfolio__body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+}
+.ot-portfolio__who {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 6px;
+}
+.ot-portfolio__who > div {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ot-portfolio__item {
+  width: 400px;
+}
+
+/* sb ship */
+.ot-sbship__kpis {
+  display: flex;
+  gap: 10px;
+  padding: 20px 20px 0;
+}
+.ot-kpi {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 140px;
+}
+.ot-kpi b {
+  color: var(--ot-accent);
+  font-size: 26px;
+  line-height: 1.1;
+}
+.ot-kpi span {
+  color: var(--sp-fg-3);
+  font-size: 11px;
+}
+.ot-sbship__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 20px;
+}
+.ot-sbship__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 440px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--sp-border);
+}

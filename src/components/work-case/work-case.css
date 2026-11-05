@@ -1,0 +1,51 @@
+/* The picture slot every era shares: one shape, so copy never jumps. */
+
+.wc-scene,
+.wc-shot {
+  position: relative;
+  width: 100%;
+  margin: 0;
+}
+/* A scene takes its stage's own height (each has its design size); until
+   its code has loaded it holds the common shape, so nothing jumps much */
+.wc-scene:empty,
+.wc-shot {
+  aspect-ratio: 560 / 340;
+}
+.wc-scene > * {
+  width: 100%;
+}
+.wc-shot {
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--sp-bg);
+}
+.wc-shot img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+/* A photo on a vector display: the beam has one colour */
+.wc-shot[data-look="phosphor"] img {
+  filter: grayscale(1) brightness(0.9) sepia(1) hue-rotate(70deg) saturate(4) contrast(1.1);
+  mix-blend-mode: screen;
+  opacity: 0.85;
+}
+@media (max-width: 519px) {
+  .wc-scene:empty,
+  .wc-shot {
+    aspect-ratio: 358 / 320;
+  }
+}
+
+/* Phosphor draws window chrome as outlines too: no coloured lights */
+[data-look="phosphor"] .ss-window__dot {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--sp-fg-3);
+}
+[data-look="phosphor"] .ss-window__url {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--sp-border);
+}
