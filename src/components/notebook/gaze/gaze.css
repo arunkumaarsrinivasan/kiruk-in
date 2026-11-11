@@ -815,24 +815,6 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .era-blog-surface[data-era-surface="1970"][data-era-cursor="block"],
-  .era-blog-surface[data-era-surface="1970"][data-era-cursor="block"] * {
-    cursor: none !important;
-  }
-
-  .era-blog-surface[data-era-surface="1970"][data-era-cursor="block"] .site-chrome,
-  .era-blog-surface[data-era-surface="1970"][data-era-cursor="block"] .site-chrome *,
-  .era-blog-surface[data-era-surface="1970"][data-era-cursor="block"] [data-gaze-ignore],
-  .era-blog-surface[data-era-surface="1970"][data-era-cursor="block"] [data-gaze-ignore] *,
-  .era-blog-surface[data-era-surface="1970"][data-era-cursor="block"] .era-toc,
-  .era-blog-surface[data-era-surface="1970"][data-era-cursor="block"] .era-toc *,
-  .era-blog-surface[data-era-surface="1970"][data-era-cursor="block"] .era-toc-act,
-  .era-blog-surface[data-era-surface="1970"][data-era-cursor="block"] .era-mark,
-  .era-blog-surface[data-era-surface="1970"][data-era-cursor="block"] .era-zig,
-  .era-blog-surface[data-era-surface="1970"][data-era-cursor="block"] .era-hit {
-    cursor: pointer !important;
-  }
-
   .skin-log .era-record:hover .era-record-title {
     background: transparent;
     color: inherit;
@@ -841,11 +823,6 @@
 }
 
 @media (pointer: coarse), (prefers-reduced-motion: reduce) {
-  .era-blog-surface[data-era-surface="1970"][data-era-cursor="block"],
-  .era-blog-surface[data-era-surface="1970"][data-era-cursor="block"] * {
-    cursor: auto !important;
-  }
-
   [data-zone="tty"]:hover,
   [data-zone="kicker"]:hover,
   [data-zone="back"]:hover {

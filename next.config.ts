@@ -20,6 +20,12 @@ if (process.env.NODE_ENV === "development") {
 const nextConfig: NextConfig = {
   serverExternalPackages: ["punycode"],
 
+  // /notebook renders per request (?q=) and lists the eye skills from .claude/skills;
+  // make sure the deployed function carries those files.
+  outputFileTracingIncludes: {
+    "/notebook": ["./.claude/skills/eye-*/SKILL.md"],
+  },
+
   // Image optimization (remotePatterns for Notion file URLs + common CDNs)
   images: {
     formats: ["image/avif", "image/webp"],

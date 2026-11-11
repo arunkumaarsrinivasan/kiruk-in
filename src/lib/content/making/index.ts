@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { z } from "zod";
 import { baseFrontmatter, defineCollection, getEntries, getEntry, type Entry } from "@/lib/content";
 
@@ -122,8 +123,11 @@ export function getMakingEntry(slug: string): MakingEntry | undefined {
   return getEntry(making, slug);
 }
 
-/** Every node and edge. An edge to a slug that has no file stops the build. */
-export function getMakingGraph(): { nodes: MakingNode[]; edges: MakingEdge[] } {
+/**
+ * Every node and edge. An edge to a slug that has no file stops the build.
+ * Cached per request: a page asks for the graph through several helpers.
+ */
+export const getMakingGraph = cache(function getMakingGraph(): { nodes: MakingNode[]; edges: MakingEdge[] } {
   const entries = getMakingEntries();
   const known = new Set(entries.map((e) => e.slug));
   const edges: MakingEdge[] = [];
@@ -137,7 +141,7 @@ export function getMakingGraph(): { nodes: MakingNode[]; edges: MakingEdge[] } {
     }
   }
   return { nodes: entries.map(toNode), edges };
-}
+});
 
 /** One entry's neighbours, grouped by how they relate to it, both directions. */
 export function getLineage(slug: string): LineageGroup[] {
@@ -189,21 +193,6 @@ export function getTrail(slug: string): { prev?: MakingNode; next?: MakingNode }
   const i = trail.findIndex((n) => n.slug === slug);
   if (i < 0) return {};
   return { prev: trail[i - 1], next: trail[i + 1] };
-}
-
-/** What the notebook index shows under "How this was made". */
-export interface MakingIndex {
-  href: string;
-  /** Entries in the whole map, and the links between them. */
-  total: number;
-  links: number;
-  /** The entries listed on the index: the interfaces, a visitor's way in. */
-  items: MakingNode[];
-}
-
-export function getMakingIndex(): MakingIndex {
-  const { nodes, edges } = getMakingGraph();
-  return { href: MAKING_PATH, total: nodes.length, links: edges.length, items: nodes.filter((n) => n.kind === "interface") };
 }
 
 /** One node by slug, for links that preview what they point to. */

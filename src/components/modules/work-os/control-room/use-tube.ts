@@ -45,6 +45,12 @@ export interface TubeScreen {
 }
 
 const STORE = "kiruk-tube-1970";
+/**
+ * How long the tube keeps drawing after the last change while nothing moves by
+ * itself. The phosphor fades by the clock and loses 0.006 a frame besides, so
+ * even a full-white cell is black in about 0.3 s at 30 fps or faster.
+ */
+const QUIET_MS = 500;
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
 /** The work tube's display settings, as the visitor left them. */
@@ -101,7 +107,9 @@ export function useTube(
       try {
         crt = new Crt(glass, { fill: ARROW, width: 12, height: 17 });
       } catch {
-        // no WebGL2: the flat picture, unbent
+        // No WebGL2: the flat picture, unbent. If WebGL claimed this canvas
+        // before it failed, the 2D context is null and the screen stays dark:
+        // the canvas belongs to the caller, so this hook cannot swap it.
         crt = null;
         flat = glass.getContext("2d");
       }
@@ -179,9 +187,19 @@ export function useTube(
       dirty.current = true;
     };
     layout();
-    const ro = new ResizeObserver(layout);
+    // the observer and the window both report a resize: fit once, on the next frame
+    let fitting = 0;
+    const refit = () => {
+      if (!fitting) {
+        fitting = requestAnimationFrame(() => {
+          fitting = 0;
+          layout();
+        });
+      }
+    };
+    const ro = new ResizeObserver(refit);
     ro.observe(host);
-    globalThis.addEventListener("resize", layout);
+    globalThis.addEventListener("resize", refit);
     const settle = globalThis.setTimeout(layout, 400);
     void document.fonts?.load(`20px ${family}`).then(() => {
       dirty.current = true;
@@ -191,6 +209,13 @@ export function useTube(
     let last = performance.now();
     let lastTick = 0;
     const born = last;
+    /** When the tube last had something new to show; and what the pointer was then. */
+    let changedAt = last;
+    let seenPointer: Pt | null = pointer;
+    let seenLook = look;
+    // the settings are read once, so the phosphor's colours are too
+    const hot = rgb01(plasmaHex(config.color));
+    const tint = rgb01(phosphorHex(config.color));
 
     const frame = (t: number) => {
       raf = requestAnimationFrame(frame);
@@ -200,7 +225,9 @@ export function useTube(
       }
       const dt = Math.min(5, (t - last) / 1000);
       last = t;
-      // twenty times a second: cords swing and lamps blink by themselves
+      // twenty times a second: cords swing and lamps blink by themselves. This stays at 50 ms
+      // even when held still: a screen may change its state without asking for a redraw, and
+      // this tick is what picks that up.
       const tick = t - lastTick > 50;
       const fresh = dirty.current || tick;
       if (fresh) {
@@ -209,17 +236,25 @@ export function useTube(
         surface.clear();
         latest.current.draw(surface, { time: still.matches ? 0 : (t - born) / 1000, safe, pointer, hover, config });
       }
-      if (crt) {
+      const warm = still.matches ? 1 : clamp((t - born) / 1100, 0, 1);
+      const motion = !still.matches && config.hum;
+      // Hum, flicker and grain move every frame, and so does the tube warming up.
+      // Without them the glass changes only with the picture or the pointer; once
+      // the phosphor has let go of the last change, another frame would be the same.
+      if (fresh || motion || warm < 1 || pointer !== seenPointer || look !== seenLook) changedAt = t;
+      seenPointer = pointer;
+      seenLook = look;
+      if (crt && t - changedAt < QUIET_MS) {
         crt.draw(surface.canvas, {
           time: t / 1000,
           dt,
           dirty: fresh,
           pointer,
-          pointerColor: hover ? rgb01(plasmaHex(config.color)) : [0.95, 1, 0.96],
-          tint: rgb01(phosphorHex(config.color)),
+          pointerColor: hover ? hot : [0.95, 1, 0.96],
+          tint,
           look,
-          warm: still.matches ? 1 : clamp((t - born) / 1100, 0, 1),
-          motion: !still.matches && config.hum,
+          warm,
+          motion,
           gain: config.gain,
           glow: config.glow,
           scan: config.scan,
@@ -311,9 +346,10 @@ export function useTube(
 
     return () => {
       cancelAnimationFrame(raf);
+      cancelAnimationFrame(fitting);
       globalThis.clearTimeout(settle);
       ro.disconnect();
-      globalThis.removeEventListener("resize", layout);
+      globalThis.removeEventListener("resize", refit);
       fine.removeEventListener("change", syncCursor);
       glass.removeEventListener("pointermove", onMove);
       glass.removeEventListener("pointerleave", onLeave);

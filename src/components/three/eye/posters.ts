@@ -9,7 +9,7 @@
  * Pure TS: imported by the loader, the lab and the capture route alike.
  */
 
-import { eyeShot } from "./framing";
+import { eyeShot, type FrameBox } from "./framing";
 
 export const POSTER_VARIANTS = {
   /** Desktop and landscape: the whole almond. */
@@ -45,10 +45,11 @@ export interface PosterPlacement {
  * odd shape; the room behind it is the same near-black, and the edges of every
  * poster are already vignetted down to it.
  */
-export function posterPlacement(w: number, h: number, variant: PosterVariant): PosterPlacement {
+export function posterPlacement(w: number, h: number, variant: PosterVariant, box?: FrameBox): PosterPlacement {
   const v = POSTER_VARIANTS[variant];
+  // the posters were captured with the default framing; `box` is the live eye's own (the era picker's closer shot)
   const at = eyeShot(v.cssW, v.cssH);
-  const here = eyeShot(w, h);
+  const here = eyeShot(w, h, box);
   const scale = (h / here.span) / (v.cssH / at.span);
   const width = v.cssW * scale;
   const height = v.cssH * scale;

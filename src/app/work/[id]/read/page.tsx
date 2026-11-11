@@ -14,6 +14,7 @@ import { WORK_SHOW } from "@/data/work-show";
 import { renderMdx, type MdxComponentScope } from "@/lib/content";
 import { getWorkCases } from "@/lib/content/work";
 import { buildWorkMarkdown, workIds, workMarkdownPath } from "@/lib/content/work/markdown";
+import { markdownToMdxText } from "@/lib/content/read/escape";
 import "../../styles/read.css";
 
 /**
@@ -21,6 +22,8 @@ import "../../styles/read.css";
  * Markdown the site serves at /work/<id>/agent.md, rendered here as HTML in
  * the era's tokens. For anyone who would rather read than drive a desktop.
  */
+
+export const dynamicParams = false;
 
 export function generateStaticParams() {
   return workIds().map((id) => ({ id }));
@@ -64,12 +67,12 @@ function pictures(id: string): { src: string; alt: string; caption: string }[] {
 
 /** The page body: the Markdown without its frontmatter, title and pitch, which the header shows. */
 function body(markdown: string): string {
-  return markdown
-    .replace(/^---\n[\s\S]*?\n---\n+/, "")
-    .replace(/^# .*\n+/, "")
-    .replace(/^> .*\n+/, "")
-    .replace(/[{}]/g, (c) => `\\${c}`)
-    .replace(/<(?!https?:)/g, "&lt;");
+  return markdownToMdxText(
+    markdown
+      .replace(/^---\n[\s\S]*?\n---\n+/, "")
+      .replace(/^# .*\n+/, "")
+      .replace(/^> .*\n+/, ""),
+  );
 }
 
 export default async function WorkReadPage({ params }: { params: Promise<{ id: string }> }) {
@@ -79,7 +82,8 @@ export default async function WorkReadPage({ params }: { params: Promise<{ id: s
   const markdown = buildWorkMarkdown(id, { plain: false });
   if (!project || !markdown) notFound();
   const name = getProjectCoverLabel(project.id, project.title);
-  const content = await renderMdx(body(markdown), {});
+  const text = body(markdown);
+  const content = await renderMdx(text, {});
   const kase = getWorkCases().find((c) => c.frontmatter.project === id || c.frontmatter.also?.includes(id));
   const presentation = kase ? await renderMdx(kase.body, WORK_MDX as unknown as MdxComponentScope) : null;
   const media = pictures(id);
@@ -87,7 +91,7 @@ export default async function WorkReadPage({ params }: { params: Promise<{ id: s
   return (
     <ReadSurface
       trail={[{ label: "Read", href: "/notebook" }, { label: "Work", href: "/notebook#work" }, { label: name }]}
-      rail={readRail({ shelf: "work", href: `/work/${project.id}/read`, sections: sectionsOf(body(markdown)) })}
+      rail={readRail({ shelf: "work", href: `/work/${project.id}/read`, sections: sectionsOf(text) })}
       blueprint="work-read"
     >
       <header className="read-page-head">

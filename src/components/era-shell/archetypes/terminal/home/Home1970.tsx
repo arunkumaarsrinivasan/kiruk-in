@@ -23,6 +23,7 @@ import { useModules } from "@/contexts/ModuleContext";
 import { Crt, unbend, type CrtGeometry } from "@/components/modules/work-os/control-room/crt";
 import { ARROW } from "@/components/modules/work-os/control-room/pixel-icons";
 import { CH, CW, rgb01, Surface } from "@/components/modules/work-os/control-room/surface";
+import { readTubeConfig } from "@/components/modules/work-os/control-room/use-tube";
 import {
   phosphorHex,
   plasmaHex,
@@ -59,24 +60,14 @@ const HOME_CSS = `
 [data-terminal-shell]{display:none}
 html:has(#home-1970),body:has(#home-1970){overflow:hidden}`;
 
-function readConfig(raw: string | null): TubeConfig {
-  const out = { ...TUBE_DEFAULTS };
-  try {
-    const saved = JSON.parse(raw ?? "null") as Partial<TubeConfig> | null;
-    if (!saved || typeof saved !== "object") return out;
-    for (const key of ["gain", "curve", "glow"] as const) {
-      const [lo, hi] = TUBE_RANGE[key];
-      const value = saved[key];
-      if (typeof value === "number" && Number.isFinite(value)) out[key] = Math.max(lo, Math.min(hi, value));
-    }
-    if (typeof saved.scan === "boolean") out.scan = saved.scan;
-    if (typeof saved.hum === "boolean") out.hum = saved.hum;
-    if (saved.color === "crt" || saved.color === "plasma" || saved.color === "ice") out.color = saved.color;
-  } catch {
-    // an unreadable setting is no setting
-  }
-  return out;
-}
+/**
+ * How long the tube keeps drawing after the last change while nothing moves by
+ * itself. The phosphor fades by the clock and loses 0.006 a frame besides, so
+ * even a full-white cell is black in about 0.3 s at 30 fps or faster.
+ */
+const QUIET_MS = 500;
+/** A module panel covering the home: once its grow has finished, the tube under it rests. */
+const COVERED_MS = 600;
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 const recordOf = (id: string | null) => RECORDS.find((r) => r.id === id) ?? null;
@@ -107,6 +98,8 @@ export function Home1970() {
   const [cfg, setCfg] = useState<TubeConfig>(TUBE_DEFAULTS);
   const [cfgOpen, setCfgOpen] = useState(false);
   const [ownCursor, setOwnCursor] = useState(false);
+  /** WebGL claimed the canvas and then failed: the flat picture needs a canvas of its own. */
+  const [noGl, setNoGl] = useState(false);
   const [stamp, setStamp] = useState("---------- --:-- UTC");
 
   const rootRef = useRef<HTMLDivElement>(null);
@@ -159,12 +152,15 @@ export function Home1970() {
 
   /* ── the display settings, shared with the work tube ── */
   useEffect(() => {
-    try {
-      setCfg(readConfig(localStorage.getItem(STORE)));
-    } catch {
-      // storage can be closed to the page; the defaults stand
-    }
+    setCfg(readTubeConfig());
   }, []);
+
+  /* ── a module panel over the home: the tube under it can rest ── */
+  const coveredAt = useRef(0);
+  useEffect(() => {
+    // the era picker is not an opaque panel, so the tube keeps playing under it
+    coveredAt.current = moduleOpen && moduleOpen !== "eras" ? performance.now() : 0;
+  }, [moduleOpen]);
   useEffect(() => {
     try {
       localStorage.setItem(STORE, JSON.stringify(cfg));
@@ -424,13 +420,19 @@ export function Home1970() {
     let crt = null as Crt | null;
     let flat = null as CanvasRenderingContext2D | null;
     const boot = () => {
-      try {
-        crt = new Crt(canvas, { fill: ARROW, width: 12, height: 17 });
-      } catch {
-        // no WebGL2: show the flat picture, unbent
-        crt = null;
-        flat = canvas.getContext("2d");
+      crt = null;
+      flat = null;
+      if (!noGl) {
+        try {
+          crt = new Crt(canvas, { fill: ARROW, width: 12, height: 17 });
+          return;
+        } catch {
+          // no WebGL2: show the flat picture, unbent
+        }
       }
+      flat = canvas.getContext("2d");
+      // a canvas WebGL claimed before it failed can never draw flat: start over on a fresh one
+      if (!flat && !noGl) setNoGl(true);
     };
     boot();
 
@@ -503,9 +505,19 @@ export function Home1970() {
     };
     layout();
     relayout.current = layout;
-    const ro = new ResizeObserver(layout);
+    // the observer and the window both report a resize: fit once, on the next frame
+    let fitting = 0;
+    const refit = () => {
+      if (!fitting) {
+        fitting = requestAnimationFrame(() => {
+          fitting = 0;
+          layout();
+        });
+      }
+    };
+    const ro = new ResizeObserver(refit);
     ro.observe(root);
-    globalThis.addEventListener("resize", layout);
+    globalThis.addEventListener("resize", refit);
     // the nav measures its lids a moment after the page mounts
     const settle = globalThis.setTimeout(layout, 400);
 
@@ -544,18 +556,28 @@ export function Home1970() {
     let last = performance.now();
     let lastTick = 0;
     born.current = last;
+    /** When the tube last had something new to show; and what the pointer was then. */
+    let changedAt = last;
+    let seenPointer = pointer.current;
+    let seenLook = look.current;
+    /** The phosphor's colours, worked out again only when the setting changes. */
+    let colorOf = "";
+    let hot: [number, number, number] = [1, 1, 1];
+    let tint: [number, number, number] = [1, 1, 1];
 
     const frame = (t: number) => {
       raf = requestAnimationFrame(frame);
-      if (document.hidden) {
+      const covered = coveredAt.current > 0 && t - coveredAt.current > COVERED_MS;
+      if (document.hidden || covered) {
         last = t;
         return;
       }
       const dt = Math.min(5, (t - last) / 1000);
       last = t;
       // redrawn when something changed, ten times a second for the clock and what blinks,
-      // and twice as often while a record's scene is playing
-      const tick = t - lastTick > (view.current.open ? 50 : 100);
+      // and twice as often while a record's scene is playing; held still, only the clock moves, once a second
+      const every = still.matches ? 1000 : view.current.open ? 50 : 100;
+      const tick = t - lastTick > every;
       const fresh = dirty.current || tick;
       if (fresh) {
         if (tick) lastTick = t;
@@ -563,17 +585,30 @@ export function Home1970() {
         redraw(t / 1000);
       }
       const set = view.current.cfg;
-      if (crt) {
+      if (set.color !== colorOf) {
+        colorOf = set.color;
+        hot = rgb01(plasmaHex(set.color));
+        tint = rgb01(phosphorHex(set.color));
+      }
+      const warm = still.matches ? 1 : clamp((t - born.current) / 1100, 0, 1);
+      const motion = !still.matches && set.hum;
+      // Hum, flicker and grain move every frame, and so does the tube warming up.
+      // Without them the glass changes only with the picture or the pointer; once
+      // the phosphor has let go of the last change, another frame would be the same.
+      if (fresh || motion || warm < 1 || pointer.current !== seenPointer || look.current !== seenLook) changedAt = t;
+      seenPointer = pointer.current;
+      seenLook = look.current;
+      if (crt && t - changedAt < QUIET_MS) {
         crt.draw(surface.canvas, {
           time: t / 1000,
           dt,
           dirty: fresh,
           pointer: pointer.current,
-          pointerColor: hover.current && hover.current !== "cfg:panel" ? rgb01(plasmaHex(set.color)) : [0.95, 1, 0.96],
-          tint: rgb01(phosphorHex(set.color)),
+          pointerColor: hover.current && hover.current !== "cfg:panel" ? hot : [0.95, 1, 0.96],
+          tint,
           look: look.current,
-          warm: still.matches ? 1 : clamp((t - born.current) / 1100, 0, 1),
-          motion: !still.matches && set.hum,
+          warm,
+          motion,
           gain: set.gain,
           glow: set.glow,
           scan: set.scan,
@@ -702,9 +737,10 @@ export function Home1970() {
 
     return () => {
       cancelAnimationFrame(raf);
+      cancelAnimationFrame(fitting);
       globalThis.clearTimeout(settle);
       ro.disconnect();
-      globalThis.removeEventListener("resize", layout);
+      globalThis.removeEventListener("resize", refit);
       fine.removeEventListener("change", syncCursor);
       canvas.removeEventListener("pointermove", onMove);
       canvas.removeEventListener("pointerleave", onLeave);
@@ -717,7 +753,7 @@ export function Home1970() {
       canvas.removeEventListener("webglcontextrestored", onRestored);
       crt?.dispose();
     };
-  }, [act, scrollBy]);
+  }, [act, scrollBy, noGl]);
 
   /* ── the mirror: the same file as real headings, links and buttons ── */
   return (
@@ -725,7 +761,7 @@ export function Home1970() {
       <style>{HOME_CSS}</style>
       <div className="cr-host">
         <div ref={rootRef} className="cr" tabIndex={-1} data-own-cursor={ownCursor ? "" : undefined}>
-          <canvas ref={canvasRef} className="cr-canvas" aria-hidden />
+          <canvas key={noGl ? "flat" : "glass"} ref={canvasRef} className="cr-canvas" aria-hidden />
 
           <div className="cr-mirror">
             <h1>{SUBJECT.name}</h1>

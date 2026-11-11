@@ -16,6 +16,9 @@ import { SHARE_IMAGE, SITE_URL } from "@/lib/site";
 
 type Params = Promise<{ name: string }>;
 
+/** Only the skills found at build time; any other name is a 404, never a file read. */
+export const dynamicParams = false;
+
 export function generateStaticParams() {
   return getSkills().map((s) => ({ name: s.name }));
 }

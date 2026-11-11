@@ -27,7 +27,7 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { animate, useMotionValue, useReducedMotion, useSpring } from "framer-motion";
+import { animate, useMotionValue, useReducedMotion, useSpring, type MotionValue } from "framer-motion";
 import { useDesignEra } from "@/contexts/DesignEraContext";
 import { SiteHomeLink } from "@/components/layout/SiteHomeLink";
 import { usePublishedTrail, type NavTrailItem } from "@/components/layout/NavTrail";
@@ -300,6 +300,14 @@ export function Navbar() {
     else wideMV.set(wide ? 1 : 0);
   }, [wide, reduce, wideMV]);
 
+  // Each lid spring's last target: a spring is only re-aimed when its target changes, not on every pointer move.
+  const aimed = useRef({ l: 0, r: 0, b: 0 });
+  const aim = useCallback((mv: MotionValue<number>, key: "l" | "r" | "b", to: number) => {
+    if (aimed.current[key] === to) return;
+    aimed.current[key] = to;
+    mv.set(to);
+  }, []);
+
   // Widen while scrolling down; scrolling up or pointing at a lid restores.
   useEffect(() => {
     let lastY = window.scrollY;
@@ -312,8 +320,12 @@ export function Navbar() {
       else if (dy < -6) setWide(false);
     };
     const fine = window.matchMedia("(hover: hover) and (pointer: fine)");
-    /** The ruler's ticks and years rise under the pointer. */
-    const swell = (x: number | null) => {
+    /** The ruler's ticks and years rise under the pointer: at most once a frame, however fast it moves. */
+    let swellAt: number | null = null;
+    let swellRaf = 0;
+    const swellNow = () => {
+      swellRaf = 0;
+      const x = swellAt;
       if (x === null && !fishOn.current) return;
       fishOn.current = x !== null;
       for (const r of riders.current) {
@@ -325,6 +337,11 @@ export function Navbar() {
       }
       drawNow.current();
     };
+    const swell = (x: number | null) => {
+      swellAt = x;
+      if (x === null && !fishOn.current && !swellRaf) return;
+      if (!swellRaf) swellRaf = requestAnimationFrame(swellNow);
+    };
     const onPointer = (e: PointerEvent) => {
       const w = window.innerWidth;
       const nearTop = e.clientY < 90;
@@ -333,9 +350,9 @@ export function Navbar() {
       lastMove.current = Date.now();
       if (reduce || !fine.matches || e.pointerType === "touch") return;
       // each lid closes to its full depth on the side the pointer comes to, and rests open elsewhere
-      easeL.set(nearTop && e.clientX < w * 0.6 ? 0 : 1);
-      easeR.set(nearTop && e.clientX > w * 0.4 ? 0 : 1);
-      easeB.set(nearBottom ? 0 : 1);
+      aim(easeL, "l", nearTop && e.clientX < w * 0.6 ? 0 : 1);
+      aim(easeR, "r", nearTop && e.clientX > w * 0.4 ? 0 : 1);
+      aim(easeB, "b", nearBottom ? 0 : 1);
       swell(nearBottom ? e.clientX : null);
     };
     const onLeave = () => swell(null);
@@ -343,22 +360,24 @@ export function Navbar() {
     window.addEventListener("pointermove", onPointer, { passive: true });
     document.documentElement.addEventListener("pointerleave", onLeave);
     return () => {
+      cancelAnimationFrame(swellRaf);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("pointermove", onPointer);
       document.documentElement.removeEventListener("pointerleave", onLeave);
     };
-  }, [reduce, easeL, easeR, easeB]);
+  }, [reduce, easeL, easeR, easeB, aim]);
 
   /** Tabbing into a lid, or opening the menu, brings every lid to its full depth. */
   const closeIn = useCallback(() => {
     setWide(false);
-    easeL.set(0);
-    easeR.set(0);
-    easeB.set(0);
-  }, [easeL, easeR, easeB]);
+    aim(easeL, "l", 0);
+    aim(easeR, "r", 0);
+    aim(easeB, "b", 0);
+  }, [easeL, easeR, easeB, aim]);
 
   // A press on anything in the lids squeezes them; a route change then carries the squeeze into its blink.
   const squeeze = useRef(0);
+  useEffect(() => () => window.clearTimeout(squeeze.current), []);
   const onPress = useCallback(
     (e: React.PointerEvent) => {
       if (reduce || !(e.target as HTMLElement).closest("a[href], button")) return;
@@ -424,7 +443,7 @@ export function Navbar() {
 
   // Find everything that rides a lid, and where it sits; `draw` then seats it on the lids as they move.
   const trailKey = `${up?.label ?? ""}/${here?.label ?? ""}`;
-  const rideKey = `${trailKey}|${full}|${menuOpen}|${eraId}|${eras.length}|${shown?.id}`;
+  const rideKey = `${trailKey}|${full}|${menuOpen}|${eraId}|${eras.length}`;
   useLayoutEffect(() => {
     if (!size.w) return;
     const rows: [React.RefObject<HTMLDivElement | null>, "top" | "bottom"][] = [

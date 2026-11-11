@@ -1,6 +1,8 @@
 import "server-only";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { cache } from "react";
+import { markdownToMdxText } from "./read/escape";
 
 /**
  * The skills this site is built with, read straight from `.claude/skills/eye-*`
@@ -11,6 +13,7 @@ import { join } from "node:path";
 
 const DIR = join(process.cwd(), ".claude", "skills");
 const OWN = /^eye-/;
+const SAFE_NAME = /^eye-[a-z0-9-]+$/;
 export const SKILLS_PATH = "/skills";
 
 export interface Skill {
@@ -35,7 +38,8 @@ function read(name: string): Skill | undefined {
   return { name, summary, description, body, href: `${SKILLS_PATH}/${name}` };
 }
 
-export function getSkills(): Skill[] {
+/** Cached per request: the Read directory and every rail ask for the list. */
+export const getSkills = cache(function getSkills(): Skill[] {
   if (!existsSync(DIR)) return [];
   const out = readdirSync(DIR, { withFileTypes: true })
     .filter((d) => d.isDirectory() && OWN.test(d.name))
@@ -43,10 +47,11 @@ export function getSkills(): Skill[] {
     .filter((s): s is Skill => Boolean(s));
   // the hub first, then the rest by name
   return out.sort((a, b) => Number(b.name === "eye-loader-system") - Number(a.name === "eye-loader-system") || a.name.localeCompare(b.name));
-}
+});
 
+/** Only a plain folder name: no slashes or dots can walk out of `.claude/skills/eye-*`. */
 export function getSkill(name: string): Skill | undefined {
-  return OWN.test(name) ? read(name) : undefined;
+  return SAFE_NAME.test(name) ? read(name) : undefined;
 }
 
 /**
@@ -54,20 +59,9 @@ export function getSkill(name: string): Skill | undefined {
  * angle brackets are text, not JSX. Links to sibling skills become site links.
  */
 export function skillToMdx(body: string): string {
-  let fenced = false;
-  return body
-    .split("\n")
-    .map((line) => {
-      if (/^\s*```/.test(line)) {
-        fenced = !fenced;
-        return line;
-      }
-      if (fenced) return line;
-      return line
-        .replace(/[{}]/g, (c) => `\\${c}`)
-        .replace(/<(?!https?:)/g, "&lt;")
-        .replace(/\]\((?:\.\.\/)?(eye-[a-z-]+)(?:\/SKILL\.md)?\)/g, `](${SKILLS_PATH}/$1)`)
-        .replace(/\]\((?!https?:|\/|#)[^)]*\)/g, "](#)");
-    })
-    .join("\n");
+  return markdownToMdxText(body, (line) =>
+    line
+      .replace(/\]\((?:\.\.\/)?(eye-[a-z-]+)(?:\/SKILL\.md)?\)/g, `](${SKILLS_PATH}/$1)`)
+      .replace(/\]\((?!https?:|\/|#)[^)]*\)/g, "](#)"),
+  );
 }

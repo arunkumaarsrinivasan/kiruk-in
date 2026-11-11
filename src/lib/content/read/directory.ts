@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { portfolioData } from "@/data/portfolio-data";
 import { getProjectCoverLabel } from "@/data/project-media";
 import { readingTime } from "@/lib/content";
@@ -185,9 +186,10 @@ function skillsShelf(): ReadShelf {
   };
 }
 
-export function getReadDirectory(): ReadShelf[] {
+/** Cached per request: the home, its search, its featured row and every rail read it. Treat as read-only. */
+export const getReadDirectory = cache(function getReadDirectory(): ReadShelf[] {
   return [lifeShelf(), makingShelf(), workShelf(), skillsShelf()];
-}
+});
 
 /** The directory narrowed to pages that match a word; shelves with nothing left are dropped. */
 export function searchReadDirectory(query: string): ReadShelf[] {

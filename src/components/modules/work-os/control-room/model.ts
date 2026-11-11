@@ -48,7 +48,7 @@ export interface Unit {
   readonly w: number;
 }
 
-export interface ClassTile {
+interface ClassTile {
   readonly cls: Cls;
   readonly tint: Tint;
   readonly count: number;

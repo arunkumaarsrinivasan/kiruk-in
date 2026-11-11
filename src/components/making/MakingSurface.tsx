@@ -1,5 +1,3 @@
-"use client";
-
 /**
  * A making-of page: the shared Read surface (components/read/ReadSurface)
  * with the rail beside it. Ordinary entries follow the visitor's era; an

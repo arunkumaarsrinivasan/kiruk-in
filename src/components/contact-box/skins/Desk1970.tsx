@@ -29,9 +29,11 @@ const PAGE_CSS = `
 [data-terminal-shell]{display:none}
 html:has(#contact-1970),body:has(#contact-1970){overflow:hidden}`;
 
+const IST_DAY = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kolkata", day: "2-digit", month: "short" });
+
 /** Today in Bengaluru, as a message pad writes it: "10 NOV". */
 function istDate() {
-  return new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kolkata", day: "2-digit", month: "short" }).format(new Date()).toUpperCase();
+  return IST_DAY.format(new Date()).toUpperCase();
 }
 
 export function Desk1970({ contact }: ContactSkinProps) {

@@ -13,6 +13,8 @@ import { SHARE_IMAGE, SITE_URL } from "@/lib/site";
 
 type Params = Promise<{ slug: string }>;
 
+export const dynamicParams = false;
+
 export function generateStaticParams() {
   return getMakingEntries().map((e) => ({ slug: e.slug }));
 }

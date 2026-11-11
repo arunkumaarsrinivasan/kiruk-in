@@ -1,6 +1,9 @@
 import type { MetadataRoute } from "next";
 import { getMakingEntries, making } from "@/lib/content/making";
 import { getNotebookEntries } from "@/lib/content/notebook";
+import { getPracticeEntries, practice } from "@/lib/content/practice";
+import { getSkills } from "@/lib/content/skills";
+import { workIds, workMarkdownPath } from "@/lib/content/work/markdown";
 import { SITE_URL } from "@/lib/site";
 
 type Route = {
@@ -66,5 +69,31 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ];
   });
 
-  return [...staticEntries, ...notebookEntries, ...makingEntries];
+  // How the work is done: drafts awaiting review are noindex, so they stay out.
+  const practiceEntries: MetadataRoute.Sitemap = getPracticeEntries()
+    .filter((entry) => !entry.frontmatter.review)
+    .map((entry) => ({
+      url: `${SITE_URL}${practice.route(entry.slug)}`,
+      lastModified: toLastModified(entry.frontmatter.updated ?? ""),
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    }));
+
+  // The skills the site is built with, one page each.
+  const skillEntries: MetadataRoute.Sitemap = getSkills().map((skill) => ({
+    url: `${SITE_URL}${skill.href}`,
+    lastModified: STATIC_UPDATED,
+    changeFrequency: "monthly" as const,
+    priority: 0.4,
+  }));
+
+  // Each work's Markdown twin (its /read page canonicalises to /work/<id>).
+  const workMarkdownEntries: MetadataRoute.Sitemap = workIds().map((id) => ({
+    url: `${SITE_URL}${workMarkdownPath(id)}`,
+    lastModified: STATIC_UPDATED,
+    changeFrequency: "monthly" as const,
+    priority: 0.3,
+  }));
+
+  return [...staticEntries, ...notebookEntries, ...makingEntries, ...practiceEntries, ...skillEntries, ...workMarkdownEntries];
 }

@@ -70,7 +70,7 @@ const BLUE = "#7fc4ff";
 /** The phosphor the picture is drawn in. */
 export type TubeColor = "crt" | "plasma" | "ice";
 
-export const TUBE_COLOR_NAME: Record<TubeColor, string> = { crt: "GREEN", plasma: "PLASMA", ice: "BLUE" };
+const TUBE_COLOR_NAME: Record<TubeColor, string> = { crt: "GREEN", plasma: "PLASMA", ice: "BLUE" };
 
 /** What the visitor can set about the display. */
 export interface TubeConfig {

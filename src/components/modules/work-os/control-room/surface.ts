@@ -80,6 +80,8 @@ export class Surface {
   }
 
   resize(cols: number, rows: number) {
+    // setting a canvas's size reallocates it even when the size is the same
+    if (cols === this.cols && rows === this.rows) return;
     this.cols = cols;
     this.rows = rows;
     this.canvas.width = cols * CW;

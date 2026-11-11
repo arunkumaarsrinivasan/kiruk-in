@@ -10,6 +10,7 @@ import { buildBoard, CLS_LABEL, type Cls, type Unit } from "./model";
 import { loadPicture } from "./picture";
 import { ARROW } from "./pixel-icons";
 import { CH, CW, rgb01, Surface } from "./surface";
+import { readTubeConfig } from "./use-tube";
 import {
   drawScreen,
   phosphorHex,
@@ -30,25 +31,12 @@ const vt323 = VT323({ weight: "400", subsets: ["latin"], display: "swap" });
 /** Where the visitor's display settings are kept between visits. */
 const STORE = "kiruk-tube-1970";
 
-/** Settings read back from storage: only what is still a valid setting is kept. */
-function readConfig(raw: string | null): TubeConfig {
-  const out = { ...TUBE_DEFAULTS };
-  try {
-    const saved = JSON.parse(raw ?? "null") as Partial<TubeConfig> | null;
-    if (!saved || typeof saved !== "object") return out;
-    for (const key of ["gain", "curve", "glow"] as const) {
-      const [lo, hi] = TUBE_RANGE[key];
-      const value = saved[key];
-      if (typeof value === "number" && Number.isFinite(value)) out[key] = Math.max(lo, Math.min(hi, value));
-    }
-    if (typeof saved.scan === "boolean") out.scan = saved.scan;
-    if (typeof saved.hum === "boolean") out.hum = saved.hum;
-    if (saved.color === "crt" || saved.color === "plasma" || saved.color === "ice") out.color = saved.color;
-  } catch {
-    // an unreadable setting is no setting
-  }
-  return out;
-}
+/**
+ * How long the tube keeps drawing after the last change while nothing moves by
+ * itself. The phosphor fades by the clock and loses 0.006 a frame besides, so
+ * even a full-white cell is black in about 0.3 s at 30 fps or faster.
+ */
+const QUIET_MS = 500;
 
 const STATUS: Record<string, string> = {
   completed: "Completed",
@@ -105,6 +93,8 @@ export function ControlRoomDesktop({ projects, focusId, cases }: DesktopProps) {
   const [pic, setPic] = useState(0);
   /** The tube draws its own pointer, so the system one is hidden. */
   const [ownCursor, setOwnCursor] = useState(false);
+  /** WebGL claimed the canvas and then failed: the flat picture needs a canvas of its own. */
+  const [noGl, setNoGl] = useState(false);
 
   const rootRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -157,11 +147,7 @@ export function ControlRoomDesktop({ projects, focusId, cases }: DesktopProps) {
 
   /* ── the display settings: kept between visits, and the glass refitted when its curve changes ── */
   useEffect(() => {
-    try {
-      setCfg(readConfig(localStorage.getItem(STORE)));
-    } catch {
-      // storage can be closed to the page; the defaults stand
-    }
+    setCfg(readTubeConfig());
   }, []);
   useEffect(() => {
     try {
@@ -395,13 +381,19 @@ export function ControlRoomDesktop({ projects, focusId, cases }: DesktopProps) {
     let crt = null as Crt | null;
     let flat = null as CanvasRenderingContext2D | null;
     const boot = () => {
-      try {
-        crt = new Crt(canvas, { fill: ARROW, width: 12, height: 17 });
-      } catch {
-        // no WebGL2: show the flat picture, unbent
-        crt = null;
-        flat = canvas.getContext("2d");
+      crt = null;
+      flat = null;
+      if (!noGl) {
+        try {
+          crt = new Crt(canvas, { fill: ARROW, width: 12, height: 17 });
+          return;
+        } catch {
+          // no WebGL2: show the flat picture, unbent
+        }
       }
+      flat = canvas.getContext("2d");
+      // a canvas WebGL claimed before it failed can never draw flat: start over on a fresh one
+      if (!flat && !noGl) setNoGl(true);
     };
     boot();
 
@@ -474,9 +466,21 @@ export function ControlRoomDesktop({ projects, focusId, cases }: DesktopProps) {
     };
     layout();
     relayout.current = layout;
-    const ro = new ResizeObserver(layout);
+    // the observer and the window both report a resize: fit once, on the next frame
+    let fitting = 0;
+    const refit = () => {
+      if (!fitting) {
+        fitting = requestAnimationFrame(() => {
+          fitting = 0;
+          layout();
+        });
+      }
+    };
+    const ro = new ResizeObserver(refit);
     ro.observe(root);
-    globalThis.addEventListener("resize", layout);
+    globalThis.addEventListener("resize", refit);
+    // the nav measures its lids a moment after the page mounts
+    const settle = globalThis.setTimeout(layout, 400);
 
     void document.fonts?.load(`20px ${family}`).then(() => {
       dirty.current = true;
@@ -517,6 +521,14 @@ export function ControlRoomDesktop({ projects, focusId, cases }: DesktopProps) {
     let last = performance.now();
     let lastTick = 0;
     born.current = last;
+    /** When the tube last had something new to show; and what the pointer was then. */
+    let changedAt = last;
+    let seenPointer = pointer.current;
+    let seenLook = look.current;
+    /** The phosphor's colours, worked out again only when the setting changes. */
+    let colorOf = "";
+    let hot: [number, number, number] = [1, 1, 1];
+    let tint: [number, number, number] = [1, 1, 1];
     let visible = true;
     const io = new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting;
@@ -531,9 +543,10 @@ export function ControlRoomDesktop({ projects, focusId, cases }: DesktopProps) {
       }
       const dt = Math.min(5, (t - last) / 1000);
       last = t;
-      // the picture is redrawn when something changed, and ten times a second for what moves by itself
-      // twice as often while a work's scene is playing
-      const tick = t - lastTick > (view.current.open || view.current.held ? 50 : 100);
+      // the picture is redrawn when something changed, and ten times a second for what moves by itself,
+      // twice as often while a work's scene is playing; held still, only the clock moves, once a second
+      const every = still.matches ? 1000 : view.current.open || view.current.held ? 50 : 100;
+      const tick = t - lastTick > every;
       const fresh = dirty.current || tick;
       if (fresh) {
         if (tick) lastTick = t;
@@ -541,18 +554,30 @@ export function ControlRoomDesktop({ projects, focusId, cases }: DesktopProps) {
         redraw(t / 1000);
       }
       const set = view.current.cfg;
-      const mode = set.color;
-      if (crt) {
+      if (set.color !== colorOf) {
+        colorOf = set.color;
+        hot = rgb01(plasmaHex(set.color));
+        tint = rgb01(phosphorHex(set.color));
+      }
+      const warm = still.matches ? 1 : clamp((t - born.current) / 1100, 0, 1);
+      const motion = !still.matches && set.hum;
+      // Hum, flicker and grain move every frame, and so does the tube warming up.
+      // Without them the glass changes only with the picture or the pointer; once
+      // the phosphor has let go of the last change, another frame would be the same.
+      if (fresh || motion || warm < 1 || pointer.current !== seenPointer || look.current !== seenLook) changedAt = t;
+      seenPointer = pointer.current;
+      seenLook = look.current;
+      if (crt && t - changedAt < QUIET_MS) {
         crt.draw(surface.canvas, {
           time: t / 1000,
           dt,
           dirty: fresh,
           pointer: pointer.current,
-          pointerColor: hover.current && hover.current !== "cfg:panel" ? rgb01(plasmaHex(mode)) : [0.95, 1, 0.96],
-          tint: rgb01(phosphorHex(mode)),
+          pointerColor: hover.current && hover.current !== "cfg:panel" ? hot : [0.95, 1, 0.96],
+          tint,
           look: look.current,
-          warm: still.matches ? 1 : clamp((t - born.current) / 1100, 0, 1),
-          motion: !still.matches && set.hum,
+          warm,
+          motion,
           gain: set.gain,
           glow: set.glow,
           scan: set.scan,
@@ -709,9 +734,11 @@ export function ControlRoomDesktop({ projects, focusId, cases }: DesktopProps) {
 
     return () => {
       cancelAnimationFrame(raf);
+      cancelAnimationFrame(fitting);
+      globalThis.clearTimeout(settle);
       ro.disconnect();
       io.disconnect();
-      globalThis.removeEventListener("resize", layout);
+      globalThis.removeEventListener("resize", refit);
       fine.removeEventListener("change", syncCursor);
       canvas.removeEventListener("pointermove", onMove);
       canvas.removeEventListener("pointerleave", onLeave);
@@ -724,7 +751,7 @@ export function ControlRoomDesktop({ projects, focusId, cases }: DesktopProps) {
       canvas.removeEventListener("webglcontextrestored", onRestored);
       crt?.dispose();
     };
-  }, [act, point, scrollBy]);
+  }, [act, point, scrollBy, noGl]);
 
   /* ── the mirror: the same screen as real buttons and text ── */
   const kase = open ? caseOf.get(open.id) : undefined;
@@ -753,7 +780,7 @@ export function ControlRoomDesktop({ projects, focusId, cases }: DesktopProps) {
   return (
     <div className="cr-host">
       <div ref={rootRef} className="cr" tabIndex={-1} data-own-cursor={ownCursor ? "" : undefined} onKeyDown={onKeyDown}>
-        <canvas ref={canvasRef} className="cr-canvas" aria-hidden />
+        <canvas key={noGl ? "flat" : "glass"} ref={canvasRef} className="cr-canvas" aria-hidden />
 
         <div className="cr-mirror">
           <fieldset onFocus={() => setCfgOpen(true)} onBlur={() => setCfgOpen(false)}>

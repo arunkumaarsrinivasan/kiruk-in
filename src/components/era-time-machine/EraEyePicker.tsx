@@ -24,6 +24,8 @@ import type { ThemeConfig } from "@/data/portfolio-data";
 import type { EyeStageControl, FrameBox } from "@/components/three/eye/EyeStage";
 import { eyeShot } from "@/components/three/eye/framing";
 import { getEraLook, getEraMedium } from "@/components/three/eye/look";
+import { posterPlacement, posterVariantFor } from "@/components/three/eye/posters";
+import { useModuleA11y } from "@/components/modules/useModuleA11y";
 
 const EyeStage = dynamic(() => import("@/components/three/eye/EyeStage"), { ssr: false });
 
@@ -135,19 +137,25 @@ export function EraEyePicker({ eras, currentEraId, onUse, onClose, reduce }: Era
   const [ready, setReady] = useState(false);
   const [onIris, setOnIris] = useState(false);
   const [hot, setHot] = useState<NodeId | null>(null);
-  const [size, setSize] = useState({ w: 1440, h: 900 });
+  // client-only (the host renders nothing on the server), so the first frame already has the real window
+  const [size, setSize] = useState(() =>
+    typeof window === "undefined" ? { w: 1440, h: 900 } : { w: window.innerWidth, h: window.innerHeight },
+  );
   const [moved, setMoved] = useState<Partial<Record<NodeId, Pt>>>({});
   const [order, setOrder] = useState<NodeId[]>(() => NODES.map((n) => n.id));
   const control = useRef<EyeStageControl | null>(null);
   const lastWheel = useRef(0);
   const grab = useRef<{ id: NodeId; dx: number; dy: number } | null>(null);
+  /** A touch or pen drag just moved a node: its touchend is not a swipe. */
+  const dragged = useRef(false);
+  const rootRef = useRef<HTMLDivElement>(null);
   const era = eras[index] ?? eras[0];
 
+  // scroll lock, focus in and trapped, Escape closes, focus back to the trigger on close
+  useModuleA11y(true, rootRef, onClose);
+
   useEffect(() => {
-    const read = () => {
-      setSize({ w: window.innerWidth, h: window.innerHeight });
-      setMoved({}); // a new window, a fresh table
-    };
+    const read = () => setSize({ w: window.innerWidth, h: window.innerHeight });
     read();
     window.addEventListener("resize", read);
     return () => window.removeEventListener("resize", read);
@@ -160,18 +168,21 @@ export function EraEyePicker({ eras, currentEraId, onUse, onClose, reduce }: Era
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      // a focused control answers its own Enter (close, a year); Escape is useModuleA11y's
+      const t = e.target as HTMLElement | null;
+      if (t?.closest?.("input, textarea, select, [contenteditable]")) return;
+      if (e.key === "Enter" && t?.closest?.("button, a[href]")) return;
       if (e.key === "ArrowRight" || e.key === "ArrowDown") go(index + 1);
       else if (e.key === "ArrowLeft" || e.key === "ArrowUp") go(index - 1);
       else if (e.key === "Home") go(0);
       else if (e.key === "End") go(eras.length - 1);
       else if (e.key === "Enter") onUse(era.id);
-      else if (e.key === "Escape") onClose();
       else return;
       e.preventDefault();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [go, index, eras.length, era.id, onUse, onClose]);
+  }, [go, index, eras.length, era.id, onUse]);
 
   const onWheel = (e: React.WheelEvent) => {
     const d = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
@@ -190,6 +201,11 @@ export function EraEyePicker({ eras, currentEraId, onUse, onClose, reduce }: Era
   const onTouchEnd = (e: React.TouchEvent) => {
     const s = touch.current;
     touch.current = null;
+    // pointerup (which ends a drag) fires before touchend, so a drag is remembered here
+    if (dragged.current) {
+      dragged.current = false;
+      return;
+    }
     if (!s || grab.current) return;
     const t = e.changedTouches[0];
     const dx = t.clientX - s.x;
@@ -202,7 +218,24 @@ export function EraEyePicker({ eras, currentEraId, onUse, onClose, reduce }: Era
   const { w: W, h: H } = size;
   const graph = W >= 1100 && H >= 620;
   const box = W / Math.max(H, 1) < 0.95 ? EYE_BOX_TALL : EYE_BOX;
+
+  // the table resets only when it appears or goes (not on every small resize)
+  useEffect(() => {
+    setMoved({});
+  }, [graph]);
   const shot = useMemo(() => eyeShot(W, H, box), [W, H, box]);
+
+  // The live eye builds its pipelines before it fades in, which can take a
+  // while on a slow GPU: the era's poster holds the middle until then, placed
+  // so its iris sits where the live iris will be, and goes once the eye is up.
+  const stillVariant = posterVariantFor(W, H);
+  const still = useMemo(() => posterPlacement(W, H, stillVariant, box), [W, H, stillVariant, box]);
+  const [stillGone, setStillGone] = useState(false);
+  useEffect(() => {
+    if (!ready) return;
+    const t = window.setTimeout(() => setStillGone(true), reduce ? 0 : 700);
+    return () => window.clearTimeout(t);
+  }, [ready, reduce]);
   const corneaPx = shot.irisPx * 1.08;
 
   const at = (n: NodeDef): Pt => moved[n.id] ?? { x: Math.round(n.fx * W), y: Math.round(n.fy * H) };
@@ -210,7 +243,10 @@ export function EraEyePicker({ eras, currentEraId, onUse, onClose, reduce }: Era
 
   const onPointerMove = (e: React.PointerEvent) => {
     const g = grab.current;
-    if (g) {
+    if (g && e.buttons === 0) {
+      // the button came up somewhere we never heard about: the drag is over
+      grab.current = null;
+    } else if (g) {
       const def = NODES.find((n) => n.id === g.id);
       if (def) {
         const x = Math.min(W - 40, Math.max(40 - def.w, e.clientX - g.dx));
@@ -235,6 +271,13 @@ export function EraEyePicker({ eras, currentEraId, onUse, onClose, reduce }: Era
     if ((e.target as HTMLElement).closest("button")) return;
     const p = at(n);
     grab.current = { id: n.id, dx: e.clientX - p.x, dy: e.clientY - p.y };
+    dragged.current = e.pointerType !== "mouse";
+    // keep the drag's events even when the pointer leaves the node or the window
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      /* the pointer is already gone */
+    }
     setOrder((o) => [...o.filter((id) => id !== n.id), n.id]);
     e.preventDefault();
   };
@@ -269,7 +312,26 @@ export function EraEyePicker({ eras, currentEraId, onUse, onClose, reduce }: Era
   const linked = (id: NodeId) =>
     hot === null || hot === id || WIRES.some(([a, b]) => (a === hot && b === id) || (b === hot && a === id));
 
-  const body: Record<NodeId, React.ReactNode> = {
+  // the eye's element is kept across drags and hovers: only its own props re-render the stage
+  const stage = useMemo(
+    () => (
+      <EyeStage
+        era={era}
+        reduce={reduce}
+        interactive
+        media
+        calm={!graph}
+        frameBox={box}
+        mipBias={PICKER_MIP_BIAS}
+        control={control}
+        onReady={onReady}
+      />
+    ),
+    [era, reduce, graph, box, onReady],
+  );
+
+  // the nodes are drawn only where the table is shown
+  const body: Record<NodeId, React.ReactNode> | null = !graph ? null : {
     era: (
       <div className="flex h-full flex-col">
         <div className="flex items-baseline justify-between">
@@ -429,8 +491,10 @@ export function EraEyePicker({ eras, currentEraId, onUse, onClose, reduce }: Era
 
   return (
     <div
+      ref={rootRef}
       className="fixed inset-0 z-[100] overflow-hidden text-white select-none"
-      style={{ background: "#050506" }}
+      style={{ background: "#050506", touchAction: "none" }}
+      tabIndex={-1}
       role="dialog"
       aria-modal="true"
       aria-label="Choose an era"
@@ -441,6 +505,19 @@ export function EraEyePicker({ eras, currentEraId, onUse, onClose, reduce }: Era
       onPointerUp={drop}
       onPointerCancel={drop}
     >
+      {/* the era's still, until the live eye has faded in over it */}
+      {!stillGone && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={`/eye/posters/${era.id}-${stillVariant}.avif`}
+          alt=""
+          aria-hidden
+          draggable={false}
+          className="pointer-events-none absolute max-w-none select-none"
+          style={{ left: still.left, top: still.top, width: still.width, height: still.height }}
+        />
+      )}
+
       {/* the eye, in the middle, large */}
       <div
         className="absolute inset-0"
@@ -457,17 +534,7 @@ export function EraEyePicker({ eras, currentEraId, onUse, onClose, reduce }: Era
         aria-valuetext={`${era.name}. Arrow keys change era, Enter enters it, Escape closes.`}
         tabIndex={0}
       >
-        <EyeStage
-          era={era}
-          reduce={reduce}
-          interactive
-          media
-          calm={!graph}
-          frameBox={box}
-          mipBias={PICKER_MIP_BIAS}
-          control={control}
-          onReady={onReady}
-        />
+        {stage}
       </div>
 
       {/* the table: the eye lit in the middle, the rest falling to a dark dotted floor */}
@@ -516,6 +583,10 @@ export function EraEyePicker({ eras, currentEraId, onUse, onClose, reduce }: Era
           return (
             <section
               key={id}
+              // the era node holds the year buttons; the rest are pictures of the network, dragged by pointer only
+              role={id === "era" ? "group" : undefined}
+              aria-label={id === "era" ? "Eras" : undefined}
+              aria-hidden={id === "era" ? undefined : true}
               className="absolute flex cursor-grab flex-col rounded-[4px] border font-mono text-[10px] text-white/75 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.9)] transition-[opacity,border-color] duration-200 active:cursor-grabbing"
               style={{
                 left: p.x,
@@ -535,7 +606,7 @@ export function EraEyePicker({ eras, currentEraId, onUse, onClose, reduce }: Era
                 <span className="text-white/85">{id}</span>
                 <span className="uppercase tracking-[0.14em] text-white/30">{n.kind}</span>
               </header>
-              <div className="min-h-0 flex-1 px-1.5 pb-1.5">{body[id]}</div>
+              <div className="min-h-0 flex-1 px-1.5 pb-1.5">{body?.[id]}</div>
               <span className="absolute -right-[3px] top-[5px] h-[6px] w-[6px] rounded-full" style={{ background: accent }} />
             </section>
           );

@@ -52,8 +52,8 @@ export function ModuleOverlayHost() {
 
   const erasOpen = openId === "eras";
   const active = !!openId && !erasOpen;
-  // Stay unmounted until the first open, so the era archetypes are not in
-  // the first JS graph. After that, keep it mounted so the close animation runs.
+  // Stay unmounted until the first open, so the era picker (and the eye it
+  // loads) is not in the first JS graph. After that, keep it mounted.
   const [machineMounted, setMachineMounted] = useState(false);
 
   // Keep the last panel module mounted through the shrink-out animation.

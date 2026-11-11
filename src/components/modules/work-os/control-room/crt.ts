@@ -266,6 +266,7 @@ export class Crt {
   private readonly blur: Program;
   private readonly tube: Program;
   private readonly vao: WebGLVertexArrayObject;
+  private readonly buf: WebGLBuffer;
   private readonly srcTex: WebGLTexture;
   private readonly arrowTex: WebGLTexture;
   private held: [Target, Target] | null = null;
@@ -281,18 +282,29 @@ export class Crt {
     private readonly canvas: HTMLCanvasElement,
     arrow: { fill: readonly string[]; width: number; height: number },
   ) {
-    const gl = canvas.getContext("webgl2", { alpha: false, antialias: false, powerPreference: "high-performance" });
+    // The default GPU: a soft text screen has no need to wake a discrete one.
+    const gl = canvas.getContext("webgl2", { alpha: false, antialias: false });
     if (!gl) throw new Error("webgl2 unavailable");
     this.gl = gl;
-    this.persist = this.program(PERSIST);
-    this.copy = this.program(COPY);
-    this.blur = this.program(BLUR);
-    this.tube = this.program(TUBE);
+    try {
+      this.persist = this.program(PERSIST);
+      this.copy = this.program(COPY);
+      this.blur = this.program(BLUR);
+      this.tube = this.program(TUBE);
+    } catch (err) {
+      // the context is claimed but useless: give its GPU memory back before the host falls back
+      gl.getExtension("WEBGL_lose_context")?.loseContext();
+      throw err;
+    }
 
     const vao = gl.createVertexArray();
     const buf = gl.createBuffer();
-    if (!vao || !buf) throw new Error("webgl2 buffers");
+    if (!vao || !buf) {
+      gl.getExtension("WEBGL_lose_context")?.loseContext();
+      throw new Error("webgl2 buffers");
+    }
     this.vao = vao;
+    this.buf = buf;
     gl.bindVertexArray(vao);
     gl.bindBuffer(gl.ARRAY_BUFFER, buf);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
@@ -333,10 +345,17 @@ export class Crt {
     };
     const prog = gl.createProgram();
     if (!prog) throw new Error("program");
-    gl.attachShader(prog, make(gl.VERTEX_SHADER, VERT));
-    gl.attachShader(prog, make(gl.FRAGMENT_SHADER, frag));
+    const vs = make(gl.VERTEX_SHADER, VERT);
+    const fs = make(gl.FRAGMENT_SHADER, frag);
+    gl.attachShader(prog, vs);
+    gl.attachShader(prog, fs);
     gl.bindAttribLocation(prog, 0, "aPos");
     gl.linkProgram(prog);
+    // a linked program keeps what it needs; the shader objects are spent either way
+    gl.detachShader(prog, vs);
+    gl.detachShader(prog, fs);
+    gl.deleteShader(vs);
+    gl.deleteShader(fs);
     if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog) ?? "program link");
     const u: Uniforms = {};
     const n = gl.getProgramParameter(prog, gl.ACTIVE_UNIFORMS) as number;
@@ -527,7 +546,15 @@ export class Crt {
     this.gl.deleteTexture(this.srcTex);
     this.gl.deleteTexture(this.arrowTex);
     this.gl.deleteVertexArray(this.vao);
+    this.gl.deleteBuffer(this.buf);
     for (const p of [this.persist, this.copy, this.blur, this.tube]) this.gl.deleteProgram(p.prog);
-    // The context itself is kept: the same canvas may be mounted again.
+    // The context is kept while the same canvas may be mounted again (a re-run
+    // effect, React's dev remount). Once the canvas has left the page it is let
+    // go now, rather than whenever the collector gets to it, so leaving and
+    // coming back never piles up live contexts.
+    const { gl, canvas } = this;
+    queueMicrotask(() => {
+      if (!canvas.isConnected && !gl.isContextLost()) gl.getExtension("WEBGL_lose_context")?.loseContext();
+    });
   }
 }

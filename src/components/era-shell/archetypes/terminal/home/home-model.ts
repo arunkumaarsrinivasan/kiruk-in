@@ -131,7 +131,7 @@ export const SUBJECT = {
  * Design, whatever it was built for; the rest sort by their medium.
  * Place follows the job each project was part of.
  */
-export interface HomeCard {
+interface HomeCard {
   id: string;
   no: string;
   title: string;
