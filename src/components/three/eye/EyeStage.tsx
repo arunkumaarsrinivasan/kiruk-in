@@ -321,6 +321,8 @@ export interface SceneProps {
   media?: boolean;
   calm?: boolean;
   covered?: boolean;
+  /** The era picker: the cut between eras is the only blink, no greeting, every frame drawn. */
+  showcase?: boolean;
   tier?: EyeTier;
 }
 
@@ -340,6 +342,7 @@ export function EyeScene({
   media = false,
   calm = false,
   covered = false,
+  showcase = false,
   tier,
 }: SceneProps) {
   const gl = useThree((s) => s.gl) as unknown as THREE.WebGPURenderer;
@@ -1141,7 +1144,7 @@ export function EyeScene({
       h0.owed += delta;
       return;
     }
-    if (!covered && pointerIdle && !exiting && !profile && !pendingCapture.current && readySent.current && now - h0.moved > 0.25) {
+    if (!covered && !showcase && pointerIdle && !exiting && !profile && !pendingCapture.current && readySent.current && now - h0.moved > 0.25) {
       h0.skip = (h0.skip + 1) % 3;
       if (h0.skip !== 0) {
         h0.owed += delta;
@@ -1227,7 +1230,7 @@ export function EyeScene({
     const heldLid = hold.current.blink;
     const cutLid = media ? director.blink : null;
     // (a startle, a stare or a glare holds the eyes open: rig/brow.ts holdBlinks, from last frame)
-    const natural = blinkRig.update(dt, reduce, exiting || hold.current.stare || heldLid !== null || (media && director.quiet) || browRig.holdBlinks);
+    const natural = blinkRig.update(dt, reduce, exiting || hold.current.stare || heldLid !== null || (media && director.quiet) || browRig.holdBlinks || showcase);
     U.blink.value = heldLid !== null && cutLid !== null ? Math.max(heldLid, cutLid) : (heldLid ?? cutLid ?? natural);
     // up is a negative pitch about x; under a closing lid the eye rolls up
     eyeball.group.rotation.set(-gy * GAZE_PITCH - U.blink.value * BELL_PITCH, g.x * GAZE_YAW, 0);
@@ -1354,7 +1357,7 @@ export function EyeScene({
       LU.lower.value = fa.lower * browRig.lids.lower;
       LU.squint.value = hold.current.squint ?? Math.min(1, squintBase.current + browRig.lids.tight);
       // a startle that lets go is followed by a blink
-      if (browRig.blinkNow && !exiting && heldLid === null) blinkRig.trigger();
+      if (browRig.blinkNow && !showcase && !exiting && heldLid === null) blinkRig.trigger();
       // (a feeling playing out is motion: the idle stage would draw it at a third of the rate)
       if (browRig.moving) health.current.moved = now;
     }
@@ -1426,7 +1429,7 @@ export function EyeScene({
     // a big jump of the eyes often brings a blink with it, the bigger the likelier
     if (gazeRig.lastSaccade > 0) {
       const p = THREE.MathUtils.smoothstep(gazeRig.lastSaccade, 12, 35) * 0.7;
-      if (!reduce && !exiting && !(media && director.quiet) && Math.random() < p) blinkRig.trigger();
+      if (!reduce && !showcase && !exiting && !(media && director.quiet) && Math.random() < p) blinkRig.trigger();
       gazeRig.lastSaccade = 0;
     }
     // (it fades in only once warm: until then parts of it may not be drawn yet)
@@ -1813,7 +1816,7 @@ export function EyeScene({
     if (!readySent.current && U.fade.value > READY_AT) {
       readySent.current = true;
       // (the eye opens on the visitor with a greeting)
-      browRig.express("greet", 1, performance.now() / 1000 + 1.2);
+      if (!showcase) browRig.express("greet", 1, performance.now() / 1000 + 1.2);
       onReady?.(info);
     }
 
@@ -1936,6 +1939,8 @@ export interface EyeStageProps {
   capture?: React.MutableRefObject<(() => Promise<string>) | null>;
   /** Something opaque is over the stage (the loader's opening): it draws only now and then, keeping its clock, and leaves the GPU to what is on screen. */
   covered?: boolean;
+  /** The era picker: the cut between eras is the only blink, no greeting, every frame drawn. */
+  showcase?: boolean;
   /** Lab: this tier instead of the one the device's signals pick. Fixed for the stage's life (a change remounts). */
   tier?: EyeTier;
   className?: string;
@@ -1959,6 +1964,7 @@ export default function EyeStage({
   media,
   calm,
   covered,
+  showcase,
   tier,
   className,
   style,
@@ -2004,6 +2010,7 @@ export default function EyeStage({
           media={media}
           calm={calm}
           covered={covered}
+          showcase={showcase}
           tier={tier}
         />
       </Canvas>

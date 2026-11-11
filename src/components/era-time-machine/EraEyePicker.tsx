@@ -318,7 +318,10 @@ export function EraEyePicker({ eras, currentEraId, onUse, onClose, reduce }: Era
       <EyeStage
         era={era}
         reduce={reduce}
-        interactive
+        // the picker reads the hand itself (the iris to enter, the wheel to travel):
+        // the eye keeps still for it, and blinks only at the cut between eras
+        interactive={false}
+        showcase
         media
         calm={!graph}
         frameBox={box}

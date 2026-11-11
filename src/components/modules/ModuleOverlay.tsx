@@ -74,6 +74,27 @@ export function ModuleOverlayHost() {
 
   useModuleA11y(active, panelRef, close);
 
+  // The picker's code (and the eye's) loads once the page has settled, while
+  // the browser is idle, so opening it waits only for the eye to warm, not for
+  // the download too. Not on data saver.
+  useEffect(() => {
+    const nav = navigator as Navigator & { connection?: { saveData?: boolean } };
+    if (nav.connection?.saveData) return;
+    let idle = 0;
+    const t = window.setTimeout(() => {
+      const load = () => {
+        void import("@/components/era-time-machine/EraTimeMachine");
+        void import("@/components/three/eye/EyeStage");
+      };
+      if ("requestIdleCallback" in window) idle = window.requestIdleCallback(load, { timeout: 4000 });
+      else load();
+    }, 4000);
+    return () => {
+      window.clearTimeout(t);
+      if (idle && "cancelIdleCallback" in window) window.cancelIdleCallback(idle);
+    };
+  }, []);
+
   useEffect(() => {
     if (!erasOpen && !renderId) return;
     document.documentElement.setAttribute("data-module-open", "");
