@@ -55,6 +55,22 @@ export function Desk1970({ contact }: ContactSkinProps) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const inputs = useRef<Partial<Record<Field, HTMLInputElement | HTMLTextAreaElement | null>>>({});
 
+  // the tube draws the desk again whenever this renders, and right away for what only moves in refs
+  const tube = useTube(
+    root,
+    canvas,
+    {
+      draw: (s, f) => {
+        now.current = f.time;
+        drawDesk(s, f, desk);
+      },
+      act: (id) => act(id),
+      hover: setHoverId,
+    },
+    vt323.style.fontFamily,
+  );
+  const { redraw } = tube;
+
   const card = turned && turned.intent === contact.intent.id ? turned.id : contact.intent.channels[0];
 
   // the slip sets off the moment the note is delivered
@@ -67,8 +83,9 @@ export function Desk1970({ contact }: ContactSkinProps) {
       contact.setIntent(id);
       tickAt.current = now.current;
       cardAt.current = now.current;
+      redraw();
     },
-    [contact],
+    [contact, redraw],
   );
 
   const nextWho = useCallback(() => {
@@ -77,14 +94,16 @@ export function Desk1970({ contact }: ContactSkinProps) {
     contact.setWho(next.id);
     tickAt.current = now.current;
     cardAt.current = now.current;
-  }, [contact]);
+    redraw();
+  }, [contact, redraw]);
 
   const turnTo = useCallback(
     (id: ChannelId) => {
       setTurned({ intent: contact.intent.id, id });
       cardAt.current = now.current;
+      redraw();
     },
-    [contact.intent.id],
+    [contact.intent.id, redraw],
   );
 
   const write = useCallback((field?: Field) => {
@@ -120,9 +139,10 @@ export function Desk1970({ contact }: ContactSkinProps) {
       else if (id === "toy:cup") {
         setSips((v) => (v === 0 ? 3 : v - 1));
         sipAt.current = now.current;
+        redraw();
       }
     },
-    [card, contact, nextWho, tick, turnTo, write],
+    [card, contact, nextWho, redraw, tick, turnTo, write],
   );
 
   // the status line: what is under the pointer, else what the desk is for
@@ -174,20 +194,6 @@ export function Desk1970({ contact }: ContactSkinProps) {
     status,
   };
 
-  const { ownCursor } = useTube(
-    root,
-    canvas,
-    {
-      draw: (s, f) => {
-        now.current = f.time;
-        drawDesk(s, f, desk);
-      },
-      act,
-      hover: setHoverId,
-    },
-    vt323.style.fontFamily,
-  );
-
   const bind = (id: Field) => ({
     ref: (el: HTMLInputElement | HTMLTextAreaElement | null) => {
       inputs.current[id] = el;
@@ -197,14 +203,15 @@ export function Desk1970({ contact }: ContactSkinProps) {
   });
   const typed = () => {
     typedAt.current = now.current;
+    redraw();
   };
 
   return (
     <div id="contact-1970" style={{ position: "fixed", inset: 0, zIndex: 1, backgroundColor: "#030403" }}>
       <style>{PAGE_CSS}</style>
       <div className="cr-host">
-        <div ref={root} className="cr" tabIndex={-1} data-own-cursor={ownCursor ? "" : undefined}>
-          <canvas ref={canvas} className="cr-canvas" aria-hidden />
+        <div ref={root} className="cr" tabIndex={-1} data-own-cursor={tube.ownCursor ? "" : undefined}>
+          <canvas key={tube.glass} ref={canvas} className="cr-canvas" aria-hidden />
 
           <div className="cr-mirror">
             <h1>Contact Arun</h1>

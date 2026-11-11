@@ -5,38 +5,14 @@ import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent a
 import { WORK_SHOW } from "@/data/work-show";
 import type { DesktopProps, WorkCaseDigest } from "../types";
 import { useFocusProject } from "../use-focus-project";
-import { Crt, unbend, type CrtGeometry } from "./crt";
 import { buildBoard, CLS_LABEL, type Cls, type Unit } from "./model";
 import { loadPicture } from "./picture";
-import { ARROW } from "./pixel-icons";
-import { CH, CW, rgb01, Surface } from "./surface";
-import { readTubeConfig } from "./use-tube";
-import {
-  drawScreen,
-  phosphorHex,
-  plasmaHex,
-  TINT,
-  TUBE_DEFAULTS,
-  TUBE_RANGE,
-  type Area,
-  type Drawn,
-  type TabId,
-  type TubeConfig,
-  type ViewState,
-} from "./views";
+import { CW, type Surface } from "./surface";
+import { useTube, useTubeConfig, type Pt } from "./use-tube";
+import { drawScreen, TINT, TUBE_DEFAULTS, TUBE_RANGE, type Drawn, type TabId, type TubeConfig } from "./views";
 import "./control-room.css";
 
 const vt323 = VT323({ weight: "400", subsets: ["latin"], display: "swap" });
-
-/** Where the visitor's display settings are kept between visits. */
-const STORE = "kiruk-tube-1970";
-
-/**
- * How long the tube keeps drawing after the last change while nothing moves by
- * itself. The phosphor fades by the clock and loses 0.006 a frame besides, so
- * even a full-white cell is black in about 0.3 s at 30 fps or faster.
- */
-const QUIET_MS = 500;
 
 const STATUS: Record<string, string> = {
   completed: "Completed",
@@ -51,8 +27,6 @@ const LINK_LABEL: Record<string, string> = {
   behance: "Behance",
   github: "Source",
 };
-
-const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
 /**
  * 1970: the work on one picture tube. The whole interface is a character
@@ -86,15 +60,11 @@ export function ControlRoomDesktop({ projects, focusId, cases }: DesktopProps) {
   const [hoverCls, setHoverCls] = useState<Cls | null>(null);
   /** The mini key under the pointer on a project's screen. */
   const [miniId, setMiniId] = useState<string | null>(null);
-  const [cfg, setCfg] = useState<TubeConfig>(TUBE_DEFAULTS);
+  const [cfg, setCfg] = useTubeConfig();
   const [cfgOpen, setCfgOpen] = useState(false);
   /** The open work's pictures, dithered for the tube, and which one is showing. */
   const [pics, setPics] = useState<(HTMLCanvasElement | null)[]>([]);
   const [pic, setPic] = useState(0);
-  /** The tube draws its own pointer, so the system one is hidden. */
-  const [ownCursor, setOwnCursor] = useState(false);
-  /** WebGL claimed the canvas and then failed: the flat picture needs a canvas of its own. */
-  const [noGl, setNoGl] = useState(false);
 
   const rootRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -104,20 +74,9 @@ export function ControlRoomDesktop({ projects, focusId, cases }: DesktopProps) {
   const wantFocus = useRef<"open" | "board" | null>(null);
 
   // What the draw loop reads. It lives outside React so a frame never waits on a render.
-  const dirty = useRef(true);
   const drawn = useRef<Drawn>({ maxScroll: 0, textCols: 0, cols: 6, tabs: [] });
-  const safe = useRef<Area>({ c: 2, r: 1, w: 60, h: 28 });
-  const pointer = useRef<{ x: number; y: number } | null>(null);
-  const look = useRef<[number, number]>([0, 0]);
-  const hover = useRef<string | null>(null);
   const levels = useRef<number[] | null>(null);
   const scroll = useRef(0);
-  const drag = useRef<{ y: number; scroll: number; moved: boolean } | null>(null);
-  /** The slider being dragged, by its zone. */
-  const slide = useRef<string | null>(null);
-  /** When the tube last began to warm up. */
-  const born = useRef(0);
-  const relayout = useRef<() => void>(() => {});
 
   const open = openId ? (byId.get(openId) ?? null) : null;
   const on = onId ? (byId.get(onId) ?? null) : null;
@@ -141,24 +100,93 @@ export function ControlRoomDesktop({ projects, focusId, cases }: DesktopProps) {
 
   const view = useRef({ board, caseOf, open, tab, held, onId, shownCls, filter, cfg, cfgOpen, pics, pic, status });
   view.current = { board, caseOf, open, tab, held, onId, shownCls, filter, cfg, cfgOpen, pics, pic, status };
-  useEffect(() => {
-    dirty.current = true;
-  });
 
-  /* ── the display settings: kept between visits, and the glass refitted when its curve changes ── */
-  useEffect(() => {
-    setCfg(readTubeConfig());
-  }, []);
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORE, JSON.stringify(cfg));
-    } catch {
-      // nothing to do: the setting still holds for this visit
+  /* ── the tube: one canvas, one loop (use-tube.ts); the screen is views.ts ── */
+  const tube = useTube(
+    rootRef,
+    canvasRef,
+    {
+      draw: (s, f) => {
+        const v = view.current;
+        const now = new Date();
+        const two = (n: number) => String(n).padStart(2, "0");
+        drawn.current = drawScreen(s, {
+          board: v.board,
+          cases: v.caseOf,
+          open: v.open,
+          tab: v.tab,
+          scroll: scroll.current,
+          peek: v.held,
+          onId: v.onId,
+          shownCls: v.shownCls,
+          filter: v.filter,
+          tube: v.cfg.color,
+          config: v.cfg,
+          configOpen: v.cfgOpen,
+          pointer: f.pointer,
+          pics: v.pics,
+          pic: v.pic,
+          hover: f.hover,
+          levels: levels.current,
+          time: f.now,
+          clock: `${two(now.getHours())}:${two(now.getMinutes())}:${two(now.getSeconds())}`,
+          status: v.status,
+          safe: f.safe,
+        });
+        scroll.current = Math.min(scroll.current, drawn.current.maxScroll);
+      },
+      act: (id) => act(id),
+      hover: (id) => {
+        const cut = id ? id.indexOf(":") : -1;
+        const kind = id && cut > 0 ? id.slice(0, cut) : "";
+        const arg = id && cut > 0 ? id.slice(cut + 1) : "";
+        point(kind === "tile" || kind === "bar" ? arg : null);
+        // pointing at a kind is a new question: the dossier lets go of its project
+        if (kind === "kind") setHeldId(null);
+        setHoverCls(kind === "kind" && arg !== "all" ? (arg as Cls) : null);
+        setMiniId(kind === "mini" ? arg : null);
+      },
+      // a scene on screen answers the pointer, so it is drawn again as the pointer moves
+      point: (p, s) => shine(p, s) || Boolean(view.current.open || view.current.held),
+      leave: () => setHeldId(null),
+    },
+    {
+      family: vt323.style.fontFamily,
+      settings: { config: cfg, set: setCfg, panel: setCfgOpen },
+      // ten times a second for what moves by itself, twice as often while a work's scene is playing;
+      // held still, only the clock moves, once a second
+      every: (still) => (still ? 1000 : view.current.open || view.current.held ? 50 : 100),
+      scroll: {
+        at: scroll,
+        max: () => (view.current.open ? drawn.current.maxScroll : 0),
+        touch: () => Boolean(view.current.open && !view.current.cfgOpen),
+      },
+      fingerPoints: false,
+      wide: false,
+    },
+  );
+  const { scrollBy } = tube;
+
+  /** How far each cell is from the pointer, in cells of its own size: the pointer is the light. Returns whether that changed. */
+  const shine = (p: Pt | null, s: Surface): boolean => {
+    if (!p || view.current.open) {
+      if (!levels.current) return false;
+      levels.current = null;
+      return true;
     }
-  }, [cfg]);
-  useEffect(() => {
-    relayout.current();
-  }, [cfg.curve]);
+    const next = view.current.board.units.map((u) => {
+      const z = s.zones.find((zone) => zone.id === `tile:${u.id}`);
+      if (!z) return 2;
+      const dx = Math.max(z.x - p.x, 0, p.x - (z.x + z.w)) / z.w;
+      const dy = Math.max(z.y - p.y, 0, p.y - (z.y + z.h)) / z.h;
+      const d = Math.hypot(dx, dy);
+      return d === 0 ? 0 : d < 0.6 ? 1 : d < 1.5 ? 2 : 3;
+    });
+    const prev = levels.current;
+    if (prev && !next.some((n, i) => n !== prev[i])) return false;
+    levels.current = next;
+    return true;
+  };
 
   /* ── the open work's pictures, redrawn in the tube's shades ── */
   const openKey = open ? `${open.id}:${open.tint}` : "";
@@ -229,14 +257,6 @@ export function ControlRoomDesktop({ projects, focusId, cases }: DesktopProps) {
     setTab(t);
   }, []);
 
-  const scrollBy = useCallback((rows: number) => {
-    const next = clamp(scroll.current + rows, 0, drawn.current.maxScroll);
-    if (next !== scroll.current) {
-      scroll.current = next;
-      dirty.current = true;
-    }
-  }, []);
-
   /** The arrow keys, on the glass and on the keyboard. Returns false at an edge. */
   const move = useCallback(
     (dx: number, dy: number): boolean => {
@@ -281,18 +301,8 @@ export function ControlRoomDesktop({ projects, focusId, cases }: DesktopProps) {
       const cut = id.indexOf(":");
       const kind = cut < 0 ? id : id.slice(0, cut);
       const arg = cut < 0 ? "" : id.slice(cut + 1);
-      if (kind === "tube") setCfgOpen(true);
-      else if (kind === "cfg") {
-        if (arg === "close" || arg === "done") setCfgOpen(false);
-        else if (arg === "replay") {
-          born.current = performance.now();
-          setCfgOpen(false);
-        } else if (arg === "color") {
-          setCfg((c) => ({ ...c, color: c.color === "crt" ? "plasma" : c.color === "plasma" ? "ice" : "crt" }));
-        } else if (arg === "scan") setCfg((c) => ({ ...c, scan: !c.scan }));
-        else if (arg === "hum") setCfg((c) => ({ ...c, hum: !c.hum }));
-        else if (arg === "reset") setCfg(TUBE_DEFAULTS);
-      } else if (kind === "pic") {
+      // the display settings' own zones are the tube's
+      if (kind === "pic") {
         const n = v.open ? (WORK_SHOW[v.open.id]?.media.length ?? 0) : 0;
         if (n) setPic((i) => (i + (arg === "next" ? 1 : n - 1)) % n);
       } else if (kind === "text") {
@@ -363,396 +373,6 @@ export function ControlRoomDesktop({ projects, focusId, cases }: DesktopProps) {
     }
   };
 
-  /* ── the tube: one canvas, one loop ── */
-  useEffect(() => {
-    const root = rootRef.current;
-    const canvas = canvasRef.current;
-    if (!root || !canvas) return;
-
-    const family = vt323.style.fontFamily;
-    let surface: Surface;
-    try {
-      surface = new Surface(family);
-    } catch {
-      return;
-    }
-
-    // Both are set inside boot(), so they are typed by assertion rather than by their first value.
-    let crt = null as Crt | null;
-    let flat = null as CanvasRenderingContext2D | null;
-    const boot = () => {
-      crt = null;
-      flat = null;
-      if (!noGl) {
-        try {
-          crt = new Crt(canvas, { fill: ARROW, width: 12, height: 17 });
-          return;
-        } catch {
-          // no WebGL2: show the flat picture, unbent
-        }
-      }
-      flat = canvas.getContext("2d");
-      // a canvas WebGL claimed before it failed can never draw flat: start over on a fresh one
-      if (!flat && !noGl) setNoGl(true);
-    };
-    boot();
-
-    const fine = globalThis.matchMedia("(pointer: fine)");
-    const still = globalThis.matchMedia("(prefers-reduced-motion: reduce)");
-    const syncCursor = () => setOwnCursor(Boolean(crt) && fine.matches);
-    syncCursor();
-    fine.addEventListener("change", syncCursor);
-
-    let geo: CrtGeometry = { w: 1, h: 1, x0: 0, y0: 0, x1: 1, y1: 1, k: view.current.cfg.curve, radius: 24 };
-
-    /** Fit the picture to the stage, and find the cells the eye's lids leave in view. */
-    const layout = () => {
-      const rect = root.getBoundingClientRect();
-      const W = Math.max(1, rect.width);
-      const H = Math.max(1, rect.height);
-      const vw = globalThis.innerWidth;
-      const vh = globalThis.innerHeight;
-      const css = getComputedStyle(document.documentElement);
-      const num = (name: string) => Number.parseFloat(css.getPropertyValue(name)) || 0;
-      const top = { edge: num("--simple-game-nav-bottom"), mid: num("--eye-mid") };
-      const bottomEdge = num("--eye-lid-bottom");
-      const bottom = { edge: bottomEdge, mid: num("--eye-lid-bottom-mid") || bottomEdge * 0.52 };
-      // The site's lids are parabolas over the viewport; they cover this stage only where it runs under them.
-      const under = (x: number) => ((rect.left + x - vw / 2) / (vw / 2)) ** 2;
-      const lidTop = (x: number) => Math.max(0, top.mid + (top.edge - top.mid) * under(x) - rect.top);
-      const lidBottom = (x: number) =>
-        Math.max(0, bottom.mid + (bottom.edge - bottom.mid) * under(x) - (vh - rect.bottom));
-
-      const pad = W < 560 ? 4 : 8;
-      geo = {
-        w: W,
-        h: H,
-        x0: pad,
-        x1: W - pad,
-        y0: Math.max(pad, lidTop(W / 2) + 3),
-        y1: H - Math.max(pad, lidBottom(W / 2) + 3),
-        k: view.current.cfg.curve,
-        radius: W < 560 ? 18 : 28,
-      };
-      const pw = geo.x1 - geo.x0;
-      const ph = Math.max(40, geo.y1 - geo.y0);
-      const rowPx = clamp(ph / 34, 18, 26);
-      const rows = Math.max(16, Math.round(ph / rowPx));
-      const cols = Math.max(28, Math.round(pw / (rowPx * (CW / CH))));
-      surface.resize(cols, rows);
-
-      // A cell is in view when its box, bent through the glass, clears both lids.
-      const seen = (col: number, row: number) => {
-        const [px, py] = unbend(((col + 0.5) / cols) * 2 - 1, ((row + 0.5) / rows) * 2 - 1, geo.k);
-        const x = (geo.x0 + geo.x1) / 2 + (px * pw) / 2;
-        const y = (geo.y0 + geo.y1) / 2 + (py * ph) / 2;
-        return y - rowPx * 0.62 >= lidTop(x) && y + rowPx * 0.62 <= H - lidBottom(x);
-      };
-      const c0 = cols >= 60 ? 3 : 2;
-      const c1 = cols - c0;
-      let r0 = 1;
-      while (r0 < rows / 3 && !(seen(c0, r0) && seen(c1 - 1, r0))) r0 += 1;
-      let r1 = rows - 2;
-      while (r1 > (rows * 2) / 3 && !(seen(c0, r1) && seen(c1 - 1, r1))) r1 -= 1;
-      safe.current = { c: c0, r: r0, w: c1 - c0, h: r1 - r0 + 1 };
-
-      crt?.resize(geo, surface.canvas.width, surface.canvas.height);
-      if (!crt) {
-        const d = Math.min(globalThis.devicePixelRatio || 1, 2);
-        canvas.width = Math.round(W * d);
-        canvas.height = Math.round(H * d);
-      }
-      dirty.current = true;
-    };
-    layout();
-    relayout.current = layout;
-    // the observer and the window both report a resize: fit once, on the next frame
-    let fitting = 0;
-    const refit = () => {
-      if (!fitting) {
-        fitting = requestAnimationFrame(() => {
-          fitting = 0;
-          layout();
-        });
-      }
-    };
-    const ro = new ResizeObserver(refit);
-    ro.observe(root);
-    globalThis.addEventListener("resize", refit);
-    // the nav measures its lids a moment after the page mounts
-    const settle = globalThis.setTimeout(layout, 400);
-
-    void document.fonts?.load(`20px ${family}`).then(() => {
-      dirty.current = true;
-    });
-
-    const redraw = (time: number) => {
-      const v = view.current;
-      const now = new Date();
-      const two = (n: number) => String(n).padStart(2, "0");
-      const state: ViewState = {
-        board: v.board,
-        cases: v.caseOf,
-        open: v.open,
-        tab: v.tab,
-        scroll: scroll.current,
-        peek: v.held,
-        onId: v.onId,
-        shownCls: v.shownCls,
-        filter: v.filter,
-        tube: v.cfg.color,
-        config: v.cfg,
-        configOpen: v.cfgOpen,
-        pointer: pointer.current,
-        pics: v.pics,
-        pic: v.pic,
-        hover: hover.current,
-        levels: levels.current,
-        time: still.matches ? 0 : time,
-        clock: `${two(now.getHours())}:${two(now.getMinutes())}:${two(now.getSeconds())}`,
-        status: v.status,
-        safe: safe.current,
-      };
-      drawn.current = drawScreen(surface, state);
-      scroll.current = Math.min(scroll.current, drawn.current.maxScroll);
-    };
-
-    let raf = 0;
-    let last = performance.now();
-    let lastTick = 0;
-    born.current = last;
-    /** When the tube last had something new to show; and what the pointer was then. */
-    let changedAt = last;
-    let seenPointer = pointer.current;
-    let seenLook = look.current;
-    /** The phosphor's colours, worked out again only when the setting changes. */
-    let colorOf = "";
-    let hot: [number, number, number] = [1, 1, 1];
-    let tint: [number, number, number] = [1, 1, 1];
-    let visible = true;
-    const io = new IntersectionObserver(([entry]) => {
-      visible = entry.isIntersecting;
-    });
-    io.observe(root);
-
-    const frame = (t: number) => {
-      raf = requestAnimationFrame(frame);
-      if (document.hidden || !visible) {
-        last = t;
-        return;
-      }
-      const dt = Math.min(5, (t - last) / 1000);
-      last = t;
-      // the picture is redrawn when something changed, and ten times a second for what moves by itself,
-      // twice as often while a work's scene is playing; held still, only the clock moves, once a second
-      const every = still.matches ? 1000 : view.current.open || view.current.held ? 50 : 100;
-      const tick = t - lastTick > every;
-      const fresh = dirty.current || tick;
-      if (fresh) {
-        if (tick) lastTick = t;
-        dirty.current = false;
-        redraw(t / 1000);
-      }
-      const set = view.current.cfg;
-      if (set.color !== colorOf) {
-        colorOf = set.color;
-        hot = rgb01(plasmaHex(set.color));
-        tint = rgb01(phosphorHex(set.color));
-      }
-      const warm = still.matches ? 1 : clamp((t - born.current) / 1100, 0, 1);
-      const motion = !still.matches && set.hum;
-      // Hum, flicker and grain move every frame, and so does the tube warming up.
-      // Without them the glass changes only with the picture or the pointer; once
-      // the phosphor has let go of the last change, another frame would be the same.
-      if (fresh || motion || warm < 1 || pointer.current !== seenPointer || look.current !== seenLook) changedAt = t;
-      seenPointer = pointer.current;
-      seenLook = look.current;
-      if (crt && t - changedAt < QUIET_MS) {
-        crt.draw(surface.canvas, {
-          time: t / 1000,
-          dt,
-          dirty: fresh,
-          pointer: pointer.current,
-          pointerColor: hover.current && hover.current !== "cfg:panel" ? hot : [0.95, 1, 0.96],
-          tint,
-          look: look.current,
-          warm,
-          motion,
-          gain: set.gain,
-          glow: set.glow,
-          scan: set.scan,
-        });
-      } else if (flat && fresh) {
-        const d = canvas.width / geo.w;
-        flat.fillStyle = "#020302";
-        flat.fillRect(0, 0, canvas.width, canvas.height);
-        flat.imageSmoothingEnabled = false;
-        flat.drawImage(surface.canvas, geo.x0 * d, geo.y0 * d, (geo.x1 - geo.x0) * d, (geo.y1 - geo.y0) * d);
-      }
-    };
-    raf = requestAnimationFrame(frame);
-
-    /* the pointer, mapped through the glass */
-    const locate = (e: { clientX: number; clientY: number }) => {
-      const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      if (crt) return crt.map(x, y);
-      const sx = ((x - geo.x0) / (geo.x1 - geo.x0)) * surface.canvas.width;
-      const sy = ((y - geo.y0) / (geo.y1 - geo.y0)) * surface.canvas.height;
-      return { x: sx, y: sy, inside: sx >= 0 && sy >= 0 && sx < surface.canvas.width && sy < surface.canvas.height };
-    };
-
-    const setHover = (id: string | null) => {
-      if (id === hover.current) return;
-      hover.current = id;
-      dirty.current = true;
-      const cut = id ? id.indexOf(":") : -1;
-      const kind = id && cut > 0 ? id.slice(0, cut) : "";
-      const arg = id && cut > 0 ? id.slice(cut + 1) : "";
-      point(kind === "tile" || kind === "bar" ? arg : null);
-      // pointing at a kind is a new question: the dossier lets go of its project
-      if (kind === "kind") setHeldId(null);
-      setHoverCls(kind === "kind" && arg !== "all" ? (arg as Cls) : null);
-      setMiniId(kind === "mini" ? arg : null);
-    };
-
-    /** How far each cell is from the pointer, in cells of its own size: the pointer is the light. */
-    const shine = (p: { x: number; y: number } | null) => {
-      if (!p || view.current.open) {
-        if (levels.current) {
-          levels.current = null;
-          dirty.current = true;
-        }
-        return;
-      }
-      const next = view.current.board.units.map((u) => {
-        const z = surface.zones.find((zone) => zone.id === `tile:${u.id}`);
-        if (!z) return 2;
-        const dx = Math.max(z.x - p.x, 0, p.x - (z.x + z.w)) / z.w;
-        const dy = Math.max(z.y - p.y, 0, p.y - (z.y + z.h)) / z.h;
-        const d = Math.hypot(dx, dy);
-        return d === 0 ? 0 : d < 0.6 ? 1 : d < 1.5 ? 2 : 3;
-      });
-      const prev = levels.current;
-      if (!prev || next.some((n, i) => n !== prev[i])) {
-        levels.current = next;
-        dirty.current = true;
-      }
-    };
-
-    /** Set a slider from where the pointer is along its track. */
-    const setSlider = (id: string, x: number) => {
-      const z = surface.zones.find((zone) => zone.id === id);
-      const key = id.slice(4) as keyof typeof TUBE_RANGE;
-      if (!z || !(key in TUBE_RANGE)) return;
-      const [lo, hi] = TUBE_RANGE[key];
-      const at = clamp((x - z.x - 4) / (z.w - 8), 0, 1);
-      setCfg((c) => ({ ...c, [key]: Math.round((lo + (hi - lo) * at) * 200) / 200 }));
-    };
-
-    const onMove = (e: PointerEvent) => {
-      const m = locate(e);
-      if (slide.current) {
-        setSlider(slide.current, m.x);
-        if (e.pointerType === "mouse") pointer.current = m.inside ? { x: m.x, y: m.y } : null;
-        return;
-      }
-      const rect = canvas.getBoundingClientRect();
-      look.current = [((e.clientX - rect.left) / rect.width) * 2 - 1, ((e.clientY - rect.top) / rect.height) * 2 - 1];
-      const d = drag.current;
-      if (d) {
-        // a finger drags the page inside the tube
-        if (Math.abs(d.y - m.y) > 8) d.moved = true;
-        const next = clamp(d.scroll + Math.round((d.y - m.y) / CH), 0, drawn.current.maxScroll);
-        if (next !== scroll.current) {
-          scroll.current = next;
-          dirty.current = true;
-        }
-        return;
-      }
-      if (e.pointerType !== "mouse") return;
-      pointer.current = m.inside ? { x: m.x, y: m.y } : null;
-      setHover(m.inside ? surface.hit(m.x, m.y) : null);
-      shine(m.inside ? m : null);
-      // a scene on screen answers the pointer, so it is drawn again as the pointer moves
-      if (view.current.open || view.current.held) dirty.current = true;
-    };
-    const onLeave = () => {
-      pointer.current = null;
-      drag.current = null;
-      setHover(null);
-      shine(null);
-      setHeldId(null);
-    };
-    const onDown = (e: PointerEvent) => {
-      root.focus({ preventScroll: true });
-      const m = locate(e);
-      const id = m.inside ? surface.hit(m.x, m.y) : null;
-      if (id === "cfg:gain" || id === "cfg:curve" || id === "cfg:glow") {
-        slide.current = id;
-        canvas.setPointerCapture(e.pointerId);
-        setSlider(id, m.x);
-        return;
-      }
-      if (e.pointerType !== "mouse" && view.current.open && !view.current.cfgOpen) {
-        drag.current = { y: locate(e).y, scroll: scroll.current, moved: false };
-      }
-    };
-    const onUp = () => {
-      slide.current = null;
-      // keep a drag from landing as a press: the click comes right after this
-      if (drag.current?.moved) setTimeout(() => (drag.current = null), 0);
-      else drag.current = null;
-    };
-    const onClick = (e: MouseEvent) => {
-      if (drag.current?.moved) return;
-      const m = locate(e);
-      const id = m.inside ? surface.hit(m.x, m.y) : null;
-      if (id) act(id);
-    };
-    const onWheel = (e: WheelEvent) => {
-      if (!view.current.open || drawn.current.maxScroll <= 0) return;
-      e.preventDefault();
-      scrollBy(Math.sign(e.deltaY) * 3);
-    };
-    const onLost = (e: Event) => e.preventDefault();
-    const onRestored = () => {
-      boot();
-      layout();
-    };
-
-    canvas.addEventListener("pointermove", onMove);
-    canvas.addEventListener("pointerleave", onLeave);
-    canvas.addEventListener("pointerdown", onDown);
-    canvas.addEventListener("pointerup", onUp);
-    canvas.addEventListener("pointercancel", onUp);
-    canvas.addEventListener("click", onClick);
-    canvas.addEventListener("wheel", onWheel, { passive: false });
-    canvas.addEventListener("webglcontextlost", onLost);
-    canvas.addEventListener("webglcontextrestored", onRestored);
-
-    return () => {
-      cancelAnimationFrame(raf);
-      cancelAnimationFrame(fitting);
-      globalThis.clearTimeout(settle);
-      ro.disconnect();
-      io.disconnect();
-      globalThis.removeEventListener("resize", refit);
-      fine.removeEventListener("change", syncCursor);
-      canvas.removeEventListener("pointermove", onMove);
-      canvas.removeEventListener("pointerleave", onLeave);
-      canvas.removeEventListener("pointerdown", onDown);
-      canvas.removeEventListener("pointerup", onUp);
-      canvas.removeEventListener("pointercancel", onUp);
-      canvas.removeEventListener("click", onClick);
-      canvas.removeEventListener("wheel", onWheel);
-      canvas.removeEventListener("webglcontextlost", onLost);
-      canvas.removeEventListener("webglcontextrestored", onRestored);
-      crt?.dispose();
-    };
-  }, [act, point, scrollBy, noGl]);
-
   /* ── the mirror: the same screen as real buttons and text ── */
   const kase = open ? caseOf.get(open.id) : undefined;
   const links = open
@@ -779,8 +399,8 @@ export function ControlRoomDesktop({ projects, focusId, cases }: DesktopProps) {
 
   return (
     <div className="cr-host">
-      <div ref={rootRef} className="cr" tabIndex={-1} data-own-cursor={ownCursor ? "" : undefined} onKeyDown={onKeyDown}>
-        <canvas key={noGl ? "flat" : "glass"} ref={canvasRef} className="cr-canvas" aria-hidden />
+      <div ref={rootRef} className="cr" tabIndex={-1} data-own-cursor={tube.ownCursor ? "" : undefined} onKeyDown={onKeyDown}>
+        <canvas key={tube.glass} ref={canvasRef} className="cr-canvas" aria-hidden />
 
         <div className="cr-mirror">
           <fieldset onFocus={() => setCfgOpen(true)} onBlur={() => setCfgOpen(false)}>

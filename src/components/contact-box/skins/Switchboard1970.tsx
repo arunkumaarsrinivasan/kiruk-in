@@ -181,7 +181,7 @@ export function Switchboard1970({ contact }: ContactSkinProps) {
   else if (line) board.status = `On the line: ${getChannel(line).label}`;
   else board.status = "The operator is putting you through";
 
-  const { ownCursor } = useTube(
+  const { ownCursor, glass } = useTube(
     root,
     canvas,
     {
@@ -208,7 +208,7 @@ export function Switchboard1970({ contact }: ContactSkinProps) {
       <style>{PAGE_CSS}</style>
       <div className="cr-host">
         <div ref={root} className="cr" tabIndex={-1} data-own-cursor={ownCursor ? "" : undefined}>
-          <canvas ref={canvas} className="cr-canvas" aria-hidden />
+          <canvas key={glass} ref={canvas} className="cr-canvas" aria-hidden />
 
           <div className="cr-mirror">
             <h1>Contact Arun</h1>
