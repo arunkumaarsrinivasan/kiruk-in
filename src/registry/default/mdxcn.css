@@ -55,5 +55,10 @@
   background-image: repeating-linear-gradient(to bottom, var(--graph-frame) 0 2px, transparent 2px 7px);
 }
 
+/* the body's padding by frame (was a React context; the figures render on the
+   server now). Unlayered, so it wins over the body's px/py utilities. */
+[data-frame="rule"] > .graph-body { padding-inline: 0; }
+[data-frame="none"] > .graph-body { padding: 0; }
+
 /* a figure between paragraphs keeps the blog's rhythm */
 .mdx-figure { margin-block: 1.75rem; text-shadow: none; }

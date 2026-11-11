@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 
 import {
@@ -67,33 +65,6 @@ type GraphFrame = "box" | "corners" | "rule" | "none"
 
 const GRAPH_FRAMES = ["box", "corners", "rule", "none"] as const
 
-const GraphFrameContext = React.createContext<GraphFrame | undefined>(undefined)
-
-/**
- * Sets the frame for every graph inside it. A graph's own `frame` prop wins.
- *
- * ```tsx
- * <GraphFrameProvider frame="none">{children}</GraphFrameProvider>
- * ```
- */
-function GraphFrameProvider({
-  frame,
-  children,
-}: {
-  frame: GraphFrame
-  children?: React.ReactNode
-}) {
-  return (
-    <GraphFrameContext.Provider value={frame}>
-      {children}
-    </GraphFrameContext.Provider>
-  )
-}
-
-function useGraphFrame(): GraphFrame {
-  return React.useContext(GraphFrameContext) ?? "box"
-}
-
 function GraphTitle({
   placement = "edge",
   className,
@@ -119,23 +90,15 @@ function GraphTitle({
   )
 }
 
-const bodyPadding: Record<GraphFrame, string | undefined> = {
-  box: undefined,
-  corners: undefined,
-  rule: "px-0 sm:px-0",
-  none: "p-0 sm:p-0",
-}
-
+/**
+ * The figure's content. A server component: no context, so the frame's
+ * padding (none under `rule` sides, none at all under `none`) comes from
+ * `[data-frame] > .graph-body` in mdxcn.css, keyed on the parent figure.
+ */
 function GraphBody({ className, ...props }: React.ComponentProps<"div">) {
-  const frame = useGraphFrame()
-
   return (
     <div
-      className={cn(
-        "min-w-0 px-5 py-7 sm:px-8 sm:py-8",
-        className,
-        bodyPadding[frame]
-      )}
+      className={cn("graph-body min-w-0 px-5 py-7 sm:px-8 sm:py-8", className)}
       {...props}
     />
   )
@@ -280,41 +243,38 @@ function Graph({
   frame?: GraphFrame
 }) {
   const captionId = React.useId()
-  const inherited = React.useContext(GraphFrameContext)
-  const frame = frameProp ?? inherited ?? "box"
+  const frame = frameProp ?? "box"
 
   return (
-    <GraphFrameContext.Provider value={frame}>
-      <figure
-        aria-labelledby={title ? captionId : undefined}
-        className={cn(
-          "relative w-full min-w-0 font-mono text-sm text-foreground",
-          frame === "box" && "graph-frame",
-          className
-        )}
-        data-frame={frame}
-        {...props}
-      >
-        {title ? (
-          <GraphTitle
-            id={captionId}
-            placement={frame === "none" ? "inline" : "edge"}
-          >
-            {title}
-          </GraphTitle>
-        ) : null}
-        {frame === "box" || frame === "corners" ? (
-          <GraphCorners mark={corner} />
-        ) : null}
-        {frame === "rule" ? (
-          <>
-            <GraphRule className="absolute inset-x-0 top-0" />
-            <GraphRule className="absolute inset-x-0 bottom-0" />
-          </>
-        ) : null}
-        {children}
-      </figure>
-    </GraphFrameContext.Provider>
+    <figure
+      aria-labelledby={title ? captionId : undefined}
+      className={cn(
+        "relative w-full min-w-0 font-mono text-sm text-foreground",
+        frame === "box" && "graph-frame",
+        className
+      )}
+      data-frame={frame}
+      {...props}
+    >
+      {title ? (
+        <GraphTitle
+          id={captionId}
+          placement={frame === "none" ? "inline" : "edge"}
+        >
+          {title}
+        </GraphTitle>
+      ) : null}
+      {frame === "box" || frame === "corners" ? (
+        <GraphCorners mark={corner} />
+      ) : null}
+      {frame === "rule" ? (
+        <>
+          <GraphRule className="absolute inset-x-0 top-0" />
+          <GraphRule className="absolute inset-x-0 bottom-0" />
+        </>
+      ) : null}
+      {children}
+    </figure>
   )
 }
 
@@ -368,7 +328,6 @@ export {
   Graph,
   GraphBody,
   GraphCorners,
-  GraphFrameProvider,
   GRAPH_FRAMES,
   GraphProse,
   graphProseClass,
@@ -379,6 +338,5 @@ export {
   GraphTrack,
   Head,
   Row,
-  useGraphFrame,
 }
 export type { CellProps, GraphFrame, RowProps }

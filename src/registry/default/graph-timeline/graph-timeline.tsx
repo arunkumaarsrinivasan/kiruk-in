@@ -1,7 +1,4 @@
-"use client"
-
 import type { ReactNode } from "react"
-import { motion, useReducedMotion } from "framer-motion"
 
 import {
   childItems,
@@ -18,11 +15,8 @@ import {
   type GraphFrame,
 } from "@/registry/default/graph-frame/graph-frame"
 import {
-  fadeUp,
-  staggerList,
   toneClass,
   type GraphPalette,
-  graphViewport,
 } from "@/registry/default/graph-frame/graph-motion"
 import { cn } from "@/lib/utils"
 
@@ -66,9 +60,6 @@ function GraphTimeline({
   frame,
   className,
 }: GraphTimelineProps) {
-  const reduce = useReducedMotion()
-  const item = fadeUp(reduce)
-  const list = staggerList(reduce, 0.05)
   const listed = listItems(children).map((item) => {
     const { head, body } = itemParts(item)
     const text = textOf(head).replace(/\s+/g, " ").trim()
@@ -94,13 +85,9 @@ function GraphTimeline({
   return (
     <Graph title={title} className={className} corner={corner} frame={frame}>
       <GraphBody>
-        <motion.ol
+        <ol
           className="flex flex-col"
-          initial={reduce ? false : "hidden"}
           role="list"
-          variants={list}
-          viewport={graphViewport}
-          whileInView="show"
         >
           {events.map((event, index) => {
             const state = event.state ?? "done"
@@ -108,10 +95,9 @@ function GraphTimeline({
             const live = state === "now"
 
             return (
-              <motion.li
+              <li
                 key={`${event.date}-${event.label}`}
                 className="flex flex-col"
-                variants={item}
               >
                 <div className="grid grid-cols-[1.25rem_7rem_minmax(0,1fr)] items-baseline gap-x-4">
                   <span
@@ -160,10 +146,10 @@ function GraphTimeline({
                     <span className="text-center text-graph-frame">│</span>
                   </div>
                 )}
-              </motion.li>
+              </li>
             )
           })}
-        </motion.ol>
+        </ol>
       </GraphBody>
     </Graph>
   )

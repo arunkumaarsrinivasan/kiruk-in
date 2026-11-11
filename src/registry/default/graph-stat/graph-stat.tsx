@@ -1,7 +1,4 @@
-"use client"
-
 import type { ReactNode } from "react"
-import { motion, useReducedMotion } from "framer-motion"
 
 import {
   childItems,
@@ -16,11 +13,6 @@ import {
   textOf,
   type GraphFrame,
 } from "@/registry/default/graph-frame/graph-frame"
-import {
-  fadeUp,
-  staggerList,
-  graphViewport,
-} from "@/registry/default/graph-frame/graph-motion"
 import { cn } from "@/lib/utils"
 
 const columnClass: Record<number, string> = {
@@ -59,9 +51,6 @@ function GraphStat({
   frame,
   className,
 }: GraphStatProps) {
-  const reduce = useReducedMotion()
-  const item = fadeUp(reduce)
-  const list = staggerList(reduce, 0.06)
   const listed = listItems(children).map((item) => {
     const { token, rest } = firstToken(itemText(item))
     const { label, rest: hint } = splitDash(rest)
@@ -85,19 +74,14 @@ function GraphStat({
   return (
     <Graph title={title} className={className} corner={corner} frame={frame}>
       <GraphBody>
-        <motion.ul
+        <ul
           className={cn("grid gap-8", columnClass[columns])}
-          initial={reduce ? false : "hidden"}
           role="list"
-          variants={list}
-          viewport={graphViewport}
-          whileInView="show"
         >
           {items.map((entry) => (
-            <motion.li
+            <li
               className="flex flex-col gap-2"
               key={entry.label}
-              variants={item}
             >
               <p
                 className={cn(
@@ -111,9 +95,9 @@ function GraphStat({
               {entry.hint ? (
                 <p className="text-graph-muted">{entry.hint}</p>
               ) : null}
-            </motion.li>
+            </li>
           ))}
-        </motion.ul>
+        </ul>
       </GraphBody>
     </Graph>
   )

@@ -1,7 +1,4 @@
-"use client"
-
 import type { ReactNode } from "react"
-import { motion, useReducedMotion } from "framer-motion"
 
 import {
   childItems,
@@ -17,9 +14,6 @@ import {
 } from "@/registry/default/graph-frame/graph-frame"
 import {
   DIM_OPACITY,
-  fadeUp,
-  staggerList,
-  graphViewport,
 } from "@/registry/default/graph-frame/graph-motion"
 import { cn } from "@/lib/utils"
 
@@ -131,32 +125,24 @@ function GraphTree({
   frame,
   className,
 }: GraphTreeProps) {
-  const reduce = useReducedMotion()
-  const item = fadeUp(reduce)
-  const list = staggerList(reduce, 0.03)
   const rows = flatten(nodes ?? nodesOf(children))
   const hasAccent = rows.some((row) => row.accent)
 
   return (
     <Graph title={title} className={className} corner={corner} frame={frame}>
       <GraphBody className="overflow-x-auto overflow-y-hidden">
-        <motion.ul
+        <ul
           role="list"
           className="flex min-w-max flex-col gap-1"
-          initial={reduce ? false : "hidden"}
-          variants={list}
-          viewport={graphViewport}
-          whileInView="show"
         >
           {rows.map((row) => {
             const dim = hasAccent && !row.accent
 
             return (
-              <motion.li
+              <li
                 key={row.key}
                 className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-6"
                 style={dim ? { opacity: DIM_OPACITY } : undefined}
-                variants={item}
               >
                 <span className="whitespace-nowrap">
                   <span
@@ -180,10 +166,10 @@ function GraphTree({
                 ) : (
                   <span />
                 )}
-              </motion.li>
+              </li>
             )
           })}
-        </motion.ul>
+        </ul>
         <span className="sr-only">Tree with {rows.length} nodes</span>
       </GraphBody>
     </Graph>

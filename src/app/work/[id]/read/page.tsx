@@ -1,7 +1,9 @@
 import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
+import sharp from "sharp";
 import { notFound } from "next/navigation";
 import { ReadSurface } from "@/components/read/ReadSurface";
 import { readRail, sectionsOf } from "@/lib/content/read/rail";
@@ -48,8 +50,12 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
  *     "Checkout flow");
  *   - or list them in data/work-show.ts, with a written caption and alt text.
  * Listed pictures come first; a file that is listed is not shown twice.
+ * Each is measured at build time so the page reserves its box before it
+ * loads; a listed file that is missing from `public/` is left out.
  */
-function pictures(id: string): { src: string; alt: string; caption: string }[] {
+type Picture = { src: string; alt: string; caption: string; width: number; height: number };
+
+async function pictures(id: string): Promise<Picture[]> {
   const listed = WORK_SHOW[id]?.media ?? [];
   const dir = join(process.cwd(), "public", "work", id);
   const found = existsSync(dir)
@@ -62,7 +68,16 @@ function pictures(id: string): { src: string; alt: string; caption: string }[] {
           return { src: `/work/${id}/${file}`, alt: caption || file, caption };
         })
     : [];
-  return [...listed, ...found.filter((f) => !listed.some((l) => l.src === f.src))];
+  const all = [...listed, ...found.filter((f) => !listed.some((l) => l.src === f.src))];
+  const measured = await Promise.all(
+    all.map(async (picture) => {
+      const file = join(process.cwd(), "public", picture.src);
+      if (!existsSync(file)) return null;
+      const { width, height } = await sharp(file).metadata();
+      return width && height ? { ...picture, width, height } : null;
+    }),
+  );
+  return measured.filter((p): p is Picture => p !== null);
 }
 
 /** The page body: the Markdown without its frontmatter, title and pitch, which the header shows. */
@@ -86,7 +101,7 @@ export default async function WorkReadPage({ params }: { params: Promise<{ id: s
   const content = await renderMdx(text, {});
   const kase = getWorkCases().find((c) => c.frontmatter.project === id || c.frontmatter.also?.includes(id));
   const presentation = kase ? await renderMdx(kase.body, WORK_MDX as unknown as MdxComponentScope) : null;
-  const media = pictures(id);
+  const media = await pictures(id);
 
   return (
     <ReadSurface
@@ -134,8 +149,14 @@ export default async function WorkReadPage({ params }: { params: Promise<{ id: s
         <section className="work-read-gallery" aria-label="Pictures">
           {media.map((m) => (
             <figure key={m.src}>
-              {/* eslint-disable-next-line @next/next/no-img-element -- sizes vary; shown at their own ratio */}
-              <img src={m.src} alt={m.alt} loading="lazy" />
+              {/* the grid is auto-fit, min 240px, inside a column of at most 60rem */}
+              <Image
+                src={m.src}
+                alt={m.alt}
+                width={m.width}
+                height={m.height}
+                sizes="(max-width: 40rem) 100vw, (max-width: 64rem) 50vw, 30rem"
+              />
               <figcaption>{m.caption}</figcaption>
             </figure>
           ))}

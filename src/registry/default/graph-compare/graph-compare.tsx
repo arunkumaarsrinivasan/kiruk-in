@@ -1,7 +1,4 @@
-"use client"
-
 import type { ReactNode } from "react"
-import { motion, useReducedMotion } from "framer-motion"
 
 import {
   childItems,
@@ -16,12 +13,9 @@ import {
 } from "@/registry/default/graph-frame/graph-frame"
 import {
   DIM_OPACITY,
-  fadeUp,
   isMonoPalette,
   seriesClass,
-  staggerList,
   type GraphPalette,
-  graphViewport,
 } from "@/registry/default/graph-frame/graph-motion"
 import { cn } from "@/lib/utils"
 
@@ -123,9 +117,6 @@ function GraphCompare({
           values: row.values.map((value) => compareCell(value)),
         })) ?? []))
   ).map((row) => ({ ...row, label: row.label ?? "" }))
-  const reduce = useReducedMotion()
-  const item = fadeUp(reduce)
-  const list = staggerList(reduce, 0.04)
   const template = `minmax(7rem,1fr) repeat(${columns.length}, minmax(4rem, 7rem))`
 
   return (
@@ -158,20 +149,15 @@ function GraphCompare({
               )
             })}
           </div>
-          <motion.ul
+          <ul
             className="flex flex-col gap-2"
-            initial={reduce ? false : "hidden"}
             role="list"
-            variants={list}
-            viewport={graphViewport}
-            whileInView="show"
           >
             {rows.map((row) => (
-              <motion.li
+              <li
                 className="grid items-baseline gap-x-4"
                 key={row.label}
                 style={{ gridTemplateColumns: template }}
-                variants={item}
               >
                 <span className="min-w-0 wrap-break-word text-foreground">
                   {row.label}
@@ -209,9 +195,9 @@ function GraphCompare({
                     </span>
                   )
                 })}
-              </motion.li>
+              </li>
             ))}
-          </motion.ul>
+          </ul>
         </div>
       </GraphBody>
     </Graph>

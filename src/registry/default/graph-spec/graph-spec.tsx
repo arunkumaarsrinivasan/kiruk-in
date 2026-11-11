@@ -1,7 +1,4 @@
-"use client"
-
 import type { ReactNode } from "react"
-import { motion, useReducedMotion } from "framer-motion"
 
 import {
   childItems,
@@ -17,11 +14,6 @@ import {
   textOf,
   type GraphFrame,
 } from "@/registry/default/graph-frame/graph-frame"
-import {
-  fadeUp,
-  staggerList,
-  graphViewport,
-} from "@/registry/default/graph-frame/graph-motion"
 import { cn } from "@/lib/utils"
 
 type SpecRow = {
@@ -59,9 +51,6 @@ function GraphSpec({
   frame,
   className,
 }: GraphSpecProps) {
-  const reduce = useReducedMotion()
-  const item = fadeUp(reduce)
-  const list = staggerList(reduce, 0.04)
   const listed = listItems(children).map((item): SpecLine => {
     const { head, body } = itemParts(item)
     const { label, rest } = splitLabel(textOf(head).replace(/\s+/g, " ").trim())
@@ -87,18 +76,13 @@ function GraphSpec({
   return (
     <Graph title={title} className={className} corner={corner} frame={frame}>
       <GraphBody>
-        <motion.dl
+        <dl
           className="flex flex-col gap-3"
-          initial={reduce ? false : "hidden"}
-          variants={list}
-          viewport={graphViewport}
-          whileInView="show"
         >
           {rows.map((row) => (
-            <motion.div
+            <div
               className="grid grid-cols-[minmax(0,11rem)_minmax(0,1fr)] items-baseline gap-x-3 sm:gap-x-6"
               key={row.label}
-              variants={item}
             >
               <dt className="text-graph-muted">{row.label}</dt>
               <dd className="flex min-w-0 flex-col gap-1">
@@ -127,9 +111,9 @@ function GraphSpec({
                   </GraphProse>
                 ) : null}
               </dd>
-            </motion.div>
+            </div>
           ))}
-        </motion.dl>
+        </dl>
       </GraphBody>
     </Graph>
   )
