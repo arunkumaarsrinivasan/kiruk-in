@@ -41,7 +41,7 @@ const DRAFTS: Curated[] = [
     id: "one-line",
     questions: ["describe yourself in one line", "your one liner", "sum yourself up", "elevator pitch"],
     answer:
-      "Co-founder and Design Lead at Spera. Brand, design system, frontend, and the workflows that keep them one language. Before that, three years as a UX Design Engineer on HP's Innovation for India team.",
+      "Founding Design Engineer and Design Lead at Spera. Brand, design system, frontend, and the workflows that keep them one language. Before that, three years as a UX Design Engineer on HP's Innovation for India team.",
     refs: ["role:spera-design-lead", "role:hp-ux-designer"],
     source: "MASTER-CAREER §3 C. Short",
     status: "draft",

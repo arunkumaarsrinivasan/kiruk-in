@@ -109,7 +109,7 @@ export const WHO: { id: ContactWhoId; label: string; intent: IntentId }[] = [
 export const FACTS = {
   name: "Arun Kumaar Sreenivasan",
   handle: "kiruk",
-  now: "Co-founder · Design Lead at Spera",
+  now: "Founding Design Engineer · Design Lead at Spera",
   nowHref: "https://www.spera.bot",
   before: "UX Design Engineer at HP, Innovation for India",
   place: "Bengaluru, India",

@@ -25,7 +25,7 @@ import { SHARE_IMAGE, SITE_URL } from "@/lib/site";
 
 const TITLE = "Arun Kumaar Sreenivasan — Design Engineer, Bengaluru, India";
 const DESCRIPTION =
-  "Arun Kumaar Sreenivasan (Kiruk): design engineer in Bengaluru, India. Co-founder of Spera.bot, ex-HP Inc. AI UX, design systems, React, Three.js and WebGPU.";
+  "Arun Kumaar Sreenivasan (Kiruk): design engineer in Bengaluru, India. Founding design engineer and design lead at Spera.bot, ex-HP Inc. AI UX, design systems, React, Three.js and WebGPU.";
 const UPDATED = "2026-11-04";
 
 export const metadata: Metadata = {

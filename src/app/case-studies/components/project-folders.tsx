@@ -25,7 +25,7 @@ const folders: ProjectFolder[] = [
     icon: 'code-block',
     color: '#22d3ee',
     url: 'https://www.spera.bot',
-    description: 'Co-founder · build & backtest crypto strategies',
+    description: 'Founding design engineer · build & backtest crypto strategies',
     type: 'figma',
     side: 'developer',
     highlighted: true,

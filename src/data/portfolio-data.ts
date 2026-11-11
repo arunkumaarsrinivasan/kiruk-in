@@ -595,7 +595,7 @@ export const portfolioData: PortfolioData = {
     fullName: 'Arun Kumaar Sreenivasan',
     title: 'Design Engineer',
     location: 'Bengaluru, India - 560102',
-    bio: 'Co-founder and Design & Frontend Lead at Spera.bot — building the platform to design, backtest, and run crypto strategies without a developer. Previously UX Design Engineer on HP\'s Innovation for India team. I build design tools, experimental websites, and whatever feels right — always leveraging UX to make complex products feel human.',
+    bio: 'Founding Design Engineer and Design Lead at Spera.bot — building the platform to design, backtest, and run crypto strategies without a developer. Previously UX Design Engineer on HP\'s Innovation for India team. I build design tools, experimental websites, and whatever feels right — always leveraging UX to make complex products feel human.',
     tagline: 'Scribbles that turn into digital experiences',
     email: 'arunkumaar.srinivasan@gmail.com',
     linkedin: 'https://linkedin.com/in/arunkumaarsreenivasan/',
@@ -943,7 +943,7 @@ export const portfolioData: PortfolioData = {
     {
       id: 'spera-platform',
       title: 'Spera — Build & backtest crypto strategies without a developer',
-      description: 'Co-founding and leading design, frontend, and interaction for a platform where traders own the full loop — design, backtest, paper trade, iterate',
+      description: 'Founding design engineer leading design, frontend, and interaction for a platform where traders own the full loop — design, backtest, paper trade, iterate',
       longDescription: 'Spera is the faster path from idea to live strategy: build, backtest, and paper trade your own crypto strategy without sharing your edge, waiting weeks, or managing servers. AI helps go from idea to tested in hours. Leading end-to-end product experience — the visual Logic Deck (ordered steps, not spaghetti), reproducible backtests with pinned data and honest fees/slippage, AI-assisted drafting where every suggestion is a visible row you can accept or reject, and run manifests so every decision is logged. Built for serious strategy builders who are tired of the hire-a-developer loop.',
       category: 'ai',
       status: 'in-progress',
@@ -959,7 +959,7 @@ export const portfolioData: PortfolioData = {
       challenges: [
         'Making systematic trading approachable without dumbing it down',
         'Designing AI assistance that accelerates without hiding logic',
-        'Owning design and frontend as co-founder on a pre-release product',
+        'Owning design and frontend as founding design engineer on a pre-release product',
       ],
       learnings: [
         'Product design for operator-grade fintech tooling',
@@ -978,7 +978,7 @@ export const portfolioData: PortfolioData = {
         startDate: '2026-02-01',
         duration: 'ongoing',
       },
-      role: 'Co-founder · Design & Frontend Lead',
+      role: 'Founding Design Engineer · Design Lead',
       tags: ['ai', 'crypto', 'fintech', 'design-engineering', 'backtesting'],
       metrics: {
         impact: 'Full design-to-ship loop for strategy builders — no developer handoffs',
@@ -1429,22 +1429,22 @@ export const portfolioData: PortfolioData = {
     {
       id: 'spera-design-lead',
       company: 'Spera',
-      position: 'Co-founder · Design & Frontend Lead',
+      position: 'Founding Design Engineer · Design Lead',
       location: 'Remote',
       type: 'full-time',
       startDate: '2026-02-01',
       current: true,
       companyWebsite: 'https://www.spera.bot',
-      description: 'Co-founding Spera — the platform to build, backtest, and paper trade crypto strategies without a developer. Leading all design, frontend, interaction, and overall product experience: Logic Deck, reproducible backtests, AI-assisted drafting, and the full pre-release product surface at spera.bot.',
+      description: 'Founding design engineer at Spera — the platform to build, backtest, and paper trade crypto strategies without a developer. Leading all design, frontend, interaction, and overall product experience: Logic Deck, reproducible backtests, AI-assisted drafting, and the full pre-release product surface at spera.bot.',
       responsibilities: [
-        'Co-found and own end-to-end product design and design system',
+        'Own end-to-end product design and design system from day one',
         'Lead frontend implementation and interaction design',
         'Define experience strategy for strategy builders and trading desks',
         'Design AI assistance that accelerates without hiding user logic',
         'Ship the design → backtest → iterate loop in hours, not weeks',
       ],
       achievements: [
-        'Co-founded Spera and shipped spera.bot product experience',
+        'Joined Spera at the start and shipped the spera.bot product experience',
         'Visual Logic Deck, backtest manifests, and AI inline drafts',
         'Unified design, frontend, and interaction under one workflow',
       ],
@@ -1623,8 +1623,8 @@ export const portfolioData: PortfolioData = {
     version: '1.1.0',
     lastUpdated: new Date().toISOString(),
     seo: {
-      title: 'Kiruk | Co-founder · Design & Frontend Lead at Spera',
-      description: 'Portfolio of Arun Kumaar Sreenivasan — Co-founder at Spera.bot. Former UX Design Engineer on HP Innovation for India (HP Print AI, Mudra Stack). Experimental websites, design tools, and human-centered UX.',
+      title: 'Kiruk | Founding Design Engineer · Design Lead at Spera',
+      description: 'Portfolio of Arun Kumaar Sreenivasan — Founding Design Engineer and Design Lead at Spera.bot. Former UX Design Engineer on HP Innovation for India (HP Print AI, Mudra Stack). Experimental websites, design tools, and human-centered UX.',
       keywords: ['design-engineer', 'spera', 'hp-print-ai', 'design-systems', 'experimental-web', 'interaction-design', 'figma', 'nextjs', 'flutter', 'ai-ux'],
       ogImage: '/og-image.jpg',
     },

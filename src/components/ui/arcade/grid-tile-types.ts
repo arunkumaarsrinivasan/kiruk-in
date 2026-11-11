@@ -95,7 +95,7 @@ export const PROJECT_TILES: ProjectTileContent[] = [
   {
     id: 'spera-platform',
     title: 'Spera — Crypto Strategy Platform',
-    company: 'Spera (Co-founder)',
+    company: 'Spera (Founding Design Engineer)',
     year: '2026',
     tags: ['Crypto', 'Backtesting', 'AI'],
     teaser: 'Build & backtest strategies without a developer',

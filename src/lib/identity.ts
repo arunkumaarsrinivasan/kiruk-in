@@ -26,10 +26,10 @@ export const IDENTITY = {
   jobTitle: "Design Engineer",
   /** One sentence an answer engine can quote as-is. */
   oneLiner:
-    "Arun Kumaar Sreenivasan (Kiruk) is a design engineer in Bengaluru, India. He is co-founder, director and founding design engineer of Spera (Spero Spera Private Limited), and was a Software Systems Engineer doing UX design engineering at HP Inc from 2023 to 2026.",
+    "Arun Kumaar Sreenivasan (Kiruk) is a design engineer in Bengaluru, India. He is the founding design engineer and design lead at Spera (Spero Spera Private Limited), and was a Software Systems Engineer doing UX design engineering at HP Inc from 2023 to 2026.",
   /** Tells him apart from people with similar names. */
   disambiguation:
-    "Design engineer from Bengaluru, India; co-founder of Spera.bot (Spero Spera Private Limited); ex-HP Inc; Computer Science graduate of Sona College of Technology, 2023. Kumaar is spelled with two a's; GitHub and Google Scholar spell the surname Srinivasan.",
+    "Design engineer from Bengaluru, India; founding design engineer and design lead at Spera.bot (Spero Spera Private Limited); ex-HP Inc; Computer Science graduate of Sona College of Technology, 2023. Kumaar is spelled with two a's; GitHub and Google Scholar spell the surname Srinivasan.",
   location: { city: "Bengaluru", region: "Karnataka", country: "IN", countryName: "India" },
   hometown: "Salem, Tamil Nadu",
   languages: ["English", "Tamil"],
@@ -119,7 +119,7 @@ export const ROLES: Role[] = [
     org: "Spera",
     legalName: "Spero Spera Private Limited",
     url: "https://www.spera.bot",
-    title: "Co-founder, Director and Founding Design Engineer",
+    title: "Founding Design Engineer and Design Lead",
     start: "2026-02",
     place: "Remote, India",
     summary:

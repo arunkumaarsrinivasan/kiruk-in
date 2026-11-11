@@ -19,7 +19,7 @@ import { TUBE_BOOT_CSS, TUBE_BOOT_SCRIPT } from "@/components/ui/loader/tube/boo
 const SITE_NAME = "Kiruk Studio — Arun Kumaar Sreenivasan";
 const TITLE = "Arun Kumaar Sreenivasan — Design Engineer & Creative Developer";
 const DESCRIPTION =
-  "Arun Kumaar Sreenivasan (Kiruk) is a design engineer in Bengaluru, India: co-founder of Spera.bot, ex-HP Inc. AI UX, design systems, React, Three.js and WebGPU.";
+  "Arun Kumaar Sreenivasan (Kiruk) is a design engineer in Bengaluru, India: founding design engineer and design lead at Spera.bot, ex-HP Inc. AI UX, design systems, React, Three.js and WebGPU.";
 const OG_IMAGE = `${SITE_URL}/images/dp.jpeg`;
 
 const LAST_MODIFIED = "2026-11-04";

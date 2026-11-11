@@ -22,7 +22,7 @@
   <rect x="56" y="72" width="728" height="336" rx="18" fill="#0b1220" stroke="#1e293b" stroke-width="2"/>
   <text x="88" y="118" fill="#67e8f9" font-family="ui-monospace,monospace" font-size="13" letter-spacing="4">SPERA.BOT</text>
   <text x="88" y="168" fill="#f8fafc" font-family="system-ui,sans-serif" font-size="34" font-weight="700">Logic Deck</text>
-  <text x="88" y="206" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="17">Visual strategy builder · backtest · deploy</text>
+  <text x="88" y="206" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="17">Visual strategy builder ï¿½ backtest ï¿½ deploy</text>
   <g transform="translate(88 236)">
     <rect width="96" height="44" rx="10" fill="#0f172a" stroke="#334155"/>
     <circle cx="24" cy="22" r="8" fill="#22d3ee"/>
@@ -40,7 +40,7 @@
     <rect x="376" y="26" width="28" height="6" rx="3" fill="#1e293b"/>
   </g>
   <rect x="88" y="312" width="132" height="30" rx="15" fill="rgba(34,211,238,0.15)" stroke="#22d3ee"/>
-  <text x="154" y="332" text-anchor="middle" fill="#67e8f9" font-family="system-ui,sans-serif" font-size="12" font-weight="700">CO-FOUNDER</text>
+  <text x="154" y="332" text-anchor="middle" fill="#67e8f9" font-family="system-ui,sans-serif" font-size="12" font-weight="700">DESIGN LEAD</text>
   <path d="M620 300 L700 260 L760 300 L700 340 Z" fill="#22d3ee" fill-opacity="0.12" stroke="#22d3ee" stroke-width="1.5"/>
   <text x="700" y="306" text-anchor="middle" fill="#67e8f9" font-family="ui-monospace,monospace" font-size="11">BTC</text>
   <text x="700" y="324" text-anchor="middle" fill="#94a3b8" font-family="ui-monospace,monospace" font-size="10">+12.4%</text>

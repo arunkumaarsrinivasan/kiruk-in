@@ -33,7 +33,7 @@ const WHO_PAGE: Record<ContactWhoId, { title: string; link: string; hello: strin
   founder: {
     title: "You are building something",
     link: "I am a founder",
-    hello: "Hello, fellow builder. I co-founded Spera, so I know what the early, messy version looks like. Bring it.",
+    hello: "Hello, fellow builder. I joined Spera at the very start, so I know what the early, messy version looks like. Bring it.",
   },
   designer: {
     title: "You design things too",

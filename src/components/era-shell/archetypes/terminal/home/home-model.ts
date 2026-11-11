@@ -116,7 +116,7 @@ export const SUBJECT = {
     const words = HERO.name.split(/\s+/);
     return words.length > 1 ? [words.slice(0, -1).join(" "), words[words.length - 1]] : [HERO.name];
   })(),
-  role: `${HERO.role} · Co-founder, ${HERO.org}`,
+  role: `Founding Design Engineer · Design Lead, ${HERO.org}`,
   place: HERO.location,
   preTitle: HERO.preTitle,
   framing: HERO.framing,

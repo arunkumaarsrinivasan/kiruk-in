@@ -16,7 +16,7 @@ export const personalKnowledgeBase: KnowledgeItem[] = [
     id: 'core-identity',
     category: 'identity',
     title: 'Professional Identity',
-    content: `Arun Kumaar Srinivasan (KIRUK) is Co-founder and Design & Frontend Lead at Spera.bot (from Feb 2026) — building the platform to design, backtest, and paper trade crypto strategies without a developer. He previously spent three years as UX Design Engineer on HP's Innovation for India team. He builds design tools, experimental websites, and whatever feels right — always leveraging UX craft to make complex products feel human. Portfolio: kiruk.in · Behance: behance.net/arunkusriniva · GitHub: github.com/arunkumaarsrinivasan`,
+    content: `Arun Kumaar Srinivasan (KIRUK) is Founding Design Engineer and Design Lead at Spera.bot (from Feb 2026) — building the platform to design, backtest, and paper trade crypto strategies without a developer. He previously spent three years as UX Design Engineer on HP's Innovation for India team. He builds design tools, experimental websites, and whatever feels right — always leveraging UX craft to make complex products feel human. Portfolio: kiruk.in · Behance: behance.net/arunkusriniva · GitHub: github.com/arunkumaarsrinivasan`,
     tags: ['identity', 'ax-designer', 'ai', 'ux', 'engineering'],
     priority: 10
   },
@@ -25,9 +25,9 @@ export const personalKnowledgeBase: KnowledgeItem[] = [
   {
     id: 'current-role-spera',
     category: 'work',
-    title: 'Co-founder · Design & Frontend Lead at Spera',
-    content: `Co-founder at Spera (spera.bot) from February 2026. Leading all design, frontend, interaction, and product experience for a platform where traders build, backtest, and paper trade crypto strategies without a developer. Key surfaces: Visual Logic Deck, reproducible backtests, AI-assisted drafting, run manifests. Website: https://www.spera.bot`,
-    tags: ['spera', 'co-founder', 'design-lead', 'frontend', 'crypto', 'fintech', 'ai'],
+    title: 'Founding Design Engineer · Design Lead at Spera',
+    content: `Founding design engineer and design lead at Spera (spera.bot) from February 2026. Leading all design, frontend, interaction, and product experience for a platform where traders build, backtest, and paper trade crypto strategies without a developer. Key surfaces: Visual Logic Deck, reproducible backtests, AI-assisted drafting, run manifests. Website: https://www.spera.bot`,
+    tags: ['spera', 'founding-design-engineer', 'design-lead', 'frontend', 'crypto', 'fintech', 'ai'],
     priority: 10
   },
   {
@@ -112,8 +112,8 @@ export const personalKnowledgeBase: KnowledgeItem[] = [
     id: 'project-spera-platform',
     category: 'projects',
     title: 'Spera — Build & backtest crypto strategies',
-    content: `Co-founding Spera (https://www.spera.bot) — platform to design, backtest, and paper trade crypto strategies without hiring a developer. Visual Logic Deck, reproducible backtests with pinned data, AI inline drafts, walk-forward validation, run manifests. Leading design and frontend.`,
-    tags: ['spera', 'crypto', 'fintech', 'ai', 'backtesting', 'co-founder'],
+    content: `Founding design engineer at Spera (https://www.spera.bot) — platform to design, backtest, and paper trade crypto strategies without hiring a developer. Visual Logic Deck, reproducible backtests with pinned data, AI inline drafts, walk-forward validation, run manifests. Leading design and frontend.`,
+    tags: ['spera', 'crypto', 'fintech', 'ai', 'backtesting', 'founding-design-engineer'],
     priority: 9
   },
   {

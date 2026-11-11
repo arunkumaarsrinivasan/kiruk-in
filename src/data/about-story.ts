@@ -264,13 +264,13 @@ export const BEATS: Beat[] = [
     place: "Spera, remote",
     phase: "work",
     threads: ["design", "engineering", "leadership"],
-    title: "Co-founding Spera",
+    title: "Designing Spera from day one",
     icon: "🌈",
-    skim: "Now co-founder and Design Lead at Spera. I own the design and the frontend, end to end.",
+    skim: "Now founding design engineer and Design Lead at Spera. I own the design and the frontend, end to end.",
     read:
-      "In February 2026 I left HP to co-found Spera, a platform where you can build, backtest and paper trade crypto strategies without hiring a developer. We're three people. Praveen, our CEO, leads the product. I lead design and frontend end to end: the logo, the voice, the design system, the interface, and the workflows that turn a sketch or a bug report into shipped UI.",
+      "In February 2026 I left HP to join Spera, a platform where you can build, backtest and paper trade crypto strategies without hiring a developer, as its founding design engineer. We're three people. Praveen, our CEO, leads the product. I lead design and frontend end to end: the logo, the voice, the design system, the interface, and the workflows that turn a sketch or a bug report into shipped UI.",
     deep: [
-      "In February 2026 I left HP and co-founded Spera with Praveen. Spera lets traders build, backtest and paper trade crypto strategies without hiring a developer or running their own servers. We're a team of three: Praveen is CEO and leads the product, I lead design and frontend, and our third teammate runs marketing and growth.",
+      "In February 2026 I left HP to join Praveen at Spera as its founding design engineer and design lead. Spera lets traders build, backtest and paper trade crypto strategies without hiring a developer or running their own servers. We're a team of three: Praveen is CEO and leads the product, I lead design and frontend, and our third teammate runs marketing and growth.",
       "From the first week I owned how Spera looks, sounds and works: the logo, the brand, the design system and tokens, and the production frontend. My UI went into our main branch on 22 February and I've made more than 330 commits since. The way we work is simple: sit together, ideate, start from a sketch, then encode it as a spec or a rule so the next pass doesn't start from zero.",
       "The piece I'm proudest of is the feedback loop. Anyone can report a UI problem in the app, and the report captures the exact element, screenshots and state, then turns into a prompt already wired to our specs and docs. The UX of reporting was designed to improve the UX of fixing. Right now I'm working on how chat and the MCP interface feel together.",
     ],

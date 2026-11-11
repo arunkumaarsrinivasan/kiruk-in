@@ -120,7 +120,7 @@ export function CaseStudiesContent() {
               className="mt-2 text-2xl font-bold uppercase sm:text-3xl lg:text-4xl"
               style={{ fontFamily: 'var(--font-heading)', color: 'var(--text-main)' }}
             >
-              Design engineer · co-founder
+              Founding design engineer · design lead
             </h1>
             <p className="mt-3 max-w-md text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
               Spera, HP Innovation for India, Square Bridge, PeopleGamez, and experiments in

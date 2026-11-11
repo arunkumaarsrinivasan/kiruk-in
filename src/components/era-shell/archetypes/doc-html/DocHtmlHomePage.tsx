@@ -346,7 +346,7 @@ export function DocHtmlHomePage() {
             }}
           >
             Field notes on Arun Kumaar Sreenivasan, working at the
-            design-engineering bridge, now co-founder and design lead at Spera.
+            design-engineering bridge, now founding design engineer and design lead at Spera.
           </p>
           <p
             style={{
@@ -1360,7 +1360,7 @@ function HypertextConsole({
         case "whois": {
           reply([
             "kiruk · arun kumaar sreenivasan",
-            "  role.... co-founder, design lead @ Spera",
+            "  role.... founding design engineer, design lead @ Spera",
             "  loc..... bengaluru, india",
             "  work.... design + engineering, one workflow",
             "  online.. kiruk.in · @kirukism",
@@ -1770,7 +1770,7 @@ function ViewSourceOverlay({ onClose }: { onClose: () => void }) {
 <BODY>
   <H1>Kiruk — A Design Engineer on Record.</H1>
   <P>Field notes on Arun Kumaar Sreenivasan, working at the
-     design-engineering bridge, now co-founder and design lead at Spera.</P>
+     design-engineering bridge, now founding design engineer and design lead at Spera.</P>
 
   <HR>
   <H2>Abstract</H2>
