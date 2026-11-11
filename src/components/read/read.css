@@ -1,0 +1,445 @@
+/*
+ * Read as a directory (docs/READ_DIRECTORY_PLAN.md).
+ *
+ * One layout for every era: a rail that says where you are, and the page.
+ * Nothing is boxed. The era gives the page its colour, its accent and its
+ * heading face through the site's tokens, and its pointer: the pixel arrow of
+ * the 1970 work tube, redrawn in the era's colours.
+ *
+ * Hierarchy is carried by five sizes of type and by what each shelf has to
+ * show: a picture, a number, or a line of text. Each shelf is laid out by its
+ * own material, so no two read the same.
+ */
+
+.read {
+  --read-rail: 12.5rem;
+  --read-col: 60rem;
+  --read-gap: clamp(1.75rem, 4vw, 4rem);
+  --read-rule: color-mix(in oklch, var(--text-main) 16%, transparent);
+  /* The era's second colour: what is live, counted or pointed at. */
+  --read-accent: var(--accent-color);
+  /* An era whose display face runs small (1970's VT323) scales its headings up to match. */
+  --read-display: 1;
+  display: grid;
+  grid-template-columns: var(--read-rail) minmax(0, 1fr);
+  gap: 0 var(--read-gap);
+  margin-inline: auto;
+  max-width: calc(var(--read-rail) + var(--read-col) + var(--read-gap) + 2 * clamp(1.25rem, 4vw, 3rem));
+  padding: 2.5rem clamp(1.25rem, 4vw, 3rem) calc(var(--eye-lid-bottom, 0px) + 5rem);
+  color: var(--text-main);
+}
+
+/* 1970 is the tube: phosphor green, with the work tube's plasma orange for what is live. */
+[data-era-surface="1970"] .read { --read-display: 1.4; --read-accent: #ff8a2a; }
+[data-era-surface="1970"] .read-title,
+[data-era-surface="1970"] .read-shelf__title,
+[data-era-surface="1970"] .read-lead__title,
+[data-era-surface="1970"] .read-stat__value,
+[data-era-surface="1970"] .read-row__title { font-weight: 400; letter-spacing: 0.01em; }
+
+/* The reading surface sets its own heading leading; these headings are display type and sit tight. */
+.read .read-title { line-height: 0.95; }
+.read .read-shelf__title { line-height: 1; }
+.read .read-lead__title { line-height: 1.1; }
+.read .read-stat__value { line-height: 0.95; }
+
+.read a:focus-visible,
+.read-find input:focus-visible { outline: 2px solid var(--read-accent); outline-offset: 2px; }
+
+/* the smallest size: labels, kinds, dates */
+.read-kicker,
+.read-label {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--read-accent);
+}
+.read-fact {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+/* ---------- rail ---------- */
+
+.read-rail {
+  position: sticky;
+  top: calc(var(--simple-game-nav-bottom, 4.5rem) + 1.5rem);
+  align-self: start;
+  max-height: calc(100dvh - var(--simple-game-nav-bottom, 4.5rem) - var(--eye-lid-bottom, 0px) - 3rem);
+  overflow-y: auto;
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+.read-rail ul { display: grid; gap: 0.15rem; margin: 0; padding: 0; list-style: none; }
+.read-rail__group + .read-rail__group { margin-top: 1.75rem; }
+.read-rail a {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.3rem 0;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 150ms ease-out;
+}
+.read-rail a:hover { color: var(--text-main); }
+.read-rail a[aria-current] { color: var(--read-accent); font-weight: 600; }
+.read-rail__n { font-size: 0.78rem; font-variant-numeric: tabular-nums; color: var(--read-accent); font-weight: 400; }
+
+/* ---------- masthead ---------- */
+
+.read-main { min-width: 0; max-width: var(--read-col); }
+
+.read-title {
+  margin: 0.6rem 0 0;
+  font-family: var(--font-heading);
+  font-size: calc(clamp(2.75rem, 6.5vw, 4.75rem) * var(--read-display));
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+}
+.read-pitch {
+  margin: 1.1rem 0 0;
+  max-width: 34ch;
+  font-size: clamp(1.2rem, 2vw, 1.5rem);
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--text-main);
+  text-wrap: balance;
+}
+
+/* the pictures that open the page: one from each shelf that has one */
+.read-strip {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 2.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.read-strip li { position: relative; min-width: 0; }
+.read-strip .read-pic { aspect-ratio: 4 / 3; }
+.read-strip__title {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--text-main);
+  text-decoration: none;
+  text-wrap: balance;
+}
+.read-strip .read-fact { margin-top: 0.15rem; font-size: 0.72rem; }
+@media (max-width: 40rem) {
+  .read-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .read-strip li:nth-child(n + 4) { display: none; }
+}
+
+/* a picture: it fills its frame, and brightens under the pointer */
+.read-pic {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: color-mix(in oklch, var(--text-main) 8%, transparent);
+}
+.read-pic img { object-fit: cover; transition: transform 320ms cubic-bezier(0.2, 0.7, 0.2, 1), filter 200ms ease-out; filter: saturate(0.9) brightness(0.92); }
+/* the title is the link; it reaches over its picture so the whole tile opens it */
+.read-hit::after { content: ""; position: absolute; inset: 0; }
+@media (hover: hover) {
+  li:hover > .read-pic img,
+  .read-lead:hover .read-pic img { transform: scale(1.03); filter: none; }
+  li:hover > .read-hit,
+  li:hover .read-hit,
+  .read-lead:hover .read-hit { color: var(--read-accent); }
+}
+
+.read-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+.read-meta li + li::before { content: "·"; margin-inline: 0.6rem; }
+.read-meta a { color: inherit; text-decoration: underline; text-decoration-color: var(--read-rule); text-underline-offset: 3px; transition: color 150ms ease-out; }
+.read-meta a:hover { color: var(--read-accent); }
+
+.read-find { display: flex; align-items: baseline; gap: 0.75rem; margin-top: 1.25rem; max-width: 22rem; }
+.read-find label { font-size: 0.875rem; color: var(--text-muted); }
+.read-find input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.35rem 0;
+  border: 0;
+  border-bottom: 1px solid var(--read-rule);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-main);
+  font: inherit;
+  font-size: 1rem;
+}
+.read-find input::placeholder { color: var(--text-muted); opacity: 0.7; }
+.read-find input:focus { border-bottom-color: var(--read-accent); }
+
+/* ---------- a shelf ---------- */
+
+.read-shelf { margin-top: 4.5rem; padding-top: 1.75rem; border-top: 1px solid var(--read-rule); }
+/* the name on the left, what it holds on the right: an uneven pair */
+.read-shelf__head {
+  display: grid;
+  /* the title takes the room its words need, up to a little over half */
+  grid-template-columns: fit-content(58%) minmax(0, 1fr);
+  gap: 0.75rem clamp(1.5rem, 4vw, 3.5rem);
+  align-items: end;
+}
+.read-shelf__title {
+  margin: 0.5rem 0 0;
+  font-family: var(--font-heading);
+  font-size: calc(clamp(1.9rem, 3.6vw, 2.75rem) * var(--read-display));
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+  scroll-margin-top: calc(var(--simple-game-nav-bottom, 4.5rem) + 1.5rem);
+}
+.read-shelf__blurb { margin: 0; max-width: 46ch; font-size: 1.0625rem; line-height: 1.5; color: var(--text-main); text-wrap: pretty; }
+.read-shelf__note { margin: 0.6rem 0 0; }
+.read-shelf__note a { color: var(--read-accent); text-decoration: underline; text-decoration-color: color-mix(in oklch, var(--read-accent) 45%, transparent); text-underline-offset: 3px; }
+.read-shelf__note a:hover { text-decoration-color: currentColor; }
+@media (max-width: 44rem) {
+  .read-shelf__head { grid-template-columns: minmax(0, 1fr); align-items: start; }
+}
+
+.read-group { margin-top: 2rem; }
+
+/* one page, large: the picture beside the words */
+.read-lead {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: 1.25rem clamp(1.5rem, 4vw, 3rem);
+  align-items: center;
+}
+.read-lead .read-pic { aspect-ratio: 16 / 10; }
+.read-lead__title {
+  margin: 0.6rem 0 0;
+  font-family: var(--font-heading);
+  font-size: calc(clamp(1.5rem, 2.8vw, 2.1rem) * var(--read-display));
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.read-lead__title a { color: var(--text-main); text-decoration: none; transition: color 150ms ease-out; }
+.read-lead__sum { margin: 0.8rem 0 0; max-width: 40ch; font-size: 1.0625rem; line-height: 1.5; color: var(--text-muted); text-wrap: pretty; }
+.read-lead__go { display: inline-block; margin-top: 1rem; font-size: 0.9rem; font-weight: 600; color: var(--read-accent); }
+@media (max-width: 44rem) {
+  .read-lead { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* pictures in a grid; the first is the one to open */
+.read-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.75rem 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.read-tiles li { position: relative; min-width: 0; }
+.read-tiles li:first-child { grid-column: span 2; grid-row: span 2; }
+.read-tiles .read-pic { aspect-ratio: 3 / 2; }
+.read-tile__title {
+  margin: 0.65rem 0 0;
+  font-family: var(--font-heading);
+  font-size: calc(1.05rem * var(--read-display));
+  font-weight: 600;
+  line-height: 1.2;
+}
+.read-tiles li:first-child .read-tile__title { font-size: calc(clamp(1.3rem, 2.2vw, 1.6rem) * var(--read-display)); letter-spacing: -0.015em; }
+.read-tile__title a { color: var(--text-main); text-decoration: none; transition: color 150ms ease-out; }
+.read-tile__sum {
+  margin: 0.3rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+.read-tiles li:first-child .read-tile__sum { font-size: 0.95rem; -webkit-line-clamp: 3; line-clamp: 3; max-width: 44ch; }
+.read-tiles .read-fact { margin-top: 0.35rem; }
+@media (max-width: 52rem) {
+  .read-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .read-tiles li:first-child { grid-row: auto; }
+}
+
+/* a number each: the case is led by what it changed */
+.read-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  gap: 2rem clamp(1.5rem, 3vw, 2.5rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.read-stats li { position: relative; min-width: 0; padding-top: 1rem; border-top: 2px solid var(--text-main); }
+.read-stat__value {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: calc(clamp(2.75rem, 6vw, 4.25rem) * var(--read-display));
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--read-accent);
+}
+.read-stat__label { display: block; margin-top: 0.4rem; font-size: 0.875rem; line-height: 1.35; color: var(--text-muted); }
+.read-stat__title { margin: 1.1rem 0 0; font-family: var(--font-heading); font-size: calc(1.25rem * var(--read-display)); font-weight: 700; line-height: 1.2; letter-spacing: -0.01em; }
+.read-stat__title a { color: var(--text-main); text-decoration: none; transition: color 150ms ease-out; }
+.read-stat__sum { margin: 0.4rem 0 0; font-size: 0.95rem; line-height: 1.5; color: var(--text-muted); text-wrap: pretty; }
+.read-stats .read-fact { margin-top: 0.6rem; }
+
+/* pages, one to a line */
+.read-rows { display: grid; margin: 0; padding: 0; list-style: none; }
+.read-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.2rem 1.5rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--read-rule);
+}
+.read-rows > .read-row:first-child { border-top: 1px solid var(--read-rule); }
+.read-row__title { margin: 0; font-family: var(--font-heading); font-size: calc(1.125rem * var(--read-display)); font-weight: 600; line-height: 1.25; }
+.read-row__title a { color: var(--text-main); text-decoration: none; transition: color 150ms ease-out; }
+.read-row__title a:hover { color: var(--read-accent); }
+.read-row__sum { grid-column: 1; margin: 0; max-width: 60ch; font-size: 0.95rem; line-height: 1.5; color: var(--text-muted); }
+
+/* many pages under one label: the label in its own column, the titles beside it */
+.read-index { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr); gap: 0.9rem 1.5rem; margin: 2.25rem 0 0; }
+.read-index dt { padding-top: 0.3rem; }
+.read-index dd { margin: 0; }
+.read-links { margin: 0; padding: 0; list-style: none; font-size: 1rem; line-height: 1.8; }
+.read-links li { display: inline; }
+.read-links li + li::before { content: "·"; margin-inline: 0.55rem; color: var(--text-muted); }
+.read-links a { color: var(--text-main); text-decoration: underline; text-decoration-color: var(--read-rule); text-underline-offset: 3px; transition: color 150ms ease-out, text-decoration-color 150ms ease-out; }
+.read-links a:hover { color: var(--read-accent); text-decoration-color: currentColor; }
+.read-links span { color: var(--text-muted); }
+@media (max-width: 36rem) {
+  .read-index { grid-template-columns: minmax(0, 1fr); gap: 0.3rem; }
+  .read-index dd { margin-bottom: 0.9rem; }
+}
+
+.read-empty { margin: 3rem 0 0; color: var(--text-muted); }
+.read .mdx-figure { margin-block: 2rem 0; }
+
+/* ---------- a page on the rail ---------- */
+
+/* the surface for Read pages outside the notebook route (making, work) */
+.read-surface { position: relative; z-index: 10; min-height: 100dvh; padding-top: var(--simple-game-nav-bottom, 4.5rem); }
+
+.read-rail__title { margin: 0 0 0.45rem; color: var(--text-muted); }
+.read-rail a > span:first-child { min-width: 0; text-wrap: pretty; }
+
+/* prose keeps a reading measure; pictures, figures and maps take the whole column */
+.read-article { min-width: 0; }
+.read-article > * { max-width: 46rem; }
+.read-article > .mk-wide,
+.read-article > .mk-pair,
+.read-article > .mk-gens,
+.read-article > .mk-eras,
+.read-article > .mk-marks,
+.read-article > .mk-fig--wide,
+.read-article > .mdx-figure,
+.read-article > .work-read-wide,
+.read-article > .work-read-gallery { max-width: none; }
+.read-article .mk-wide { width: auto; margin-inline: 0; }
+.read-article .work-read-wide { left: auto; width: auto; transform: none; margin-inline: 0; }
+.read-article .work-read { max-width: 46rem; }
+
+.read-page-head { margin-bottom: 2.5rem; }
+.read-group__label { margin-bottom: 0.6rem; }
+.read-page-title--code { font-family: var(--font-main); font-size: calc(clamp(1.9rem, 4vw, 3rem) * var(--read-display)); letter-spacing: -0.02em; }
+.read-meta code { font-size: 0.85em; }
+/* a skill is a working document: its own headings, lists and tables, in the era's type */
+.read-skill > * { max-width: 46rem; }
+.read-skill table { display: block; max-width: 100%; overflow-x: auto; }
+.read-draft {
+  margin: 1.25rem 0 0;
+  max-width: 46rem;
+  padding: 0.6rem 0.9rem;
+  border-left: 2px solid var(--read-accent);
+  background: color-mix(in oklch, var(--read-accent) 10%, transparent);
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--text-main);
+}
+.read-page-title {
+  margin: 0.6rem 0 0;
+  font-family: var(--font-heading);
+  font-size: calc(clamp(2.2rem, 5vw, 3.75rem) * var(--read-display));
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+.read .read-page-title { line-height: 1; }
+[data-era-surface="1970"] .read-page-title { font-weight: 400; letter-spacing: 0.01em; }
+.read-page-lede { margin: 1rem 0 0; max-width: 40ch; font-size: clamp(1.15rem, 1.8vw, 1.35rem); line-height: 1.4; color: var(--text-muted); text-wrap: pretty; }
+
+/* the notebook's own article, set into the rail's column */
+.read-main > .notebook-page { padding: 0 !important; }
+/* the rail's "On this page" replaces the notebook's own floating contents */
+.read-main .era-toc { display: none; }
+.read-main .era-read-shell > article,
+.read-main .era-read-shell .gaze-col { margin-inline: 0; }
+
+/* ---------- where the layout breaks ---------- */
+
+/* the rail no longer fits beside the page: it becomes one line of shelves above it */
+@media (max-width: 52rem) {
+  .read { grid-template-columns: minmax(0, 1fr); padding-top: 1.5rem; }
+  .read-rail { position: static; max-height: none; overflow: visible; margin-bottom: 2rem; }
+  .read-rail ul { display: flex; flex-wrap: wrap; gap: 0.25rem 1.25rem; }
+  .read-rail a { padding: 0.55rem 0; min-height: 2.75rem; align-items: center; justify-content: flex-start; gap: 0.4rem; }
+  .read-rail__group + .read-rail__group { margin-top: 0.25rem; }
+  /* on a phone the rail keeps only the shelves */
+  .read-rail__group--deep { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .read a, .read-pic img { transition: none; }
+  li:hover > .read-pic img, .read-lead:hover .read-pic img { transform: none; }
+}
+
+/* ---------- the pointer ---------- */
+
+/*
+ * The 1970 work tube's pixel arrow, drawn in the era's colours by ReadCursor,
+ * which puts the two images on the reading surface. Text fields keep the
+ * I-beam so a reader can see where they will type.
+ */
+[data-read-cursor],
+[data-read-cursor] * { cursor: var(--read-cursor) 0 0, auto; }
+[data-read-cursor] a,
+[data-read-cursor] a *,
+[data-read-cursor] button,
+[data-read-cursor] button *,
+[data-read-cursor] [role="button"],
+[data-read-cursor] summary,
+[data-read-cursor] label { cursor: var(--read-cursor-on) 0 0, pointer; }
+[data-read-cursor] input[type="search"],
+[data-read-cursor] input[type="text"],
+[data-read-cursor] textarea { cursor: text; }

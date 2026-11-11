@@ -57,8 +57,8 @@ export const ARCHETYPE_SHELLS: Partial<Record<EraArchetypeId, ArchetypeShell>> =
       pages: {
         home: dynamic(
           () =>
-            import("./archetypes/terminal/TerminalHomePage").then((m) => ({
-              default: m.TerminalHomePage,
+            import("./archetypes/terminal/home/Home1970").then((m) => ({
+              default: m.Home1970,
             })),
           { loading: PageChunkFallback },
         ),
@@ -191,7 +191,7 @@ export const ARCHETYPE_SHELLS: Partial<Record<EraArchetypeId, ArchetypeShell>> =
 
 const ARCHETYPE_PREFETCH: Partial<Record<EraArchetypeId, () => void>> = {
   terminal: () => {
-    void import("./archetypes/terminal/TerminalHomePage");
+    void import("./archetypes/terminal/home/Home1970");
     void import("./archetypes/terminal/TerminalShellLayer");
   },
   "xerox-bitmap": () => {

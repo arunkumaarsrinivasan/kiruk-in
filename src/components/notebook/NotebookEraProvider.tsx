@@ -28,7 +28,6 @@ import {
   parseNotebookEraId,
 } from "@/lib/notebook";
 import { NotebookEraContext } from "./NotebookEraContext";
-import { NotebookCursor } from "./NotebookCursor";
 import { NotebookDwell } from "./NotebookDwell";
 import { Navbar } from "@/components/layout/Navbar";
 import type { NotebookChromeVariant } from "./NotebookChrome";
@@ -240,7 +239,6 @@ function NotebookEraSession({
       <div
         className={`era-blog-surface relative min-h-screen ${FONT_VARS}${eraId === "1970" ? " skin-log" : ""}`}
         data-era-surface={eraId}
-        data-era-cursor={eraId === "1970" ? "block" : undefined}
         data-notebook-dwell={dwell ? "1" : undefined}
         suppressHydrationWarning
         style={{
@@ -269,7 +267,6 @@ function NotebookEraSession({
           </div>
         </div>
 
-        <NotebookCursor />
         <NotebookDwell eraId={eraId} active={dwell} />
 
         <TimeTravelOverlay

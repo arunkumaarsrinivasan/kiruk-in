@@ -361,7 +361,7 @@ The framed variant cuts its region at the device's own aspect, which fixes this.
 | key interface | today's size, the page's key region held still at the device's aspect |
 
 The key regions:
-- 1970: KIRUK banner and prompts;
+- 1970: KIRUK banner and prompts; since 2026-11-10 the tube home's board (subject's name and the seven records), frame (384, 200, 640);
 - 1981: icons and window;
 - 1991: title and links;
 - 1995: WELCOME banner and counter;

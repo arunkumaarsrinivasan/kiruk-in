@@ -1,0 +1,52 @@
+---
+title: Measure on a grid
+kind: pattern
+made: "Oct 2026"
+order: 1
+image: /making/loader-eye/grid-ours.webp
+tldr: "Judge a shape on a millimetre grid, never by eye. The iris is the ruler: it is close to 11.8 mm across in everyone, so it gives the scale of any photograph of an eye."
+lineage:
+  - "from | real-eye-photo"
+---
+
+## The problem
+
+A render can be wrong in a way nobody can name. Reviews said "robotic" and "too perfect". Looking harder did not help, because the eye that judges a face is the same eye that is fooled by one.
+
+## The move
+
+It is the grid method painters use to copy a portrait, with one change. The subject carries its own ruler.
+
+<GridStudy />
+
+<Steps title="THE METHOD">
+
+1. Find the iris
+
+   In the photograph and in the render. Its width in pixels, divided by 11.8, is pixels per millimetre.
+
+2. Lay the grid
+
+   Crop both to the same scale and lay a 1 mm grid over each, centred on the iris.
+
+3. Read the numbers
+
+   How far each corner sits below the centre, and how tall the opening is at 1, 2, 4 and 6 mm from the corner.
+
+4. Fit the twin
+
+   Fit the plain TypeScript copy of the lid curves to those numbers, and test it.
+
+5. **Change the shader**
+
+   Only now.
+
+</Steps>
+
+## What it found
+
+Both corners of the photographed eye sit below the centre of the iris, the inner by about 3 mm and the outer by about 1.9. The render's inner corner was 0.9 mm low. Three millimetres against less than one: a difference too small to see as a number and large enough to feel as a stranger.
+
+## When not to use it
+
+For light. A grid measures shape. Whether skin looks alive under a green tube is still a judgement, made by looking.

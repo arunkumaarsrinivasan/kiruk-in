@@ -1,0 +1,91 @@
+/* The reading edition of a work: the generated Markdown, set in the active
+   era's own tokens (colour, type, rule, radius), so it reads as a page of
+   that year. */
+.work-read { margin-top: 2rem; font-size: 1rem; line-height: 1.65; }
+.work-read > * + * { margin-top: 1rem; }
+.work-read h2 {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: var(--border-width, 1px) solid var(--border-color);
+  font-family: var(--font-heading);
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+.work-read h3 { margin-top: 1.5rem; font-family: var(--font-heading); font-weight: 700; color: var(--accent-color); }
+.work-read h2 a, .work-read h3 a { color: inherit; text-decoration: none; }
+.work-read a { color: var(--accent-color); text-decoration: underline; text-underline-offset: 4px; }
+.work-read ul, .work-read ol { padding-left: 1.25rem; }
+.work-read ul { list-style: square; }
+.work-read ol { list-style: decimal; }
+.work-read li + li { margin-top: 0.35rem; }
+.work-read strong { color: var(--accent-color); }
+.work-read table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.work-read th, .work-read td {
+  padding: 0.45rem 0.7rem;
+  border: var(--border-width, 1px) solid var(--border-color);
+  text-align: left;
+  vertical-align: top;
+}
+.work-read th { color: var(--text-muted); font-weight: 600; }
+.work-read thead th:empty { display: none; }
+.work-read img { max-width: 100%; height: auto; border: var(--border-width, 1px) solid var(--border-color); border-radius: var(--border-radius, 0); }
+.work-read-list { margin-top: 1rem; display: grid; gap: 0.75rem; }
+.work-read-list a { color: var(--accent-color); text-decoration: underline; text-underline-offset: 4px; font-weight: 700; }
+.work-read-list span { color: var(--text-muted); }
+
+/* The case presentation breaks out of the reading column: its scenes and
+   charts want the width. */
+.work-read-wide {
+  position: relative;
+  left: 50%;
+  width: min(1200px, calc(100vw - 2rem));
+  margin-top: 2.5rem;
+  transform: translateX(-50%);
+}
+.work-read-kicker {
+  margin-bottom: 1rem;
+  color: var(--accent-color);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+.work-read-case.ws { max-width: none; padding: 0; }
+.work-read-cover { margin-top: 2rem; }
+.work-read-cover img {
+  width: 100%;
+  height: auto;
+  border: var(--border-width, 1px) solid var(--border-color);
+  border-radius: var(--border-radius, 0);
+}
+.work-read-gallery {
+  margin-top: 2rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+.work-read-gallery img {
+  width: 100%;
+  height: auto;
+  border: var(--border-width, 1px) solid var(--border-color);
+  border-radius: var(--border-radius, 0);
+  background: color-mix(in srgb, var(--text-main) 8%, transparent);
+}
+.work-read-gallery figcaption { margin-top: 0.5rem; font-size: 0.875rem; color: var(--text-muted); }
+
+/* On a reading page the work is shown as it really looks: no era shader,
+   tint or filter over a scene, a screenshot or a picture. Only the page
+   around it belongs to the era. */
+.work-read-case .ws-ch__pic::after { content: none !important; }
+.work-read-case .ws-ch__pic,
+.work-read-case .ws-ch__pic img,
+.work-read-gallery img,
+.work-read-cover img {
+  filter: none !important;
+  mix-blend-mode: normal !important;
+  image-rendering: auto;
+}
+
+/* The 1970 shell draws scan lines over the whole screen; they would run over
+   the real pictures too, so they are off while a reading page is up. */
+html[data-real-assets] .era-shell-scan { display: none; }

@@ -1,0 +1,355 @@
+/*
+ * /making: how the site was made, as a lineage (docs/MAKING_OF_PLAN.md).
+ *
+ * The pages sit on the notebook's reading surface (.era-blog-surface) and use
+ * the blog's own elements, so they read like any post: dark or light, in
+ * whatever era the surface carries. This file only styles the blocks a
+ * making-of adds (figures, the generations, the spec sheet, the lineage map),
+ * and every colour, border and face in it is one of the era's tokens.
+ */
+
+.mk {
+  padding-top: var(--simple-game-nav-bottom, 4.5rem);
+  padding-bottom: calc(var(--eye-lid-bottom, 0px) + 4rem);
+}
+
+/* small caps label: section kickers, card kinds, row names */
+.mk-label {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent-color);
+}
+
+/* where this page sits: Read / Making / kind */
+.mk-crumb a { color: inherit; text-decoration: none; }
+.mk-crumb a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.mk-back { color: var(--text-muted); text-decoration: none; opacity: 0.75; transition: opacity 160ms ease-out; }
+.mk-back:hover { opacity: 1; }
+
+/* wider than the reading column, centred on it */
+.mk-wide {
+  --mk-w: min(100vw - 2.5rem, 1040px);
+  width: var(--mk-w);
+  max-width: none;
+  margin-inline: calc((100% - var(--mk-w)) / 2);
+}
+
+.mk-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.9rem;
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
+  color: var(--text-muted);
+}
+
+/* ---------- figures ---------- */
+
+.mk-fig { margin-block: 1.75rem; }
+.mk-frame {
+  position: relative;
+  display: block;
+  padding: 0.25rem;
+  border: 2px solid var(--border-color);
+  background: var(--bg-card);
+}
+.mk-frame img { display: block; width: 100%; height: auto; }
+.mk-fig figcaption,
+.mk-cap {
+  margin-top: 0.6rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+.mk-fig figcaption p,
+.mk-cap p {
+  margin: 0;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  color: inherit !important;
+}
+.mk-fig figcaption strong,
+.mk-cap strong { color: var(--text-main); }
+.mk-cap { margin-bottom: 1.75rem; }
+
+.mk-pair {
+  margin-block: 1.75rem;
+  display: grid;
+  gap: 1.25rem 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+}
+.mk-pair .mk-fig { margin: 0; }
+
+.mk-frame--grid svg { position: absolute; inset: 0.25rem; width: calc(100% - 0.5rem); height: calc(100% - 0.5rem); }
+.mk-frame--grid .g1 { stroke: rgba(255, 255, 255, 0.2); stroke-width: 0.6; }
+.mk-frame--grid .g5 { stroke: rgba(255, 255, 255, 0.55); stroke-width: 0.9; }
+.mk-frame--grid .gi { fill: none; stroke: var(--accent-color); stroke-width: 2; }
+.mk-frame--grid .gx { stroke: var(--accent-color); stroke-width: 1.6; }
+
+/* the ten posters */
+.mk-eras {
+  margin-block: 1.75rem 0.5rem;
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+@media (max-width: 640px) {
+  .mk-eras { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.mk-eras figure { margin: 0; }
+.mk-eras img { aspect-ratio: 16 / 9; object-fit: cover; }
+.mk-eras figcaption { margin-top: 0.3rem; font-size: 0.8rem; color: var(--text-muted); }
+
+/* the first eye: live SVG marks */
+.mk-marks {
+  margin-block: 1.75rem 0.5rem;
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  touch-action: pan-y;
+}
+@media (max-width: 640px) {
+  .mk-marks { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+.mk-marks figure {
+  margin: 0;
+  padding: 1rem 0.75rem 0.6rem;
+  border: 2px solid var(--border-color);
+  background: var(--bg-card);
+}
+.mk-marks__eye { aspect-ratio: 3 / 2; }
+.mk-marks figcaption { margin-top: 0.7rem; text-align: center; font-size: 0.8rem; color: var(--text-muted); }
+
+/* the four generations */
+.mk-gens {
+  margin-block: 1.75rem;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13.5rem), 1fr));
+}
+.mk-gen {
+  padding: 1rem;
+  border: 2px solid var(--border-color);
+  background: var(--bg-card);
+}
+.mk-gen__name {
+  margin-top: 0.6rem;
+  font-family: var(--font-heading);
+  font-size: 1.4rem;
+  line-height: 1.15;
+  color: var(--text-main);
+}
+.mk-gen__how { margin-top: 0.25rem; font-size: 0.8rem; color: var(--text-muted); }
+.mk-gen__body { margin-top: 0.7rem; }
+.mk-gen__body p {
+  margin: 0;
+  font-size: 0.95rem !important;
+  line-height: 1.5 !important;
+}
+
+/* a verdict: the reviewer's own words */
+.mk-verdict { margin-block: 1.5rem; }
+.mk-verdict blockquote {
+  margin: 0;
+  padding-left: 1rem;
+  border-left: 1px solid var(--border-color);
+  font-style: italic;
+}
+.mk-verdict blockquote p { margin: 0; color: var(--text-main) !important; }
+.mk-verdict figcaption { margin-top: 0.5rem; padding-left: 1rem; font-size: 0.875rem; color: var(--text-muted); }
+
+/* a spec sheet */
+.mk-spec {
+  margin-block: 1.5rem;
+  display: grid;
+  grid-template-columns: minmax(6.5rem, 12rem) 1fr;
+  border-top: 1px solid var(--border-color);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+.mk-spec dt,
+.mk-spec dd { margin: 0; padding: 0.55rem 0; border-bottom: 1px solid var(--border-color); }
+.mk-spec dt { padding-right: 1rem; color: var(--text-muted); }
+
+/* further reading, lineage */
+.mk-section { margin-top: 3.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-color); }
+.mk-sources { margin: 0.9rem 0 0; padding: 0; list-style: none; }
+.mk-sources li { padding: 0.5rem 0; border-bottom: 1px solid var(--border-color); }
+.mk-sources a { color: var(--accent-color); text-decoration: underline; text-underline-offset: 2px; }
+
+/* ---------- lineage map ---------- */
+
+/*
+ * One grid for every card, so the gaps between columns line up down the whole
+ * map and the wires can run in them. The left padding is the first of those
+ * gaps. Row gaps are wide enough to hold a lane above and below each row.
+ */
+.mk-map {
+  --mk-gap: 1.25rem;
+  position: relative;
+  margin-top: 1.5rem;
+  padding-left: var(--mk-gap);
+}
+.mk-map__grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 1.75rem var(--mk-gap);
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+}
+@media (max-width: 480px) {
+  .mk-map { --mk-gap: 0.9rem; }
+  .mk-map__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.mk-map__here { grid-column: 1 / -1; display: flex; justify-content: center; }
+.mk-map__here .mk-card { width: min(100%, 15rem); }
+.mk-map__label { grid-column: 1 / -1; align-self: end; margin-top: 0.5rem; color: var(--text-muted); }
+
+.mk-map__wires { position: absolute; inset: 0; z-index: 0; overflow: visible; pointer-events: none; }
+.mk-wire path {
+  fill: none;
+  stroke: var(--text-muted);
+  stroke-width: 1;
+  stroke-dasharray: 2 5;
+  stroke-linecap: round;
+  opacity: 0.55;
+  transition: opacity 160ms ease-out, stroke 160ms ease-out;
+}
+.mk-wire circle { fill: var(--text-muted); opacity: 0.55; transition: opacity 160ms ease-out, fill 160ms ease-out; }
+.mk-wire--main path { stroke-dasharray: 4 4; opacity: 1; }
+.mk-wire--main circle { opacity: 1; }
+.mk-map.is-pointing .mk-wire path,
+.mk-map.is-pointing .mk-wire circle { opacity: 0.14; }
+.mk-map.is-pointing .mk-wire.is-lit path { stroke: var(--accent-color); stroke-width: 1.75; stroke-dasharray: none; opacity: 1; }
+.mk-map.is-pointing .mk-wire.is-lit circle { fill: var(--accent-color); opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .mk-wire path, .mk-wire circle { transition: none; }
+}
+
+/* ---------- links between entries ---------- */
+
+.mk-meta__jump { color: var(--accent-color); text-decoration: underline; text-underline-offset: 2px; }
+
+.mk-ref {
+  position: relative;
+  color: var(--accent-color);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+.mk-ref__tip {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 0.4rem);
+  z-index: 30;
+  display: block;
+  width: min(20rem, 78vw);
+  padding: 0.7rem 0.8rem;
+  border: 2px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-main);
+  font-size: 0.875rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.45;
+  text-shadow: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-3px);
+  transition: opacity 140ms ease-out, transform 140ms ease-out, visibility 0s linear 140ms;
+  pointer-events: none;
+}
+.mk-ref__tip > span { display: block; }
+.mk-ref__title { margin-top: 0.3rem; font-family: var(--font-heading); font-size: 1rem; line-height: 1.2; }
+.mk-ref__tldr { margin-top: 0.3rem; color: var(--text-muted); }
+@media (hover: hover) {
+  .mk-ref:hover .mk-ref__tip,
+  .mk-ref:focus-visible .mk-ref__tip {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition: opacity 140ms ease-out 180ms, transform 140ms ease-out 180ms, visibility 0s linear 180ms;
+  }
+}
+@media (hover: none) {
+  .mk-ref__tip { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mk-ref__tip { transform: none; }
+}
+
+/* previous and next, as under a notebook post */
+.mk-trail { margin-top: 3rem; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1.5rem; }
+.mk-trail__link { max-width: 45%; color: var(--text-main); text-decoration: none; transition: opacity 160ms ease-out; }
+.mk-trail__link:hover { opacity: 0.7; }
+.mk-trail__link--next { margin-left: auto; text-align: right; }
+.mk-trail__dir { display: block; margin-bottom: 0.25rem; font-size: 0.875rem; color: var(--text-muted); }
+
+.mk-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 7.5rem;
+  padding: 0.75rem;
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius, 0);
+  background: var(--bg-card);
+  color: var(--text-main);
+  text-decoration: none;
+  transition: opacity 160ms ease-out, border-color 160ms ease-out;
+}
+.mk-card__img {
+  display: block;
+  aspect-ratio: 16 / 9;
+  margin: -0.75rem -0.75rem 0.7rem;
+  border-bottom: 2px solid var(--border-color);
+  background-size: cover;
+  background-position: center;
+}
+.mk-card__kind {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent-color);
+}
+.mk-card__title {
+  margin-top: 0.35rem;
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+.mk-card__made { margin-top: auto; padding-top: 0.6rem; font-size: 0.78rem; color: var(--text-muted); }
+.mk-card--dead-end { border-style: dashed; }
+.mk-card--dead-end .mk-card__title { text-decoration: line-through; text-decoration-thickness: 1px; }
+.mk-card.is-here { outline: 2px solid var(--accent-color); outline-offset: 3px; }
+.mk-card.is-lit { border-color: var(--accent-color); }
+.mk-card.is-dim { opacity: 0.32; }
+a.mk-card:focus-visible { outline: 2px solid var(--accent-color); outline-offset: 3px; }
+@media (hover: hover) {
+  a.mk-card:hover { border-color: var(--accent-color); }
+  a.mk-card:hover .mk-card__title { text-decoration: underline; text-underline-offset: 0.2em; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mk-card { transition: none; }
+}
+
+/* ---------- hub ---------- */
+
+.mk-hub__count { margin-top: 1rem; font-size: 0.9rem; color: var(--text-muted); }
+.mk-hub__start {
+  display: inline-block;
+  margin-top: 1.25rem;
+  padding: 0.6rem 0.95rem;
+  border: 2px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--accent-color);
+  font-weight: 700;
+  text-decoration: none;
+}
+.mk-hub__start:hover { border-color: var(--accent-color); }

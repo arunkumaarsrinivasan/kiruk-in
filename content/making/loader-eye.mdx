@@ -1,0 +1,218 @@
+---
+title: The loader eye
+kind: interface
+made: "May to Nov 2026"
+order: 1
+updated: "2026-11-10"
+image: /eye/posters/2003-wide.avif
+tldr: "One human eye, drawn live in the browser and lit only by the screen it is looking at. It was built four times in six months, measured against a photograph of my own eye, and it changes era by blinking."
+lineage:
+  - "from | glsl-eye"
+  - "from | real-eye-photo"
+  - "from | procedural-eye"
+  - "uses | grid-measure"
+  - "uses | page-is-the-light"
+  - "uses | blink-cut"
+  - "uses | worker-host"
+  - "obeys | one-person"
+  - "obeys | whole-face"
+  - "obeys | no-words"
+  - "obeys | calm"
+  - "through | 1970-phosphor"
+  - "cut | opening-rounds"
+  - "cut | loader-words"
+sources:
+  - "rock-biter/procedural-eye, Gianluca Lomarco | https://github.com/rock-biter/procedural-eye"
+  - "TSL reference, threejs.org | https://threejs.org/docs/pages/TSL.html"
+  - "three.js migration guide | https://github.com/mrdoob/three.js/wiki/Migration-Guide"
+  - "WebGPU is now supported in major browsers, web.dev | https://web.dev/blog/webgpu-supported-major-browsers"
+  - "Pamplona et al. 2009, pupil light reflex and iridal pattern deformation | https://www.npsg.uwaterloo.ca/misc/pupilreflexPub.php"
+  - "Bérard et al. 2014, High-Quality Capture of Eyes, Disney Research | https://la.disneyresearch.com/publication/high-quality-capture-of-eyes/"
+  - "Real-time eye refraction, Animal Logic, SIGGRAPH 2024 | https://animallogic.com/wp-content/uploads/2024/08/Eye_Refraction_Siggraph_Submission_.pdf"
+---
+
+The site opens on an eye that fills the frame. You stand where a screen once stood and look back at the one person using it. Scroll and the eye blinks. When it opens, the screen has changed, and so has everything a screen does to a face: the light, the grain, the way the picture itself is drawn. Click the iris and you fall through the pupil into that era's site.
+
+<Eras />
+
+<Cap>
+
+**The same eye in ten eras, 1970 to 2026.** These are the loader's own posters, the stills it paints before any shader has compiled. It is [one person](/making/one-person) in all ten. Only the screen changes.
+
+</Cap>
+
+## Four eyes
+
+Nothing here arrived in one go. It took four eyes.
+
+<GraphTimeline title="FOUR EYES">
+
+- May 2026: A mark — SVG and a spring
+- Sep 2026: A painting — one GLSL fragment shader, 2D
+- 17 to 20 Oct 2026: A body — three.js TSL on WebGPU, 3D
+- **28 to 29 Oct 2026: A person — measured against my own eye, drawn from a worker**
+
+</GraphTimeline>
+
+<Gens>
+<Gen n="01" when="May 2026" name="A mark" how="SVG and framer-motion">
+
+Two rings, an arc and a pupil that follows the cursor. One per era, each drawn in that era's manner.
+
+</Gen>
+<Gen n="02" when="Sep 2026" name="A painting" how="GLSL on WebGL, one fragment shader">
+
+850 lines that fake a whole eye in 2D on a full-screen quad. The era's page shows in the cornea for the first time.
+
+</Gen>
+<Gen n="03" when="17 to 20 Oct 2026" name="A body" how="three.js TSL on WebGPU">
+
+A small 3D scene with one mesh and one shader module for each layer of the eye. Built in phases, each signed off in a lab.
+
+</Gen>
+<Gen n="04" when="28 to 29 Oct 2026" name="A person" how="TSL, CPU twins, a worker">
+
+The same scene measured against a photograph of my own eye, part by part, then moved off the main thread.
+
+</Gen>
+</Gens>
+
+### A mark
+
+<SvgMarks />
+
+<Cap>
+
+**The first eye, still running.** Move across it. [The SVG mark](/making/svg-eye-mark) was a logo that looked back: the same silhouette redrawn as phosphor cells, a 1-bit bitmap, candy gel, a flat icon. The idea of one thing seen through many screens starts here.
+
+</Cap>
+
+### A painting
+
+<Pair>
+<Figure src="/making/loader-eye/gen2-glsl-2003.webp" alt="The second eye, a flat painted eye with a mirrored web page in its cornea" w={1600} h={900}>
+
+**September.** [The shader eye](/making/glsl-eye) in its 2003 light. There is no eyeball in this picture, only a formula that is white inside an almond and brown inside a circle.
+
+</Figure>
+<Figure src="/eye/posters/2003-wide.avif" alt="The current eye in 2003, with lids, lashes, brow and skin" w={1600} h={900}>
+
+**November.** The same era now. Lids with thickness, lashes that go soft out of focus, a brow, skin, and a page that bends across a real cornea.
+
+</Figure>
+</Pair>
+
+The painting gave the project its one lasting idea: [the era's page lives in the cornea and is the only light](/making/page-is-the-light). It also hit a ceiling, for three reasons.
+
+- **Every detail cost every pixel.** The noise that drew the iris ran across the whole screen each frame, including the pixels that were skin.
+- **Nothing had depth.** Lashes and lids were shapes on a plane, so they could not defocus, overlap or cast a shadow.
+- **The iris could not move under the cornea.** When a real eye turns, the iris slides behind its window. A flat picture cannot do that.
+
+## From GLSL to TSL, from WebGL to WebGPU
+
+The second eye was written in GLSL, the shader language of WebGL: one long string of code that the browser hands to the graphics card. The third is written in TSL, the three.js Shading Language. In TSL a shader is a graph of JavaScript nodes. The same graph compiles to WGSL for WebGPU, or to GLSL for WebGL2 when a browser has no WebGPU, and the renderer makes that switch by itself.
+
+That changed how the eye could be built. Each layer is its own module with its own mesh, so a pixel pays only for the one or two layers it shows.
+
+```text
+the era's page ──► a screen of real size, at a real distance
+                     ├──► light on skin, white and iris
+                     └──► its mirror image in the cornea
+
+scene pass (colour, emissive, depth)
+  └─► depth of field       the iris plane sharp, the lashes soft
+  └─► bloom                only what is brighter than the page
+  └─► era lens, linear     the camera of that year
+  └─► filmic curve
+  └─► era lens, display    lift, gain, gamma, grain
+  └─► era medium           the finished frame, redrawn the way
+                           that era drew pictures
+```
+
+WebGPU was not free. The price was compile time, and it showed up as a frozen browser.
+
+| What went wrong | Measured | What fixed it |
+| --- | --- | --- |
+| The post chain's shader, about 430 KB of WGSL, was built synchronously | The whole browser froze for 5.8 s | Pipelines are created asynchronously and the first frames are staged |
+| All ten eras' media lived in one shader | The eye was ready 22 s after load | Each era's medium is its own small pipeline: ready in 10.9 to 13 s |
+| The eye and the page shared one thread | Worst tap on a throttled phone took 4.1 s | [The eye draws from a worker](/making/worker-host): 0.73 to 1.15 s |
+
+<Cap>
+
+Measured in a dev build on one laptop GPU (Radeon 610M), 21 to 29 October 2026. That GPU drifts by a quarter from run to run, so read these as sizes, not as benchmarks.
+
+</Cap>
+
+On WebGL2 the eye still runs, with one honest loss: there is no second render target for emissive light there, so nothing blooms.
+
+## The real eye, and the grid
+
+For the first three days the references were photographs of strangers' eyes. On 20 October I replaced them with a macro photograph of [my own eye](/making/real-eye-photo), and the work changed from "a convincing eye" to "this eye".
+
+<GridStudy />
+
+<Cap>
+
+**The painter's grid method, with a ruler the eye carries itself.** A human iris is close to 11.8 mm across, so its width in pixels gives the scale of any photograph of an eye. Both pictures get a one-millimetre grid centred on the iris. Shape is then read off the grid and never judged by feel. The grid is redrawn here for this page.
+
+</Cap>
+
+[Measuring on the grid](/making/grid-measure) found what looking could not. In the photograph both corners of my eye sit below the centre of the iris: the inner one by about 3 mm, the outer by about 1.9. The render had its inner corner 0.9 mm low, with both lids bowing evenly away from it. It looked like an eye. It did not look like mine, and that gap was the "robotic" feeling nobody could name.
+
+<Figure src="/making/loader-eye/r6-corner.webp" alt="Six panels comparing the inner corner and lower rim of the photographed eye with the render before and after" w={1280} h={1534}>
+
+**The inner corner, three ways.** Top left is the photograph. Below it, the render before: a pink bead stuck on a clean almond. Right, the render after the corner was rebuilt from the measurements: lower, tighter, joined to both lids, with the lower rim showing its thickness.
+
+</Figure>
+
+The lid edges exist twice: once in the shader, and once as plain TypeScript that runs on the CPU. The plain copy is fitted to the grid's numbers and tested first. Only then does the shader change. A shape bug found in a test costs seconds. Found in a render, it costs a round of screenshots.
+
+## The page is the light
+
+The eye has one key light, and it is the screen. Each era's real home page is captured from this site at 768 px wide and placed in front of the eye as a rectangle of its true size. 1970's is a 244 by 183 mm tube, 600 mm from the face. That rectangle lights the skin, and its mirror image is the only bright thing in the cornea.
+
+Luminance does the rest of the work:
+
+- **The pupil reads the page.** The average brightness of the page drives the pupil, about 0.22 s late. It closes fast and reopens slowly. A white page gives a small pupil and a slight squint. 1970's dark terminal gives a wide one.
+- **Colour enters as light, never as pigment.** An early 1970 tinted the iris green to match the terminal. It read as green fur. The iris has stayed dark brown since, and the green arrives the way it would in a room: from the tube.
+- **Four eras have no colour at all.** 1970, 1981, 1991 and 2026 are monochrome, so every realism change is judged twice: in hue for the colour eras, and in luminance alone for these.
+
+## Optics
+
+<Spec rows="Cornea | a conic dome, 7.8 mm radius at its apex, flattening toward the edge (asphericity −0.25); Behind it | aqueous humour, index of refraction 1.336; Refraction | solved for each pixel with ray maths, so the iris shifts correctly as the eye turns; Iris | baked once in polar space as fibres over a floor of crypts, then marched as two layers; Iris colour | mixed from melanin and blood, not painted brown; Lashes | separate ribbons with their own spring, about 250 above and 150 below on the top tier; Depth of field | a macro lens: iris plane sharp, lashes and brow soft" />
+
+## Motion
+
+A still eye is a glass eye. A busy one is worse. The rules for movement come from how eyes are measured to move.
+
+- **It jumps, it does not glide.** A jump lasts 2.2 ms for each degree it travels, plus 21 ms, and lands slightly short.
+- **It is never quite still.** Between jumps it drifts and makes tiny corrective flicks.
+- **Each era looks its own way.** In 1970 the eye reads: five lines, about 750 ms a stop, a blink every five and a half seconds.
+- **The lids follow the gaze.** They rise as the eye looks up, and the brow goes with them, moved by seven muscles.
+- **It stays [calm](/making/calm).** At rest only the eye and one small sign in the pupil move.
+
+## Ten ways of seeing, cut by a blink
+
+<Figure src="/making/loader-eye/full-bleed.webp" alt="Two contact sheets of the ten eras: above with frames and borders, below with every era filling its frame" w={1800} h={966} wide>
+
+**21 October, before and after.** Above, eras sat inside frames: a bevel, a white page, a photo border. Below, each era's picture technology paints every pixel. The frames were the era laid on top of the eye. The media are the era doing the drawing.
+
+</Figure>
+
+Changing era is [a blink](/making/blink-cut). The old picture leaves the way its machine switched off, the lids are shut for the swap, and the new one arrives the way its machine warmed up.
+
+<Figure src="/making/loader-eye/cut-1970-1981.webp" alt="Twelve frames of the eye changing from green phosphor to a black and white bitmap" w={1600} h={750} wide>
+
+**A cut, slowed to twelve frames.** [1970](/making/1970-phosphor) collapses to a line and a dot like a tube losing power. In the dark the swap happens. 1981 then draws itself in from the top, in black and white dots.
+
+</Figure>
+
+## How the work was run
+
+I art-directed this and reviewed every round. Most of the code was written with Claude Code, and the method is part of the result.
+
+- **A lab before the loader.** The eye was built on a bench page with one canvas, where any single layer can be shown alone in any era.
+- **One part per phase, signed off.** Thirteen phases built the body. A second pass, one part of the eye at a time, made it a person. Nothing moved on until I had looked at renders and said yes.
+- **Ideas compete.** The blink cut came out of a run of nine agents: research, three rival concepts, three judges. All three judges picked the blink on their own. A later review used 66 agents and raised 61 findings, each checked by a sceptic. 45 held.
+- **The rules are written down.** Thirteen skill files hold what was learned, so the next change starts from the rules and not from memory.
+- **Dead ends stay on record.** [Five openings](/making/opening-rounds) and [every design that put words on the eye](/making/loader-words) were built, shown and thrown away. They are in the map below because they explain the thing that shipped.

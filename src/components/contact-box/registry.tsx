@@ -17,7 +17,9 @@ const load = (fn: () => Promise<ContactSkin>) =>
   dynamic<ContactSkinProps>(() => fn().then((C) => ({ default: C })), { ssr: false, loading: Loading });
 
 const SKINS: Record<string, ContactSkin> = {
-  "1970": load(() => import("./skins/Terminal1970").then((m) => m.Terminal1970)),
+  // 1970: Arun's desk on the tube, a message pad and a card wheel (2026-11-10). Terminal1970, the teletype
+  // talk, and Switchboard1970, the call, are kept, unwired.
+  "1970": load(() => import("./skins/Desk1970").then((m) => m.Desk1970)),
   "1981": load(() => import("./skins/Xerox1981").then((m) => m.Xerox1981)),
   "1991": load(() => import("./skins/DocHtml1991").then((m) => m.DocHtml1991)),
   "1995": load(() => import("./skins/Geocities1995").then((m) => m.Geocities1995)),

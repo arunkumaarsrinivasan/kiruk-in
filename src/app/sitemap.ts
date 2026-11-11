@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { getMakingEntries, making } from "@/lib/content/making";
 import { getNotebookEntries } from "@/lib/content/notebook";
 import { SITE_URL } from "@/lib/site";
 
@@ -15,6 +16,7 @@ const STATIC_ROUTES: Route[] = [
   { path: "/about.md", priority: 0.8, changeFrequency: "monthly" },
   { path: "/work", priority: 0.9, changeFrequency: "monthly" },
   { path: "/notebook", priority: 0.8, changeFrequency: "weekly" },
+  { path: "/making", priority: 0.8, changeFrequency: "weekly" },
   { path: "/contact", priority: 0.7, changeFrequency: "yearly" },
   { path: "/progress", priority: 0.6, changeFrequency: "weekly" },
   { path: "/roadmap", priority: 0.6, changeFrequency: "monthly" },
@@ -54,5 +56,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ];
   });
 
-  return [...staticEntries, ...notebookEntries];
+  // How this was made: each entry and its markdown twin.
+  const makingEntries: MetadataRoute.Sitemap = getMakingEntries().flatMap((entry) => {
+    const lastModified = toLastModified(entry.frontmatter.updated ?? "");
+    const url = `${SITE_URL}${making.route(entry.slug)}`;
+    return [
+      { url, lastModified, changeFrequency: "monthly" as const, priority: entry.frontmatter.kind === "interface" ? 0.7 : 0.5 },
+      { url: `${url}/agent.md`, lastModified, changeFrequency: "monthly" as const, priority: 0.3 },
+    ];
+  });
+
+  return [...staticEntries, ...notebookEntries, ...makingEntries];
 }

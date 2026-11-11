@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import type { NotebookSummary } from "@/lib/content/notebook";
 import type { RelatedHit } from "@/lib/content/related";
+import type { MakingIndex } from "@/lib/content/making";
+import { MakingTerminalRecords, MakingTokensSection } from "@/components/making/MakingIndexSection";
 import { QuietTags } from "@/components/blog/QuietTags";
 import { NotebookSearch } from "@/components/blog/NotebookSearch";
 import { notebookReadingGrammar, withNotebookEraHref } from "@/lib/notebook";
@@ -35,6 +37,8 @@ const BANNER_ARUN = [
 interface NotebookListProps {
   entries: Array<NotebookSummary & { work: RelatedHit[] }>;
   query: string;
+  /** "How this was made", listed under the posts. Left out when a search matches none of it. */
+  making?: MakingIndex;
 }
 
 function formatMarginDate(dateString: string) {
@@ -47,17 +51,18 @@ function formatMarginDate(dateString: string) {
 /**
  * Table of contents. 1970 is a research file on the machine you warped to.
  */
-export function NotebookList({ entries, query }: NotebookListProps) {
+export function NotebookList({ entries, query, making }: NotebookListProps) {
   const eraId = useNotebookEraOptional()?.eraId ?? "1970";
   if (notebookReadingGrammar(eraId) === "terminal") {
-    return <TerminalIndex entries={entries} query={query} eraId={eraId} />;
+    return <TerminalIndex entries={entries} query={query} making={making} eraId={eraId} />;
   }
-  return <TokensIndex entries={entries} query={query} />;
+  return <TokensIndex entries={entries} query={query} making={making} />;
 }
 
 function TerminalIndex({
   entries,
   query,
+  making,
   eraId,
 }: NotebookListProps & { eraId: string }) {
   const [focus, setFocus] = useState(0);
@@ -204,13 +209,14 @@ function TerminalIndex({
               })}
             </ol>
           )}
+          {making ? <MakingTerminalRecords making={making} /> : null}
         </div>
       </div>
     </div>
   );
 }
 
-function TokensIndex({ entries, query }: NotebookListProps) {
+function TokensIndex({ entries, query, making }: NotebookListProps) {
   return (
     <div className="px-[clamp(1.25rem,4vw,3rem)] py-10 md:py-14">
       <div className="relative z-10 era-read">
@@ -309,6 +315,8 @@ function TokensIndex({ entries, query }: NotebookListProps) {
             ))}
           </ol>
         )}
+
+        {making ? <MakingTokensSection making={making} /> : null}
 
         <div className="mt-12">
           <NotebookLink

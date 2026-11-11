@@ -1,0 +1,85 @@
+---
+title: How I work
+order: 2
+review: true
+updated: "2026-11-11"
+summary: "Sketch first, then encode. Every lesson becomes a spec, a token, a check or a skill, so the next pass never starts from a blank canvas. The loop, the order of authority, and how it runs on this site."
+---
+
+I design and I build, and I do not hand one to the other. The interesting part is not either skill. It is the loop between them, and what I write down so the loop gets faster each time it turns.
+
+## The loop
+
+<Steps title="INTENT, BUILD, VERIFY, LEARN">
+
+1. Sketch
+
+   Sit together, talk it through, draw it on paper. Nothing is built before the idea has a shape.
+
+2. Build the real thing
+
+   In code, with real data and the real components, as early as possible. A picture of an interface hides the hard parts.
+
+3. **Verify what renders**
+
+   It is not done because it compiles. It is done when the page in the browser does what it should, at every size, for keyboard and screen reader too.
+
+4. Encode the lesson
+
+   A bug becomes a check. A decision becomes a spec. A taste call becomes a rule with its reason written beside it.
+
+5. Reuse
+
+   The next change starts from the specs, tokens, rules and skills, not from memory.
+
+</Steps>
+
+## What decides
+
+When two sources disagree, the order is fixed, so nobody has to argue about it:
+
+<GraphTree
+  title="AUTHORITY"
+  nodes={[
+    { label: "the request", meta: "what changes, and only that", accent: true, children: [
+      { label: "the specs", meta: "the contract for each surface", children: [
+        { label: "the code and the rendered UI", meta: "what actually happens", children: [
+          { label: "Figma", meta: "only when asked, and only exact frames" },
+        ] },
+      ] },
+    ] },
+  ]}
+/>
+
+Figma is a mirror, not the source. The product is the code, so the design lives where the product lives.
+
+## Reports that fix themselves
+
+At Spera a bug report captures the route, the element under the pointer, its component, screenshots, the steps and the console. Triage turns it into a prompt that already carries the matching specs and checks. The reporting was designed to make the fixing cheaper.
+
+<GraphTimeline title="ONE REPORT">
+
+- Capture: the real surface, not a sentence in chat
+- Triage: owner, priority, evidence
+- Route: the smallest spec and the right checks
+- **Verify: on the rendered product**
+- Close: and write down why it broke
+
+</GraphTimeline>
+
+## On this site
+
+This site is built the same way, mostly with Claude Code as the hands and me as the art director. The [loader eye](/making/loader-eye) is the clearest example.
+
+- **A lab before the page.** Each part is built on a bench page where it can be shown alone, in any era, before it goes near the site.
+- **One part at a time, signed off.** Nothing moves on until I have looked at real renders and said yes. Eras go in batches of three.
+- **Ideas compete.** For a hard call, several concepts are written and judged before one is built.
+- **Dead ends stay on record.** Rejected rounds are kept, because they explain the one that shipped. See [the openings that lost](/making/opening-rounds).
+- **The rules are written down.** Thirteen skills hold what was learned about the eye, each one job with its reasons. They are on the [Skills shelf](/notebook#skills).
+
+## What I will not do
+
+- Ship a picture of an interface instead of the interface.
+- Spend a signal on the wrong thing: one accent, one primary action, one thing that moves.
+- Call it done before it is seen working.
+- Keep a lesson in my head when it could be a check.

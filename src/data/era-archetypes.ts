@@ -8,8 +8,8 @@
  * content vessel, motion grammar and transition frames. One archetype per era;
  * per-era tweaks go in ERA_ARCHETYPE_OVERRIDES.
  *
- * Eras without a registered archetype fall back to the legacy
- * EyeTimelineOverlay automatically, so the UI never breaks.
+ * Used by the era shell (era-shell/) to pick each era's page shell. The era
+ * picker no longer uses it: that is the eye network (EraEyePicker).
  */
 
 export type EraArchetypeId =

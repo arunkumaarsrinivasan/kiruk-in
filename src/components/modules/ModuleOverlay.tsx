@@ -19,6 +19,7 @@ import { useModules } from "@/contexts/ModuleContext";
 import { useDesignEra } from "@/contexts/DesignEraContext";
 import { useEraTravel } from "@/components/era-travel/EraTravelContext";
 import type { ModuleId } from "@/contexts/ModuleContext";
+import { useNotebookEraOptional } from "@/components/notebook/NotebookEraContext";
 import { MODULE_CONTENT, getModuleMeta } from "./content";
 import { useModuleA11y } from "./useModuleA11y";
 
@@ -45,6 +46,7 @@ export function ModuleOverlayHost() {
   const { openId, origin, close } = useModules();
   const { currentEraId } = useDesignEra();
   const { travelTo } = useEraTravel();
+  const notebook = useNotebookEraOptional();
   const panelRef = useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion();
 
@@ -100,10 +102,13 @@ export function ModuleOverlayHost() {
         <EraTimeMachine
           isOpen={erasOpen}
           onClose={close}
-          currentEraId={currentEraId}
+          currentEraId={notebook?.eraId ?? currentEraId}
           onEraSelect={(id) => {
             close();
-            travelTo(id);
+            if (id === (notebook?.eraId ?? currentEraId)) return;
+            // on Read, era picks route through the notebook's own travel, as the navbar's do
+            if (notebook) notebook.pickEra(id);
+            else travelTo(id);
           }}
         />
       ) : null}

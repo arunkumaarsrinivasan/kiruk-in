@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState, type ComponentType } from "react"
 import { portfolioData } from "@/data/portfolio-data";
 import { useDesignEra } from "@/contexts/DesignEraContext";
 import { blendDesktop, nearestDesktopId } from "./desktop-eras";
-import type { DesktopId, DesktopProps } from "./types";
+import type { DesktopId, DesktopProps, WorkCaseDigest } from "./types";
 import "./work-os.css";
 
 function desktop(
@@ -17,7 +17,7 @@ function desktop(
 
 const DESKTOPS: Record<DesktopId, ComponentType<DesktopProps>> = {
   term70: desktop(() =>
-    import("./TerminalDesktop").then((m) => ({ default: m.TerminalDesktop })),
+    import("./control-room/ControlRoomDesktop").then((m) => ({ default: m.ControlRoomDesktop })),
   ),
   gui84: desktop(() =>
     import("./desktops/BitmapDesktop").then((m) => ({ default: m.BitmapDesktop })),
@@ -54,7 +54,14 @@ const PROJECTS = portfolioData.projects;
 /** Desktops that would otherwise boot to an empty wallpaper: open the lead project so the first view is work. */
 const BOOT_WITH_FEATURED: readonly DesktopId[] = ["next91"];
 
-export function WorkOS({ focusId }: { readonly focusId?: string }) {
+export function WorkOS({
+  focusId,
+  cases,
+}: {
+  readonly focusId?: string;
+  /** The full cases, for a desktop that shows them inside itself. */
+  readonly cases?: readonly WorkCaseDigest[];
+}) {
   const { currentEra, currentEraId } = useDesignEra();
   const desktopId = useMemo(() => nearestDesktopId(currentEraId), [currentEraId]);
 
@@ -107,7 +114,7 @@ export function WorkOS({ focusId }: { readonly focusId?: string }) {
         style={{ background: era.tokens.wallpaper, "--wos-focus": era.tokens.accent } as React.CSSProperties}
       >
         {sized ? (
-          <Desktop era={era} projects={PROJECTS} focusId={bootId} />
+          <Desktop era={era} projects={PROJECTS} focusId={bootId} cases={cases} />
         ) : null}
       </div>
     </MotionConfig>

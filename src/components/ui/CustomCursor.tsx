@@ -43,6 +43,7 @@ export default function CustomCursor() {
   const [isClicking, setIsClicking] = useState(false);
   const [isIdle, setIsIdle] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
+  const [isOwn, setIsOwn] = useState(false);
 
   const [cursorChat, setCursorChat] = useState<CursorChatWord[] | null>(null);
   const [hapticBursts, setHapticBursts] = useState<HapticBurst[]>([]);
@@ -51,6 +52,7 @@ export default function CustomCursor() {
   const hoveringRef = useRef(false);
   const disabledRef = useRef(false);
   const idleRef = useRef(false);
+  const ownRef = useRef(false);
   const chatKeyRef = useRef<string | null>(null);
 
   const spawnHaptic = useCallback(() => {
@@ -106,6 +108,14 @@ export default function CustomCursor() {
       const target = e.target as HTMLElement;
       if (!target?.closest) return;
 
+      // A surface that draws its own pointer (the 1970 work tube bends its
+      // picture, so its pointer has to bend with it) asks the dot to stand down.
+      const nextOwn = Boolean(target.closest('[data-own-cursor]'));
+      if (ownRef.current !== nextOwn) {
+        ownRef.current = nextOwn;
+        setIsOwn(nextOwn);
+      }
+
       const interactiveEl = target.closest(
         'a, button, input, select, textarea, [role="button"], [tabindex]:not([tabindex="-1"])'
       ) as HTMLElement | null;
@@ -152,7 +162,7 @@ export default function CustomCursor() {
     };
     const handleMouseDown = () => {
       setIsClicking(true);
-      spawnHaptic();
+      if (!ownRef.current) spawnHaptic();
     };
     const handleMouseUp = () => setIsClicking(false);
 
@@ -187,7 +197,7 @@ export default function CustomCursor() {
     return () => document.documentElement.removeAttribute("data-cursor-mode");
   }, [enabled, chromeQuiet, isIdle, isVisible]);
 
-  if (!enabled || !isVisible || chromeQuiet) return null;
+  if (!enabled || !isVisible || chromeQuiet || isOwn) return null;
 
   const isEmojiPage = pathname === '/progress';
   const emojiChar = '🔭';

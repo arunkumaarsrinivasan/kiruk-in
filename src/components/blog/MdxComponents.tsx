@@ -8,6 +8,7 @@ import { InkInline } from './InkInline'
 import { Pretext } from './Pretext'
 import { InkLayer } from './InkLayer'
 import { Mark, Zig, Hit } from './Marks'
+import { FIGURES } from '@/components/figures'
 
 /**
  * MDX component scope — Era token type plus ink/figure blocks.
@@ -174,6 +175,9 @@ export const mdxComponents = {
       {children}
     </td>
   ),
+
+  // Text-drawn figures (timeline, table, steps, stat, tree…) for any post.
+  ...FIGURES,
 
   Figure,
   Compare,

@@ -1,0 +1,59 @@
+/*
+ * mdxcn (mdxcn.dev): figures drawn with text, copied into this folder as
+ * source. This file is what the shadcn CLI would have added to the theme,
+ * written by hand so every figure takes the era's colours from the site's
+ * tokens instead of a fixed light and dark palette.
+ */
+
+:root,
+[data-era-surface] {
+  /* what is live, chosen or the row to read */
+  --graph-accent: var(--read-accent, var(--accent-color));
+  /* second and third series */
+  --graph-accent-2: color-mix(in oklch, var(--text-main) 62%, var(--accent-color));
+  --graph-accent-3: var(--text-muted);
+  /* the dashed frame and rules */
+  --graph-frame: color-mix(in oklch, var(--text-main) 42%, transparent);
+  --graph-muted: var(--text-muted);
+  --graph-faint: color-mix(in oklch, var(--text-main) 16%, transparent);
+  --contrast-14: color-mix(in oklch, var(--text-main) 14%, transparent);
+  --contrast-23: color-mix(in oklch, var(--text-main) 23%, transparent);
+  --contrast-45: color-mix(in oklch, var(--text-main) 45%, transparent);
+  --contrast-70: color-mix(in oklch, var(--text-main) 70%, transparent);
+}
+
+/* 1970's accent is the same green as its text; the work tube's orange is what marks "live" there. */
+[data-era-surface="1970"] { --graph-accent: #ff8a2a; }
+
+/* the colour utilities the figures are written with */
+.text-foreground { color: var(--text-main); }
+.text-foreground\/80 { color: color-mix(in oklch, var(--text-main) 80%, transparent); }
+.text-graph-muted { color: var(--graph-muted); }
+.text-graph-accent { color: var(--graph-accent); }
+.text-graph-accent-2 { color: var(--graph-accent-2); }
+.text-graph-accent-3 { color: var(--graph-accent-3); }
+.text-graph-frame { color: var(--graph-frame); }
+.decoration-graph-frame { text-decoration-color: var(--graph-frame); }
+
+/* the dashed frame: four dashed edges painted as backgrounds */
+.graph-frame {
+  background-image:
+    repeating-linear-gradient(to right, var(--graph-frame) 0 2px, transparent 2px 7px),
+    repeating-linear-gradient(to bottom, var(--graph-frame) 0 2px, transparent 2px 7px),
+    repeating-linear-gradient(to right, var(--graph-frame) 0 2px, transparent 2px 7px),
+    repeating-linear-gradient(to bottom, var(--graph-frame) 0 2px, transparent 2px 7px);
+  background-repeat: repeat-x, repeat-y, repeat-x, repeat-y;
+  background-position: 0 0, 100% 0, 0 100%, 0 0;
+  background-size: 100% 1px, 1px 100%, 100% 1px, 1px 100%;
+}
+.graph-rule {
+  height: 1px;
+  background-image: repeating-linear-gradient(to right, var(--graph-frame) 0 2px, transparent 2px 7px);
+}
+.graph-rule-y {
+  width: 1px;
+  background-image: repeating-linear-gradient(to bottom, var(--graph-frame) 0 2px, transparent 2px 7px);
+}
+
+/* a figure between paragraphs keeps the blog's rhythm */
+.mdx-figure { margin-block: 1.75rem; text-shadow: none; }

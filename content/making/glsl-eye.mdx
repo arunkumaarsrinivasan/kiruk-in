@@ -1,0 +1,41 @@
+---
+title: The shader eye
+kind: interface
+made: "Sep 2026"
+order: 11
+image: /making/loader-eye/gen2-glsl-2003.webp
+tldr: "The second eye was a painting: one 850-line GLSL fragment shader that faked a whole eye in 2D on a full-screen quad. It found the idea of the page in the cornea, and then it hit its ceiling."
+lineage:
+  - "from | svg-eye-mark"
+---
+
+<Pair>
+<Figure src="/making/loader-eye/gen2-glsl-1970.webp" alt="The shader eye in 1970, a flat green eye" w={1600} h={900}>
+
+**1970.** The same formula as on the right, in a different light.
+
+</Figure>
+<Figure src="/making/loader-eye/gen2-glsl-2003.webp" alt="The shader eye in 2003, a flat eye with a mirrored page in the cornea" w={1600} h={900}>
+
+**2003.** The site's page, mirrored, sits in the cornea. That part was new.
+
+</Figure>
+</Pair>
+
+## What it was
+
+A fragment shader runs once for every pixel and answers one question: what colour is this point? This one answered it for a whole eye. Inside an almond the pixel is white. Inside a circle it is iris, with noise for fibres. A dome formula bends a painted page across the middle to stand in for a reflection.
+
+There was no geometry. The lids, the lashes and the room were all the same flat plane.
+
+## What it found
+
+The era's screen lives in the cornea, and it is the only light. That sentence survived the rebuild unchanged, and became [a pattern of its own](/making/page-is-the-light).
+
+## Where it stopped
+
+- Every new detail cost every pixel, because the noise ran over the full screen each frame.
+- Lashes and lids had no depth, so they could not go out of focus or cast a shadow.
+- The iris could not slide under the cornea when the eye turned.
+
+It stays in the site as the last fallback. If the 3D eye cannot start, this one still can.

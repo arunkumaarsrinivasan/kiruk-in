@@ -3111,6 +3111,17 @@ html[data-era-picker-active] [role="button"] {
   transition: background-color 150ms ease-out, color 150ms ease-out;
 }
 
+/* The ruler's year ticks: they rise under the pointer, from their foot. */
+.eye-tick {
+  transform-origin: 50% 100%;
+  translate: -50% 0;
+}
+
+.site-trail-up {
+  display: inline-block;
+  transition: translate 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
 .eye-year:focus-visible {
   box-shadow: 0 0 0 2px var(--accent-color);
 }
@@ -3171,6 +3182,10 @@ html[data-era-picker-active] [role="button"] {
   .site-trail-link:hover {
     color: var(--accent-color);
   }
+
+  .site-trail-link:hover .site-trail-up {
+    translate: -3px 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -3181,7 +3196,8 @@ html[data-era-picker-active] [role="button"] {
   .era-rail-year,
   .era-rail-tip,
   .eye-nav .eye-fade,
-  .eye-year {
+  .eye-year,
+  .site-trail-up {
     transition: none;
   }
 }

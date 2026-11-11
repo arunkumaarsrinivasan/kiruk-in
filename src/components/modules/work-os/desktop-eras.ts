@@ -8,8 +8,8 @@ export const DESKTOP_ERAS: DesktopEra[] = [
   {
     id: "term70",
     year: "1972",
-    os: "UNIX · CRT",
-    tagline: "No mouse. No windows. Just a cursor and your keystrokes.",
+    os: "Picture tube",
+    tagline: "One curved tube: the work as dot-matrix cells, lit by whatever points at them.",
     covers: ["1970"],
     mode: "terminal",
     chrome: "bitmap",
@@ -17,9 +17,10 @@ export const DESKTOP_ERAS: DesktopEra[] = [
     icon: "mono",
     fontUi: "var(--font-mono, 'JetBrains Mono', 'Courier New', monospace)",
     fontBody: "var(--font-mono, 'JetBrains Mono', 'Courier New', monospace)",
-    brand: "kiruk@unix",
+    brand: "Kiruk Station",
     tokens: {
-      wallpaper: "#020402",
+      // the housing around the tube; the tube draws everything else
+      wallpaper: "#060706",
       surface: "#020402",
       surfaceAlt: "#031003",
       text: "#33ff66",

@@ -1,19 +1,15 @@
 import type { Metadata } from "next";
-import { getNotebookEntries } from "@/lib/content/notebook";
-import { resolveRelated } from "@/lib/content/related";
-import { NotebookList } from "@/components/blog/BlogListClient";
+import { ReadHome } from "@/components/read/ReadHome";
+import { getReadDirectory, getReadFeatured, searchReadDirectory } from "@/lib/content/read/directory";
 import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Notebook",
-  description: "Essays by Arun Kumaar Sreenivasan (Kiruk), a design engineer in Bengaluru, on design, code and a life of variation. Pick a year, then read from that machine.",
+  title: "Read",
+  description: "Everything by Arun Kumaar Sreenivasan (Kiruk) that is written to be read: essays, how this site was made, the work in words, and the skills he builds with.",
   alternates: { canonical: "/notebook" },
 };
 
-function matchesQuery(haystack: string, query: string) {
-  return haystack.toLowerCase().includes(query);
-}
-
+/** Read's home: the directory of every shelf (docs/READ_DIRECTORY_PLAN.md). */
 export default async function NotebookPage({
   searchParams,
 }: {
@@ -21,45 +17,26 @@ export default async function NotebookPage({
 }) {
   const { q = "" } = await searchParams;
   const query = q.trim();
-  const needle = query.toLowerCase();
-
-  const entries = getNotebookEntries()
-    .filter((entry) =>
-      needle
-        ? matchesQuery(
-            `${entry.title} ${entry.excerpt} ${entry.tags.join(" ")} ${entry.domain.join(" ")}`,
-            needle,
-          )
-        : true,
-    )
-    .map((entry) => ({
-      ...entry,
-      work: resolveRelated(entry.related).filter((hit) => hit.kind === "work"),
-    }));
+  const all = getReadDirectory();
+  const shelves = query ? searchReadDirectory(query) : all;
 
   const notebookJsonLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
     "@id": `${SITE_URL}/notebook#page`,
     url: `${SITE_URL}/notebook`,
-    name: "Notebook — Kiruk Studio",
+    name: "Read — Kiruk Studio",
     description:
-      "Notebook of Arun Kumaar Sreenivasan (Kiruk), a design engineer in Bengaluru. Essays on craft, variation, and how the work gets made.",
+      "Everything by Arun Kumaar Sreenivasan (Kiruk), a design engineer in Bengaluru, that is written to be read: essays, how this site was made, the work in words, and the skills he builds with.",
     isPartOf: { "@id": `${SITE_URL}/#website` },
     about: { "@id": `${SITE_URL}/#person` },
+    hasPart: all.map((s) => ({ "@type": "CreativeWorkSeries", name: s.title, description: s.blurb, url: `${SITE_URL}/notebook#${s.id}` })),
   };
 
   return (
     <>
-      <p className="sr-only">
-        Notebook of Arun Kumaar Sreenivasan (Kiruk), a design engineer in
-        Bengaluru. Essays on craft, variation, and how the work gets made.
-      </p>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(notebookJsonLd) }}
-      />
-      <NotebookList entries={entries} query={query} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(notebookJsonLd) }} />
+      <ReadHome shelves={shelves} all={all} featured={getReadFeatured()} query={query} />
     </>
   );
 }

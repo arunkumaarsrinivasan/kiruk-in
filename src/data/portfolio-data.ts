@@ -1184,7 +1184,8 @@ export const portfolioData: PortfolioData = {
       title: 'Square Bridge',
       description: 'UX strategy and design leadership for a student recruitment platform across Student, Recruiter, and PO personas',
       longDescription: 'Subject Matter Expert for Square Bridge, defining UX strategy and roadmap for Placement Officers (POs) to manage student applications and collaborate seamlessly with HR, while leading a team of three designers across Student, Recruiter, and PO personas. Designed Portfolio Builder boosting student engagement 45% and recruiter dashboards cutting discovery time 40%, with POs gaining a central dashboard for data-driven shortlisting from verified profiles — ensuring 98% design-to-code accuracy in Node.js/MongoDB implementation.',
-      category: 'web',
+      // Led as a designer, so it is filed under Design, not under the medium it shipped on.
+      category: 'design',
       status: 'completed',
       technologies: ['Figma', 'Design Systems', 'UX Research', 'Node.js', 'MongoDB', 'Prototyping'],
       features: [
@@ -1267,7 +1268,8 @@ export const portfolioData: PortfolioData = {
       title: 'Foodies Buddies',
       description: 'Dating app matching foodies by taste — in-app messaging, restaurant picker, and swipe discovery',
       longDescription: 'What if you could find dates who share your passion for food — starting with a romantic dinner? Over months of collaboration, crafted Foodies Buddies, a dating app that matches foodies based on tastes and personalities. Packed with features like in-app messaging with restaurant picker, swipe/search/location discovery, and customizable profiles — a standout first design case study.',
-      category: 'mobile',
+      // A design case study, so it is filed under Design, not under the medium it was drawn for.
+      category: 'design',
       status: 'completed',
       technologies: ['Figma', 'Mobile UI', 'UX Research', 'Prototyping'],
       features: [

@@ -5,6 +5,7 @@
  * same about-story beats the era skins play, so they can't fall out of step.
  */
 import { BEATS } from "@/data/about-story";
+import { getMakingEntries, making } from "@/lib/content/making";
 import { getNotebookEntries } from "@/lib/content/notebook";
 import { EDUCATION, IDENTITY, PROFILE_URL, PROFILES, ROLES, SPECIALTIES, careerMarkdown, faqs, formatMonth } from "./identity";
 import { ENGAGEMENTS, HIRE_ROLES, HIRE_TERMS, HIRE_URL, SERVICES } from "./hire";
@@ -105,8 +106,11 @@ Published work covers Spera.bot, HP Print AI and the Mudra design system, Get my
 - [About, as markdown](${SITE_URL}/about.md): the whole story, roots to now
 - [About](${SITE_URL}/#about): the same story, on the home page
 - [Work](${SITE_URL}/work): selected roles and projects
+- [Work, as markdown](${SITE_URL}/work.md): every project, each with its own markdown page
 - [Notebook](${SITE_URL}/notebook): essays
 ${posts.map((p) => `- [${p.title}](${SITE_URL}${p.href}) ([markdown](${SITE_URL}${p.href}/agent.md))`).join("\n")}
+- [How this was made](${SITE_URL}/making): how the loader eye and each era were built, as linked entries
+${getMakingEntries().map((e) => `- [${e.frontmatter.title}](${SITE_URL}${making.route(e.slug)}) ([markdown](${SITE_URL}${making.route(e.slug)}/agent.md))`).join("\n")}
 - [Hire](${HIRE_URL}): freelance, contract and full-time; roles, services, proof
 - [Contact](${SITE_URL}/contact): freelance, collaboration, hiring
 - [Progress](${SITE_URL}/progress): skills he is leveling

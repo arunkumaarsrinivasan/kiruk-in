@@ -34,3 +34,22 @@
     transform: translate(-50%, -50%);
   }
 }
+
+/* 1970: the work is one picture tube that fills the eye. The stage runs under
+   the site's lids, which crop it the way they crop an eye, and nothing sits
+   below it: the cases are read inside the tube. */
+body[data-era="1970"] [data-blueprint="desktop"] {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  height: 100dvh !important;
+  min-height: 0 !important;
+}
+body[data-era="1970"] [data-work-below] {
+  display: none;
+}
+/* one screen: with the tube filling the view there is nothing to scroll to */
+html:has(body[data-era="1970"] [data-blueprint="desktop"]),
+body[data-era="1970"]:has([data-blueprint="desktop"]) {
+  overflow: hidden;
+}

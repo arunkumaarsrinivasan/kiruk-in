@@ -1,0 +1,36 @@
+---
+title: The eye in a worker
+kind: pattern
+made: "29 Oct 2026"
+order: 4
+tldr: "The eye draws from a web worker, on a canvas handed off the main thread. While its shaders build, the page stays free to respond."
+---
+
+## The problem
+
+Building the eye's shaders is heavy work. On the main thread that work competes with everything else a page does in its first seconds, and the visitor's first tap waits behind it. On a throttled phone the worst tap took 4.1 s.
+
+## The move
+
+Hand the canvas to a worker and run the whole eye there. The page sends it small messages: the pointer, the era, the size of the window. The worker sends frames.
+
+To make that possible the eye never talks to the page directly. It talks to a host, and there are two: one that is the page, and one that is a worker. The same eye runs on either.
+
+<GraphTable title="PAGE VS WORKER">
+
+| On a throttled phone | On the page | In a worker |
+| --- | --- | --- |
+| Worst interaction | 4.1 s | 0.73 to 1.15 s |
+| Long tasks while the eye builds | 4 to 5 | 0 |
+
+</GraphTable>
+
+<Cap>
+
+Measured 29 October 2026, dev build, 4× CPU throttle.
+
+</Cap>
+
+## What it did not fix
+
+The target was under 200 ms and it was missed. The tasks that remain come from the page hydrating under the loader, not from the eye. That is the next piece of work, and it is not done.

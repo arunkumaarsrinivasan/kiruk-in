@@ -165,8 +165,8 @@ export interface EraReflect {
  * built, the rest hold their key interface still.
  */
 export const ERA_REFLECT_KEY: Record<string, [number, number, number]> = {
-  // the KIRUK banner and the first prompt lines
-  "1970": [290, 210, 540],
+  // the tube's board: the subject's name and the seven records (2026-11-10)
+  "1970": [384, 200, 640],
   // the Star's icons and the open window
   "1981": [400, 320, 600],
   // the title and the first blue links

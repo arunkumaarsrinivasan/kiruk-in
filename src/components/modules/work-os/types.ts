@@ -79,9 +79,37 @@ export interface WindowState {
   minimized?: boolean;
 }
 
+/**
+ * A full case (content/work/*.mdx) boiled down to plain data, so a desktop
+ * that draws its own screen can show the case inside it.
+ */
+export interface WorkCaseDigest {
+  slug: string;
+  title: string;
+  /** The project this case opens from, and the others folded into it. */
+  project: string;
+  also: string[];
+  pitch: string;
+  role: string;
+  when: string;
+  nda: boolean;
+  headline: { value: string; label: string };
+  links: { label: string; href: string; kind: string }[];
+  shots: { title: string; note: string }[];
+  lead?: { value: string; label: string };
+  stats: { value: string; label: string; delta?: string }[];
+  meters: { value: number; max: number; label: string }[];
+  trend?: { label: string; values: number[]; ticks: string[]; peak?: string; note?: string };
+  spans?: { label: string; from: string; to: string; rows: { name: string; from: string; to: string }[] };
+  iterations: { tag: string; when: string; title: string; note: string; best: boolean }[];
+  facts?: { role: string; team?: string; platform?: string; stack?: string; when?: string };
+}
+
 export interface DesktopProps {
   readonly era: DesktopEra;
   readonly projects: Project[];
   /** Project folder to open on boot (deep link). */
   readonly focusId?: string;
+  /** The full cases, for a desktop that shows them itself. */
+  readonly cases?: readonly WorkCaseDigest[];
 }

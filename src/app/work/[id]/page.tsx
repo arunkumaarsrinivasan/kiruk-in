@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { portfolioData } from "@/data/portfolio-data";
 import { getProjectCoverLabel } from "@/data/project-media";
+import { getWorkCaseDigests } from "@/lib/content/work/digest";
 import { WorkDesktop } from "../components/WorkDesktop";
 import { NavTrailSet } from "@/components/layout/NavTrail";
 
@@ -23,7 +24,7 @@ export default async function WorkProjectPage({ params }: { params: Promise<{ id
       }}
     >
       <NavTrailSet items={[{ label: "Work", href: "/work" }, { label: getProjectCoverLabel(project.id, project.title) }]} />
-      <WorkDesktop title={getProjectCoverLabel(project.id, project.title)} focusId={project.id} />
+      <WorkDesktop title={getProjectCoverLabel(project.id, project.title)} focusId={project.id} cases={getWorkCaseDigests()} />
     </div>
   );
 }

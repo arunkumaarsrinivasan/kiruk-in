@@ -7,6 +7,8 @@ import { NotebookArticle, NotebookReaderBody, NotebookViewProvider } from "@/com
 import { buildAgentMarkdown, parseNotebookView } from "@/lib/notebook";
 import { resolveRelated } from "@/lib/content/related";
 import { SITE_URL } from "@/lib/site";
+import { ReadShell } from "@/components/read/ReadShell";
+import { readRail, sectionsOf } from "@/lib/content/read/rail";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -73,6 +75,7 @@ export default async function NotebookArticlePage({ params }: PageProps) {
   });
 
   return (
+    <ReadShell rail={readRail({ shelf: "life", href: `/notebook/${slug}`, sections: sectionsOf(post.body) })}>
     <NotebookArticle
       summary={summary}
       minutes={readStats.text}
@@ -88,5 +91,6 @@ export default async function NotebookArticlePage({ params }: PageProps) {
         <NotebookReaderBody frontmatter={notebookFm}>{content}</NotebookReaderBody>
       </NotebookViewProvider>
     </NotebookArticle>
+    </ReadShell>
   );
 }

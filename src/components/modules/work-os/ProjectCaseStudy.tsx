@@ -117,6 +117,16 @@ export function ProjectCaseStudy({ project, era }: ProjectCaseStudyProps) {
         </a>
       ) : null}
 
+      {/* the same project as a plain page in this era, for reading */}
+      <a
+        href={`/work/${project.id}/read`}
+        className="flex min-h-11 items-center justify-between gap-3 px-3 py-2 font-semibold"
+        style={{ border: `1px solid ${t.accent}`, color: t.accent, borderRadius: 4 }}
+      >
+        <span>Read this project as a page</span>
+        <span aria-hidden>→</span>
+      </a>
+
       <p style={{ color: t.text }}>{project.longDescription ?? project.description}</p>
 
       {project.metrics?.impact ? (

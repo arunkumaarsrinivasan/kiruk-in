@@ -1,102 +1,70 @@
 /**
  * 1970 — Terminal home blueprint.
  *
- * Authored from TerminalHomePage.tsx: a fixed tty status bar under the nav,
- * then a single centered max-w-3xl column of teletype records — file header,
- * ASCII banner, framing line, meta nav, RECORD 001 pairs, the persona panel
- * split, and the journey table. Coarse, full-width rows: the least structured
- * interface on the timeline, and the spec says so.
+ * Authored from home/home-views.ts: the home is one picture tube that fills
+ * the eye. A head row under the upper lid, the SUBJECT pane on the left, the
+ * seven records and "All work" as a grid of cells on the right with the
+ * dossier under them, and the status line above the lower lid. The tube is a
+ * canvas, so there are no DOM markers to snap to: these fractions are the
+ * geometry the build-up draws.
  */
 
 import type { BlueprintSpec } from "../blueprint-types";
 
 export const TERMINAL_HOME_SPEC: BlueprintSpec = {
-  // max-w-3xl (768px) centered → ~60% at 1280px; near-full-bleed on mobile.
-  column: { x: 0.2, w: 0.6, mobileX: 0.04, mobileW: 0.92 },
-  // Character-cell mesh instead of a pixel grid; phosphor on black.
-  grid: { size: 18, opacity: 0.08 },
+  // The tube runs edge to edge under the lids.
+  column: { x: 0.02, w: 0.96, mobileX: 0.03, mobileW: 0.94 },
+  // Character cells, 10 × 20 at the tube's own scale.
+  grid: { size: 20, opacity: 0.08 },
   regions: [
     {
-      id: "tty-status",
+      id: "tube-head",
       kind: "chrome",
-      space: "viewport",
       x: 0,
       w: 1,
-      y: 0.07,
-      h: 0.032,
-      label: "TTY STATUS",
+      y: 0.08,
+      h: 0.035,
+      label: "KIRUK STATION",
     },
     {
-      id: "file-header",
-      kind: "text",
-      x: 0,
-      w: 1,
-      y: 0.13,
-      h: 0.1,
-      label: "RESEARCH FILE HEADER",
-    },
-    {
-      id: "ascii-banner",
+      id: "subject",
       kind: "hero",
       x: 0,
-      w: 0.9,
-      y: 0.245,
-      h: 0.09,
-      label: "ASCII BANNER",
+      w: 0.4,
+      y: 0.14,
+      h: 0.7,
+      label: "SUBJECT",
+      mobile: { w: 1, h: 0.2 },
     },
     {
-      id: "framing",
-      kind: "text",
-      x: 0,
-      w: 0.75,
-      y: 0.35,
-      h: 0.055,
-      label: "FRAMING",
+      id: "records",
+      kind: "grid",
+      x: 0.42,
+      w: 0.58,
+      y: 0.14,
+      h: 0.48,
+      label: "7 RECORDS · ALL WORK",
+      mobile: { x: 0, w: 1, y: 0.36, h: 0.42 },
     },
     {
-      id: "meta-nav",
-      kind: "chrome",
-      x: 0,
-      w: 0.5,
-      y: 0.42,
-      h: 0.03,
-      label: "NAV",
+      id: "dossier",
+      kind: "panel",
+      x: 0.42,
+      w: 0.58,
+      y: 0.64,
+      h: 0.2,
+      label: "DOSSIER",
+      mobile: { hidden: true },
     },
     {
-      id: "record-001",
-      kind: "text",
+      id: "status",
+      kind: "footer",
       x: 0,
       w: 1,
-      y: 0.475,
-      h: 0.13,
-      label: "RECORD 001 · WHY-KIRUK",
-    },
-    {
-      id: "persona-goals",
-      kind: "panel",
-      x: 0,
-      w: 0.485,
-      y: 0.64,
-      h: 0.15,
-      label: "GOALS",
-    },
-    {
-      id: "persona-frustrations",
-      kind: "panel",
-      x: 0.515,
-      w: 0.485,
-      y: 0.64,
-      h: 0.15,
-      label: "FRUSTRATIONS",
-    },
-    {
-      id: "journey",
-      kind: "list",
-      x: 0,
-      w: 1,
-      y: 0.83,
-      h: 0.15,
-      label: "RECORD 004 · JOURNEY",
+      y: 0.86,
+      h: 0.035,
+      label: "> POINT AT A RECORD",
+      mobile: { y: 0.8 },
     },
   ],
 };

@@ -27,10 +27,12 @@ export function TerminalShellLayer({ active }: ShellLayerProps) {
   if (!active) return null;
 
   return (
-    <>
+    // A page that draws its own glass (the vector home) hides this by the attribute.
+    <div data-terminal-shell className="absolute inset-0">
       {/* Fine scanlines — multiply blend so it darkens pixels without recoloring */}
+      {/* `era-shell-scan`: a page that shows real pictures can switch these lines off (read.css) */}
       <div
-        className="absolute inset-0"
+        className="era-shell-scan absolute inset-0"
         style={{
           backgroundImage:
             "repeating-linear-gradient(0deg, transparent 0px, transparent 2px, rgba(0,0,0,0.18) 2px, rgba(0,0,0,0.18) 3px)",
@@ -87,6 +89,6 @@ export function TerminalShellLayer({ active }: ShellLayerProps) {
           }}
         />
       )}
-    </>
+    </div>
   );
 }

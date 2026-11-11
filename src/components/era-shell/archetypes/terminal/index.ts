@@ -1,2 +1,2 @@
 export { TerminalShellLayer } from "./TerminalShellLayer";
-export { TerminalHomePage } from "./TerminalHomePage";
+export { Home1970 } from "./home/Home1970";

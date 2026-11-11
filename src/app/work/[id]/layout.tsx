@@ -14,7 +14,11 @@ export async function generateMetadata({
   return {
     title: project.title,
     description: project.description,
-    alternates: { canonical: `/work/${project.id}` },
+    alternates: {
+      canonical: `/work/${project.id}`,
+      // the same page as plain Markdown, for readers and engines the desktop cannot serve
+      types: { "text/markdown": `/work/${project.id}/agent.md` },
+    },
     openGraph: { images: [SHARE_IMAGE], title: project.title, description: project.description, url: `/work/${project.id}` },
   };
 }

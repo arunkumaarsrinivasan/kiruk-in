@@ -9,6 +9,8 @@ import { RelatedLinks } from "@/components/blog/RelatedLinks";
 import { useNavTrail } from "@/components/layout/NavTrail";
 import { releaseGaze } from "./gaze/field";
 import { GazeHit, GazeTitle } from "./gaze/GazeTitle";
+// The terminal grammar's styles. GazeField used to load them; the article uses them, so it loads them.
+import "./gaze/gaze.css";
 import { dateYear, markFor } from "./gaze/marks";
 import { useNotebookEraOptional } from "./NotebookEraContext";
 import { NotebookHeadingScroll } from "./NotebookHeadingScroll";

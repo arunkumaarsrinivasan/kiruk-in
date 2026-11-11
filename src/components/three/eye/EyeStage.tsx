@@ -316,6 +316,8 @@ export interface SceneProps {
   control?: React.MutableRefObject<EyeStageControl | null>;
   capture?: React.MutableRefObject<(() => Promise<string>) | null>;
   frameBox?: FrameBox;
+  /** Added to the screen's mip bias: below 0 the page in the cornea is sharper (the era picker's close-up). */
+  mipBias?: number;
   media?: boolean;
   calm?: boolean;
   covered?: boolean;
@@ -334,6 +336,7 @@ export function EyeScene({
   control,
   capture,
   frameBox,
+  mipBias = 0,
   media = false,
   calm = false,
   covered = false,
@@ -1159,7 +1162,7 @@ export function EyeScene({
     // The further back the shot stands, the fewer pixels a texel of the era's
     // page gets, so it is sampled out of a coarser mip: a dithered terminal
     // otherwise turns to a snowstorm of specks on a phone.
-    U.mip.value = Math.max(0, Math.log2(frame.span / REF_SPAN)) * 1.15;
+    U.mip.value = Math.max(0, Math.log2(frame.span / REF_SPAN)) * 1.15 + mipBias;
 
     // gaze: a held target (lab), else the pointer, else the room
     /** A pointer is here (even under reduced motion, for the era's sign). */
@@ -1923,6 +1926,8 @@ export interface EyeStageProps {
   control?: React.MutableRefObject<EyeStageControl | null>;
   /** A shot of the caller's own (FrameBox); by default framing.ts picks a phone's or a wide screen's. */
   frameBox?: FrameBox;
+  /** Added to the screen's mip bias: below 0 the page in the cornea is sharper. */
+  mipBias?: number;
   /** Ten ways of seeing (post/era-medium.ts): the frame through each era's own screen and image technology. The loader always asks for it. */
   media?: boolean;
   /** Phones: fainter grain, a smaller gaze and a slower sweep (CALM). */
@@ -1950,6 +1955,7 @@ export default function EyeStage({
   control,
   capture,
   frameBox,
+  mipBias,
   media,
   calm,
   covered,
@@ -1994,6 +2000,7 @@ export default function EyeStage({
           control={control}
           capture={capture}
           frameBox={frameBox}
+          mipBias={mipBias}
           media={media}
           calm={calm}
           covered={covered}
